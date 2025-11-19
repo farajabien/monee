@@ -36,7 +36,7 @@ export default function MonthlySummary() {
   const profile = profileData?.profiles?.[0];
   const monthlyBudget = profile?.monthlyBudget || 0;
 
-  // Get this month's transactions
+  // Get this month's transactions, income sources, and debt payments
   const { isLoading, error, data } = db.useQuery({
     transactions: {
       $: {
@@ -63,6 +63,22 @@ export default function MonthlySummary() {
       category: {},
       user: {},
     },
+    income_sources: {
+      $: {
+        where: { "user.id": user.id, isActive: true },
+      },
+      user: {},
+    },
+    debt_payments: {
+      $: {
+        where: {
+          paymentDate: { $gte: monthStartTs, $lte: monthEndTs },
+        },
+      },
+      debt: {
+        user: {},
+      },
+    },
   });
 
   if (isLoading) {
@@ -88,12 +104,38 @@ export default function MonthlySummary() {
   const transactions = data?.transactions || [];
   const categories = data?.categories || [];
   const budgets = data?.budgets || [];
+  const incomeSources = data?.income_sources || [];
+  const debtPayments = data?.debt_payments || [];
+
+  // Calculate monthly income from active sources
+  const currentMonth = now.getMonth() + 1;
+  const totalIncome = incomeSources.reduce((sum, source) => {
+    // If paydayMonth is set, only include if it matches current month
+    if (source.paydayMonth && source.paydayMonth !== currentMonth) {
+      return sum;
+    }
+    return sum + source.amount;
+  }, 0);
 
   // Calculate totals
   const totalSpent = transactions.reduce(
     (sum: number, tx: Transaction) => sum + tx.amount,
     0
   );
+
+  // Calculate total debt payments this month (only for user's debts)
+  const totalDebtPayments = debtPayments.reduce((sum, payment) => {
+    if (payment.debt?.user?.id === user.id) {
+      return sum + payment.amount;
+    }
+    return sum;
+  }, 0);
+
+  // Total expenses including debt payments
+  const totalExpenses = totalSpent + totalDebtPayments;
+
+  // Net balance
+  const netBalance = totalIncome - totalExpenses;
 
   // Group by category
   const categoryTotals: Record<string, { amount: number; count: number }> = {};
@@ -139,6 +181,41 @@ export default function MonthlySummary() {
           <CardTitle>{formatMonth()} Summary</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
+          {/* Income vs Expenses */}
+          <div className="grid grid-cols-2 gap-4 p-4 bg-muted rounded-lg">
+            <div>
+              <div className="text-xs text-muted-foreground mb-1">Income</div>
+              <div className="text-xl font-bold text-green-600">
+                {formatAmount(totalIncome)}
+              </div>
+            </div>
+            <div>
+              <div className="text-xs text-muted-foreground mb-1">Expenses</div>
+              <div className="text-xl font-bold text-red-600">
+                {formatAmount(totalExpenses)}
+              </div>
+            </div>
+          </div>
+
+          {/* Net Balance */}
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-muted-foreground">Net Balance</span>
+              <span
+                className={`text-2xl font-bold ${
+                  netBalance >= 0 ? "text-green-600" : "text-red-600"
+                }`}
+              >
+                {formatAmount(netBalance)}
+              </span>
+            </div>
+            {totalDebtPayments > 0 && (
+              <div className="text-xs text-muted-foreground">
+                Includes {formatAmount(totalDebtPayments)} in debt payments
+              </div>
+            )}
+          </div>
+
           <div className="space-y-2">
             <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground">Total Spent</span>

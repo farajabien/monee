@@ -68,20 +68,50 @@ No spreadsheets. No math. Just calm, simple insights that help you understand:
 
 ### **5. Every Little Thing I Want (ELTIW)**
 
-Sometimes, budgeting isn’t about cutting costs — it’s about taking care of yourself.
+Sometimes, budgeting isn't about cutting costs — it's about taking care of yourself.
 
-That’s why MONEE includes a soft, personal space called **Every Little Thing I Want**.
+That's why MONEE includes a soft, personal space called **Every Little Thing I Want**.
 
-It’s a simple list where you write down _everything you want for yourself_:
+It's a simple list where you write down _everything you want for yourself_:
 
-> “New shoes – Ksh 3,000”
-> “Skincare restock – Ksh 1,200”
-> “Weekend getaway – Ksh 4,500”
+> "New shoes – Ksh 3,000"
+> "Skincare restock – Ksh 1,200"
+> "Weekend getaway – Ksh 4,500"
 
-You can add a reason or goal, but you don’t have to.
-When you finally buy it, you just tap **“Got it”** — and MONEE celebrates with you. 🎉
+You can add a reason or goal, but you don't have to.
+When you finally buy it, you just tap **"Got it"** — and MONEE celebrates with you. 🎉
 
-It’s not just about money — it’s about self-care, priorities, and giving yourself permission to enjoy what you’ve worked for.
+It's not just about money — it's about self-care, priorities, and giving yourself permission to enjoy what you've worked for.
+
+---
+
+### **6. Track Your Income**
+
+Money doesn't just go out — it comes in too. MONEE helps you see the full picture.
+
+**Multiple Income Sources**: Add all your income streams — salary, freelance work, side hustles, rental income, or anything else. Each source has its own name and amount.
+
+**Payday Tracking**: Set when you get paid for each income source. MONEE remembers your paydays and helps you plan around them.
+
+**Monthly Income View**: See your total expected income for the month at a glance. Compare it to your actual spending to understand your financial health.
+
+**Income vs Expenses**: In your monthly insights, MONEE shows you the balance — how much you're earning versus how much you're spending. It's the simple math that helps you make better decisions.
+
+---
+
+### **7. Manage Your Debts**
+
+Debts don't have to be stressful — they just need to be organized.
+
+**Debt List**: Track all your debts in one place — loans, credit cards, money you owe friends, or any other obligations. Each debt has a name, total amount, and current balance.
+
+**Monthly Payment Rules**: Set up recurring payment rules for each debt. Tell MONEE how much you pay each month and when the payment is due. MONEE will remind you and help you stay on track.
+
+**Payment Tracking**: Mark payments as made when you pay them. MONEE keeps a history of all your payments, so you can see your progress over time.
+
+**Debt Progress**: See how much you've paid off and how much remains. MONEE shows you a clear timeline of when you'll be debt-free, giving you motivation to keep going.
+
+**Debt Tab**: A dedicated space in your dashboard where all your debt information lives — organized, clear, and manageable.
 
 ---
 
@@ -93,19 +123,26 @@ It’s not just about money — it’s about self-care, priorities, and giving y
 - 🔔 **Daily Check-In Reminders** – gentle push to stay consistent.
 - 🌙 **Evening Routine Mode** – quick checklist for all your daily transactions.
 - 💖 **ELTIW (Every Little Thing I Want)** – track what you want and celebrate your wins.
+- 💰 **Income Tracking** – track multiple income sources and payday dates.
+- 📈 **Income vs Expenses** – see your financial balance at a glance.
+- 💳 **Debt Management** – track all debts with monthly payment rules.
+- 📅 **Payment Tracking** – mark payments and see your debt payoff progress.
 - 🔒 **Private & Secure** – your data is yours, always encrypted and synced safely.
-- ☁️ **Cloud Sync via Firebase** – access your data from any device, even offline.
+- ☁️ **Cloud Sync via InstantDB** – access your data from any device, even offline.
 
 ---
 
 ## **The MONEE Flow**
 
-1. **Upload your Mpesa statement** → MONEE groups and labels your transactions.
-2. **Set your monthly budget** → per category (Food, Rent, Self-care, etc.).
-3. **Paste new Mpesa messages as you spend** → MONEE tracks them for you.
-4. **Get a daily reminder** → do your evening check and mark the day done.
-5. **Add your personal wishes** → everything you want, one small list.
-6. **See your progress grow** → both financially and emotionally.
+1. **Add your income sources** → set up all your income streams and payday dates.
+2. **Upload your Mpesa statement** → MONEE groups and labels your transactions.
+3. **Set your monthly budget** → per category (Food, Rent, Self-care, etc.).
+4. **Add your debts** → track all your debts and set up monthly payment rules.
+5. **Paste new Mpesa messages as you spend** → MONEE tracks them for you.
+6. **Get a daily reminder** → do your evening check and mark the day done.
+7. **Track your debt payments** → mark payments as made and see your progress.
+8. **Add your personal wishes** → everything you want, one small list.
+9. **See your progress grow** → both financially and emotionally.
 
 ---
 
@@ -131,7 +168,7 @@ You don’t need a financial degree to manage your money — you just need MONEE
 ## **Launch Plan**
 
 - Build as a **Progressive Web App (PWA)** using Next.js and shadcn.
-- Use **Firebase** for realtime sync, authentication, and notifications.
+- Use **InstantDB** for realtime sync, authentication, and data storage.
 - TikTok content & UGC focused on:
 
   - “The 2-minute evening money check ritual”
@@ -151,23 +188,28 @@ You don’t need a financial degree to manage your money — you just need MONEE
    - [Try for Free] button
    - Screenshot / demo video
 
-2. **How it works:** Three steps (Upload – Track – Reflect).
+2. **How it works:** Four steps (Income – Track – Debts – Reflect).
 
-3. **ELTIW section:** Emotional headline — _“Every Little Thing I Want — because your money should make you happy, not guilty.”_
+3. **Income Tracking:** Visual showing multiple income sources with payday calendar — _"Know exactly when money comes in, so you can plan when it goes out."_
 
-4. **Daily check-in:** visual of checklist + quote “A 2-minute habit that changes your relationship with money.”
+4. **Debt Management:** Simple debt list with progress bars — _"Debts don't have to be stressful — just organized."_
 
-5. **Testimonials & Reviews:** short, relatable ones like:
+5. **ELTIW section:** Emotional headline — _"Every Little Thing I Want — because your money should make you happy, not guilty."_
 
-   > “I actually understand my money now.”
-   > “It’s like journaling for your finances.”
+6. **Daily check-in:** visual of checklist + quote "A 2-minute habit that changes your relationship with money."
 
-6. **Pricing:** Free trial, then Ksh 499 lifetime access.
+7. **Testimonials & Reviews:** short, relatable ones like:
+
+   > "I actually understand my money now."
+   > "It's like journaling for your finances."
+   > "Finally, I can see my income and debts in one place."
+
+8. **Pricing:** Free trial, then Ksh 499 lifetime access.
 
    - No subscriptions.
    - Instant access via email.
 
-7. **CTA:** “Start your free 3-day trial today.”
+9. **CTA:** "Start your free 3-day trial today."
 
 ---
 

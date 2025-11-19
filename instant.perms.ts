@@ -41,4 +41,25 @@ export default {
       delete: "auth.id != null",
     },
   },
+  income_sources: {
+    allow: {
+      create: "auth.id != null",
+      update: "auth.id != null",
+      delete: "auth.id != null",
+    },
+  },
+  debts: {
+    allow: {
+      create: "auth.id != null",
+      update: "auth.id != null",
+      delete: "auth.id != null",
+    },
+  },
+  debt_payments: {
+    allow: {
+      create: "auth.id != null",
+      update: "auth.id != null",
+      delete: "auth.id != null",
+    },
+  },
 };

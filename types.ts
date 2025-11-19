@@ -55,6 +55,26 @@ export type DailyCheckinWithUser = InstaQLEntity<
   { user: {} }
 >;
 
+// Income Source types
+export type IncomeSource = InstaQLEntity<typeof schema, "income_sources">;
+export type IncomeSourceWithUser = InstaQLEntity<
+  typeof schema,
+  "income_sources",
+  { user: {} }
+>;
+
+// Debt types
+export type Debt = InstaQLEntity<typeof schema, "debts">;
+export type DebtWithUser = InstaQLEntity<typeof schema, "debts", { user: {} }>;
+
+// Debt Payment types
+export type DebtPayment = InstaQLEntity<typeof schema, "debt_payments">;
+export type DebtPaymentWithDebt = InstaQLEntity<
+  typeof schema,
+  "debt_payments",
+  { debt: {} }
+>;
+
 // Parsed transaction data structure
 export interface ParsedTransactionData {
   amount: number;

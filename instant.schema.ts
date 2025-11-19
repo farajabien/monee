@@ -38,6 +38,8 @@ const _schema = i.schema({
       name: i.string(),
       amount: i.number().indexed(),
       reason: i.string().optional(),
+      link: i.string().optional(),
+      deadline: i.number().optional().indexed(),
       gotIt: i.boolean(),
       gotItDate: i.number().optional(),
       createdAt: i.number().indexed(),
@@ -46,6 +48,28 @@ const _schema = i.schema({
       date: i.number().unique().indexed(),
       completed: i.boolean(),
       transactionsCount: i.number(),
+    }),
+    income_sources: i.entity({
+      name: i.string().indexed(),
+      amount: i.number().indexed(),
+      paydayDay: i.number(),
+      paydayMonth: i.number().optional(),
+      isActive: i.boolean(),
+      createdAt: i.number().indexed(),
+    }),
+    debts: i.entity({
+      name: i.string().indexed(),
+      totalAmount: i.number().indexed(),
+      currentBalance: i.number().indexed(),
+      monthlyPaymentAmount: i.number(),
+      paymentDueDay: i.number(),
+      interestRate: i.number().optional(),
+      createdAt: i.number().indexed(),
+    }),
+    debt_payments: i.entity({
+      amount: i.number().indexed(),
+      paymentDate: i.number().indexed(),
+      createdAt: i.number().indexed(),
     }),
   },
   links: {
@@ -76,6 +100,18 @@ const _schema = i.schema({
     profileDailyCheckins: {
       forward: { on: "daily_checkins", has: "one", label: "user" },
       reverse: { on: "profiles", has: "many", label: "dailyCheckins" },
+    },
+    profileIncomeSources: {
+      forward: { on: "income_sources", has: "one", label: "user" },
+      reverse: { on: "profiles", has: "many", label: "incomeSources" },
+    },
+    profileDebts: {
+      forward: { on: "debts", has: "one", label: "user" },
+      reverse: { on: "profiles", has: "many", label: "debts" },
+    },
+    debtPayments: {
+      forward: { on: "debt_payments", has: "one", label: "debt" },
+      reverse: { on: "debts", has: "many", label: "payments" },
     },
   },
   rooms: {},

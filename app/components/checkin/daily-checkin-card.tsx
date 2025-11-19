@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { id } from "@instantdb/react";
 import db from "@/lib/db";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,6 +9,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { parseMpesaMessage } from "@/lib/mpesa-parser";
+import { findMostCommonCategoryForRecipient } from "@/lib/recipient-matcher";
+import type { Transaction } from "@/types";
 
 export default function DailyCheckinCard() {
   const user = db.useUser();
@@ -48,6 +50,21 @@ export default function DailyCheckinCard() {
 
   const todayTransactions = transactionsData?.transactions || [];
 
+  // Fetch existing transactions for recipient matching
+  const { data: allTransactionsData } = db.useQuery({
+    transactions: {
+      $: {
+        where: { "user.id": user.id },
+        limit: 1000, // Get enough transactions for matching
+      },
+    },
+  });
+
+  const existingTransactions: Transaction[] = useMemo(
+    () => allTransactionsData?.transactions || [],
+    [allTransactionsData]
+  );
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!messages.trim()) return;
@@ -63,11 +80,19 @@ export default function DailyCheckinCard() {
       for (const message of messageLines) {
         try {
           const parsed = parseMpesaMessage(message);
+          // Auto-match category based on recipient
+          const category = parsed.recipient
+            ? findMostCommonCategoryForRecipient(
+                parsed.recipient,
+                existingTransactions
+              ) || "Uncategorized"
+            : "Uncategorized";
+
           transactions.push({
             amount: parsed.amount,
             recipient: parsed.recipient || "",
             date: parsed.timestamp || Date.now(),
-            category: "Uncategorized",
+            category,
             rawMessage: message,
             parsedData: parsed,
             createdAt: Date.now(),

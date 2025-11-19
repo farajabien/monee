@@ -1,15 +1,19 @@
 "use client";
 
+import { useState } from "react";
 import { id } from "@instantdb/react";
 import db from "@/lib/db";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Trash2 } from "lucide-react";
+import { Trash2, Edit } from "lucide-react";
+import { EditTransactionDialog } from "./edit-transaction-dialog";
 import type { Transaction } from "@/types";
 
 export default function TransactionList() {
   const user = db.useUser();
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const { isLoading, error, data } = db.useQuery({
     transactions: {
       $: {
@@ -79,8 +83,9 @@ export default function TransactionList() {
   }
 
   return (
-    <div className="space-y-2">
-      {transactions.map((transaction: Transaction) => (
+    <>
+      <div className="space-y-2">
+        {transactions.map((transaction: Transaction) => (
         <Card key={transaction.id}>
           <CardContent className="p-4">
             <div className="flex items-start justify-between gap-4">
@@ -102,19 +107,38 @@ export default function TransactionList() {
                   {formatDate(transaction.date || transaction.createdAt)}
                 </p>
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => deleteTransaction(transaction.id)}
-                className="text-destructive hover:text-destructive"
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
+              <div className="flex gap-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setEditingTransaction(transaction);
+                    setIsEditDialogOpen(true);
+                  }}
+                >
+                  <Edit className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => deleteTransaction(transaction.id)}
+                  className="text-destructive hover:text-destructive"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
       ))}
-    </div>
+      </div>
+
+      <EditTransactionDialog
+        open={isEditDialogOpen}
+        onOpenChange={setIsEditDialogOpen}
+        transaction={editingTransaction}
+      />
+    </>
   );
 }
 

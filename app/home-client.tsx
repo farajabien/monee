@@ -9,6 +9,12 @@ import DailyCheckinCard from "./components/checkin/daily-checkin-card";
 import EltiwList from "./components/eltiw/eltiw-list";
 import CategoryList from "./components/categories/category-list";
 import MonthlySummary from "./components/insights/monthly-summary";
+import { BudgetList } from "./components/budgets/budget-list";
+import { IncomeSourceList } from "./components/income/income-source-list";
+import { IncomeSummary } from "./components/income/income-summary";
+import { DebtList } from "./components/debts/debt-list";
+import { DebtProgress } from "./components/debts/debt-progress";
+import { DebtPaymentForm } from "./components/debts/debt-payment-form";
 
 export default function HomeClient() {
   return (
@@ -22,9 +28,11 @@ export default function HomeClient() {
         </div>
 
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-7 h-auto">
             <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="income">Income</TabsTrigger>
             <TabsTrigger value="transactions">Transactions</TabsTrigger>
+            <TabsTrigger value="debts">Debts</TabsTrigger>
             <TabsTrigger value="checkin">Check-In</TabsTrigger>
             <TabsTrigger value="eltiw">ELTIW</TabsTrigger>
             <TabsTrigger value="categories">Categories</TabsTrigger>
@@ -32,11 +40,22 @@ export default function HomeClient() {
 
           <TabsContent value="overview" className="space-y-4">
             <MonthlySummary />
+            <BudgetList />
+          </TabsContent>
+
+          <TabsContent value="income" className="space-y-4">
+            <IncomeSummary />
+            <IncomeSourceList />
           </TabsContent>
 
           <TabsContent value="transactions" className="space-y-4">
             <AddTransactionForm />
             <TransactionList />
+          </TabsContent>
+
+          <TabsContent value="debts" className="space-y-4">
+            <DebtProgress />
+            <DebtList />
           </TabsContent>
 
           <TabsContent value="checkin" className="space-y-4">
