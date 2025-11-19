@@ -1,0 +1,89 @@
+import { i } from "@instantdb/react";
+
+const _schema = i.schema({
+  entities: {
+    $files: i.entity({
+      path: i.string().unique().indexed(),
+      url: i.string(),
+    }),
+    $users: i.entity({
+      email: i.string().unique().indexed().optional(),
+      type: i.string().optional(),
+    }),
+    profiles: i.entity({
+      handle: i.string(),
+      monthlyBudget: i.number(),
+      createdAt: i.number().indexed(),
+    }),
+    transactions: i.entity({
+      amount: i.number().indexed(),
+      recipient: i.string(),
+      date: i.number().indexed(),
+      category: i.string(),
+      rawMessage: i.string(),
+      parsedData: i.json(),
+      createdAt: i.number().indexed(),
+    }),
+    categories: i.entity({
+      name: i.string().indexed(),
+      color: i.string(),
+      icon: i.string(),
+    }),
+    budgets: i.entity({
+      amount: i.number().indexed(),
+      month: i.number().indexed(),
+      year: i.number().indexed(),
+    }),
+    eltiw_items: i.entity({
+      name: i.string(),
+      amount: i.number().indexed(),
+      reason: i.string().optional(),
+      gotIt: i.boolean(),
+      gotItDate: i.number().optional(),
+      createdAt: i.number().indexed(),
+    }),
+    daily_checkins: i.entity({
+      date: i.number().unique().indexed(),
+      completed: i.boolean(),
+      transactionsCount: i.number(),
+    }),
+  },
+  links: {
+    userProfiles: {
+      forward: { on: "profiles", has: "one", label: "user" },
+      reverse: { on: "$users", has: "one", label: "profile" },
+    },
+    profileTransactions: {
+      forward: { on: "transactions", has: "one", label: "user" },
+      reverse: { on: "profiles", has: "many", label: "transactions" },
+    },
+    profileCategories: {
+      forward: { on: "categories", has: "one", label: "user" },
+      reverse: { on: "profiles", has: "many", label: "categories" },
+    },
+    categoryBudgets: {
+      forward: { on: "budgets", has: "one", label: "category" },
+      reverse: { on: "categories", has: "many", label: "budgets" },
+    },
+    profileBudgets: {
+      forward: { on: "budgets", has: "one", label: "user" },
+      reverse: { on: "profiles", has: "many", label: "budgets" },
+    },
+    profileEltiwItems: {
+      forward: { on: "eltiw_items", has: "one", label: "user" },
+      reverse: { on: "profiles", has: "many", label: "eltiwItems" },
+    },
+    profileDailyCheckins: {
+      forward: { on: "daily_checkins", has: "one", label: "user" },
+      reverse: { on: "profiles", has: "many", label: "dailyCheckins" },
+    },
+  },
+  rooms: {},
+});
+
+type _AppSchema = typeof _schema;
+type AppSchema = _AppSchema;
+const schema: AppSchema = _schema;
+
+export type { AppSchema };
+export default schema;

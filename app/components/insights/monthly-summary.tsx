@@ -1,0 +1,231 @@
+"use client";
+
+import db from "@/lib/db";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import CategoryBadge from "../categories/category-badge";
+import type { Transaction, Category, Budget } from "@/types";
+
+export default function MonthlySummary() {
+  const user = db.useUser();
+
+  // Get current month start and end timestamps
+  const now = new Date();
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const monthEnd = new Date(
+    now.getFullYear(),
+    now.getMonth() + 1,
+    0,
+    23,
+    59,
+    59
+  );
+  const monthStartTs = monthStart.getTime();
+  const monthEndTs = monthEnd.getTime();
+
+  // Get profile for monthly budget
+  const { data: profileData } = db.useQuery({
+    profiles: {
+      $: {
+        where: { "user.id": user.id },
+      },
+    },
+  });
+
+  const profile = profileData?.profiles?.[0];
+  const monthlyBudget = profile?.monthlyBudget || 0;
+
+  // Get this month's transactions
+  const { isLoading, error, data } = db.useQuery({
+    transactions: {
+      $: {
+        where: {
+          "user.id": user.id,
+          date: { $gte: monthStartTs, $lte: monthEndTs },
+        },
+        order: { date: "desc" },
+      },
+    },
+    categories: {
+      $: {
+        where: { "user.id": user.id },
+      },
+    },
+    budgets: {
+      $: {
+        where: {
+          "user.id": user.id,
+          month: now.getMonth() + 1,
+          year: now.getFullYear(),
+        },
+      },
+      category: {},
+      user: {},
+    },
+  });
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="text-center text-muted-foreground">Loading...</div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="text-center text-red-500">Error: {error.message}</div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const transactions = data?.transactions || [];
+  const categories = data?.categories || [];
+  const budgets = data?.budgets || [];
+
+  // Calculate totals
+  const totalSpent = transactions.reduce(
+    (sum: number, tx: Transaction) => sum + tx.amount,
+    0
+  );
+
+  // Group by category
+  const categoryTotals: Record<string, { amount: number; count: number }> = {};
+  transactions.forEach((tx: Transaction) => {
+    const cat = tx.category || "Uncategorized";
+    if (!categoryTotals[cat]) {
+      categoryTotals[cat] = { amount: 0, count: 0 };
+    }
+    categoryTotals[cat].amount += tx.amount;
+    categoryTotals[cat].count += 1;
+  });
+
+  // Get budget for each category
+  const categoryBudgets: Record<string, number> = {};
+  budgets.forEach((budget: Budget) => {
+    const category = categories.find(
+      (c: Category) => c.id === budget.category?.id
+    );
+    if (category) {
+      categoryBudgets[category.name] = budget.amount;
+    }
+  });
+
+  const formatAmount = (amount: number) => {
+    return new Intl.NumberFormat("en-KE", {
+      style: "currency",
+      currency: "KES",
+      minimumFractionDigits: 0,
+    }).format(amount);
+  };
+
+  const formatMonth = () => {
+    return now.toLocaleDateString("en-KE", { month: "long", year: "numeric" });
+  };
+
+  const budgetProgress =
+    monthlyBudget > 0 ? (totalSpent / monthlyBudget) * 100 : 0;
+
+  return (
+    <div className="space-y-4">
+      <Card>
+        <CardHeader>
+          <CardTitle>{formatMonth()} Summary</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-muted-foreground">Total Spent</span>
+              <span className="text-2xl font-bold">
+                {formatAmount(totalSpent)}
+              </span>
+            </div>
+            {monthlyBudget > 0 && (
+              <>
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-muted-foreground">Monthly Budget</span>
+                  <span>{formatAmount(monthlyBudget)}</span>
+                </div>
+                <Progress
+                  value={Math.min(budgetProgress, 100)}
+                  className="h-2"
+                />
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>
+                    {budgetProgress > 100
+                      ? "Over budget"
+                      : `${Math.round(budgetProgress)}% used`}
+                  </span>
+                  <span>
+                    {formatAmount(Math.max(0, monthlyBudget - totalSpent))}{" "}
+                    remaining
+                  </span>
+                </div>
+              </>
+            )}
+          </div>
+
+          {Object.keys(categoryTotals).length > 0 && (
+            <div className="space-y-3">
+              <h3 className="text-sm font-medium">By Category</h3>
+              <div className="space-y-2">
+                {Object.entries(categoryTotals)
+                  .sort((a, b) => b[1].amount - a[1].amount)
+                  .map(([categoryName, totals]) => {
+                    const category = categories.find(
+                      (c: Category) => c.name === categoryName
+                    );
+                    const budget = categoryBudgets[categoryName] || 0;
+                    const categoryProgress =
+                      budget > 0 ? (totals.amount / budget) * 100 : 0;
+
+                    return (
+                      <div key={categoryName} className="space-y-1">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            {category ? (
+                              <CategoryBadge category={category} />
+                            ) : (
+                              <Badge variant="secondary">{categoryName}</Badge>
+                            )}
+                            <span className="text-xs text-muted-foreground">
+                              ({totals.count} transaction
+                              {totals.count !== 1 ? "s" : ""})
+                            </span>
+                          </div>
+                          <span className="font-semibold">
+                            {formatAmount(totals.amount)}
+                          </span>
+                        </div>
+                        {budget > 0 && (
+                          <Progress
+                            value={Math.min(categoryProgress, 100)}
+                            className="h-1"
+                          />
+                        )}
+                      </div>
+                    );
+                  })}
+              </div>
+            </div>
+          )}
+
+          {transactions.length === 0 && (
+            <div className="text-center text-muted-foreground py-8">
+              <p>No transactions this month yet.</p>
+              <p className="text-sm mt-2">
+                Start tracking your spending to see insights here!
+              </p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
