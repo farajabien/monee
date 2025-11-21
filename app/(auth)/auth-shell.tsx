@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Sparkles } from "lucide-react";
 import db from "@/lib/db";
 import EnsureProfile from "@/components/ensure-profile";
 import HomeClient from "@/app/home-client";
@@ -45,12 +46,29 @@ export default function AuthShell() {
     return null;
   }
 
+  // Block content if user hasn't paid
+  const hasPaid = user?.hasPaid === true;
+
   return (
     <>
       <PaywallDialog open={showPaywall} onOpenChange={setShowPaywall} />
-      <EnsureProfile>
-        <HomeClient />
-      </EnsureProfile>
+      {hasPaid ? (
+        <EnsureProfile>
+          <HomeClient />
+        </EnsureProfile>
+      ) : (
+        <div className="flex min-h-screen items-center justify-center p-4">
+          <div className="text-center space-y-4 max-w-md">
+            <div className="animate-pulse rounded-full h-16 w-16 bg-primary/20 flex items-center justify-center mx-auto">
+              <Sparkles className="h-8 w-8 text-primary" />
+            </div>
+            <h2 className="text-2xl font-bold">Welcome to MONEE!</h2>
+            <p className="text-muted-foreground">
+              To access all features, please complete your one-time payment of Ksh 999.
+            </p>
+          </div>
+        </div>
+      )}
     </>
   );
 }

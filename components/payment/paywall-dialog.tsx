@@ -110,8 +110,16 @@ export function PaywallDialog({ open, onOpenChange }: PaywallDialogProps) {
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+    <Dialog open={open} onOpenChange={(newOpen) => {
+      // Prevent closing the dialog - user must pay
+      if (!newOpen) return;
+      onOpenChange(newOpen);
+    }}>
+      <DialogContent 
+        className="max-w-2xl"
+        onEscapeKeyDown={(e) => e.preventDefault()}
+        onPointerDownOutside={(e) => e.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle className="text-2xl flex items-center gap-2">
             <Sparkles className="h-6 w-6 text-primary" />
@@ -146,46 +154,32 @@ export function PaywallDialog({ open, onOpenChange }: PaywallDialogProps) {
           {/* Features */}
           <div>
             <h3 className="font-semibold mb-3">Everything Included:</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-              {features.map((feature) => (
+            <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+              {features.slice(0, 8).map((feature) => (
                 <div key={feature} className="flex items-start gap-2">
                   <Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
                   <span className="text-sm">{feature}</span>
                 </div>
               ))}
             </div>
-          </div>
-
-          {/* Comparison */}
-          <div className="bg-muted p-4 rounded-lg">
-            <h3 className="font-semibold mb-2">Why MONEE vs Excel Templates?</h3>
-            <ul className="text-sm space-y-1 text-muted-foreground">
-              <li>✅ Auto-parses M-Pesa messages (no manual entry)</li>
-              <li>✅ Smart categorization with recipient matching</li>
-              <li>✅ Real-time sync across devices</li>
-              <li>✅ No formulas, no manual calculations</li>
-              <li>✅ Beautiful insights and progress tracking</li>
-            </ul>
+            <p className="text-xs text-muted-foreground mt-3 text-center">
+              + {features.length - 8} more features • Lifetime access • Free updates forever
+            </p>
           </div>
         </div>
 
-        <DialogFooter className="flex-col sm:flex-row gap-2">
-          <Button
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-            disabled={isProcessing}
-            className="w-full sm:w-auto"
-          >
-            Maybe Later
-          </Button>
+        <DialogFooter className="flex-col gap-2">
           <Button
             onClick={handlePayment}
             disabled={isProcessing}
-            className="w-full sm:w-auto"
+            className="w-full"
             size="lg"
           >
             {isProcessing ? "Processing..." : "Pay Ksh 999 & Get Started"}
           </Button>
+          <p className="text-xs text-center text-muted-foreground">
+            💳 Payment required to access all features
+          </p>
         </DialogFooter>
       </DialogContent>
     </Dialog>
