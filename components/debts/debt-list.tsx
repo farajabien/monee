@@ -21,17 +21,19 @@ import {
   CheckCircle,
   ArrowRight,
 } from "lucide-react";
-import { DebtForm } from "./debt-form";
+import { DebtFormDialog } from "./debt-form-dialog";
 import { DebtPaymentForm } from "./debt-payment-form";
 import type { DebtWithUser } from "@/types";
 
 export function DebtList() {
   const user = db.useUser();
-  const [showAddForm, setShowAddForm] = useState(false);
   const [editingDebt, setEditingDebt] = useState<DebtWithUser | null>(null);
+  const [showEditDialog, setShowEditDialog] = useState(false);
   const [selectedDebtForPayment, setSelectedDebtForPayment] =
     useState<DebtWithUser | null>(null);
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+  const [deletingDebt, setDeletingDebt] = useState<DebtWithUser | null>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const { isLoading, error, data } = db.useQuery({
     debts: {
@@ -45,11 +47,7 @@ export function DebtList() {
 
   const debts: DebtWithUser[] = useMemo(() => data?.debts || [], [data?.debts]);
 
-  const handleDelete = (debtId: string) => {
-    if (confirm("Are you sure you want to delete this debt?")) {
-      db.transact(db.tx.debts[debtId].delete());
-    }
-  };
+
 
   const formatAmount = (amount: number) => {
     return new Intl.NumberFormat("en-KE", {
@@ -156,37 +154,57 @@ export function DebtList() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Debts</CardTitle>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              setEditingDebt(null);
-              setShowAddForm(true);
-            }}
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Add Debt
-          </Button>
+          <DebtFormDialog />
         </CardHeader>
         <CardContent className="space-y-4">
-          {showAddForm && (
-            <div className="p-4 border rounded-lg">
-              <DebtForm
-                onSuccess={() => setShowAddForm(false)}
-                onCancel={() => setShowAddForm(false)}
-              />
-            </div>
+
+          {/* Edit Dialog */}
+          {editingDebt && (
+            <DebtFormDialog
+              debt={editingDebt}
+              open={showEditDialog}
+              onOpenChange={(open) => {
+                setShowEditDialog(open);
+                if (!open) setEditingDebt(null);
+              }}
+            />
           )}
 
-          {editingDebt && (
-            <div className="p-4 border rounded-lg">
-              <DebtForm
-                debt={editingDebt}
-                onSuccess={() => setEditingDebt(null)}
-                onCancel={() => setEditingDebt(null)}
-              />
-            </div>
-          )}
+          {/* Delete Confirmation Dialog */}
+          <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Delete Debt</DialogTitle>
+              </DialogHeader>
+              <p className="text-muted-foreground">
+                Are you sure you want to delete &quot;{deletingDebt?.name}&quot;?
+                This will also delete all associated payment records.
+              </p>
+              <div className="flex justify-end gap-2 mt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowDeleteDialog(false);
+                    setDeletingDebt(null);
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={() => {
+                    if (deletingDebt) {
+                      db.transact(db.tx.debts[deletingDebt.id].delete());
+                      setShowDeleteDialog(false);
+                      setDeletingDebt(null);
+                    }
+                  }}
+                >
+                  Delete
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
 
           {debts.length > 0 && (
             <div className="p-4 bg-muted rounded-lg">
@@ -201,7 +219,7 @@ export function DebtList() {
             </div>
           )}
 
-          {debts.length === 0 && !showAddForm && !editingDebt ? (
+          {debts.length === 0 ? (
             <div className="text-center text-muted-foreground py-8">
               <p className="mb-2">No debts tracked yet.</p>
               <p className="text-sm">Add your debts to start managing them.</p>
@@ -301,8 +319,8 @@ export function DebtList() {
                               variant="ghost"
                               size="sm"
                               onClick={() => {
-                                setShowAddForm(false);
                                 setEditingDebt(debt);
+                                setShowEditDialog(true);
                               }}
                             >
                               <Edit className="h-4 w-4" />
@@ -310,7 +328,10 @@ export function DebtList() {
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => handleDelete(debt.id)}
+                              onClick={() => {
+                                setDeletingDebt(debt);
+                                setShowDeleteDialog(true);
+                              }}
                               className="text-destructive hover:text-destructive"
                             >
                               <Trash2 className="h-4 w-4" />

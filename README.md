@@ -3,7 +3,7 @@
 Most of us _think_ we know where our money goes.
 Until the end of the month, when it’s gone — and we’re left with screenshots of Mpesa messages and good intentions.
 
-**MONEE** is your simple, personal money assistant — built for real life in Kenya.
+**MONEE** is your simple, personal money assistant — built for real life in Kenya 🇰🇪.
 It helps you **track, understand, and plan your money** — all in one beautiful daily ritual.
 
 ---
@@ -117,19 +117,25 @@ Debts don't have to be stressful — they just need to be organized.
 
 ## **Features at a Glance**
 
-- 🧾 **Mpesa Smart Parsing** – paste any Mpesa message, MONEE reads it instantly.
-- 📂 **Labels & Categories** – easily group expenses by purpose or person.
-- 🎨 **Built-in Essentials** – Food, Transport, Housing, Utilities, Savings, and Misc categories are ready out of the box, so you can start tagging immediately.
-- 📊 **Monthly Insights** – see where your money truly goes.
-- 🔔 **Daily Check-In Reminders** – gentle push to stay consistent.
-- 🌙 **Evening Routine Mode** – quick checklist for all your daily transactions.
-- 💖 **ELTIW (Every Little Thing I Want)** – track what you want and celebrate your wins.
-- 💰 **Income Tracking** – track multiple income sources and payday dates.
-- 📈 **Income vs Expenses** – see your financial balance at a glance.
-- 💳 **Debt Management** – track all debts with monthly payment rules.
-- 📅 **Payment Tracking** – mark payments and see your debt payoff progress.
-- 🔒 **Private & Secure** – your data is yours, always encrypted and synced safely.
-- ☁️ **Cloud Sync via InstantDB** – access your data from any device, even offline.
+- 🧾 **Mpesa Smart Parsing** – paste any Mpesa message (6+ formats including M-Shwari), MONEE reads it instantly
+- 📂 **Labels & Categories** – easily group expenses by purpose or person
+- 🎨 **Built-in Essentials** – Food, Transport, Housing, Utilities, Savings, and Misc categories ready out of the box
+- 🤖 **Smart Auto-Categorization** – fuzzy recipient matching remembers categories for known recipients
+- 📊 **Monthly Insights** – see where your money truly goes with top recipients list
+- 🔔 **Daily Check-In Reminders** – gentle push to stay consistent (coming soon)
+- 🌙 **Evening Routine Mode** – quick checklist for all your daily transactions
+- 💖 **ELTIW (Every Little Thing I Want)** – track what you want and celebrate your wins
+- 💰 **Income Tracking** – track multiple income sources and payday dates
+- 📈 **Income vs Expenses** – see your financial balance at a glance
+- 💳 **Debt Management** – track all debts with monthly payment rules
+- 📅 **Payment Tracking** – mark payments and see your debt payoff progress
+- 🆓 **Free Analyzer Tool** – no login required, 100% offline transaction analysis
+- 🎨 **Professional Landing Page** – full feature showcase with comparison table
+- 📄 **Legal Pages** – comprehensive Terms of Service and Privacy Policy
+- 💰 **Money-Bag Branding** – professional logo across all pages
+- 🔒 **Private & Secure** – your data is yours, always encrypted and synced safely
+- ☁️ **Cloud Sync via InstantDB** – access your data from any device, even offline
+- 📱 **PWA Support** – install on phone, works offline, feels like native app
 
 ---
 
@@ -149,11 +155,23 @@ Debts don't have to be stressful — they just need to be organized.
 
 ## **Business Model**
 
-- **Free 3-day trial** to explore all features.
-- Then **one-time lifetime access for Ksh 499.**
-- You pay once — no subscriptions, no surprises.
+- **Free M-Pesa Analyzer** - No login required, 100% offline transaction analysis tool
+- **Full App Access** - One-time payment of **Ksh 999** (valued at Ksh 1,500)
+- Lifetime access — no subscriptions, no surprises
+- All future updates included free
 
 This simple model keeps MONEE sustainable while staying affordable for everyone.
+
+### **Why Ksh 999?**
+
+Compared to Excel templates (Ksh 500-1,000) that require manual work:
+- ✅ Auto-parses M-Pesa messages (6+ formats)
+- ✅ Smart categorization with recipient matching
+- ✅ Real-time sync across devices
+- ✅ Income, debt, and budget tracking
+- ✅ Daily check-in reminders
+- ✅ ELTIW wishlist feature
+- ✅ Lifetime updates
 
 ---
 
@@ -168,17 +186,23 @@ You don’t need a financial degree to manage your money — you just need MONEE
 
 ## **Launch Plan**
 
-- Build as a **Progressive Web App (PWA)** using Next.js and shadcn.
-- Use **Firebase** for realtime sync, authentication, and notifications.
+✅ **COMPLETED:**
+- Built as a **Progressive Web App (PWA)** using Next.js 16 and shadcn
+- Using **InstantDB** for realtime sync, authentication (magic links)
+- Landing page live at `/landing` with full feature showcase
+- Free analyzer tool at `/analyzer` (no login, 100% offline)
+- Terms of Service and Privacy Policy pages
+- Professional branding with money-bag logo 💰
+
+🚀 **NEXT STEPS:**
 - TikTok content & UGC focused on:
-
-  - “The 2-minute evening money check ritual”
-  - “What I learned from tracking every Mpesa message”
-  - “Every Little Thing I Want — how I reward myself intentionally”
-
-- Organic content first, then boosted TikTok ads driving to the **landing page**:
-
-  > “Try MONEE free for 3 days, or buy lifetime access for Ksh 499.”
+  - "Stop using Excel for your budget — try this Kenya-built app 🇰🇪"
+  - "The 2-minute evening money check ritual"
+  - "How I tracked 100+ M-Pesa messages in 5 minutes"
+  - "Every Little Thing I Want — reward yourself intentionally"
+- Organic content first, then boosted TikTok ads driving to the **landing page**
+- Payment integration (M-Pesa API or Stripe)
+- Launch with free analyzer as lead magnet → convert to Ksh 999 full app
 
 ---
 
@@ -214,11 +238,33 @@ You don’t need a financial degree to manage your money — you just need MONEE
 
 ---
 
+## **Free M-Pesa Analyzer Tool** 💡
+
+Before committing to the full app, try our **free analyzer** at `/analyzer`:
+
+✅ **No login required** — start analyzing immediately
+✅ **100% offline** — all processing happens in your browser using IndexedDB
+✅ **Zero data sent to servers** — your privacy is guaranteed
+✅ **Paste multiple messages** — analyze bulk transactions at once
+✅ **Auto-categorization** — assign categories while analyzing
+✅ **Smart grouping** — see spending by recipient and date
+✅ **Export data** — download as JSON or CSV
+✅ **ScrollArea for long messages** — handles 100+ messages smoothly
+✅ **Duplicate detection** — shows "3× Ksh 500" for repeated amounts
+
+**Perfect for:**
+- Trying MONEE without commitment
+- Quick one-time analysis
+- Sharing with friends who need to see their spending patterns
+- Lead magnet to convert users to full app
+
+---
+
 ## **Vision**
 
 To turn personal finance into a mindful daily ritual — not a stressful chore.
 
-Because money management isn’t about control;
-it’s about awareness, self-respect, and peace of mind.
+Because money management isn't about control;
+it's about awareness, self-respect, and peace of mind.
 
 **MONEE** is that — your quiet, caring money companion.

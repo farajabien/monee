@@ -9,6 +9,9 @@ const _schema = i.schema({
     $users: i.entity({
       email: i.string().unique().indexed().optional(),
       type: i.string().optional(),
+      hasPaid: i.boolean().optional(),
+      paymentDate: i.number().optional().indexed(),
+      paystackReference: i.string().optional(),
     }),
     profiles: i.entity({
       handle: i.string(),

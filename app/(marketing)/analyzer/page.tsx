@@ -2,14 +2,22 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
-  Wallet,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Upload,
   Trash2,
   Download,
@@ -42,6 +50,29 @@ export default function AnalyzerPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string>("Uncategorized");
+
+  const categories = [
+    "Food",
+    "Transport",
+    "Housing",
+    "Utilities",
+    "Savings",
+    "Entertainment",
+    "Shopping",
+    "Healthcare",
+    "Education",
+    "Personal Care",
+    "Uncategorized",
+  ];
+
+  // Auto-dismiss success messages after 5 seconds
+  useEffect(() => {
+    if (success) {
+      const timer = setTimeout(() => setSuccess(null), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [success]);
 
   // Load transactions from IndexedDB on mount
   useEffect(() => {
@@ -55,8 +86,8 @@ export default function AnalyzerPage() {
       if (loaded.length > 0) {
         setStats(calculateStats(loaded));
       }
-    } catch (err) {
-      console.error("Failed to load transactions:", err);
+    } catch (error) {
+      console.error("Failed to load transactions:", error);
     }
   };
 
@@ -87,12 +118,12 @@ export default function AnalyzerPage() {
             amount: data.amount,
             recipient: data.recipient || "Unknown",
             date: data.timestamp || Date.now(),
-            category: "Uncategorized",
+            category: selectedCategory,
             rawMessage: message,
             transactionType: data.transactionType,
             parsedAt: Date.now(),
           });
-        } catch (err) {
+        } catch {
           failed.push(message);
         }
       }
@@ -117,7 +148,7 @@ export default function AnalyzerPage() {
           }. Make sure they are valid M-Pesa messages.`
         );
       }
-    } catch (err) {
+    } catch {
       setError("Failed to analyze transactions. Please try again.");
     } finally {
       setIsProcessing(false);
@@ -131,7 +162,7 @@ export default function AnalyzerPage() {
         setTransactions([]);
         setStats(null);
         setSuccess("All transactions cleared!");
-      } catch (err) {
+      } catch {
         setError("Failed to clear transactions");
       }
     }
@@ -163,7 +194,13 @@ export default function AnalyzerPage() {
       <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <Link href="/landing" className="flex items-center gap-2">
-            <Wallet className="h-6 w-6" />
+            <Image
+              src="/AppImages/money-bag.png"
+              alt="MONEE"
+              width={32}
+              height={32}
+              className="h-8 w-8"
+            />
             <span className="font-bold text-xl">MONEE</span>
           </Link>
           <div className="flex items-center gap-4">
@@ -171,7 +208,7 @@ export default function AnalyzerPage() {
             <Link href="/landing">
               <Button variant="ghost">Back to Home</Button>
             </Link>
-            <Link href="/auth/login">
+            <Link href="/login">
               <Button variant="default">
                 Get Full App <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
@@ -224,17 +261,37 @@ export default function AnalyzerPage() {
                   <Label htmlFor="mpesa-messages">
                     Paste one or multiple messages
                   </Label>
-                  <Textarea
-                    id="mpesa-messages"
-                    placeholder="TKLPNAO4DP Confirmed. Ksh27.00 sent to SAFARICOM DATA BUNDLES..."
-                    value={messages}
-                    onChange={(e) => setMessages(e.target.value)}
-                    rows={10}
-                    className="font-mono text-sm"
-                  />
+                  <ScrollArea className="h-[300px] rounded-md border">
+                    <Textarea
+                      id="mpesa-messages"
+                      placeholder="TKLPNAO4DP Confirmed. Ksh27.00 sent to SAFARICOM DATA BUNDLES...&#10;TKLPNAO6ZG Confirmed. Ksh100.00 sent to DORNALD OWUOR...&#10;&#10;Paste multiple messages here (one per line)"
+                      value={messages}
+                      onChange={(e) => setMessages(e.target.value)}
+                      className="min-h-[280px] font-mono text-sm border-0 resize-none focus-visible:ring-0"
+                    />
+                  </ScrollArea>
                   <p className="text-xs text-muted-foreground">
                     Tip: Paste multiple messages (one per line) to analyze them
                     all at once
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="category-select">Assign Category</Label>
+                  <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                    <SelectTrigger id="category-select">
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map((cat) => (
+                        <SelectItem key={cat} value={cat}>
+                          {cat}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    All transactions will be assigned to this category
                   </p>
                 </div>
 
@@ -297,7 +354,7 @@ export default function AnalyzerPage() {
                     </span>
                   </div>
                 </div>
-                <Link href="/auth/login">
+                <Link href="/login">
                   <Button className="w-full">
                     Get Full MONEE App
                     <ArrowRight className="ml-2 h-4 w-4" />
@@ -395,28 +452,51 @@ export default function AnalyzerPage() {
                       {Object.entries(stats.byRecipient)
                         .sort((a, b) => b[1].amount - a[1].amount)
                         .slice(0, 10)
-                        .map(([key, data]) => (
-                          <div key={key} className="space-y-2">
-                            <div className="flex items-center justify-between">
-                              <div className="flex-1 min-w-0">
-                                <p className="font-medium truncate">
-                                  {data.displayName}
-                                </p>
-                                <p className="text-sm text-muted-foreground">
-                                  {data.count} transaction
-                                  {data.count !== 1 ? "s" : ""}
-                                </p>
+                        .map(([key, data]) => {
+                          // Get all transactions for this recipient
+                          const recipientTxs = transactions.filter(
+                            tx => tx.recipient && tx.recipient.trim().toLowerCase().replace(/\s+/g, " ").replace(/\b0?\d{9,10}\b/g, "").trim() === key
+                          );
+                          
+                          // Group by amount
+                          const amountGroups = recipientTxs.reduce((acc, tx) => {
+                            const amt = tx.amount.toString();
+                            if (!acc[amt]) acc[amt] = [];
+                            acc[amt].push(tx);
+                            return acc;
+                          }, {} as Record<string, typeof recipientTxs>);
+
+                          return (
+                            <div key={key} className="space-y-2 border rounded-lg p-4">
+                              <div className="flex items-center justify-between">
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-medium truncate">
+                                    {data.displayName}
+                                  </p>
+                                  <div className="flex flex-wrap gap-1 mt-1">
+                                    {Object.entries(amountGroups).map(([amt, txs]) => (
+                                      <Badge key={amt} variant="secondary" className="text-xs">
+                                        {txs.length}× {formatAmount(parseFloat(amt))}
+                                      </Badge>
+                                    ))}
+                                  </div>
+                                </div>
+                                <div className="text-right">
+                                  <span className="font-semibold text-lg">
+                                    {formatAmount(data.amount)}
+                                  </span>
+                                  <p className="text-xs text-muted-foreground">
+                                    {data.count} payment{data.count !== 1 ? "s" : ""}
+                                  </p>
+                                </div>
                               </div>
-                              <span className="font-semibold">
-                                {formatAmount(data.amount)}
-                              </span>
+                              <Progress
+                                value={(data.amount / stats.totalAmount) * 100}
+                                className="h-2"
+                              />
                             </div>
-                            <Progress
-                              value={(data.amount / stats.totalAmount) * 100}
-                              className="h-2"
-                            />
-                          </div>
-                        ))}
+                          );
+                        })}
                     </div>
                   </CardContent>
                 </Card>
@@ -483,6 +563,29 @@ export default function AnalyzerPage() {
           </div>
         </div>
       </div>
+
+      {/* Footer */}
+      <footer className="border-t bg-muted/50 mt-20">
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground">
+            <Link href="/landing" className="hover:text-primary transition-colors">
+              Home
+            </Link>
+            <Link href="/terms" className="hover:text-primary transition-colors">
+              Terms
+            </Link>
+            <Link href="/privacy" className="hover:text-primary transition-colors">
+              Privacy
+            </Link>
+            <a href="mailto:support@monee.app" className="hover:text-primary transition-colors">
+              Support
+            </a>
+          </div>
+          <div className="text-center mt-4 text-xs text-muted-foreground">
+            © {new Date().getFullYear()} MONEE. All rights reserved.
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

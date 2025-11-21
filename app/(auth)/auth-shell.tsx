@@ -1,20 +1,33 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import db from "@/lib/db";
 import EnsureProfile from "@/components/ensure-profile";
 import HomeClient from "@/app/home-client";
+import { PaywallDialog } from "@/components/payment/paywall-dialog";
 
 export default function AuthShell() {
   const router = useRouter();
   const { isLoading, user } = db.useAuth();
+  const [showPaywall, setShowPaywall] = useState(false);
 
   useEffect(() => {
     if (!isLoading && !user) {
-      router.push("/auth/login");
+      router.push("/login");
     }
   }, [isLoading, user, router]);
+
+  useEffect(() => {
+    // Check payment status after user loads
+    if (!isLoading && user) {
+      // @ts-expect-error - hasPaid is added to user schema but types not yet updated
+      const hasPaid = user.hasPaid === true;
+      if (!hasPaid) {
+        setShowPaywall(true);
+      }
+    }
+  }, [isLoading, user]);
 
   if (isLoading) {
     return (
@@ -32,9 +45,12 @@ export default function AuthShell() {
   }
 
   return (
-    <EnsureProfile>
-      <HomeClient />
-    </EnsureProfile>
+    <>
+      <PaywallDialog open={showPaywall} onOpenChange={setShowPaywall} />
+      <EnsureProfile>
+        <HomeClient />
+      </EnsureProfile>
+    </>
   );
 }
 

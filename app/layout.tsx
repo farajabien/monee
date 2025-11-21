@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "MONEE - Your Money, Finally in One Place",
   description:
-    "Your simple, personal money assistant — built for real life in Kenya. Track, understand, and plan your money — all in one beautiful daily ritual.",
+    "Your simple, personal money assistant — built for real life in Kenya 🇰🇪. Track, understand, and plan your money — all in one beautiful daily ritual.",
 };
 
 export default function RootLayout({

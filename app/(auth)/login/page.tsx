@@ -3,8 +3,9 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import db from "@/lib/db";
-import { Wallet, ArrowLeft } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 
 function EmailStep({
   onSendEmail,
@@ -47,7 +48,14 @@ function EmailStep({
         Send Magic Code
       </button>
       <p className="text-xs text-muted-foreground text-center">
-        By continuing, you agree to our Terms of Service and Privacy Policy
+        By continuing, you agree to our{" "}
+        <Link href="/terms" className="text-primary hover:underline">
+          Terms of Service
+        </Link>{" "}
+        and{" "}
+        <Link href="/privacy" className="text-primary hover:underline">
+          Privacy Policy
+        </Link>
       </p>
     </form>
   );
@@ -134,7 +142,13 @@ export default function Login() {
       <div className="w-full max-w-md mx-4">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-4">
-            <Wallet className="h-8 w-8 text-primary" />
+            <Image
+              src="/AppImages/money-bag.png"
+              alt="MONEE"
+              width={40}
+              height={40}
+              className="h-10 w-10"
+            />
             <span className="font-bold text-2xl">MONEE</span>
           </div>
         </div>

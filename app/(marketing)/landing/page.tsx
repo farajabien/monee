@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -118,14 +119,20 @@ export default function LandingPage() {
       <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <Link href="/landing" className="flex items-center gap-2">
-            <Wallet className="h-6 w-6" />
+            <Image
+              src="/AppImages/money-bag.png"
+              alt="MONEE"
+              width={32}
+              height={32}
+              className="h-8 w-8"
+            />
             <span className="font-bold text-xl">MONEE</span>
           </Link>
           <div className="flex items-center gap-4">
             <Link href="/analyzer">
               <Button variant="ghost">Free Analyzer</Button>
             </Link>
-            <Link href="/auth/login">
+            <Link href="/login">
               <Button variant="default">
                 Get Started <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
@@ -139,7 +146,7 @@ export default function LandingPage() {
         <div className="max-w-4xl mx-auto text-center space-y-8">
           <Badge variant="secondary" className="mx-auto w-fit">
             <Zap className="h-3 w-3 mr-1" />
-            Built for Real Life in Kenya
+            Built for Real Life in Kenya 🇰🇪
           </Badge>
           <h1 className="text-4xl md:text-6xl font-bold tracking-tight">
             Your Money,{" "}
@@ -412,7 +419,7 @@ export default function LandingPage() {
               Ready to Take Control of Your Money?
             </h2>
             <p className="text-lg opacity-90 max-w-2xl mx-auto">
-              Join Kenyans who are finally understanding their spending and
+              Join Kenyans 🇰🇪 who are finally understanding their spending and
               building better money habits — one M-Pesa message at a time.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
@@ -425,7 +432,7 @@ export default function LandingPage() {
                   Try Free Analyzer First
                 </Button>
               </Link>
-              <Link href="/auth/login">
+              <Link href="/login">
                 <Button
                   size="lg"
                   variant="outline"
@@ -445,11 +452,17 @@ export default function LandingPage() {
         <div className="container mx-auto px-4 py-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="flex items-center gap-2">
-              <Wallet className="h-5 w-5" />
+              <Image
+                src="/AppImages/money-bag.png"
+                alt="MONEE"
+                width={20}
+                height={20}
+                className="h-5 w-5"
+              />
               <span className="font-semibold">MONEE</span>
             </div>
             <p className="text-sm text-muted-foreground">
-              © 2025 MONEE. Built with ❤️ in Kenya.
+              © 2025 MONEE. Built with ❤️ in Kenya 🇰🇪
             </p>
             <div className="flex gap-4 text-sm">
               <Link

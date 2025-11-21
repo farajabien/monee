@@ -8,6 +8,17 @@
 - ✅ **PWA Setup** - Service worker, manifest, offline capability
 - ✅ **Responsive Design** - Mobile-first with desktop support
 
+### Marketing & Landing (NEW)
+- ✅ **Landing Page** - Full feature showcase at `/landing`
+- ✅ **Free Analyzer Tool** - No-login transaction analyzer at `/analyzer`
+- ✅ **Terms of Service** - Comprehensive legal page at `/terms`
+- ✅ **Privacy Policy** - Detailed privacy page at `/privacy`
+- ✅ **Professional Branding** - Money-bag logo across all pages
+- ✅ **Footer Links** - Terms, Privacy, Support links on all marketing pages
+- ✅ **Pricing Strategy** - Ksh 999 vs Ksh 1,500 comparison
+- ✅ **Feature Comparison Table** - MONEE vs Excel templates
+- ✅ **Route Structure** - (marketing) and (app) route groups
+
 ### Transaction Management
 - ✅ **M-Pesa Parser** - Supports 6+ message formats including:
   - Standard sent/paid messages
@@ -21,6 +32,10 @@
 - ✅ **Manual Categorization** - Select default category or override
 - ✅ **Transaction List** - View, edit, delete transactions
 - ✅ **Multi-Day Support** - Handles transactions from different dates
+- ✅ **ScrollArea for Input** - 300px height with scrolling for long messages
+- ✅ **Category Selector** - Assign categories during analysis
+- ✅ **Auto-Dismiss Alerts** - Success messages disappear after 5 seconds
+- ✅ **Duplicate Amount Badges** - Shows "3× Ksh 500" for repeated amounts
 
 ### Categories
 - ✅ **System Categories** - 6 built-in: Food, Transport, Housing, Utilities, Savings, Misc
@@ -83,6 +98,19 @@
 - ✅ **Auto-Category Assignment** - Remembers categories for recipients
 - ✅ **Multi-Date Preview** - Groups transactions by date in preview
 - ✅ **Transaction Validation** - Robust error handling for bad formats
+
+### Free Analyzer Tool (NEW)
+- ✅ **No Login Required** - Instant access without account
+- ✅ **100% Offline** - IndexedDB storage, no server calls
+- ✅ **Bulk Analysis** - Paste 100+ messages at once
+- ✅ **Category Assignment** - 11 categories to choose from
+- ✅ **Smart Grouping** - By recipient with amount badges
+- ✅ **Date Grouping** - Organized by transaction date
+- ✅ **Export Features** - JSON and CSV export
+- ✅ **Clear All Data** - Delete all stored transactions
+- ✅ **Statistics Summary** - Total spent, transaction count, recipient count
+- ✅ **Progress Bars** - Visual spending breakdown
+- ✅ **ScrollArea Input** - Handles very long message lists
 
 ---
 
@@ -307,17 +335,23 @@
 
 ### What's Working Really Well
 - InstantDB realtime sync is fast and reliable
-- M-Pesa parser handles most common formats
-- Recipient matching with fuzzy logic is smart
+- M-Pesa parser handles most common formats including M-Shwari
+- Recipient matching with fuzzy logic is smart and accurate
 - Category system is flexible and user-friendly
 - Debt management is comprehensive
 - ELTIW feature is unique and emotional
+- **NEW: Landing page showcases features professionally**
+- **NEW: Free analyzer is excellent lead magnet (no login, offline)**
+- **NEW: Terms/Privacy pages build trust**
+- **NEW: Money-bag branding is clean and professional**
 
 ### What Needs Immediate Attention
-- **Statement upload** - Mentioned in README but not implemented
+- **Payment integration** - CRITICAL for monetization (Ksh 999)
+- **Analytics** - Track conversions from analyzer to full app
 - **Push notifications** - Core to the "evening ritual" promise
 - **Settings page** - Users have no control over preferences
-- **Onboarding** - New users are lost without guidance
+- **Onboarding** - New users need guided first-time experience
+- **SEO & Open Graph** - For social sharing
 
 ### Technical Debt
 - Many `alert()` calls should be replaced with toasts
@@ -335,13 +369,23 @@
 
 ## 🎯 LAUNCH READINESS
 
-**Current Status: 60% Complete**
+**Current Status: 75% Complete** ⬆️ (was 60%)
+
+### ✅ COMPLETED FOR LAUNCH:
+1. ✅ Landing page with pricing
+2. ✅ Free analyzer tool (lead magnet)
+3. ✅ Terms of Service
+4. ✅ Privacy Policy
+5. ✅ Professional branding
+6. ✅ Route structure (marketing vs app)
+7. ✅ Enhanced login UI
+8. ✅ Footer with legal links
 
 ### Blocking Issues for Launch:
-1. ❌ M-Pesa statement upload
-2. ❌ Push notifications
-3. ❌ Onboarding flow
-4. ❌ Settings page
+1. ❌ Payment integration (M-Pesa or Stripe)
+2. ❌ Push notifications (optional for MVP)
+3. ❌ Onboarding flow (can launch with basic version)
+4. ❌ Settings page (can launch with basic version)
 
 ### Can Launch Without (But Should Add Soon):
 - Charts/graphs
@@ -350,17 +394,20 @@
 - Advanced parsing
 
 ### MVP Launch Checklist:
-- [ ] Implement statement upload
+- [ ] Implement statement upload (optional for MVP)
 - [ ] Add basic onboarding (3-step wizard)
 - [ ] Create settings page (profile + notifications)
-- [ ] Set up push notifications
+- [ ] Set up push notifications (optional for MVP)
 - [ ] Replace alerts with toasts
 - [ ] Add loading states to buttons
 - [ ] Test on multiple devices
-- [ ] Create landing page
-- [ ] Set up analytics
-- [ ] Add privacy policy & terms
-- [ ] Test payment integration (Ksh 499 lifetime)
+- ✅ Create landing page
+- [ ] Set up analytics (GA4, Plausible, or PostHog)
+- ✅ Add privacy policy & terms
+- [ ] **Integrate payment (Ksh 999 - CRITICAL)**
+- [ ] Add SEO meta tags & Open Graph
+- [ ] Test entire user flow: landing → analyzer → login → payment → dashboard
+- [ ] Soft launch to small group for feedback
 
 ---
 
@@ -379,4 +426,4 @@
 
 ---
 
-**Last Updated:** November 21, 2025
+**Last Updated:** November 21, 2025 (Updated with landing page, analyzer, terms/privacy)
