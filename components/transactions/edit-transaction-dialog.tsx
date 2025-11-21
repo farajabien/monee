@@ -19,7 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { AddCategoryDialog } from "@/app/components/categories/add-category-dialog";
+import { AddCategoryDialog } from "@/components/categories/add-category-dialog";
 import type { Transaction, Category } from "@/types";
 
 interface EditTransactionDialogProps {
@@ -48,7 +48,10 @@ export function EditTransactionDialog({
     },
   });
 
-  const categories: Category[] = categoriesData?.categories || [];
+  const categories: Category[] = (categoriesData?.categories || []).filter(
+    (category) =>
+      category.isActive !== false || category.name === selectedCategory
+  );
 
   // Initialize selected category when transaction changes
   useEffect(() => {
@@ -150,4 +153,3 @@ export function EditTransactionDialog({
     </>
   );
 }
-

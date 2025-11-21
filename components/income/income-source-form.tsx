@@ -136,16 +136,16 @@ export function IncomeSourceForm({
         <div className="space-y-2">
           <Label htmlFor="payday-month">Payday Month (Optional)</Label>
           <Select
-            value={paydayMonth?.toString() || ""}
+            value={paydayMonth?.toString() || "none"}
             onValueChange={(value) =>
-              setPaydayMonth(value ? parseInt(value, 10) : undefined)
+              setPaydayMonth(value === "none" ? undefined : parseInt(value, 10))
             }
           >
             <SelectTrigger id="payday-month">
               <SelectValue placeholder="Recurring monthly" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Recurring monthly</SelectItem>
+              <SelectItem value="none">Recurring monthly</SelectItem>
               {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
                 <SelectItem key={m} value={m.toString()}>
                   {new Date(2000, m - 1).toLocaleString("default", {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { id } from "@instantdb/react";
 import db from "@/lib/db";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,19 +9,45 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  SteppedFormModal,
+  type FormStep,
+} from "@/components/stepped-form-modal";
 import { CheckCircle2, Plus, X, ExternalLink, Calendar } from "lucide-react";
 import type { EltiwItem } from "@/types";
 
 export default function EltiwList() {
   const user = db.useUser();
-  const [showAddForm, setShowAddForm] = useState(false);
+  const [showAddDialog, setShowAddDialog] = useState(false);
   const [name, setName] = useState("");
   const [amount, setAmount] = useState("");
   const [reason, setReason] = useState("");
   const [link, setLink] = useState("");
   const [deadline, setDeadline] = useState("");
+  const [currentStep, setCurrentStep] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<{
+    name?: string;
+    amount?: string;
+  }>({});
 
   const now = useMemo(() => new Date().getTime(), []);
+
+  const steps = useMemo<FormStep[]>(
+    () => [
+      {
+        id: "basics",
+        title: "Basics",
+        description: "What do you want and how much does it cost?",
+      },
+      {
+        id: "details",
+        title: "Details",
+        description: "Add more context, links, or deadlines.",
+      },
+    ],
+    []
+  );
 
   const { isLoading, error, data } = db.useQuery({
     eltiw_items: {
@@ -32,34 +58,68 @@ export default function EltiwList() {
     },
   });
 
-  const handleAdd = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name.trim() || !amount.trim()) return;
-
-    const deadlineTimestamp = deadline
-      ? new Date(deadline).getTime()
-      : undefined;
-
-    await db.transact(
-      db.tx.eltiw_items[id()]
-        .update({
-          name: name.trim(),
-          amount: parseFloat(amount),
-          reason: reason.trim() || undefined,
-          link: link.trim() || undefined,
-          deadline: deadlineTimestamp,
-          gotIt: false,
-          createdAt: Date.now(),
-        })
-        .link({ user: user.id })
-    );
-
+  const resetForm = useCallback(() => {
     setName("");
     setAmount("");
     setReason("");
     setLink("");
     setDeadline("");
-    setShowAddForm(false);
+    setCurrentStep(0);
+    setFieldErrors({});
+  }, []);
+
+  const handleModalChange = (open: boolean) => {
+    setShowAddDialog(open);
+    if (!open) {
+      resetForm();
+    }
+  };
+
+  const validateStep = async (stepIndex: number) => {
+    if (stepIndex === 0) {
+      const errors: { name?: string; amount?: string } = {};
+      if (!name.trim()) {
+        errors.name = "Please enter an item name";
+      }
+      if (!amount.trim() || Number(amount) <= 0) {
+        errors.amount = "Enter a valid amount";
+      }
+      setFieldErrors(errors);
+      return Object.keys(errors).length === 0;
+    }
+    return true;
+  };
+
+  const handleAdd = async () => {
+    const isValidBasics = await validateStep(0);
+    if (!isValidBasics) {
+      setCurrentStep(0);
+      return;
+    }
+
+    const deadlineTimestamp = deadline
+      ? new Date(deadline).getTime()
+      : undefined;
+
+    try {
+      setIsSubmitting(true);
+      await db.transact(
+        db.tx.eltiw_items[id()]
+          .update({
+            name: name.trim(),
+            amount: parseFloat(amount),
+            reason: reason.trim() || undefined,
+            link: link.trim() || undefined,
+            deadline: deadlineTimestamp,
+            gotIt: false,
+            createdAt: Date.now(),
+          })
+          .link({ user: user.id })
+      );
+      handleModalChange(false);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleGotIt = (item: EltiwItem) => {
@@ -144,88 +204,13 @@ export default function EltiwList() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setShowAddForm(!showAddForm)}
+            onClick={() => setShowAddDialog(true)}
           >
             <Plus className="h-4 w-4 mr-2" />
             Add Item
           </Button>
         </CardHeader>
         <CardContent className="space-y-4">
-          {showAddForm && (
-            <form
-              onSubmit={handleAdd}
-              className="space-y-4 p-4 border rounded-lg"
-            >
-              <div className="space-y-2">
-                <Label htmlFor="eltiw-name">What do you want?</Label>
-                <Input
-                  id="eltiw-name"
-                  placeholder="New shoes"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="eltiw-amount">Amount (Ksh)</Label>
-                <Input
-                  id="eltiw-amount"
-                  type="number"
-                  placeholder="3000"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="eltiw-reason">Reason (optional)</Label>
-                <Textarea
-                  id="eltiw-reason"
-                  placeholder="Because I deserve it!"
-                  value={reason}
-                  onChange={(e) => setReason(e.target.value)}
-                  rows={2}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="eltiw-link">Link (optional)</Label>
-                <Input
-                  id="eltiw-link"
-                  type="url"
-                  placeholder="https://example.com/product"
-                  value={link}
-                  onChange={(e) => setLink(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="eltiw-deadline">Deadline (optional)</Label>
-                <Input
-                  id="eltiw-deadline"
-                  type="date"
-                  value={deadline}
-                  onChange={(e) => setDeadline(e.target.value)}
-                />
-              </div>
-              <div className="flex gap-2">
-                <Button type="submit">Add</Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => {
-                    setShowAddForm(false);
-                    setName("");
-                    setAmount("");
-                    setReason("");
-                    setLink("");
-                    setDeadline("");
-                  }}
-                >
-                  Cancel
-                </Button>
-              </div>
-            </form>
-          )}
-
           {activeItems.length === 0 && completedItems.length === 0 && (
             <div className="text-center text-muted-foreground py-8">
               <p className="mb-2">Your wishlist is empty.</p>
@@ -357,6 +342,91 @@ export default function EltiwList() {
           )}
         </CardContent>
       </Card>
+
+      <SteppedFormModal
+        open={showAddDialog}
+        onOpenChange={handleModalChange}
+        title="Add Wishlist Item"
+        description="Track the little things you’re saving for."
+        steps={steps}
+        currentStep={currentStep}
+        onStepChange={setCurrentStep}
+        validateStep={validateStep}
+        renderStep={(step) => {
+          if (step.id === "basics") {
+            return (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="eltiw-name">What do you want?</Label>
+                  <Input
+                    id="eltiw-name"
+                    placeholder="New shoes"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                  />
+                  {fieldErrors.name && (
+                    <p className="text-sm text-destructive">
+                      {fieldErrors.name}
+                    </p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="eltiw-amount">Amount (Ksh)</Label>
+                  <Input
+                    id="eltiw-amount"
+                    type="number"
+                    placeholder="3000"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                  />
+                  {fieldErrors.amount && (
+                    <p className="text-sm text-destructive">
+                      {fieldErrors.amount}
+                    </p>
+                  )}
+                </div>
+              </div>
+            );
+          }
+
+          return (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="eltiw-reason">Reason (optional)</Label>
+                <Textarea
+                  id="eltiw-reason"
+                  placeholder="Because I deserve it!"
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                  rows={2}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="eltiw-link">Link (optional)</Label>
+                <Input
+                  id="eltiw-link"
+                  type="url"
+                  placeholder="https://example.com/product"
+                  value={link}
+                  onChange={(e) => setLink(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="eltiw-deadline">Deadline (optional)</Label>
+                <Input
+                  id="eltiw-deadline"
+                  type="date"
+                  value={deadline}
+                  onChange={(e) => setDeadline(e.target.value)}
+                />
+              </div>
+            </div>
+          );
+        }}
+        onSubmit={handleAdd}
+        isSubmitting={isSubmitting}
+        showSkipButton={false}
+      />
     </div>
   );
 }

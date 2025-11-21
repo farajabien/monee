@@ -23,6 +23,10 @@ export function parseMpesaMessage(message: string): ParsedTransactionData {
   const confirmedSentPattern =
     /[A-Z0-9]+\s+Confirmed\.\s+Ksh([\d,]+\.?\d*)\s+(?:sent to|paid to)\s+(.+?)\s*\.?\s+on\s+(\d{2}\/\d{2}\/\d{2,4})\s+at\s+(\d{1,2}:\d{2}\s+(?:AM|PM))\.?\s*(?:New M-PESA balance is Ksh\s+([\d,]+\.?\d*))?/i;
 
+  // Pattern 1c: M-Shwari Transfer - "TKLPNAOE55 Confirmed.Ksh450.00 transferred from M-Shwari account on 21/11/25 at 1:04 PM"
+  const mshwariTransferPattern =
+    /[A-Z0-9]+\s+Confirmed\.?\s*Ksh([\d,]+\.?\d*)\s+transferred from M-Shwari account on\s+(\d{2}\/\d{2}\/\d{2,4})\s+at\s+(\d{1,2}:\d{2}\s+(?:AM|PM))(?:.*?M-PESA balance is Ksh\s*([.,\d]+))?/i;
+
   // Pattern 2: "You received Ksh 1,000.00 from Jane Doe on 15/01/24 at 2:00 PM. New M-PESA balance is Ksh 1,500.00"
   const receivedPattern =
     /You received Ksh\s+([\d,]+\.?\d*)\s+from\s+(.+?)\s+on\s+(\d{2}\/\d{2}\/\d{2,4})\s+at\s+(\d{1,2}:\d{2}\s+(?:AM|PM))[^.]*\.\s*(?:New M-PESA balance is Ksh\s+([\d,]+\.?\d*))?/i;
@@ -45,7 +49,13 @@ export function parseMpesaMessage(message: string): ParsedTransactionData {
   let dateStr: string | undefined;
   let timeStr: string | undefined;
 
-  if ((match = trimmed.match(confirmedSentPattern))) {
+  if ((match = trimmed.match(mshwariTransferPattern))) {
+    transactionType = "receive";
+    recipient = "M-Shwari Transfer";
+    dateStr = match[2];
+    timeStr = match[3];
+    // Balance is at match[4] if present
+  } else if ((match = trimmed.match(confirmedSentPattern))) {
     transactionType = "send";
     recipient = match[2]?.trim();
     dateStr = match[3];
@@ -116,8 +126,10 @@ export function parseMpesaMessage(message: string): ParsedTransactionData {
 
   // Parse balance if present
   let balance: number | undefined;
-  if (match[5]) {
-    const balanceStr = match[5].replace(/,/g, "");
+  // For M-Shwari transfers, balance is at index 4, for others at index 5
+  const balanceIndex = trimmed.match(mshwariTransferPattern) ? 4 : 5;
+  if (match[balanceIndex]) {
+    const balanceStr = match[balanceIndex].replace(/[,\s]/g, "");
     const parsedBalance = parseFloat(balanceStr);
     if (!isNaN(parsedBalance) && parsedBalance >= 0) {
       balance = parsedBalance;

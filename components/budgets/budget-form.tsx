@@ -39,7 +39,10 @@ export function BudgetForm({ budget, onSuccess, onCancel }: BudgetFormProps) {
     },
   });
 
-  const categories: Category[] = categoriesData?.categories || [];
+  const categories: Category[] = (categoriesData?.categories || []).filter(
+    (category) =>
+      category.isActive !== false || category.id === selectedCategoryId
+  );
 
   // Initialize form if editing
   useEffect(() => {

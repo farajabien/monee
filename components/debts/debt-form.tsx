@@ -6,6 +6,7 @@ import db from "@/lib/db";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Card, CardContent } from "@/components/ui/card";
 import type { Debt } from "@/types";
 
 interface DebtFormProps {
@@ -22,6 +23,7 @@ export function DebtForm({ debt, onSuccess, onCancel }: DebtFormProps) {
   const [monthlyPaymentAmount, setMonthlyPaymentAmount] = useState<string>("");
   const [paymentDueDay, setPaymentDueDay] = useState<number>(1);
   const [interestRate, setInterestRate] = useState<string>("");
+  const [pushMonthsPlan, setPushMonthsPlan] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Initialize form if editing
@@ -33,12 +35,19 @@ export function DebtForm({ debt, onSuccess, onCancel }: DebtFormProps) {
       setMonthlyPaymentAmount(debt.monthlyPaymentAmount.toString());
       setPaymentDueDay(debt.paymentDueDay);
       setInterestRate(debt.interestRate?.toString() || "");
+      setPushMonthsPlan(debt.pushMonthsPlan?.toString() || "");
     }
   }, [debt]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !totalAmount || !currentBalance || !monthlyPaymentAmount) return;
+    if (
+      !name.trim() ||
+      !totalAmount ||
+      !currentBalance ||
+      !monthlyPaymentAmount
+    )
+      return;
 
     setIsSubmitting(true);
     try {
@@ -49,6 +58,9 @@ export function DebtForm({ debt, onSuccess, onCancel }: DebtFormProps) {
         monthlyPaymentAmount: parseFloat(monthlyPaymentAmount),
         paymentDueDay,
         interestRate: interestRate ? parseFloat(interestRate) : undefined,
+        pushMonthsPlan: pushMonthsPlan
+          ? parseInt(pushMonthsPlan, 10)
+          : undefined,
         createdAt: debt?.createdAt || Date.now(),
       };
 
@@ -69,6 +81,7 @@ export function DebtForm({ debt, onSuccess, onCancel }: DebtFormProps) {
       setMonthlyPaymentAmount("");
       setPaymentDueDay(1);
       setInterestRate("");
+      setPushMonthsPlan("");
 
       if (onSuccess) {
         onSuccess();
@@ -148,24 +161,84 @@ export function DebtForm({ debt, onSuccess, onCancel }: DebtFormProps) {
             min="1"
             max="31"
             value={paymentDueDay}
-            onChange={(e) => setPaymentDueDay(parseInt(e.target.value, 10) || 1)}
+            onChange={(e) =>
+              setPaymentDueDay(parseInt(e.target.value, 10) || 1)
+            }
             required
           />
         </div>
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="interest-rate">Interest Rate % (Optional)</Label>
-        <Input
-          id="interest-rate"
-          type="number"
-          placeholder="12.5"
-          value={interestRate}
-          onChange={(e) => setInterestRate(e.target.value)}
-          min="0"
-          step="0.1"
-        />
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="interest-rate">Interest Rate % (Optional)</Label>
+          <Input
+            id="interest-rate"
+            type="number"
+            placeholder="15"
+            value={interestRate}
+            onChange={(e) => setInterestRate(e.target.value)}
+            min="0"
+            step="0.1"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="push-months-plan">Push Months Plan (Optional)</Label>
+          <Input
+            id="push-months-plan"
+            type="number"
+            placeholder="5"
+            value={pushMonthsPlan}
+            onChange={(e) => setPushMonthsPlan(e.target.value)}
+            min="0"
+            step="1"
+          />
+          <p className="text-xs text-muted-foreground">
+            How many months to pay interest only before paying principal
+          </p>
+        </div>
       </div>
+
+      {interestRate && currentBalance && (
+        <Card>
+          <CardContent className="p-4">
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Monthly Interest:</span>
+                <span className="font-medium">
+                  Ksh{" "}
+                  {(
+                    parseFloat(currentBalance || "0") *
+                    (parseFloat(interestRate || "0") / 100)
+                  ).toLocaleString("en-KE", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
+                </span>
+              </div>
+              {pushMonthsPlan && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">
+                    Total Interest (if pushing {pushMonthsPlan} months):
+                  </span>
+                  <span className="font-medium">
+                    Ksh{" "}
+                    {(
+                      parseFloat(currentBalance || "0") *
+                      (parseFloat(interestRate || "0") / 100) *
+                      parseInt(pushMonthsPlan || "0", 10)
+                    ).toLocaleString("en-KE", {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
+                  </span>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="flex gap-2">
         {onCancel && (
@@ -189,4 +262,3 @@ export function DebtForm({ debt, onSuccess, onCancel }: DebtFormProps) {
     </form>
   );
 }
-

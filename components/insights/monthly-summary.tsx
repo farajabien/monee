@@ -7,6 +7,16 @@ import { Badge } from "@/components/ui/badge";
 import CategoryBadge from "../categories/category-badge";
 import type { Transaction, Category, Budget } from "@/types";
 
+// Normalize recipient for grouping
+function normalizeRecipient(name: string): string {
+  return name
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .replace(/\b0?\d{9,10}\b/g, "")
+    .trim();
+}
+
 export default function MonthlySummary() {
   const user = db.useUser();
 
@@ -146,6 +156,24 @@ export default function MonthlySummary() {
     }
     categoryTotals[cat].amount += tx.amount;
     categoryTotals[cat].count += 1;
+  });
+
+  // Group by recipient (normalized)
+  const recipientTotals: Record<string, { amount: number; count: number; displayName: string }> = {};
+  transactions.forEach((tx: Transaction) => {
+    if (!tx.recipient) return;
+    const normalized = normalizeRecipient(tx.recipient);
+    if (!normalized) return;
+    
+    if (!recipientTotals[normalized]) {
+      recipientTotals[normalized] = { 
+        amount: 0, 
+        count: 0,
+        displayName: tx.recipient // Use first occurrence as display name
+      };
+    }
+    recipientTotals[normalized].amount += tx.amount;
+    recipientTotals[normalized].count += 1;
   });
 
   // Get budget for each category
@@ -289,6 +317,30 @@ export default function MonthlySummary() {
                       </div>
                     );
                   })}
+              </div>
+            </div>
+          )}
+
+          {Object.keys(recipientTotals).length > 0 && (
+            <div className="space-y-3">
+              <h3 className="text-sm font-medium">Top Recipients</h3>
+              <div className="space-y-2">
+                {Object.entries(recipientTotals)
+                  .sort((a, b) => b[1].amount - a[1].amount)
+                  .slice(0, 10) // Show top 10
+                  .map(([normalized, totals]) => (
+                    <div key={normalized} className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <span className="text-sm truncate">{totals.displayName}</span>
+                        <span className="text-xs text-muted-foreground shrink-0">
+                          ({totals.count}×)
+                        </span>
+                      </div>
+                      <span className="font-semibold shrink-0">
+                        {formatAmount(totals.amount)}
+                      </span>
+                    </div>
+                  ))}
               </div>
             </div>
           )}

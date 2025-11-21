@@ -2,76 +2,104 @@
 
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import TransactionList from "./components/transactions/transaction-list";
-import AddTransactionForm from "./components/transactions/add-transaction-form";
-import DailyCheckinCard from "./components/checkin/daily-checkin-card";
-import EltiwList from "./components/eltiw/eltiw-list";
-import CategoryList from "./components/categories/category-list";
-import MonthlySummary from "./components/insights/monthly-summary";
-import { BudgetList } from "./components/budgets/budget-list";
-import { IncomeSourceList } from "./components/income/income-source-list";
-import { IncomeSummary } from "./components/income/income-summary";
-import { DebtList } from "./components/debts/debt-list";
-import { DebtProgress } from "./components/debts/debt-progress";
-import { DebtPaymentForm } from "./components/debts/debt-payment-form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import TransactionList from "../components/transactions/transaction-list";
+import AddTransactionForm from "../components/transactions/add-transaction-form";
+import DailyCheckinCard from "../components/checkin/daily-checkin-card";
+import EltiwList from "../components/eltiw/eltiw-list";
+import CategoryList from "../components/categories/category-list";
+import MonthlySummary from "../components/insights/monthly-summary";
+import { BudgetList } from "../components/budgets/budget-list";
+import { IncomeSourceList } from "../components/income/income-source-list";
+import { IncomeSummary } from "../components/income/income-summary";
+import { DebtList } from "../components/debts/debt-list";
+import { DebtProgress } from "../components/debts/debt-progress";
+import { DashboardHeader } from "../components/header/dashboard-header";
+
+const tabs = [
+  { value: "overview", label: "Overview" },
+  { value: "income", label: "Income" },
+  { value: "transactions", label: "Transactions" },
+  { value: "debts", label: "Debts" },
+  { value: "checkin", label: "Check-In" },
+  { value: "eltiw", label: "ELTIW" },
+  { value: "categories", label: "Categories" },
+];
 
 export default function HomeClient() {
+  const [activeTab, setActiveTab] = useState("overview");
+
   return (
-    <div className="min-h-screen bg-background p-4 md:p-8">
-      <div className="mx-auto max-w-7xl">
-        <div className="mb-6">
-          <h1 className="text-4xl font-bold">MONEE</h1>
-          <p className="text-muted-foreground">
-            Your money, finally in one place
-          </p>
+    <div className="mx-auto max-w-7xl p-2">
+      <DashboardHeader />
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        {/* Mobile: Dropdown */}
+        <div className="md:hidden mb-4">
+          <Select value={activeTab} onValueChange={setActiveTab}>
+            <SelectTrigger className="w-full">
+              <SelectValue>
+                {tabs.find((tab) => tab.value === activeTab)?.label ||
+                  "Select tab"}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {tabs.map((tab) => (
+                <SelectItem key={tab.value} value={tab.value}>
+                  {tab.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
-        <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-7 h-auto">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="income">Income</TabsTrigger>
-            <TabsTrigger value="transactions">Transactions</TabsTrigger>
-            <TabsTrigger value="debts">Debts</TabsTrigger>
-            <TabsTrigger value="checkin">Check-In</TabsTrigger>
-            <TabsTrigger value="eltiw">ELTIW</TabsTrigger>
-            <TabsTrigger value="categories">Categories</TabsTrigger>
-          </TabsList>
+        {/* Desktop: Tabs */}
+        <TabsList className="hidden md:grid w-full grid-cols-7 h-auto">
+          {tabs.map((tab) => (
+            <TabsTrigger key={tab.value} value={tab.value}>
+              {tab.label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
 
-          <TabsContent value="overview" className="space-y-4">
-            <MonthlySummary />
-            <BudgetList />
-          </TabsContent>
+        <TabsContent value="overview" className="space-y-4">
+          <MonthlySummary />
+          <BudgetList />
+        </TabsContent>
 
-          <TabsContent value="income" className="space-y-4">
-            <IncomeSummary />
-            <IncomeSourceList />
-          </TabsContent>
+        <TabsContent value="income" className="space-y-4">
+          <IncomeSummary />
+          <IncomeSourceList />
+        </TabsContent>
 
-          <TabsContent value="transactions" className="space-y-4">
-            <AddTransactionForm />
-            <TransactionList />
-          </TabsContent>
+        <TabsContent value="transactions" className="space-y-4">
+          <AddTransactionForm />
+          <TransactionList />
+        </TabsContent>
 
-          <TabsContent value="debts" className="space-y-4">
-            <DebtProgress />
-            <DebtList />
-          </TabsContent>
+        <TabsContent value="debts" className="space-y-4">
+          <DebtProgress />
+          <DebtList />
+        </TabsContent>
 
-          <TabsContent value="checkin" className="space-y-4">
-            <DailyCheckinCard />
-          </TabsContent>
+        <TabsContent value="checkin" className="space-y-4">
+          <DailyCheckinCard />
+        </TabsContent>
 
-          <TabsContent value="eltiw" className="space-y-4">
-            <EltiwList />
-          </TabsContent>
+        <TabsContent value="eltiw" className="space-y-4">
+          <EltiwList />
+        </TabsContent>
 
-          <TabsContent value="categories" className="space-y-4">
-            <CategoryList />
-          </TabsContent>
-        </Tabs>
-      </div>
+        <TabsContent value="categories" className="space-y-4">
+          <CategoryList />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
-

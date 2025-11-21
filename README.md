@@ -119,6 +119,7 @@ Debts don't have to be stressful — they just need to be organized.
 
 - 🧾 **Mpesa Smart Parsing** – paste any Mpesa message, MONEE reads it instantly.
 - 📂 **Labels & Categories** – easily group expenses by purpose or person.
+- 🎨 **Built-in Essentials** – Food, Transport, Housing, Utilities, Savings, and Misc categories are ready out of the box, so you can start tagging immediately.
 - 📊 **Monthly Insights** – see where your money truly goes.
 - 🔔 **Daily Check-In Reminders** – gentle push to stay consistent.
 - 🌙 **Evening Routine Mode** – quick checklist for all your daily transactions.

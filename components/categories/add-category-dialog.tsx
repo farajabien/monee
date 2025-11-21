@@ -55,6 +55,7 @@ export function AddCategoryDialog({
             name: name.trim(),
             color: color,
             icon: "",
+            isActive: true,
           })
           .link({ user: user.id })
       );

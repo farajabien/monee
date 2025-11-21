@@ -7,12 +7,14 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Edit, Trash2 } from "lucide-react";
 import { BudgetForm } from "./budget-form";
+import { SteppedFormModal } from "@/components/stepped-form-modal";
 import type { BudgetWithRelations, Category } from "@/types";
 
 export function BudgetList() {
   const user = db.useUser();
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [editingBudget, setEditingBudget] = useState<BudgetWithRelations | null>(null);
+  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [editingBudget, setEditingBudget] =
+    useState<BudgetWithRelations | null>(null);
 
   const now = new Date();
   const currentMonth = now.getMonth() + 1;
@@ -51,8 +53,10 @@ export function BudgetList() {
   if (isLoading) {
     return (
       <Card>
-        <CardContent className="p-6">
-          <div className="text-center text-muted-foreground">Loading budgets...</div>
+        <CardContent>
+          <div className="text-center text-muted-foreground">
+            Loading budgets...
+          </div>
         </CardContent>
       </Card>
     );
@@ -61,7 +65,7 @@ export function BudgetList() {
   if (error) {
     return (
       <Card>
-        <CardContent className="p-6">
+        <CardContent>
           <div className="text-center text-red-500">Error: {error.message}</div>
         </CardContent>
       </Card>
@@ -73,14 +77,15 @@ export function BudgetList() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>
-            Budgets for {now.toLocaleString("default", { month: "long", year: "numeric" })}
+            Budgets for{" "}
+            {now.toLocaleString("default", { month: "long", year: "numeric" })}
           </CardTitle>
           <Button
             variant="outline"
             size="sm"
             onClick={() => {
               setEditingBudget(null);
-              setShowAddForm(true);
+              setShowAddDialog(true);
             }}
           >
             <Plus className="h-4 w-4 mr-2" />
@@ -88,35 +93,18 @@ export function BudgetList() {
           </Button>
         </CardHeader>
         <CardContent className="space-y-4">
-          {showAddForm && (
-            <div className="p-4 border rounded-lg">
-              <BudgetForm
-                onSuccess={() => setShowAddForm(false)}
-                onCancel={() => setShowAddForm(false)}
-              />
-            </div>
-          )}
-
-          {editingBudget && (
-            <div className="p-4 border rounded-lg">
-              <BudgetForm
-                budget={editingBudget}
-                onSuccess={() => setEditingBudget(null)}
-                onCancel={() => setEditingBudget(null)}
-              />
-            </div>
-          )}
-
-          {budgets.length === 0 && !showAddForm && !editingBudget ? (
+          {budgets.length === 0 ? (
             <div className="text-center text-muted-foreground py-8">
               <p className="mb-2">No budgets set for this month.</p>
-              <p className="text-sm">Create a budget to track your spending goals.</p>
+              <p className="text-sm">
+                Create a budget to track your spending goals.
+              </p>
             </div>
           ) : (
             <div className="space-y-2">
               {budgets.map((budget) => (
                 <Card key={budget.id}>
-                  <CardContent className="p-4">
+                  <CardContent>
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1 space-y-1">
                         <div className="flex items-center gap-2">
@@ -128,9 +116,12 @@ export function BudgetList() {
                           </Badge>
                         </div>
                         <p className="text-sm text-muted-foreground">
-                          {new Date(2000, budget.month - 1).toLocaleString("default", {
-                            month: "long",
-                          })}{" "}
+                          {new Date(2000, budget.month - 1).toLocaleString(
+                            "default",
+                            {
+                              month: "long",
+                            }
+                          )}{" "}
                           {budget.year}
                         </p>
                       </div>
@@ -139,8 +130,8 @@ export function BudgetList() {
                           variant="ghost"
                           size="sm"
                           onClick={() => {
-                            setShowAddForm(false);
                             setEditingBudget(budget);
+                            setShowAddDialog(true);
                           }}
                         >
                           <Edit className="h-4 w-4" />
@@ -162,7 +153,47 @@ export function BudgetList() {
           )}
         </CardContent>
       </Card>
+
+      <SteppedFormModal
+        open={showAddDialog}
+        onOpenChange={(open) => {
+          setShowAddDialog(open);
+          if (!open) {
+            setEditingBudget(null);
+          }
+        }}
+        title={editingBudget ? "Edit Budget" : "Add Budget"}
+        description={`Set a spending limit for ${now.toLocaleString("default", {
+          month: "long",
+          year: "numeric",
+        })}`}
+        steps={[
+          {
+            id: "budget",
+            title: "Budget Details",
+            description: "Set your budget",
+          },
+        ]}
+        currentStep={0}
+        onStepChange={() => {}}
+        renderStep={() => (
+          <BudgetForm
+            budget={editingBudget || undefined}
+            onSuccess={() => {
+              setShowAddDialog(false);
+              setEditingBudget(null);
+            }}
+            onCancel={() => {
+              setShowAddDialog(false);
+              setEditingBudget(null);
+            }}
+          />
+        )}
+        showStepIndicators={false}
+        showProgress={false}
+        mode="dialog"
+        size="md"
+      />
     </div>
   );
 }
-

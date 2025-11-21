@@ -1,10 +1,13 @@
 "use client";
 
 import { Badge } from "@/components/ui/badge";
-import type { Category } from "@/types";
+type CategoryLike = {
+  name: string;
+  color?: string;
+};
 
 interface CategoryBadgeProps {
-  category: Category;
+  category: CategoryLike;
 }
 
 export default function CategoryBadge({ category }: CategoryBadgeProps) {
@@ -12,9 +15,7 @@ export default function CategoryBadge({ category }: CategoryBadgeProps) {
     <Badge
       variant="secondary"
       style={{
-        backgroundColor: category.color
-          ? `${category.color}20`
-          : undefined,
+        backgroundColor: category.color ? `${category.color}20` : undefined,
         color: category.color || undefined,
         borderColor: category.color || undefined,
       }}

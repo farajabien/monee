@@ -75,6 +75,9 @@ export type DebtPaymentWithDebt = InstaQLEntity<
   { debt: {} }
 >;
 
+// Payment type enum
+export type PaymentType = "interest_only" | "principal" | "both";
+
 // Parsed transaction data structure
 export interface ParsedTransactionData {
   amount: number;
