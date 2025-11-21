@@ -91,9 +91,12 @@ export function DebtList() {
         (debt.currentBalance * debt.interestRate) / 100 / 12;
       const paymentTimestamp = Date.now();
 
-      // Create interest-only payment record
-      await db.transact(
-        db.tx.debt_payments[id()]
+      // Create interest-only payment record and expense transaction
+      const paymentId = id();
+      const transactionId = id();
+      
+      await db.transact([
+        db.tx.debt_payments[paymentId]
           .update({
             amount: monthlyInterest,
             paymentDate: paymentTimestamp,
@@ -102,8 +105,27 @@ export function DebtList() {
             principalAmount: 0,
             createdAt: Date.now(),
           })
-          .link({ debt: debt.id })
-      );
+          .link({ debt: debt.id }),
+        // Create expense transaction for the debt payment
+        db.tx.transactions[transactionId]
+          .update({
+            amount: monthlyInterest,
+            recipient: `Debt Payment - ${debt.name}`,
+            date: paymentTimestamp,
+            category: "Debt Payment",
+            rawMessage: `Interest payment of Ksh ${monthlyInterest.toLocaleString()} for ${debt.name} (Quick Push)`,
+            parsedData: {
+              type: "debt_payment",
+              debtId: debt.id,
+              debtName: debt.name,
+              paymentType: "interest_only",
+              interestAmount: monthlyInterest,
+              principalAmount: 0,
+            },
+            createdAt: Date.now(),
+          })
+          .link({ user: debt.user?.id || "" }),
+      ]);
 
       // Update debt - push to next month
       await db.transact(

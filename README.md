@@ -109,6 +109,8 @@ Debts don't have to be stressful — they just need to be organized.
 
 **Payment Tracking**: Mark payments as made when you pay them. MONEE keeps a history of all your payments, so you can see your progress over time.
 
+**Auto-Expense Recording**: Every debt payment (principal, interest, or both) automatically creates an expense transaction. This means your total spending picture includes debt obligations — no manual entry needed.
+
 **Debt Progress**: See how much you've paid off and how much remains. MONEE shows you a clear timeline of when you'll be debt-free, giving you motivation to keep going.
 
 **Debt Tab**: A dedicated space in your dashboard where all your debt information lives — organized, clear, and manageable.
@@ -129,6 +131,9 @@ Debts don't have to be stressful — they just need to be organized.
 - 📈 **Income vs Expenses** – see your financial balance at a glance
 - 💳 **Debt Management** – track all debts with monthly payment rules
 - 📅 **Payment Tracking** – mark payments and see your debt payoff progress
+- 💸 **Auto-Expense Tracking** – debt payments automatically appear in expenses tab
+- 💰 **Payment Integration** – one-time Ksh 999 payment via Paystack (M-Pesa, cards, bank transfer)
+- 🔐 **Secure Webhooks** – server-side payment verification with duplicate detection
 - 🆓 **Free Analyzer Tool** – no login required, 100% offline transaction analysis
 - 🎨 **Professional Landing Page** – full feature showcase with comparison table
 - 📄 **Legal Pages** – comprehensive Terms of Service and Privacy Policy
@@ -193,6 +198,9 @@ You don’t need a financial degree to manage your money — you just need MONEE
 - Free analyzer tool at `/analyzer` (no login, 100% offline)
 - Terms of Service and Privacy Policy pages
 - Professional branding with money-bag logo 💰
+- **Payment integration via Paystack** – supports M-Pesa, cards, bank transfer
+- **Server-side verification webhook** – secure payment confirmation with duplicate detection
+- **Automatic expense tracking** – debt payments auto-record as expenses
 
 🚀 **NEXT STEPS:**
 - TikTok content & UGC focused on:
@@ -200,9 +208,10 @@ You don’t need a financial degree to manage your money — you just need MONEE
   - "The 2-minute evening money check ritual"
   - "How I tracked 100+ M-Pesa messages in 5 minutes"
   - "Every Little Thing I Want — reward yourself intentionally"
+  - "Pay once, own forever — no subscriptions 💰"
 - Organic content first, then boosted TikTok ads driving to the **landing page**
-- Payment integration (M-Pesa API or Stripe)
 - Launch with free analyzer as lead magnet → convert to Ksh 999 full app
+- Set up production Paystack keys and webhook URL
 
 ---
 

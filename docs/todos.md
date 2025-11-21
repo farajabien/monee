@@ -66,6 +66,8 @@
 - ✅ **Payment Types** - Interest only, principal, or both
 - ✅ **Debt Progress** - Visual progress bars and timeline
 - ✅ **Total Debt Summary** - Overview of all debts
+- ✅ **Auto-Expense Recording** - Debt payments automatically create expense transactions
+- ✅ **Quick Push Expense Tracking** - Interest-only quick push also records expenses
 
 ### ELTIW (Every Little Thing I Want)
 - ✅ **Wishlist** - Track things you want to buy
@@ -111,6 +113,18 @@
 - ✅ **Statistics Summary** - Total spent, transaction count, recipient count
 - ✅ **Progress Bars** - Visual spending breakdown
 - ✅ **ScrollArea Input** - Handles very long message lists
+
+### Payment Integration (NEW)
+- ✅ **Paystack Integration** - M-Pesa, cards, bank transfer support
+- ✅ **Paywall Dialog** - Beautiful payment modal with feature list
+- ✅ **One-Time Payment** - Ksh 999 lifetime access
+- ✅ **Dynamic Import** - Paystack loaded client-side to avoid SSR issues
+- ✅ **Payment Fields in Schema** - hasPaid, paymentDate, paystackReference
+- ✅ **Webhook Endpoint** - Server-side verification at /api/webhooks/paystack
+- ✅ **Signature Verification** - HMAC-SHA512 security
+- ✅ **Duplicate Detection** - Handles retry webhooks and duplicate payments
+- ✅ **InstantDB Admin** - Updates user status via webhook
+- ✅ **Webhook Documentation** - Complete setup guide in docs/
 
 ---
 
@@ -369,7 +383,7 @@
 
 ## 🎯 LAUNCH READINESS
 
-**Current Status: 75% Complete** ⬆️ (was 60%)
+**Current Status: 85% Complete** ⬆️ (was 75%)
 
 ### ✅ COMPLETED FOR LAUNCH:
 1. ✅ Landing page with pricing
@@ -380,12 +394,16 @@
 6. ✅ Route structure (marketing vs app)
 7. ✅ Enhanced login UI
 8. ✅ Footer with legal links
+9. ✅ **Payment integration (Paystack - M-Pesa, cards, bank)**
+10. ✅ **Server-side webhook verification**
+11. ✅ **Automatic debt expense tracking**
 
 ### Blocking Issues for Launch:
-1. ❌ Payment integration (M-Pesa or Stripe)
-2. ❌ Push notifications (optional for MVP)
-3. ❌ Onboarding flow (can launch with basic version)
-4. ❌ Settings page (can launch with basic version)
+1. ❌ Production Paystack keys (need to switch from test)
+2. ❌ Production webhook URL configuration
+3. ❌ Push notifications (optional for MVP)
+4. ❌ Onboarding flow (can launch with basic version)
+5. ❌ Settings page (can launch with basic version)
 
 ### Can Launch Without (But Should Add Soon):
 - Charts/graphs
@@ -404,7 +422,11 @@
 - ✅ Create landing page
 - [ ] Set up analytics (GA4, Plausible, or PostHog)
 - ✅ Add privacy policy & terms
-- [ ] **Integrate payment (Ksh 999 - CRITICAL)**
+- ✅ **Integrate payment (Ksh 999 via Paystack)**
+- ✅ **Set up payment webhook with duplicate detection**
+- [ ] Switch to production Paystack keys
+- [ ] Configure production webhook URL
+- [ ] Test payment flow with Paystack test cards
 - [ ] Add SEO meta tags & Open Graph
 - [ ] Test entire user flow: landing → analyzer → login → payment → dashboard
 - [ ] Soft launch to small group for feedback

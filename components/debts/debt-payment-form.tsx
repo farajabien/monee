@@ -86,9 +86,12 @@ export function DebtPaymentForm({ debt, onSuccess }: DebtPaymentFormProps) {
       const principalPaid = parseFloat(principalAmount || "0");
       const paymentTimestamp = new Date(paymentDate).getTime();
 
-      // Create payment record
-      await db.transact(
-        db.tx.debt_payments[id()]
+      // Create payment record and expense transaction
+      const paymentId = id();
+      const transactionId = id();
+      
+      await db.transact([
+        db.tx.debt_payments[paymentId]
           .update({
             amount: paymentAmount,
             paymentDate: paymentTimestamp,
@@ -97,8 +100,27 @@ export function DebtPaymentForm({ debt, onSuccess }: DebtPaymentFormProps) {
             principalAmount: principalPaid > 0 ? principalPaid : undefined,
             createdAt: Date.now(),
           })
-          .link({ debt: debt.id })
-      );
+          .link({ debt: debt.id }),
+        // Create expense transaction for the debt payment
+        db.tx.transactions[transactionId]
+          .update({
+            amount: paymentAmount,
+            recipient: `Debt Payment - ${debt.name}`,
+            date: paymentTimestamp,
+            category: "Debt Payment",
+            rawMessage: `Debt payment of Ksh ${paymentAmount.toLocaleString()} for ${debt.name} (${paymentType})`,
+            parsedData: {
+              type: "debt_payment",
+              debtId: debt.id,
+              debtName: debt.name,
+              paymentType,
+              interestAmount: interestPaid > 0 ? interestPaid : undefined,
+              principalAmount: principalPaid > 0 ? principalPaid : undefined,
+            },
+            createdAt: Date.now(),
+          })
+          .link({ user: debt.user?.id || "" }),
+      ]);
 
       // Update debt based on payment type
       const debtUpdates: {
