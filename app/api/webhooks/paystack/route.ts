@@ -89,8 +89,50 @@ export async function POST(req: Request) {
         );
       }
 
-      // Update user payment status in InstantDB
+      // Check for duplicate payment reference
       try {
+        // Query users to check if this payment reference already exists
+        const { $users } = await adminDb.query({
+          $users: {
+            $: {
+              where: {
+                paystackReference: data.reference,
+              },
+            },
+          },
+        });
+
+        if ($users && $users.length > 0) {
+          console.log(`⚠️ Duplicate payment webhook for reference: ${data.reference}`);
+          return NextResponse.json({
+            success: true,
+            message: "Payment already processed (duplicate webhook)",
+            duplicate: true,
+          });
+        }
+
+        // Also check if the user already has a different payment
+        const { $users: userCheck } = await adminDb.query({
+          $users: {
+            $: {
+              where: {
+                id: userId,
+              },
+            },
+          },
+        });
+
+        const user = userCheck?.[0];
+        if (user?.hasPaid && user.paystackReference && user.paystackReference !== data.reference) {
+          console.log(`⚠️ User ${userId} already has a payment: ${user.paystackReference}`);
+          return NextResponse.json({
+            success: true,
+            message: "User already has an active payment",
+            duplicate: true,
+          });
+        }
+
+        // Update user payment status in InstantDB
         await adminDb.transact([
           adminDb.tx.$users[userId].update({
             hasPaid: true,
