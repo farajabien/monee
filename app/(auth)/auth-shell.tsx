@@ -21,10 +21,11 @@ export default function AuthShell() {
   useEffect(() => {
     // Check payment status after user loads
     if (!isLoading && user) {
-      // @ts-expect-error - hasPaid is added to user schema but types not yet updated
       const hasPaid = user.hasPaid === true;
       if (!hasPaid) {
-        setShowPaywall(true);
+        // Defer the state update to avoid calling setState synchronously within the effect
+        const id = window.setTimeout(() => setShowPaywall(true), 0);
+        return () => clearTimeout(id);
       }
     }
   }, [isLoading, user]);
