@@ -163,7 +163,7 @@ export default function LandingPage() {
                 Try Free Analyzer
               </Button>
             </Link>
-            <Link href="/auth/login">
+            <Link href="/login">
               <Button size="lg" className="w-full sm:w-auto">
                 Get Full Access - Ksh 999
                 <ArrowRight className="ml-2 h-4 w-4" />
@@ -395,7 +395,7 @@ export default function LandingPage() {
                 </div>
               </div>
 
-              <Link href="/auth/login" className="block">
+              <Link href="/login" className="block">
                 <Button size="lg" className="w-full">
                   Get Lifetime Access
                   <ArrowRight className="ml-2 h-4 w-4" />
