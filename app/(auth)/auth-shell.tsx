@@ -24,7 +24,7 @@ export default function AuthShell() {
       const hasPaid = user.hasPaid === true;
       if (!hasPaid) {
         // Defer the state update to avoid calling setState synchronously within the effect
-        const id = window.setTimeout(() => setShowPaywall(true), 0);
+        const id = setTimeout(() => setShowPaywall(true), 0);
         return () => clearTimeout(id);
       }
     }

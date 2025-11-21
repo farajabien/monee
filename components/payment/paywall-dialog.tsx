@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import PaystackPop from "@paystack/inline-js";
 import db from "@/lib/db";
 import {
   Dialog,
@@ -56,6 +55,8 @@ export function PaywallDialog({ open, onOpenChange }: PaywallDialogProps) {
     setIsProcessing(true);
 
     try {
+      // Dynamically import Paystack to avoid SSR issues
+      const PaystackPop = (await import("@paystack/inline-js")).default;
       const paystack = new PaystackPop();
       paystack.newTransaction({
         key: PAYSTACK_PUBLIC_KEY,
@@ -87,7 +88,9 @@ export function PaywallDialog({ open, onOpenChange }: PaywallDialogProps) {
             .then(() => {
               alert("🎉 Payment successful! Welcome to MONEE!");
               onOpenChange(false);
-              window.location.reload(); // Refresh to update UI
+              if (typeof window !== "undefined") {
+                window.location.reload(); // Refresh to update UI
+              }
             })
             .catch((err) => {
               console.error("Failed to update payment status:", err);
