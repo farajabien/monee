@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import CategoryBadge from "../categories/category-badge";
+import { RecipientManager } from "@/components/recipients/recipient-manager";
 import type { Transaction, Category, Budget } from "@/types";
 
 // Normalize recipient for grouping
@@ -329,12 +330,16 @@ export default function MonthlySummary() {
                   .sort((a, b) => b[1].amount - a[1].amount)
                   .slice(0, 10) // Show top 10
                   .map(([normalized, totals]) => (
-                    <div key={normalized} className="flex items-center justify-between">
+                    <div key={normalized} className="flex items-center justify-between gap-2">
                       <div className="flex items-center gap-2 flex-1 min-w-0">
                         <span className="text-sm truncate">{totals.displayName}</span>
                         <span className="text-xs text-muted-foreground shrink-0">
                           ({totals.count}×)
                         </span>
+                        <RecipientManager
+                          recipientName={totals.displayName}
+                          compact
+                        />
                       </div>
                       <span className="font-semibold shrink-0">
                         {formatAmount(totals.amount)}

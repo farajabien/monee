@@ -25,6 +25,7 @@ const PRICE_KES = 99900; // 999 KES in kobo (smallest currency unit)
 export function PaywallDialog({ open, onOpenChange }: PaywallDialogProps) {
   const { user } = db.useAuth();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [hideDialog, setHideDialog] = useState(false);
 
   const features = [
     "M-Pesa Smart Parsing (6+ formats)",
@@ -53,6 +54,7 @@ export function PaywallDialog({ open, onOpenChange }: PaywallDialogProps) {
     }
 
     setIsProcessing(true);
+    setHideDialog(true); // Hide dialog to allow Paystack popup to show
 
     try {
       // Dynamically import Paystack to avoid SSR issues
@@ -100,17 +102,19 @@ export function PaywallDialog({ open, onOpenChange }: PaywallDialogProps) {
         onCancel: () => {
           console.log("Payment cancelled");
           setIsProcessing(false);
+          setHideDialog(false); // Show dialog again
         },
       });
     } catch (error) {
       console.error("Payment error:", error);
       alert("Failed to initialize payment. Please try again.");
       setIsProcessing(false);
+      setHideDialog(false); // Show dialog again
     }
   };
 
   return (
-    <Dialog open={open} onOpenChange={(newOpen) => {
+    <Dialog open={open && !hideDialog} onOpenChange={(newOpen) => {
       // Prevent closing the dialog - user must pay
       if (!newOpen) return;
       onOpenChange(newOpen);
@@ -168,7 +172,7 @@ export function PaywallDialog({ open, onOpenChange }: PaywallDialogProps) {
           </div>
         </div>
 
-        <DialogFooter className="flex-col gap-2">
+        <DialogFooter className="">
           <Button
             onClick={handlePayment}
             disabled={isProcessing}
