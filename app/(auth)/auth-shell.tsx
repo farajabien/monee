@@ -23,11 +23,8 @@ export default function AuthShell() {
     // Check payment status after user loads
     if (!isLoading && user) {
       const hasPaid = user.hasPaid === true;
-      if (!hasPaid) {
-        // Defer the state update to avoid calling setState synchronously within the effect
-        const id = setTimeout(() => setShowPaywall(true), 0);
-        return () => clearTimeout(id);
-      }
+      const id = setTimeout(() => setShowPaywall(!hasPaid), 0);
+      return () => clearTimeout(id);
     }
   }, [isLoading, user]);
 
