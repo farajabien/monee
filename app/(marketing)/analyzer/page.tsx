@@ -8,8 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import {
   Select,
   SelectContent,
@@ -18,13 +19,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  Upload,
   Trash2,
   Download,
-  TrendingUp,
   Calendar,
   Users,
-  BarChart3,
   ArrowRight,
   AlertCircle,
   CheckCircle2,
@@ -192,38 +190,40 @@ export default function AnalyzerPage() {
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
       {/* Navigation */}
       <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <Link href="/landing" className="flex items-center gap-2">
+        <div className="container mx-auto px-3 sm:px-4 h-14 sm:h-16 flex items-center justify-between gap-2">
+          <Link href="/landing" className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
             <Image
               src="/AppImages/money-bag.png"
               alt="MONEE"
               width={32}
               height={32}
-              className="h-8 w-8"
+              className="h-6 w-6 sm:h-8 sm:w-8"
             />
-            <span className="font-bold text-xl">MONEE</span>
+            <span className="font-bold text-base sm:text-xl">MONEE</span>
           </Link>
-          <div className="flex items-center gap-4">
-            <Badge variant="secondary">Free Analyzer</Badge>
-            <Link href="/landing">
-              <Button variant="ghost">Back to Home</Button>
+          <div className="flex items-center gap-1.5 sm:gap-3">
+            <Badge variant="secondary" className="hidden sm:inline-flex text-xs">Free Analyzer</Badge>
+            <Link href="/landing" className="hidden sm:block">
+              <Button variant="ghost" size="sm">Back to Home</Button>
             </Link>
             <Link href="/login">
-              <Button variant="default">
-                Get Full App <ArrowRight className="ml-2 h-4 w-4" />
+              <Button variant="default" size="sm" className="text-xs sm:text-sm">
+                <span className="hidden sm:inline">Get Full App</span>
+                <span className="sm:hidden">Get App</span>
+                <ArrowRight className="ml-1 sm:ml-2 h-3 w-3 sm:h-4 sm:w-4" />
               </Button>
             </Link>
           </div>
         </div>
       </nav>
 
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
+      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 max-w-7xl">
         {/* Header */}
-        <div className="text-center mb-8 space-y-4">
-          <h1 className="text-4xl font-bold">
+        <div className="text-center mb-4 sm:mb-8 space-y-2 sm:space-y-4">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold leading-tight">
             Free M-Pesa Transaction Analyzer
           </h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-2xl mx-auto px-2">
             Analyze your M-Pesa spending behavior. 100% offline and private —
             your data never leaves your device.
           </p>
@@ -246,200 +246,121 @@ export default function AnalyzerPage() {
           </Alert>
         )}
 
-        <div className="grid lg:grid-cols-3 gap-6">
+        <div className="space-y-4 sm:space-y-6">
           {/* Input Section */}
-          <div className="lg:col-span-1 space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Upload className="h-5 w-5" />
+          <Card>
+            <CardContent className="p-4 sm:p-6 space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="mpesa-messages" className="text-sm sm:text-base">
                   Paste M-Pesa Messages
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="mpesa-messages">
-                    Paste one or multiple messages
-                  </Label>
-                  <ScrollArea className="h-[300px] rounded-md border">
-                    <Textarea
-                      id="mpesa-messages"
-                      placeholder="TKLPNAO4DP Confirmed. Ksh27.00 sent to SAFARICOM DATA BUNDLES...&#10;TKLPNAO6ZG Confirmed. Ksh100.00 sent to DORNALD OWUOR...&#10;&#10;Paste multiple messages here (one per line)"
-                      value={messages}
-                      onChange={(e) => setMessages(e.target.value)}
-                      className="min-h-[280px] font-mono text-sm border-0 resize-none focus-visible:ring-0"
-                    />
-                  </ScrollArea>
-                  <p className="text-xs text-muted-foreground">
-                    Tip: Paste multiple messages (one per line) to analyze them
-                    all at once
-                  </p>
-                </div>
+                </Label>
+                <ScrollArea className="h-[200px] sm:h-[250px] rounded-md border">
+                  <Textarea
+                    id="mpesa-messages"
+                    placeholder={`TKLPNAO4DP Confirmed. Ksh27.00 sent to SAFARICOM DATA BUNDLES...\nTKLPNAO6ZG Confirmed. Ksh100.00 sent to DORNALD OWUOR...\n\nPaste multiple messages here (one per line)`}
+                    value={messages}
+                    onChange={(e) => setMessages(e.target.value)}
+                    className="min-h-[180px] sm:min-h-[230px] font-mono text-xs sm:text-sm border-0 resize-none focus-visible:ring-0"
+                  />
+                </ScrollArea>
+              </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="category-select">Assign Category</Label>
-                  <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                    <SelectTrigger id="category-select">
-                      <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories.map((cat) => (
-                        <SelectItem key={cat} value={cat}>
-                          {cat}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-xs text-muted-foreground">
-                    All transactions will be assigned to this category
-                  </p>
-                </div>
+              <div className="flex gap-2">
+                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                  <SelectTrigger className="text-sm flex-1">
+                    <SelectValue placeholder="Category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((cat) => (
+                      <SelectItem key={cat} value={cat} className="text-sm">
+                        {cat}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
 
                 <Button
                   onClick={handleAnalyze}
                   disabled={isProcessing || !messages.trim()}
-                  className="w-full"
+                  className="text-sm sm:text-base"
+                  size="default"
                 >
-                  {isProcessing ? "Analyzing..." : "Analyze Transactions"}
+                  {isProcessing ? "Analyzing..." : "Analyze"}
                 </Button>
+              </div>
 
-                {transactions.length > 0 && (
-                  <div className="pt-4 space-y-2">
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleExportJSON}
-                        className="flex-1"
-                      >
-                        <Download className="h-4 w-4 mr-2" />
-                        JSON
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleExportCSV}
-                        className="flex-1"
-                      >
-                        <Download className="h-4 w-4 mr-2" />
-                        CSV
-                      </Button>
-                    </div>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={handleClearAll}
-                      className="w-full"
-                    >
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Clear All Data
-                    </Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Upgrade CTA */}
-            <Card className="border-2 border-primary">
-              <CardContent className="p-6 space-y-4">
-                <div className="text-center space-y-2">
-                  <h3 className="font-semibold">Want More?</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Get budgeting, income tracking, debt management, and more!
-                  </p>
-                  <div className="flex items-center justify-center gap-2">
-                    <span className="text-2xl font-bold">Ksh 999</span>
-                    <span className="text-sm text-muted-foreground line-through">
-                      Ksh 1,500
-                    </span>
-                  </div>
-                </div>
-                <Link href="/login">
-                  <Button className="w-full">
-                    Get Full MONEE App
-                    <ArrowRight className="ml-2 h-4 w-4" />
+              {transactions.length > 0 && (
+                <div className="flex gap-2 pt-2 border-t">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleExportJSON}
+                    className="flex-1 text-xs"
+                  >
+                    <Download className="h-3 w-3 mr-1" />
+                    JSON
                   </Button>
-                </Link>
-              </CardContent>
-            </Card>
-          </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleExportCSV}
+                    className="flex-1 text-xs"
+                  >
+                    <Download className="h-3 w-3 mr-1" />
+                    CSV
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={handleClearAll}
+                    className="flex-1 text-xs"
+                  >
+                    <Trash2 className="h-3 w-3 mr-1" />
+                    Clear
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
           {/* Results Section */}
-          <div className="lg:col-span-2 space-y-6">
-            {!stats ? (
-              <Card>
-                <CardContent className="p-12 text-center">
-                  <div className="mx-auto w-fit mb-4">
-                    <BarChart3 className="h-16 w-16 text-muted-foreground" />
-                  </div>
-                  <h3 className="text-xl font-semibold mb-2">
-                    No Data Yet
-                  </h3>
-                  <p className="text-muted-foreground">
-                    Paste your M-Pesa messages to see insights
+          {stats && (
+            <div className="space-y-4 sm:space-y-6">
+              {/* Summary Metrics */}
+              <div className="flex items-center gap-4 sm:gap-8 p-4 sm:p-6 bg-muted/30 rounded-lg border">
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs sm:text-sm text-muted-foreground whitespace-nowrap mb-1">
+                    Total Spent
                   </p>
-                </CardContent>
-              </Card>
-            ) : (
-              <>
-                {/* Summary Cards */}
-                <div className="grid md:grid-cols-3 gap-4">
-                  <Card>
-                    <CardContent className="p-6">
-                      <div className="flex items-center gap-4">
-                        <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                          <TrendingUp className="h-6 w-6 text-primary" />
-                        </div>
-                        <div>
-                          <p className="text-sm text-muted-foreground">
-                            Total Spent
-                          </p>
-                          <p className="text-2xl font-bold">
-                            {formatAmount(stats.totalAmount)}
-                          </p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardContent className="p-6">
-                      <div className="flex items-center gap-4">
-                        <div className="h-12 w-12 rounded-lg bg-blue-500/10 flex items-center justify-center">
-                          <Calendar className="h-6 w-6 text-blue-600" />
-                        </div>
-                        <div>
-                          <p className="text-sm text-muted-foreground">
-                            Transactions
-                          </p>
-                          <p className="text-2xl font-bold">
-                            {stats.totalTransactions}
-                          </p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardContent className="p-6">
-                      <div className="flex items-center gap-4">
-                        <div className="h-12 w-12 rounded-lg bg-green-500/10 flex items-center justify-center">
-                          <Users className="h-6 w-6 text-green-600" />
-                        </div>
-                        <div>
-                          <p className="text-sm text-muted-foreground">
-                            Recipients
-                          </p>
-                          <p className="text-2xl font-bold">
-                            {Object.keys(stats.byRecipient).length}
-                          </p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  <p className="text-lg sm:text-2xl md:text-3xl font-bold">
+                    {formatAmount(stats.totalAmount)}
+                  </p>
                 </div>
 
-                {/* By Recipient */}
+                <div className="h-10 sm:h-12 w-px bg-border flex-shrink-0" />
+
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs sm:text-sm text-muted-foreground whitespace-nowrap mb-1">
+                    Transactions
+                  </p>
+                  <p className="text-lg sm:text-2xl md:text-3xl font-bold">
+                    {stats.totalTransactions}
+                  </p>
+                </div>
+
+                <div className="h-10 sm:h-12 w-px bg-border flex-shrink-0" />
+
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs sm:text-sm text-muted-foreground whitespace-nowrap mb-1">
+                    Recipients
+                  </p>
+                  <p className="text-lg sm:text-2xl md:text-3xl font-bold">
+                    {Object.keys(stats.byRecipient).length}
+                  </p>
+                </div>
+              </div>
+
+                {/* Top Recipients Chart */}
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -448,60 +369,46 @@ export default function AnalyzerPage() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-4">
-                      {Object.entries(stats.byRecipient)
-                        .sort((a, b) => b[1].amount - a[1].amount)
-                        .slice(0, 10)
-                        .map(([key, data]) => {
-                          // Get all transactions for this recipient
-                          const recipientTxs = transactions.filter(
-                            tx => tx.recipient && tx.recipient.trim().toLowerCase().replace(/\s+/g, " ").replace(/\b0?\d{9,10}\b/g, "").trim() === key
-                          );
-                          
-                          // Group by amount
-                          const amountGroups = recipientTxs.reduce((acc, tx) => {
-                            const amt = tx.amount.toString();
-                            if (!acc[amt]) acc[amt] = [];
-                            acc[amt].push(tx);
-                            return acc;
-                          }, {} as Record<string, typeof recipientTxs>);
-
-                          return (
-                            <div key={key} className="space-y-2 border rounded-lg p-4">
-                              <div className="flex items-center justify-between">
-                                <div className="flex-1 min-w-0">
-                                  <p className="font-medium truncate">
-                                    {data.displayName}
-                                  </p>
-                                  <div className="flex flex-wrap gap-1 mt-1">
-                                    {Object.entries(amountGroups).map(([amt, txs]) => (
-                                      <Badge key={amt} variant="secondary" className="text-xs">
-                                        {txs.length}× {formatAmount(parseFloat(amt))}
-                                      </Badge>
-                                    ))}
-                                  </div>
-                                </div>
-                                <div className="text-right">
-                                  <span className="font-semibold text-lg">
-                                    {formatAmount(data.amount)}
-                                  </span>
-                                  <p className="text-xs text-muted-foreground">
-                                    {data.count} payment{data.count !== 1 ? "s" : ""}
-                                  </p>
-                                </div>
-                              </div>
-                              <Progress
-                                value={(data.amount / stats.totalAmount) * 100}
-                                className="h-2"
-                              />
-                            </div>
-                          );
-                        })}
-                    </div>
+                    <ChartContainer
+                      config={{
+                        amount: {
+                          label: "Amount",
+                          color: "hsl(var(--chart-1))",
+                        },
+                      }}
+                      className="h-[400px] w-full"
+                    >
+                      <BarChart
+                        data={Object.entries(stats.byRecipient)
+                          .sort((a, b) => b[1].amount - a[1].amount)
+                          .slice(0, 10)
+                          .map(([, data]) => ({
+                            name: data.displayName.length > 20 
+                              ? data.displayName.slice(0, 20) + "..." 
+                              : data.displayName,
+                            amount: data.amount,
+                            count: data.count,
+                          }))}
+                        layout="vertical"
+                        margin={{ left: 100, right: 20, top: 20, bottom: 20 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
+                        <XAxis type="number" />
+                        <YAxis dataKey="name" type="category" width={90} />
+                        <ChartTooltip
+                          content={
+                            <ChartTooltipContent
+                              formatter={(value) => formatAmount(Number(value))}
+                            />
+                          }
+                        />
+                        <Bar dataKey="amount" fill="var(--color-amount)" radius={[0, 4, 4, 0]} />
+                      </BarChart>
+                    </ChartContainer>
                   </CardContent>
                 </Card>
 
-                {/* By Date */}
+                {/* Spending by Date Chart */}
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -510,57 +417,53 @@ export default function AnalyzerPage() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-4">
-                      {Object.entries(stats.byDate)
-                        .sort((a, b) => {
-                          const dateA = new Date(
-                            b[1].transactions[0].date
-                          ).getTime();
-                          const dateB = new Date(
-                            a[1].transactions[0].date
-                          ).getTime();
-                          return dateA - dateB;
-                        })
-                        .map(([dateKey, data]) => (
-                          <div
-                            key={dateKey}
-                            className="border rounded-lg p-4 space-y-2"
-                          >
-                            <div className="flex items-center justify-between mb-2">
-                              <div>
-                                <p className="font-medium">{dateKey}</p>
-                                <p className="text-sm text-muted-foreground">
-                                  {data.count} transaction
-                                  {data.count !== 1 ? "s" : ""}
-                                </p>
-                              </div>
-                              <span className="font-bold text-lg">
-                                {formatAmount(data.amount)}
-                              </span>
-                            </div>
-                            <div className="space-y-1 pl-4 border-l-2">
-                              {data.transactions.map((tx, idx) => (
-                                <div
-                                  key={idx}
-                                  className="flex items-center justify-between text-sm"
-                                >
-                                  <span className="text-muted-foreground truncate flex-1">
-                                    {tx.recipient}
-                                  </span>
-                                  <span className="font-medium ml-2">
-                                    {formatAmount(tx.amount)}
-                                  </span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        ))}
-                    </div>
+                    <ChartContainer
+                      config={{
+                        amount: {
+                          label: "Amount Spent",
+                          color: "hsl(var(--chart-2))",
+                        },
+                      }}
+                      className="h-[300px] w-full"
+                    >
+                      <BarChart
+                        data={Object.entries(stats.byDate)
+                          .sort((a, b) => {
+                            const dateA = new Date(b[1].transactions[0].date).getTime();
+                            const dateB = new Date(a[1].transactions[0].date).getTime();
+                            return dateA - dateB;
+                          })
+                          .reverse()
+                          .map(([dateKey, data]) => ({
+                            date: dateKey,
+                            amount: data.amount,
+                            count: data.count,
+                          }))}
+                        margin={{ left: 20, right: 20, top: 20, bottom: 60 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis 
+                          dataKey="date" 
+                          angle={-45}
+                          textAnchor="end"
+                          height={80}
+                          tick={{ fontSize: 12 }}
+                        />
+                        <YAxis />
+                        <ChartTooltip
+                          content={
+                            <ChartTooltipContent
+                              formatter={(value) => formatAmount(Number(value))}
+                            />
+                          }
+                        />
+                        <Bar dataKey="amount" fill="var(--color-amount)" radius={[4, 4, 0, 0]} />
+                      </BarChart>
+                    </ChartContainer>
                   </CardContent>
                 </Card>
-              </>
+              </div>
             )}
-          </div>
         </div>
       </div>
 

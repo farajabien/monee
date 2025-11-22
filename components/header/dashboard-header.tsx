@@ -174,25 +174,25 @@ export function DashboardHeader() {
   }
 
   return (
-    <div className="flex items-center justify-between mb-6">
-      <div className="flex items-center gap-3">
-        <Avatar className="h-10 w-10">
+    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-3">
+      <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
+        <Avatar className="h-9 w-9 sm:h-10 sm:w-10 flex-shrink-0">
           <AvatarImage
             src={user.imageURL || undefined}
             alt={user.email || "User"}
           />
-          <AvatarFallback className="text-sm">
+          <AvatarFallback className="text-xs sm:text-sm">
             {getInitials(user.email)}
           </AvatarFallback>
         </Avatar>
-        <div>
-          <div className="text-sm font-medium">
-            {formatAmount(currentMonthNet)}
-            <span className="text-xs text-muted-foreground ml-2">
+        <div className="min-w-0 flex-1">
+          <div className="text-xs sm:text-sm font-medium flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-2">
+            <span className="whitespace-nowrap truncate">{formatAmount(currentMonthNet)}</span>
+            <span className="text-[10px] sm:text-xs text-muted-foreground truncate">
               ({formatAmount(runningTotal)})
             </span>
           </div>
-          <div className="text-xs text-muted-foreground">
+          <div className="text-[10px] sm:text-xs text-muted-foreground whitespace-nowrap">
             {now.toLocaleDateString("en-KE", {
               month: "long",
               year: "numeric",

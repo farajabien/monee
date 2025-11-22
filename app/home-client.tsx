@@ -36,7 +36,7 @@ export default function HomeClient() {
   const [activeTab, setActiveTab] = useState("overview");
 
   return (
-    <div className="mx-auto max-w-7xl p-2">
+    <div className="mx-auto max-w-7xl p-3 sm:p-4 md:p-6">
       <DashboardHeader />
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
