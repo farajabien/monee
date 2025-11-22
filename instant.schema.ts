@@ -83,6 +83,14 @@ const _schema = i.schema({
       principalAmount: i.number().optional(),
       createdAt: i.number().indexed(),
     }),
+    recipients: i.entity({
+      originalName: i.string().indexed(),
+      nickname: i.string().optional().indexed(),
+      defaultCategory: i.string().optional(),
+      notes: i.string().optional(),
+      createdAt: i.number().indexed(),
+      updatedAt: i.number().indexed(),
+    }),
   },
   links: {
     userProfiles: {
@@ -124,6 +132,10 @@ const _schema = i.schema({
     debtPayments: {
       forward: { on: "debt_payments", has: "one", label: "debt" },
       reverse: { on: "debts", has: "many", label: "payments" },
+    },
+    profileRecipients: {
+      forward: { on: "recipients", has: "one", label: "user" },
+      reverse: { on: "profiles", has: "many", label: "recipients" },
     },
   },
   rooms: {},

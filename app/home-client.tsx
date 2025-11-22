@@ -21,14 +21,14 @@ import { IncomeSummary } from "../components/income/income-summary";
 import { DebtList } from "../components/debts/debt-list";
 import { DebtProgress } from "../components/debts/debt-progress";
 import { DashboardHeader } from "../components/header/dashboard-header";
+import { RecipientList } from "../components/recipients/recipient-list";
 
 const tabs = [
   { value: "overview", label: "Overview" },
   { value: "income", label: "Income" },
   { value: "transactions", label: "Transactions" },
   { value: "debts", label: "Debts" },
-  { value: "checkin", label: "Check-In" },
-  { value: "eltiw", label: "ELTIW" },
+  { value: "recipients", label: "Recipients" },
   { value: "categories", label: "Categories" },
 ];
 
@@ -60,7 +60,7 @@ export default function HomeClient() {
         </div>
 
         {/* Desktop: Tabs */}
-        <TabsList className="hidden md:grid w-full grid-cols-7 h-auto">
+        <TabsList className="hidden md:grid w-full grid-cols-6 h-auto">
           {tabs.map((tab) => (
             <TabsTrigger key={tab.value} value={tab.value}>
               {tab.label}
@@ -69,8 +69,10 @@ export default function HomeClient() {
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
+          <DailyCheckinCard />
           <MonthlySummary />
           <BudgetList />
+          <EltiwList />
         </TabsContent>
 
         <TabsContent value="income" className="space-y-4">
@@ -88,12 +90,8 @@ export default function HomeClient() {
           <DebtList />
         </TabsContent>
 
-        <TabsContent value="checkin" className="space-y-4">
-          <DailyCheckinCard />
-        </TabsContent>
-
-        <TabsContent value="eltiw" className="space-y-4">
-          <EltiwList />
+        <TabsContent value="recipients" className="space-y-4">
+          <RecipientList />
         </TabsContent>
 
         <TabsContent value="categories" className="space-y-4">
