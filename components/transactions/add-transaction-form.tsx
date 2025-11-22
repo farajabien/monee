@@ -24,7 +24,7 @@ export default function AddTransactionForm() {
   const user = db.useUser();
   const [messages, setMessages] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("auto-match");
   const [showAddCategoryDialog, setShowAddCategoryDialog] = useState(false);
   const [previewTransactions, setPreviewTransactions] = useState<Array<{
     amount: number;
@@ -117,7 +117,7 @@ export default function AddTransactionForm() {
           const parsed = parseMpesaMessage(message);
           
           // Auto-match category based on recipient, fallback to selected or uncategorized
-          let category = selectedCategory || "Uncategorized";
+          let category = (selectedCategory && selectedCategory !== "auto-match") ? selectedCategory : "Uncategorized";
           if (parsed.recipient) {
             const autoCategory = findMostCommonCategoryForRecipient(
               parsed.recipient,
@@ -147,7 +147,7 @@ export default function AddTransactionForm() {
       }
 
       setMessages("");
-      setSelectedCategory("");
+      setSelectedCategory("auto-match");
       setPreviewTransactions([]);
     } catch (error) {
       console.error("Error adding transactions:", error);
@@ -164,15 +164,7 @@ export default function AddTransactionForm() {
 
   return (
     <>
-      <Card>
-        <CardHeader>
-          <CardTitle>Add Transaction(s)</CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Paste one or multiple Mpesa messages (one per line)
-          </p>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+       <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="mpesa-messages">Paste Mpesa Message(s)</Label>
               <Textarea
@@ -197,7 +189,7 @@ export default function AddTransactionForm() {
                     <SelectValue placeholder="Auto-match or select category" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Auto-match</SelectItem>
+                    <SelectItem value="auto-match">Auto-match</SelectItem>
                     <SelectItem value="Uncategorized">Uncategorized</SelectItem>
                     {categories.map((category) => (
                       <SelectItem key={category.id} value={category.name}>
@@ -273,8 +265,6 @@ export default function AddTransactionForm() {
                 : `Add ${previewTransactions.length} Transaction${previewTransactions.length !== 1 ? "s" : ""}`}
             </Button>
           </form>
-        </CardContent>
-      </Card>
 
       <AddCategoryDialog
         open={showAddCategoryDialog}

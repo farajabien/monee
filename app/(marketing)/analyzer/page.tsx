@@ -360,6 +360,8 @@ export default function AnalyzerPage() {
                 </div>
               </div>
 
+              {/* Charts Section */}
+              <div className="grid gap-4 sm:gap-6">
                 {/* Top Recipients Chart */}
                 <Card>
                   <CardHeader>
@@ -463,6 +465,7 @@ export default function AnalyzerPage() {
                   </CardContent>
                 </Card>
               </div>
+            </div>
             )}
         </div>
       </div>
