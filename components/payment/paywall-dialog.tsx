@@ -13,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Check, Sparkles } from "lucide-react";
+import { toast } from "sonner";
 
 interface PaywallDialogProps {
   open: boolean;
@@ -88,10 +89,13 @@ export function PaywallDialog({ open, onOpenChange }: PaywallDialogProps) {
             }),
           ])
             .then(() => {
-              alert("🎉 Payment successful! Welcome to MONEE!");
+              toast.success("🎉 Payment successful! Welcome to MONEE!");
               onOpenChange(false);
+              // Wait for InstantDB to propagate the change before reloading
               if (typeof window !== "undefined") {
-                window.location.reload(); // Refresh to update UI
+                setTimeout(() => {
+                  window.location.reload();
+                }, 1500); // Give InstantDB time to sync
               }
             })
             .catch((err) => {
