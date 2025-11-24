@@ -21,9 +21,11 @@ import { DebtList } from "../components/debts/debt-list";
 import { DebtProgress } from "../components/debts/debt-progress";
 import { DashboardHeader } from "../components/header/dashboard-header";
 import { RecipientList } from "../components/recipients/recipient-list";
+import { YearInReview } from "../components/insights/year-in-review";
 
 const tabs = [
   { value: "overview", label: "Overview" },
+  { value: "year-review", label: "2025 Review" },
   { value: "income", label: "Income" },
   { value: "transactions", label: "Transactions" },
   { value: "eltiw", label: "ELTIW" },
@@ -64,7 +66,7 @@ export default function HomeClient() {
         </div>
 
         {/* Desktop: Tabs */}
-        <TabsList className="hidden md:grid w-full grid-cols-7 h-auto">
+        <TabsList className="hidden md:grid w-full grid-cols-8 h-auto">
           {tabs.map((tab) => (
             <TabsTrigger key={tab.value} value={tab.value}>
               {tab.label}
@@ -76,6 +78,10 @@ export default function HomeClient() {
           <MonthlySummary />
           <BudgetList />
           <EltiwList />
+        </TabsContent>
+
+        <TabsContent value="year-review" className="space-y-4">
+          <YearInReview />
         </TabsContent>
 
         <TabsContent value="income" className="space-y-4">

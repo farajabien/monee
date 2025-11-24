@@ -7,9 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Item } from "@/components/ui/item";
-import { Trash2, Edit } from "lucide-react";
+import { Trash2, Edit, TrendingUp, TrendingDown, Calendar, DollarSign } from "lucide-react";
 import { EditTransactionDialog } from "./edit-transaction-dialog";
 import { DataViewControls } from "@/components/ui/data-view-controls";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { Transaction } from "@/types";
 
 export default function TransactionList() {
@@ -20,10 +21,11 @@ export default function TransactionList() {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("newest");
   const [categoryFilter, setCategoryFilter] = useState("all");
+  const [monthFilter, setMonthFilter] = useState("all");
 
   const handleViewModeChange = (mode: "grid" | "list" | "table") => {
     if (mode !== "table") setViewMode(mode);
-  };
+  };;
   
   const { data } = db.useQuery({
     transactions: {
@@ -49,9 +51,70 @@ export default function TransactionList() {
     return Array.from(cats);
   }, [transactions]);
 
+  // Get available months from transactions
+  const availableMonths = useMemo(() => {
+    const months = new Set<string>();
+    transactions.forEach((t: Transaction) => {
+      const date = new Date(t.date || t.createdAt);
+      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      months.add(monthKey);
+    });
+    return Array.from(months).sort().reverse(); // Most recent first
+  }, [transactions]);
+
+  // Calculate metrics for filtered transactions
+  const metrics = useMemo(() => {
+    let filtered = [...transactions];
+
+    // Apply month filter first
+    if (monthFilter !== "all") {
+      filtered = filtered.filter((t: Transaction) => {
+        const date = new Date(t.date || t.createdAt);
+        const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        return monthKey === monthFilter;
+      });
+    }
+
+    // Apply category filter
+    if (categoryFilter !== "all") {
+      filtered = filtered.filter((t: Transaction) => t.category === categoryFilter);
+    }
+
+    // Apply search filter
+    if (searchQuery) {
+      filtered = filtered.filter((t: Transaction) => {
+        const displayName = getDisplayName(t.recipient || "");
+        return (
+          displayName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          t.category?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          formatAmount(t.amount).toLowerCase().includes(searchQuery.toLowerCase())
+        );
+      });
+    }
+
+    const totalSpent = filtered.reduce((sum, t) => sum + t.amount, 0);
+    const transactionCount = filtered.length;
+    const avgTransaction = transactionCount > 0 ? totalSpent / transactionCount : 0;
+
+    return {
+      totalSpent,
+      transactionCount,
+      avgTransaction,
+    };
+  }, [transactions, monthFilter, categoryFilter, searchQuery]);
+
   // Filter and sort transactions
   const filteredAndSortedTransactions = useMemo(() => {
     let result = [...transactions];
+
+    // Month filter
+    if (monthFilter !== "all") {
+      result = result.filter((t: Transaction) => {
+        const date = new Date(t.date || t.createdAt);
+        const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        return monthKey === monthFilter;
+      });
+    }
 
     // Search filter
     if (searchQuery) {
@@ -117,11 +180,76 @@ export default function TransactionList() {
     }).format(amount);
   };
 
+  const formatMonthLabel = (monthKey: string) => {
+    const [year, month] = monthKey.split('-');
+    const date = new Date(parseInt(year), parseInt(month) - 1);
+    return date.toLocaleDateString("en-KE", { month: "long", year: "numeric" });
+  };
+
   return (
     <>
+      {/* Metrics Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <DollarSign className="h-5 w-5 text-primary" />
+              </div>
+              <div className="flex-1">
+                <p className="text-xs text-muted-foreground">Total Spent</p>
+                <p className="text-2xl font-bold">{formatAmount(metrics.totalSpent)}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-blue-500/10 rounded-lg">
+                <Calendar className="h-5 w-5 text-blue-500" />
+              </div>
+              <div className="flex-1">
+                <p className="text-xs text-muted-foreground">Transactions</p>
+                <p className="text-2xl font-bold">{metrics.transactionCount}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-green-500/10 rounded-lg">
+                <TrendingUp className="h-5 w-5 text-green-500" />
+              </div>
+              <div className="flex-1">
+                <p className="text-xs text-muted-foreground">Avg Transaction</p>
+                <p className="text-2xl font-bold">{formatAmount(metrics.avgTransaction)}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Transactions</CardTitle>
+          {/* Month Filter */}
+          <Select value={monthFilter} onValueChange={setMonthFilter}>
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="Select month" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Time</SelectItem>
+              {availableMonths.map((month) => (
+                <SelectItem key={month} value={month}>
+                  {formatMonthLabel(month)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </CardHeader>
         <CardContent className="space-y-4">
           <DataViewControls
