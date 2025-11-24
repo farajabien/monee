@@ -3,7 +3,7 @@
 import db from "@/lib/db";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Legend } from "recharts";
+// Removed duplicate recharts import
 import { useState, useMemo } from "react";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";

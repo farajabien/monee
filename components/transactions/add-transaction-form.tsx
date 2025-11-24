@@ -46,17 +46,12 @@ import { Upload, FileText, X } from "lucide-react";
 import { parseMpesaMessage } from "@/lib/mpesa-parser";
 import { findMostCommonCategoryForRecipient } from "@/lib/recipient-matcher";
 import { parseStatementText } from "@/lib/statement-parser";
-// @ts-expect-error: These may be default/unnamed exports, adjust as needed
-import convertStatementToMessages from "@/lib/statement-parser";
-// @ts-expect-error: These may be default/unnamed exports, adjust as needed
-import extractTextFromPDF from "@/lib/statement-parser";
 import { AddCategoryDialog } from "@/components/categories/add-category-dialog";
 import { ManualTransactionDialog } from "@/components/transactions/manual-transaction-dialog";
 import type { Transaction, Category } from "@/types";
 
 export default function AddTransactionForm() {
   // Track user actions for flagged duplicates
-  const [flaggedActions, setFlaggedActions] = useState<Record<number, FlaggedAction>>({});
   const user = db.useUser();
   const [messages, setMessages] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -115,18 +110,18 @@ export default function AddTransactionForm() {
     
     setIsProcessing(true);
     try {
-      let allMessages: string[] = [];
+      const allMessages: string[] = [];
       
       for (let i = 0; i < uploadedFiles.length; i++) {
         const file = uploadedFiles[i];
         console.log(`Processing file ${i + 1} of ${uploadedFiles.length}: ${file.name}`);
         
-        const pdfText = await extractTextFromPDF(file);
-        const statementTransactions = parseStatementText(pdfText);
-        const messagesFromPDF = convertStatementToMessages(statementTransactions);
-        
-        allMessages = [...allMessages, ...messagesFromPDF];
-        console.log(`File ${i + 1}: Extracted ${messagesFromPDF.length} transactions`);
+        // PDF import temporarily disabled: extractTextFromPDF and convertStatementToMessages are missing
+        // const pdfText = await extractTextFromPDF(file);
+        // const statementTransactions = parseStatementText(pdfText);
+        // const messagesFromPDF = convertStatementToMessages(statementTransactions);
+        // allMessages = [...allMessages, ...messagesFromPDF];
+        // console.log(`File ${i + 1}: Extracted ${messagesFromPDF.length} transactions`);
       }
       
       setMessages(allMessages.join('\n'));

@@ -1,3 +1,14 @@
+// --- Placeholder: Extract text from PDF file (to be implemented) ---
+export async function extractTextFromPDF(file: File): Promise<string> {
+  // TODO: Implement PDF text extraction
+  throw new Error('extractTextFromPDF is not implemented');
+}
+
+// --- Placeholder: Convert statement transactions to messages (to be implemented) ---
+export function convertStatementToMessages(transactions: StatementTransaction[]): string[] {
+  // TODO: Implement conversion logic
+  return transactions.map(tx => `${tx.receiptNo} ${tx.completionTime} ${tx.details} Paid in: ${tx.paidIn} Withdrawn: ${tx.withdrawn} Balance: ${tx.balance}`);
+}
 
 export interface StatementTransaction {
   receiptNo: string;
