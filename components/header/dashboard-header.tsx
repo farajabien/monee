@@ -177,8 +177,8 @@ export function DashboardHeader() {
   }
 
   return (
-    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-3">
-      <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
+    <div className="flex items-center justify-between mb-6 gap-3 w-full">
+      <div className="flex items-center gap-2 sm:gap-3">
         <Avatar className="h-9 w-9 sm:h-10 sm:w-10 flex-shrink-0">
           <AvatarImage
             src={user.imageURL || undefined}

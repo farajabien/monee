@@ -120,8 +120,18 @@ export default function HomeClient() {
         </TabsContent>
 
         <TabsContent value="transactions" className="space-y-4">
-          <AddTransactionForm />
-          <TransactionList />
+          <Tabs defaultValue="list" className="w-full">
+            <TabsList className="mb-2">
+              <TabsTrigger value="list">Transactions List</TabsTrigger>
+              <TabsTrigger value="add">Add Transaction</TabsTrigger>
+            </TabsList>
+            <TabsContent value="list">
+              <TransactionList />
+            </TabsContent>
+            <TabsContent value="add">
+              <AddTransactionForm />
+            </TabsContent>
+          </Tabs>
         </TabsContent>
 
         <TabsContent value="eltiw" className="space-y-4">

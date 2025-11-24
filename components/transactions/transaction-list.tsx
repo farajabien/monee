@@ -193,6 +193,11 @@ export default function TransactionList() {
     return num.toString();
   };
 
+  // Filter state for new filter row
+  const [period, setPeriod] = useState("all");
+  const [month, setMonth] = useState("all");
+  // TODO: Add date range picker state if needed
+
   return (
     <>
       {/* Metrics Badges */}
@@ -209,6 +214,34 @@ export default function TransactionList() {
           <TrendingUp className="h-3.5 w-3.5 mr-1.5" />
           Avg: Ksh {formatCompact(metrics.avgTransaction)}
         </Badge>
+      </div>
+
+      {/* New Filter Row */}
+      <div className="flex flex-wrap gap-2 mb-4 items-center">
+        <Select value={period} onValueChange={setPeriod}>
+          <SelectTrigger className="w-[120px]">
+            <SelectValue placeholder="Period" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Time</SelectItem>
+            <SelectItem value="today">Today</SelectItem>
+            <SelectItem value="yesterday">Yesterday</SelectItem>
+            <SelectItem value="this-week">This Week</SelectItem>
+            <SelectItem value="last-week">Last Week</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={month} onValueChange={setMonth}>
+          <SelectTrigger className="w-[120px]">
+            <SelectValue placeholder="Month" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Months</SelectItem>
+            {availableMonths.map((m) => (
+              <SelectItem key={m} value={m}>{formatMonthLabel(m)}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {/* Date range picker and more filters can go here */}
       </div>
 
       <Card>
