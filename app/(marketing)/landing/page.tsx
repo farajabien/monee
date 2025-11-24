@@ -129,13 +129,20 @@ export default function LandingPage() {
             />
             <span className="font-bold text-xl">MONEE</span>
           </Link>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             <Link href="/free-mpesa-analyzer-year-review">
-              <Button variant="ghost">Free M-Pesa Analyzer</Button>
+              <Button variant="ghost" size="sm" className="hidden sm:inline-flex">
+                Free M-Pesa Analyzer
+              </Button>
+              <Button variant="ghost" size="sm" className="sm:hidden">
+                Analyzer
+              </Button>
             </Link>
             <Link href="/login">
-              <Button variant="default">
-                Get Started <ArrowRight className="ml-2 h-4 w-4" />
+              <Button variant="default" size="sm" className="sm:size-default">
+                <span className="hidden sm:inline">Get Started</span>
+                <span className="sm:hidden">Start</span>
+                <ArrowRight className="ml-1 sm:ml-2 h-3 w-3 sm:h-4 sm:w-4" />
               </Button>
             </Link>
           </div>
