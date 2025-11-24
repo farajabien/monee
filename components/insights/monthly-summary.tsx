@@ -4,6 +4,8 @@ import db from "@/lib/db";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Pie, PieChart, Cell, Legend } from "recharts";
 import CategoryBadge from "../categories/category-badge";
 import { RecipientManager } from "@/components/recipients/recipient-manager";
 import type { Transaction, Category, Budget } from "@/types";
@@ -280,7 +282,56 @@ export default function MonthlySummary() {
           {Object.keys(categoryTotals).length > 0 && (
             <div className="space-y-3">
               <h3 className="text-sm font-medium">By Category</h3>
-              <div className="space-y-2">
+              
+              {/* Pie Chart */}
+              <ChartContainer
+                config={Object.fromEntries(
+                  Object.keys(categoryTotals).map((name, index) => [
+                    name,
+                    {
+                      label: name,
+                      color: `hsl(var(--chart-${(index % 5) + 1}))`,
+                    },
+                  ])
+                )}
+                className="h-[300px] w-full"
+              >
+                <PieChart>
+                  <Pie
+                    data={Object.entries(categoryTotals)
+                      .sort((a, b) => b[1].amount - a[1].amount)
+                      .map(([name, totals]) => ({
+                        name,
+                        value: totals.amount,
+                        percentage: ((totals.amount / totalSpent) * 100).toFixed(1),
+                      }))}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={80}
+                    label={({ name, percentage }) => `${name}: ${percentage}%`}
+                  >
+                    {Object.keys(categoryTotals).map((_, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={`hsl(var(--chart-${(index % 5) + 1}))`}
+                      />
+                    ))}
+                  </Pie>
+                  <ChartTooltip
+                    content={
+                      <ChartTooltipContent
+                        formatter={(value) => formatAmount(Number(value))}
+                      />
+                    }
+                  />
+                  <Legend />
+                </PieChart>
+              </ChartContainer>
+              
+              {/* List View */}
+              <div className="space-y-2 mt-4">
                 {Object.entries(categoryTotals)
                   .sort((a, b) => b[1].amount - a[1].amount)
                   .map(([categoryName, totals]) => {
@@ -325,7 +376,47 @@ export default function MonthlySummary() {
           {Object.keys(recipientTotals).length > 0 && (
             <div className="space-y-3">
               <h3 className="text-sm font-medium">Top Recipients</h3>
-              <div className="space-y-2">
+              
+              {/* Bar Chart */}
+              <ChartContainer
+                config={{
+                  amount: {
+                    label: "Amount",
+                    color: "hsl(var(--chart-1))",
+                  },
+                }}
+                className="h-[300px] w-full"
+              >
+                <BarChart
+                  data={Object.entries(recipientTotals)
+                    .sort((a, b) => b[1].amount - a[1].amount)
+                    .slice(0, 8)
+                    .map(([, totals]) => ({
+                      name: totals.displayName.length > 15 
+                        ? totals.displayName.slice(0, 15) + "..." 
+                        : totals.displayName,
+                      amount: totals.amount,
+                      count: totals.count,
+                    }))}
+                  layout="vertical"
+                  margin={{ left: 80, right: 20, top: 10, bottom: 10 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
+                  <XAxis type="number" />
+                  <YAxis dataKey="name" type="category" width={75} tick={{ fontSize: 12 }} />
+                  <ChartTooltip
+                    content={
+                      <ChartTooltipContent
+                        formatter={(value) => formatAmount(Number(value))}
+                      />
+                    }
+                  />
+                  <Bar dataKey="amount" fill="var(--color-amount)" radius={[0, 4, 4, 0]} />
+                </BarChart>
+              </ChartContainer>
+              
+              {/* List View */}
+              <div className="space-y-2 mt-4">
                 {Object.entries(recipientTotals)
                   .sort((a, b) => b[1].amount - a[1].amount)
                   .slice(0, 10) // Show top 10

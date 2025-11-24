@@ -3,7 +3,6 @@
 import { useState, useMemo } from "react";
 import { id } from "@instantdb/react";
 import db from "@/lib/db";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -18,6 +17,7 @@ import {
 import { parseMpesaMessage } from "@/lib/mpesa-parser";
 import { findMostCommonCategoryForRecipient } from "@/lib/recipient-matcher";
 import { AddCategoryDialog } from "@/components/categories/add-category-dialog";
+import { ManualTransactionDialog } from "@/components/transactions/manual-transaction-dialog";
 import type { Transaction, Category } from "@/types";
 
 export default function AddTransactionForm() {
@@ -164,6 +164,14 @@ export default function AddTransactionForm() {
 
   return (
     <>
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h3 className="text-lg font-semibold">Add Transactions</h3>
+          <p className="text-sm text-muted-foreground">Paste M-Pesa messages or add manually</p>
+        </div>
+        <ManualTransactionDialog />
+      </div>
+
        <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="mpesa-messages">Paste Mpesa Message(s)</Label>

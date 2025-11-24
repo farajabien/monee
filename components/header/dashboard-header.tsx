@@ -1,8 +1,11 @@
 "use client";
 
 import { useMemo } from "react";
+import Link from "next/link";
 import db from "@/lib/db";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Settings } from "lucide-react";
 import type { Transaction, IncomeSource } from "@/types";
 
 export function DashboardHeader() {
@@ -200,6 +203,12 @@ export function DashboardHeader() {
           </div>
         </div>
       </div>
+      <Link href="/settings">
+        <Button variant="outline" size="sm" className="gap-2">
+          <Settings className="h-4 w-4" />
+          <span className="hidden sm:inline">Settings</span>
+        </Button>
+      </Link>
     </div>
   );
 }
