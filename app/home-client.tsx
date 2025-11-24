@@ -29,8 +29,11 @@ export default function HomeClient() {
   const activeTab = tabFromUrl;
 
   return (
-    <div className="mx-auto max-w-7xl p-3 sm:p-4 md:p-6">
-      <DashboardHeader />
+    <div className="mx-auto max-w-7xl p-3 sm:p-4 md:p-6 pb-20 md:pb-0">
+      {/* Header: visible only on md+ screens */}
+      <div className="hidden md:block">
+        <DashboardHeader />
+      </div>
       {/* Main content is now controlled by URL param only; navigation is via bottom bar or header links */}
       {activeTab === "overview" && (
         <Tabs value={overviewTab} onValueChange={setOverviewTab} className="w-full">
@@ -71,9 +74,10 @@ export default function HomeClient() {
       {activeTab === "recipients" && <RecipientList />}
       {activeTab === "categories" && <CategoryList />}
       <QuickAddFab />
-      <PWABottomNav />
-      {/* Add bottom padding for nav */}
-      <div className="h-20 md:h-0" />
+      {/* Bottom nav: visible only on mobile */}
+      <div className="block md:hidden">
+        <PWABottomNav />
+      </div>
     </div>
   );
 }
