@@ -367,7 +367,6 @@ export default function EltiwList() {
       <div>
         {/* Metrics Badges */}
         <div className="flex flex-wrap gap-2 mb-1 items-center">
-          <span className="text-xs text-muted-foreground mr-2">Metrics{categoryFilter !== "all" && uniqueCategories.length > 0 ? `: ${categoryFilter.charAt(0).toUpperCase() + categoryFilter.slice(1)}` : ""}</span>
           <Badge variant="secondary" className="text-sm px-3 py-1.5">
             <Heart className="h-3.5 w-3.5 mr-1.5" />
             {metrics.activeCount} Active

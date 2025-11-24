@@ -202,17 +202,17 @@ export default function TransactionList() {
   return (
     <>
       {/* Metrics Badges */}
-      <div className="flex flex-wrap gap-2 mb-4">
-        <Badge variant="secondary" className="text-sm px-3 py-1.5">
-          <DollarSign className="h-3.5 w-3.5 mr-1.5" />
+      <div className="flex flex-wrap gap-1 mb-4">
+        <Badge variant="secondary" className="text-sm px-3 py-1">
+          <DollarSign className="h-3.5 w-3.5 mr-1" />
           Ksh {formatCompact(metrics.totalSpent)} Spent
         </Badge>
-        <Badge variant="secondary" className="text-sm px-3 py-1.5">
-          <Calendar className="h-3.5 w-3.5 mr-1.5" />
+        <Badge variant="secondary" className="text-sm px-3 py-1">
+          <Calendar className="h-3.5 w-3.5 mr-1" />
           {metrics.transactionCount} Trans.
         </Badge>
-        <Badge variant="outline" className="text-sm px-3 py-1.5">
-          <TrendingUp className="h-3.5 w-3.5 mr-1.5" />
+        <Badge variant="outline" className="text-sm px-3 py-1">
+          <TrendingUp className="h-3.5 w-3.5 mr-1" />
           Avg: Ksh {formatCompact(metrics.avgTransaction)}
         </Badge>
       </div>

@@ -1,7 +1,10 @@
 "use client";
 
 import db from "@/lib/db";
-import { Card, CardContent} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Legend } from "recharts";
+import { useState, useMemo } from "react";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
@@ -24,7 +27,7 @@ export default function MonthlySummary() {
   const user = db.useUser();
 
   // Get current month start and end timestamps
-  const now = new Date();
+  const now = useMemo(() => new Date(), []);
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   const monthEnd = new Date(
     now.getFullYear(),
@@ -99,6 +102,13 @@ export default function MonthlySummary() {
     },
   });
 
+  const transactions = useMemo(() => data?.transactions || [], [data?.transactions]);
+  const recipients = data?.recipients || [];
+  const categories = data?.categories || [];
+  const budgets = data?.budgets || [];
+  const incomeSources = useMemo(() => data?.income_sources || [], [data?.income_sources]);
+  const debtPayments = useMemo(() => data?.debt_payments || [], [data?.debt_payments]);
+
   if (isLoading) {
     return (
       <Card>
@@ -119,12 +129,47 @@ export default function MonthlySummary() {
     );
   }
 
-  const transactions = data?.transactions || [];
-  const recipients = data?.recipients || [];
-  const categories = data?.categories || [];
-  const budgets = data?.budgets || [];
-  const incomeSources = data?.income_sources || [];
-  const debtPayments = data?.debt_payments || [];
+  // --- Month/Year Dropdown Logic ---
+  // Get all months with data
+  const allMonths = useMemo(() => {
+    const monthSet = new Set<string>();
+    transactions.forEach((tx: Transaction) => {
+      const d = new Date(tx.date);
+      monthSet.add(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`);
+    });
+    return Array.from(monthSet).sort().reverse();
+  }, [transactions]);
+
+  const [selectedMonth, setSelectedMonth] = useState<string>(allMonths[0] || "");
+  const isYearly = selectedMonth === "yearly";
+
+  // Filter transactions/income/debt by selected month or all for yearly
+  const filteredTransactions = useMemo(() => {
+    if (isYearly) return transactions;
+    return transactions.filter((tx: Transaction) => {
+      const d = new Date(tx.date);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      return key === selectedMonth;
+    });
+  }, [transactions, selectedMonth, isYearly]);
+
+  const filteredDebtPayments = useMemo(() => {
+    if (isYearly) return debtPayments;
+    return debtPayments.filter((payment) => {
+      const d = new Date(payment.paymentDate);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      return key === selectedMonth;
+    });
+  }, [debtPayments, selectedMonth, isYearly]);
+
+  const filteredIncomeSources = useMemo(() => {
+    if (isYearly) return incomeSources;
+    const [year, month] = selectedMonth.split("-").map(Number);
+    return incomeSources.filter((src) => {
+      if (src.paydayMonth && src.paydayMonth !== month) return false;
+      return true;
+    });
+  }, [incomeSources, selectedMonth, isYearly]);
 
   // Helper to get display name (nickname or original)
   const getDisplayName = (originalName: string) => {
@@ -132,24 +177,27 @@ export default function MonthlySummary() {
     return recipient?.nickname || originalName;
   };
 
-  // Calculate monthly income from active sources
-  const currentMonth = now.getMonth() + 1;
-  const totalIncome = incomeSources.reduce((sum, source) => {
-    // If paydayMonth is set, only include if it matches current month
-    if (source.paydayMonth && source.paydayMonth !== currentMonth) {
-      return sum;
+  // Calculate income for selected period
+  const totalIncome = useMemo(() => {
+    if (isYearly) {
+      return incomeSources.reduce((sum, src) => sum + src.amount, 0);
     }
-    return sum + source.amount;
-  }, 0);
+    // For month, only include sources for that month
+    const [year, month] = selectedMonth.split("-").map(Number);
+    return incomeSources.reduce((sum, src) => {
+      if (src.paydayMonth && src.paydayMonth !== month) return sum;
+      return sum + src.amount;
+    }, 0);
+  }, [incomeSources, selectedMonth, isYearly]);
 
   // Calculate totals
-  const totalSpent = transactions.reduce(
+  const totalSpent = filteredTransactions.reduce(
     (sum: number, tx: Transaction) => sum + tx.amount,
     0
   );
 
-  // Calculate total debt payments this month (only for user's debts)
-  const totalDebtPayments = debtPayments.reduce((sum, payment) => {
+  // Calculate total debt payments for period (only for user's debts)
+  const totalDebtPayments = filteredDebtPayments.reduce((sum, payment) => {
     if (payment.debt?.user?.id === user.id) {
       return sum + payment.amount;
     }
@@ -164,7 +212,7 @@ export default function MonthlySummary() {
 
   // Group by category
   const categoryTotals: Record<string, { amount: number; count: number }> = {};
-  transactions.forEach((tx: Transaction) => {
+  filteredTransactions.forEach((tx: Transaction) => {
     const cat = tx.category || "Uncategorized";
     if (!categoryTotals[cat]) {
       categoryTotals[cat] = { amount: 0, count: 0 };
@@ -175,7 +223,7 @@ export default function MonthlySummary() {
 
   // Group by recipient (normalized)
   const recipientTotals: Record<string, { amount: number; count: number; displayName: string; originalName: string }> = {};
-  transactions.forEach((tx: Transaction) => {
+  filteredTransactions.forEach((tx: Transaction) => {
     if (!tx.recipient) return;
     const normalized = normalizeRecipient(tx.recipient);
     if (!normalized) return;
@@ -218,8 +266,69 @@ export default function MonthlySummary() {
   const budgetProgress =
     monthlyBudget > 0 ? (totalSpent / monthlyBudget) * 100 : 0;
 
+  // --- Yearly Bar Chart Data ---
+  const yearlyBarData = useMemo(() => {
+    if (!isYearly) return [];
+    // Get all months in the year
+    const months = Array.from({ length: 12 }, (_, i) => i);
+    const year = allMonths.length > 0 ? Number(allMonths[0].split("-")[0]) : now.getFullYear();
+    return months.map((month) => {
+      const monthTxs = transactions.filter((tx: Transaction) => {
+        const d = new Date(tx.date);
+        return d.getFullYear() === year && d.getMonth() === month;
+      });
+      const spent = monthTxs.reduce((sum, tx) => sum + tx.amount, 0);
+      // Income for month
+      const income = incomeSources
+        .filter((src) => !src.paydayMonth || src.paydayMonth === month + 1)
+        .reduce((sum, src) => sum + src.amount, 0);
+      return {
+        month: new Date(year, month).toLocaleString("en-KE", { month: "short" }),
+        spent,
+        income,
+      };
+    });
+  }, [isYearly, transactions, incomeSources, allMonths, now]);
+
   return (
-     <div className="space-y-6">
+    <div className="space-y-6">
+      {/* Month/Year Dropdown */}
+      {allMonths.length > 0 && (
+        <div className="flex items-center gap-2 mb-2">
+          <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+            <SelectTrigger className="w-[220px]">
+              <SelectValue placeholder="Select month" />
+            </SelectTrigger>
+            <SelectContent>
+              {allMonths.map((monthKey) => (
+                <SelectItem key={monthKey} value={monthKey}>
+                  {new Date(monthKey + "-01").toLocaleString("en-KE", { month: "long", year: "numeric" })}
+                </SelectItem>
+              ))}
+              <SelectItem value="yearly">Yearly Overview</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
+      {/* Yearly Bar Chart */}
+      {isYearly && yearlyBarData.length > 0 && (
+        <Card>
+          <CardContent className="p-6">
+            <h3 className="text-sm font-medium mb-2">Yearly Overview</h3>
+            <ChartContainer config={{ spent: { label: "Spent", color: "var(--color-expense)" }, income: { label: "Income", color: "var(--color-income)" } }}>
+              <BarChart data={yearlyBarData} height={300} margin={{ left: 40, right: 20, top: 10, bottom: 10 }}>
+                <CartesianGrid vertical={false} />
+                <XAxis dataKey="month" tickLine={false} tickMargin={10} axisLine={false} />
+                <YAxis />
+                <Legend />
+                <Bar dataKey="spent" fill="var(--color-expense)" radius={4} />
+                <Bar dataKey="income" fill="var(--color-income)" radius={4} />
+              </BarChart>
+            </ChartContainer>
+          </CardContent>
+        </Card>
+      )}
           {/* Income vs Expenses */}
           <div className="grid grid-cols-2 gap-4 p-4 bg-muted rounded-lg">
             <div>
