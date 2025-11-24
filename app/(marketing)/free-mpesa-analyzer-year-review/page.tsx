@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -234,11 +235,17 @@ export default function FreeMpesaAnalyzerPage() {
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         {/* Header */}
         <div className="text-center mb-8">
-          <Link href="/landing" className="inline-flex items-center gap-2 text-primary hover:underline mb-4">
-            <Sparkles className="h-5 w-5" />
-            <span className="font-bold">MONEE</span>
+          <Link href="/landing" className="inline-flex items-center gap-2 hover:opacity-80 transition-opacity mb-4">
+            <Image
+              src="/AppImages/money-bag.png"
+              alt="MONEE"
+              width={32}
+              height={32}
+              className="h-8 w-8"
+            />
+            <span className="font-bold text-xl">MONEE</span>
           </Link>
-          <h1 className="text-4xl sm:text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+          <h1 className="text-4xl sm:text-5xl font-bold mb-4">
             Free M-Pesa Statement Analyzer 🇰🇪
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
