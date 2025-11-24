@@ -13,10 +13,17 @@ import {
   SteppedFormModal,
   type FormStep,
 } from "@/components/stepped-form-modal";
-import { CheckCircle2, Plus, X, ExternalLink, Calendar, Edit } from "lucide-react";
+import { CheckCircle2, Plus, X, ExternalLink, Calendar, Edit, Search, List, Grid3x3 } from "lucide-react";
 import type { EltiwItem } from "@/types";
 import { Item } from "../ui/item";
-import { DataViewControls, type ViewMode } from "../ui/data-view-controls";
+import type { ViewMode } from "../ui/data-view-controls";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function EltiwList() {
   const user = db.useUser();
@@ -33,12 +40,27 @@ export default function EltiwList() {
     amount?: string;
   }>({});
   const [editingItem, setEditingItem] = useState<EltiwItem | null>(null);
+  const [selectedSource, setSelectedSource] = useState("");
+
+  const SOURCE_OPTIONS = [
+    { name: "TikTok Shop", emoji: "🎵", value: "tiktok" },
+    { name: "Instagram", emoji: "📸", value: "instagram" },
+    { name: "Jumia", emoji: "🛍️", value: "jumia" },
+    { name: "Kilimall", emoji: "🏪", value: "kilimall" },
+    { name: "Amazon", emoji: "📦", value: "amazon" },
+    { name: "AliExpress", emoji: "🌏", value: "aliexpress" },
+    { name: "Facebook", emoji: "👥", value: "facebook" },
+    { name: "WhatsApp", emoji: "💬", value: "whatsapp" },
+    { name: "Store", emoji: "🏬", value: "store" },
+    { name: "Other", emoji: "✨", value: "other" },
+  ];
   
   // View controls
   const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("newest");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [sourceFilter, setSourceFilter] = useState("all");
 
   const now = useMemo(() => new Date().getTime(), []);
 
@@ -73,6 +95,7 @@ export default function EltiwList() {
     setReason("");
     setLink("");
     setDeadline("");
+    setSelectedSource("");
     setCurrentStep(0);
     setFieldErrors({});
   }, []);
@@ -111,6 +134,8 @@ export default function EltiwList() {
       ? new Date(deadline).getTime()
       : undefined;
 
+    const sourceOption = SOURCE_OPTIONS.find((s) => s.value === selectedSource);
+
     try {
       setIsSubmitting(true);
       if (editingItem) {
@@ -121,6 +146,8 @@ export default function EltiwList() {
             amount: parseFloat(amount),
             reason: reason.trim() || undefined,
             link: link.trim() || undefined,
+            source: sourceOption?.name,
+            sourceEmoji: sourceOption?.emoji,
             deadline: deadlineTimestamp,
           })
         );
@@ -133,6 +160,8 @@ export default function EltiwList() {
               amount: parseFloat(amount),
               reason: reason.trim() || undefined,
               link: link.trim() || undefined,
+              source: sourceOption?.name,
+              sourceEmoji: sourceOption?.emoji,
               deadline: deadlineTimestamp,
               gotIt: false,
               createdAt: Date.now(),
@@ -155,6 +184,9 @@ export default function EltiwList() {
     setDeadline(
       item.deadline ? new Date(item.deadline).toISOString().split("T")[0] : ""
     );
+    // Set source if exists
+    const sourceOption = SOURCE_OPTIONS.find((s) => s.name === item.source);
+    setSelectedSource(sourceOption?.value || "");
     setShowAddDialog(true);
   };
 
@@ -173,6 +205,15 @@ export default function EltiwList() {
 
   const items = useMemo(() => data?.eltiw_items || [], [data?.eltiw_items]);
   
+  // Get unique sources for filter
+  const uniqueSources = useMemo(() => {
+    const sources = new Set<string>();
+    items.forEach((item) => {
+      if (item.source) sources.add(item.source);
+    });
+    return Array.from(sources);
+  }, [items]);
+
   // Filter and sort items
   const filteredAndSortedItems = useMemo(() => {
     let result = [...items];
@@ -192,6 +233,11 @@ export default function EltiwList() {
       result = result.filter((item) => !item.gotIt);
     } else if (statusFilter === "completed") {
       result = result.filter((item) => item.gotIt);
+    }
+
+    // Source filter
+    if (sourceFilter !== "all") {
+      result = result.filter((item) => item.source === sourceFilter);
     }
 
     // Sort
@@ -216,7 +262,7 @@ export default function EltiwList() {
     });
 
     return result;
-  }, [items, searchQuery, statusFilter, sortBy]);
+  }, [items, searchQuery, statusFilter, sortBy, sourceFilter]);
 
 
   const completedItems = filteredAndSortedItems.filter((item: EltiwItem) => item.gotIt);
@@ -273,33 +319,109 @@ export default function EltiwList() {
           </Button>
         </CardHeader>
         <CardContent className="space-y-4">
-          <DataViewControls
-            viewMode={viewMode}
-            onViewModeChange={setViewMode}
-            availableViews={["list", "grid"]}
-            searchValue={searchQuery}
-            onSearchChange={setSearchQuery}
-            searchPlaceholder="Search items..."
-            sortValue={sortBy}
-            onSortChange={setSortBy}
-            sortOptions={[
-              { value: "newest", label: "Newest First" },
-              { value: "oldest", label: "Oldest First" },
-              { value: "amount-high", label: "Price: High to Low" },
-              { value: "amount-low", label: "Price: Low to High" },
-              { value: "deadline", label: "Deadline" },
-            ]}
-            filterValue={statusFilter}
-            onFilterChange={setStatusFilter}
-            filterOptions={[
-              { value: "all", label: "All Items" },
-              { value: "active", label: "Active" },
-              { value: "completed", label: "Completed" },
-            ]}
-            filterLabel="Status"
-            totalCount={items.length}
-            filteredCount={filteredAndSortedItems.length}
-          />
+          {/* Compact controls row */}
+          <div className="flex flex-col gap-3">
+            {/* Search + View Toggle */}
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search items..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-8"
+                />
+              </div>
+              
+              {/* View Mode Toggle */}
+              <div className="flex gap-1 border rounded-md p-1">
+                <Button
+                  variant={viewMode === "list" ? "secondary" : "ghost"}
+                  size="sm"
+                  onClick={() => setViewMode("list")}
+                  className="h-9 px-2"
+                >
+                  <List className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={viewMode === "grid" ? "secondary" : "ghost"}
+                  size="sm"
+                  onClick={() => setViewMode("grid")}
+                  className="h-9 px-2"
+                >
+                  <Grid3x3 className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+
+            {/* Sort + Status Filter + Source Filters in one row */}
+            <div className="flex flex-wrap gap-2 items-center">
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger className="w-[140px] h-9">
+                  <SelectValue placeholder="Sort by..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="newest">Newest</SelectItem>
+                  <SelectItem value="oldest">Oldest</SelectItem>
+                  <SelectItem value="amount-high">Price ↓</SelectItem>
+                  <SelectItem value="amount-low">Price ↑</SelectItem>
+                  <SelectItem value="deadline">Deadline</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-[120px] h-9">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Items</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="completed">Done</SelectItem>
+                </SelectContent>
+              </Select>
+
+              {uniqueSources.length > 0 && (
+                <>
+                  <div className="h-4 w-px bg-border" />
+                  <Button
+                    variant={sourceFilter === "all" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setSourceFilter("all")}
+                    className="h-9"
+                  >
+                    All
+                  </Button>
+                  {uniqueSources.map((source) => {
+                    const sourceEmoji = items.find((i) => i.source === source)?.sourceEmoji;
+                    return (
+                      <Button
+                        key={source}
+                        variant={sourceFilter === source ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setSourceFilter(source)}
+                        className="h-9"
+                        title={source}
+                      >
+                        {sourceEmoji && <span className="text-base">{sourceEmoji}</span>}
+                        <span className="ml-1.5 hidden sm:inline">{source}</span>
+                      </Button>
+                    );
+                  })}
+                </>
+              )}
+            </div>
+
+            {/* Count */}
+            <div className="text-sm text-muted-foreground">
+              {filteredAndSortedItems.length === items.length ? (
+                <span>{items.length} items</span>
+              ) : (
+                <span>
+                  {filteredAndSortedItems.length} of {items.length} items
+                </span>
+              )}
+            </div>
+          </div>
 
           {filteredAndSortedItems.length === 0 && (
             <div className="text-center text-muted-foreground py-8">
@@ -353,7 +475,8 @@ export default function EltiwList() {
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <h4 className={`font-semibold ${item.gotIt ? "line-through" : ""}`}>
+                      <h4 className={`font-semibold ${item.gotIt ? "line-through" : ""} flex items-center gap-2`}>
+                        {item.sourceEmoji && <span className="text-lg">{item.sourceEmoji}</span>}
                         {item.name}
                       </h4>
                       <div className="flex items-center gap-2 flex-wrap">
@@ -405,6 +528,7 @@ export default function EltiwList() {
                       <Badge variant="outline" className="text-xs shrink-0">#{index + 1}</Badge>
                       <div className="flex-1 space-y-1">
                         <div className="flex items-center gap-2 flex-wrap">
+                          {item.sourceEmoji && <span className="text-lg">{item.sourceEmoji}</span>}
                           <span className={`font-semibold ${item.gotIt ? "line-through" : ""}`}>{item.name}</span>
                           <Badge variant="secondary">
                             {formatAmount(item.amount)}
@@ -587,9 +711,42 @@ export default function EltiwList() {
                   type="url"
                   placeholder="https://example.com/product"
                   value={link}
-                  onChange={(e) => setLink(e.target.value)}
+                  onChange={(e) => {
+                    setLink(e.target.value);
+                    // Auto-detect source from link
+                    if (!selectedSource && e.target.value) {
+                      const url = e.target.value.toLowerCase();
+                      if (url.includes("tiktok.com")) setSelectedSource("tiktok");
+                      else if (url.includes("instagram.com")) setSelectedSource("instagram");
+                      else if (url.includes("jumia.")) setSelectedSource("jumia");
+                      else if (url.includes("kilimall.")) setSelectedSource("kilimall");
+                      else if (url.includes("amazon.")) setSelectedSource("amazon");
+                      else if (url.includes("aliexpress.")) setSelectedSource("aliexpress");
+                      else if (url.includes("facebook.com")) setSelectedSource("facebook");
+                    }
+                  }}
                 />
               </div>
+              {link && (
+                <div className="space-y-2">
+                  <Label>Source (optional)</Label>
+                  <div className="grid grid-cols-5 gap-2">
+                    {SOURCE_OPTIONS.map((source) => (
+                      <Button
+                        key={source.value}
+                        type="button"
+                        variant={selectedSource === source.value ? "default" : "outline"}
+                        size="sm"
+                        className="flex flex-col h-auto py-2 px-1"
+                        onClick={() => setSelectedSource(source.value)}
+                      >
+                        <span className="text-2xl mb-1">{source.emoji}</span>
+                        <span className="text-[10px] leading-tight">{source.name}</span>
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              )}
               <div className="space-y-2">
                 <Label htmlFor="eltiw-deadline">Deadline (optional)</Label>
                 <Input

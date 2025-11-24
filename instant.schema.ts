@@ -44,6 +44,8 @@ const _schema = i.schema({
       amount: i.number().indexed(),
       reason: i.string().optional(),
       link: i.string().optional(),
+      source: i.string().optional().indexed(),
+      sourceEmoji: i.string().optional(),
       deadline: i.number().optional().indexed(),
       gotIt: i.boolean(),
       gotItDate: i.number().optional(),
