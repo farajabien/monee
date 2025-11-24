@@ -11,7 +11,6 @@ import {
 } from "@/components/ui/select";
 import TransactionList from "../components/transactions/transaction-list";
 import AddTransactionForm from "../components/transactions/add-transaction-form";
-import DailyCheckinCard from "../components/checkin/daily-checkin-card";
 import EltiwList from "../components/eltiw/eltiw-list";
 import CategoryList from "../components/categories/category-list";
 import MonthlySummary from "../components/insights/monthly-summary";
@@ -27,6 +26,7 @@ const tabs = [
   { value: "overview", label: "Overview" },
   { value: "income", label: "Income" },
   { value: "transactions", label: "Transactions" },
+  { value: "eltiw", label: "ELTIW" },
   { value: "debts", label: "Debts" },
   { value: "recipients", label: "Recipients" },
   { value: "categories", label: "Categories" },
@@ -40,13 +40,17 @@ export default function HomeClient() {
       <DashboardHeader />
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        {/* Mobile: Dropdown */}
-        <div className="md:hidden mb-4">
+        {/* Mobile: Show ELTIW and Transactions tabs + Dropdown for others */}
+        <div className="md:hidden mb-4 flex gap-2">
+          <TabsList className="grid grid-cols-2 flex-1">
+            <TabsTrigger value="eltiw">ELTIW</TabsTrigger>
+            <TabsTrigger value="transactions">Transactions</TabsTrigger>
+          </TabsList>
           <Select value={activeTab} onValueChange={setActiveTab}>
-            <SelectTrigger className="w-full">
+            <SelectTrigger className="w-[120px]">
               <SelectValue>
                 {tabs.find((tab) => tab.value === activeTab)?.label ||
-                  "Select tab"}
+                  "More"}
               </SelectValue>
             </SelectTrigger>
             <SelectContent>
@@ -60,7 +64,7 @@ export default function HomeClient() {
         </div>
 
         {/* Desktop: Tabs */}
-        <TabsList className="hidden md:grid w-full grid-cols-6 h-auto">
+        <TabsList className="hidden md:grid w-full grid-cols-7 h-auto">
           {tabs.map((tab) => (
             <TabsTrigger key={tab.value} value={tab.value}>
               {tab.label}
@@ -69,7 +73,6 @@ export default function HomeClient() {
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
-          <DailyCheckinCard />
           <MonthlySummary />
           <BudgetList />
           <EltiwList />
@@ -83,6 +86,10 @@ export default function HomeClient() {
         <TabsContent value="transactions" className="space-y-4">
           <AddTransactionForm />
           <TransactionList />
+        </TabsContent>
+
+        <TabsContent value="eltiw" className="space-y-4">
+          <EltiwList />
         </TabsContent>
 
         <TabsContent value="debts" className="space-y-4">

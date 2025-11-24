@@ -22,7 +22,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { Tag, Trash2, User } from "lucide-react";
+import { Tag, Trash2, User, Plus } from "lucide-react";
+import { AddCategoryDialog } from "@/components/categories/add-category-dialog";
 
 interface RecipientManagerProps {
   recipientName: string;
@@ -43,6 +44,7 @@ export function RecipientManager({
   const [selectedCategory, setSelectedCategory] = useState(currentCategory || "");
   const [notes, setNotes] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [showAddCategoryDialog, setShowAddCategoryDialog] = useState(false);
 
   // Fetch existing recipient data
   const { data: recipientsData } = db.useQuery({
@@ -141,6 +143,11 @@ export function RecipientManager({
     }
   };
 
+  const handleCategoryCreated = (categoryId: string, categoryName: string) => {
+    setSelectedCategory(categoryName);
+    setShowAddCategoryDialog(false);
+  };
+
   if (compact) {
     return (
       <>
@@ -183,19 +190,29 @@ export function RecipientManager({
 
               <div className="space-y-2">
                 <Label htmlFor="category">Default Category</Label>
-                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                  <SelectTrigger id="category">
-                    <SelectValue placeholder="Select default category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="">None</SelectItem>
-                    {categories.map((cat) => (
-                      <SelectItem key={cat.id} value={cat.name}>
-                        {cat.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="flex gap-2">
+                  <Select value={selectedCategory || "none"} onValueChange={(val) => setSelectedCategory(val === "none" ? "" : val)}>
+                    <SelectTrigger id="category" className="flex-1">
+                      <SelectValue placeholder="Select default category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">None</SelectItem>
+                      {categories.map((cat) => (
+                        <SelectItem key={cat.id} value={cat.name}>
+                          {cat.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setShowAddCategoryDialog(true)}
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
 
               <div className="space-y-2">
@@ -232,6 +249,12 @@ export function RecipientManager({
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        <AddCategoryDialog
+          open={showAddCategoryDialog}
+          onOpenChange={setShowAddCategoryDialog}
+          onCategoryCreated={handleCategoryCreated}
+        />
       </>
     );
   }

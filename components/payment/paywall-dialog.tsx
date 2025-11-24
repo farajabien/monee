@@ -12,8 +12,9 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Check, Sparkles } from "lucide-react";
+import { Check } from "lucide-react";
 import { toast } from "sonner";
+import Image from "next/image";
 
 interface PaywallDialogProps {
   open: boolean;
@@ -130,7 +131,7 @@ export function PaywallDialog({ open, onOpenChange }: PaywallDialogProps) {
       >
         <DialogHeader>
           <DialogTitle className="text-2xl flex items-center gap-2">
-            <Sparkles className="h-6 w-6 text-primary" />
+            <Image src="/AppImages/money-bag.png" alt="Money Bag" width={24} height={24} />
             Unlock Full Access to MONEE
           </DialogTitle>
           <DialogDescription>
@@ -185,10 +186,10 @@ export function PaywallDialog({ open, onOpenChange }: PaywallDialogProps) {
           >
             {isProcessing ? "Processing..." : "Pay Ksh 999 & Get Started"}
           </Button>
+        </DialogFooter>
           <p className="text-xs text-center text-muted-foreground">
             💳 Payment required to access all features
           </p>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

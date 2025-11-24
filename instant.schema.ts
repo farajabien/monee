@@ -73,6 +73,7 @@ const _schema = i.schema({
       pushMonthsCompleted: i.number().optional().indexed(),
       lastInterestPaymentDate: i.number().optional().indexed(),
       interestAccrued: i.number().optional(),
+      deadline: i.number().optional().indexed(),
       createdAt: i.number().indexed(),
     }),
     debt_payments: i.entity({

@@ -24,6 +24,7 @@ export function DebtForm({ debt, onSuccess, onCancel }: DebtFormProps) {
   const [paymentDueDay, setPaymentDueDay] = useState<number>(1);
   const [interestRate, setInterestRate] = useState<string>("");
   const [pushMonthsPlan, setPushMonthsPlan] = useState<string>("");
+  const [deadline, setDeadline] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Initialize form if editing
@@ -36,6 +37,11 @@ export function DebtForm({ debt, onSuccess, onCancel }: DebtFormProps) {
       setPaymentDueDay(debt.paymentDueDay);
       setInterestRate(debt.interestRate?.toString() || "");
       setPushMonthsPlan(debt.pushMonthsPlan?.toString() || "");
+      setDeadline(
+        debt.deadline
+          ? new Date(debt.deadline).toISOString().split("T")[0]
+          : ""
+      );
     }
   }, [debt]);
 
@@ -61,6 +67,7 @@ export function DebtForm({ debt, onSuccess, onCancel }: DebtFormProps) {
         pushMonthsPlan: pushMonthsPlan
           ? parseInt(pushMonthsPlan, 10)
           : undefined,
+        deadline: deadline ? new Date(deadline).getTime() : undefined,
         createdAt: debt?.createdAt || Date.now(),
       };
 
@@ -82,6 +89,7 @@ export function DebtForm({ debt, onSuccess, onCancel }: DebtFormProps) {
       setPaymentDueDay(1);
       setInterestRate("");
       setPushMonthsPlan("");
+      setDeadline("");
 
       if (onSuccess) {
         onSuccess();
@@ -198,6 +206,20 @@ export function DebtForm({ debt, onSuccess, onCancel }: DebtFormProps) {
             How many months to pay interest only before paying principal
           </p>
         </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="deadline">Payment Deadline (Optional)</Label>
+        <Input
+          id="deadline"
+          type="date"
+          value={deadline}
+          onChange={(e) => setDeadline(e.target.value)}
+          min={new Date().toISOString().split("T")[0]}
+        />
+        <p className="text-xs text-muted-foreground">
+          Set a target date to pay off this debt (e.g., for one-time payment loans)
+        </p>
       </div>
 
       {interestRate && currentBalance && (

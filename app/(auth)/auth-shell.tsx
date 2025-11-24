@@ -13,6 +13,13 @@ export default function AuthShell() {
   const { isLoading, user } = db.useAuth();
   const [showPaywall, setShowPaywall] = useState(false);
 
+  // Query the actual $users entity to get payment status
+  const { data: usersData, isLoading: isLoadingUsers } = db.useQuery(
+    user?.id ? { $users: {} } : {}
+  );
+
+  const userRecord = usersData?.$users?.find((u) => u.id === user?.id);
+
   useEffect(() => {
     if (!isLoading && !user) {
       router.push("/login");
@@ -20,15 +27,15 @@ export default function AuthShell() {
   }, [isLoading, user, router]);
 
   useEffect(() => {
-    // Check payment status after user loads
-    if (!isLoading && user) {
-      const hasPaid = user.hasPaid === true;
+    // Check payment status after user and payment data loads
+    if (!isLoading && !isLoadingUsers && user && userRecord !== undefined) {
+      const hasPaid = userRecord?.hasPaid === true;
       const id = setTimeout(() => setShowPaywall(!hasPaid), 0);
       return () => clearTimeout(id);
     }
-  }, [isLoading, user]);
+  }, [isLoading, isLoadingUsers, user, userRecord]);
 
-  if (isLoading) {
+  if (isLoading || isLoadingUsers) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
@@ -44,7 +51,7 @@ export default function AuthShell() {
   }
 
   // Block content if user hasn't paid
-  const hasPaid = user?.hasPaid === true;
+  const hasPaid = userRecord?.hasPaid === true;
 
   return (
     <>

@@ -60,6 +60,11 @@ export default function MonthlySummary() {
         order: { date: "desc" },
       },
     },
+    recipients: {
+      $: {
+        where: { "user.id": user.id },
+      },
+    },
     categories: {
       $: {
         where: { "user.id": user.id },
@@ -115,10 +120,17 @@ export default function MonthlySummary() {
   }
 
   const transactions = data?.transactions || [];
+  const recipients = data?.recipients || [];
   const categories = data?.categories || [];
   const budgets = data?.budgets || [];
   const incomeSources = data?.income_sources || [];
   const debtPayments = data?.debt_payments || [];
+
+  // Helper to get display name (nickname or original)
+  const getDisplayName = (originalName: string) => {
+    const recipient = recipients.find((r: any) => r.originalName === originalName);
+    return recipient?.nickname || originalName;
+  };
 
   // Calculate monthly income from active sources
   const currentMonth = now.getMonth() + 1;
@@ -162,7 +174,7 @@ export default function MonthlySummary() {
   });
 
   // Group by recipient (normalized)
-  const recipientTotals: Record<string, { amount: number; count: number; displayName: string }> = {};
+  const recipientTotals: Record<string, { amount: number; count: number; displayName: string; originalName: string }> = {};
   transactions.forEach((tx: Transaction) => {
     if (!tx.recipient) return;
     const normalized = normalizeRecipient(tx.recipient);
@@ -172,7 +184,8 @@ export default function MonthlySummary() {
       recipientTotals[normalized] = { 
         amount: 0, 
         count: 0,
-        displayName: tx.recipient // Use first occurrence as display name
+        displayName: getDisplayName(tx.recipient), // Use nickname if available
+        originalName: tx.recipient
       };
     }
     recipientTotals[normalized].amount += tx.amount;
@@ -428,7 +441,7 @@ export default function MonthlySummary() {
                           ({totals.count}×)
                         </span>
                         <RecipientManager
-                          recipientName={totals.displayName}
+                          recipientName={totals.originalName}
                           compact
                         />
                       </div>

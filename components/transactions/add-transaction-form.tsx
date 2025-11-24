@@ -42,12 +42,25 @@ export default function AddTransactionForm() {
         limit: 1000,
       },
     },
+    recipients: {
+      $: {
+        where: { "user.id": user.id },
+      },
+    },
   });
 
   const existingTransactions: Transaction[] = useMemo(
     () => transactionsData?.transactions || [],
     [transactionsData]
   );
+
+  const recipients = transactionsData?.recipients || [];
+
+  // Helper to get display name (nickname or original)
+  const getDisplayName = (originalName: string) => {
+    const recipient = recipients.find((r) => r.originalName === originalName);
+    return recipient?.nickname || originalName;
+  };
 
   // Fetch categories
   const { data: categoriesData } = db.useQuery({
@@ -247,7 +260,7 @@ export default function AddTransactionForm() {
                             className="flex items-start justify-between text-sm p-2 rounded bg-muted/50"
                           >
                             <div className="flex-1">
-                              <p className="font-medium">{tx.recipient}</p>
+                              <p className="font-medium">{getDisplayName(tx.recipient)}</p>
                               <Badge variant="outline" className="text-xs mt-1">
                                 {tx.category}
                               </Badge>

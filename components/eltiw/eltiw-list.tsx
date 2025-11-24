@@ -13,8 +13,9 @@ import {
   SteppedFormModal,
   type FormStep,
 } from "@/components/stepped-form-modal";
-import { CheckCircle2, Plus, X, ExternalLink, Calendar } from "lucide-react";
+import { CheckCircle2, Plus, X, ExternalLink, Calendar, Edit } from "lucide-react";
 import type { EltiwItem } from "@/types";
+import { Item } from "../ui/item";
 
 export default function EltiwList() {
   const user = db.useUser();
@@ -30,6 +31,7 @@ export default function EltiwList() {
     name?: string;
     amount?: string;
   }>({});
+  const [editingItem, setEditingItem] = useState<EltiwItem | null>(null);
 
   const now = useMemo(() => new Date().getTime(), []);
 
@@ -72,6 +74,7 @@ export default function EltiwList() {
     setShowAddDialog(open);
     if (!open) {
       resetForm();
+      setEditingItem(null);
     }
   };
 
@@ -103,23 +106,49 @@ export default function EltiwList() {
 
     try {
       setIsSubmitting(true);
-      await db.transact(
-        db.tx.eltiw_items[id()]
-          .update({
+      if (editingItem) {
+        // Update existing item
+        await db.transact(
+          db.tx.eltiw_items[editingItem.id].update({
             name: name.trim(),
             amount: parseFloat(amount),
             reason: reason.trim() || undefined,
             link: link.trim() || undefined,
             deadline: deadlineTimestamp,
-            gotIt: false,
-            createdAt: Date.now(),
           })
-          .link({ user: user.id })
-      );
+        );
+      } else {
+        // Create new item
+        await db.transact(
+          db.tx.eltiw_items[id()]
+            .update({
+              name: name.trim(),
+              amount: parseFloat(amount),
+              reason: reason.trim() || undefined,
+              link: link.trim() || undefined,
+              deadline: deadlineTimestamp,
+              gotIt: false,
+              createdAt: Date.now(),
+            })
+            .link({ user: user.id })
+        );
+      }
       handleModalChange(false);
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleEdit = (item: EltiwItem) => {
+    setEditingItem(item);
+    setName(item.name);
+    setAmount(item.amount.toString());
+    setReason(item.reason || "");
+    setLink(item.link || "");
+    setDeadline(
+      item.deadline ? new Date(item.deadline).toISOString().split("T")[0] : ""
+    );
+    setShowAddDialog(true);
   };
 
   const handleGotIt = (item: EltiwItem) => {
@@ -222,9 +251,7 @@ export default function EltiwList() {
             <div className="space-y-2">
               <h3 className="text-sm font-medium">Active</h3>
               {activeItems.map((item: EltiwItem) => (
-                <Card key={item.id}>
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between gap-4">
+                 <Item key={item.id} className="flex items-start justify-between gap-4 border-b pb-3 last:border-0 last:pb-0 ">
                       <div className="flex-1 space-y-1">
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="font-semibold">{item.name}</span>
@@ -260,6 +287,13 @@ export default function EltiwList() {
                       </div>
                       <div className="flex gap-2">
                         <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEdit(item)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
                           variant="outline"
                           size="sm"
                           onClick={() => handleGotIt(item)}
@@ -276,9 +310,7 @@ export default function EltiwList() {
                           <X className="h-4 w-4" />
                         </Button>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                    </Item>
               ))}
             </div>
           )}
@@ -289,54 +321,50 @@ export default function EltiwList() {
                 Completed 🎉
               </h3>
               {completedItems.map((item: EltiwItem) => (
-                <Card key={item.id} className="opacity-60">
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1 space-y-1">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-semibold line-through">
-                            {item.name}
-                          </span>
-                          <Badge variant="default">
-                            {formatAmount(item.amount)}
-                          </Badge>
-                        </div>
-                        {item.reason && (
-                          <p className="text-sm text-muted-foreground">
-                            {item.reason}
-                          </p>
-                        )}
-                        {item.link && (
-                          <a
-                            href={item.link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1 w-fit opacity-60"
-                          >
-                            <ExternalLink className="h-3 w-3" />
-                            View link
-                          </a>
-                        )}
-                        {item.gotItDate && (
-                          <p className="text-xs text-muted-foreground">
-                            Got it on{" "}
-                            {new Date(item.gotItDate).toLocaleDateString(
-                              "en-KE"
-                            )}
-                          </p>
-                        )}
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDelete(item.id)}
-                        className="text-destructive"
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
+                <Item key={item.id} className="opacity-60 flex items-start justify-between gap-4">
+                  <div className="flex-1 space-y-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-semibold line-through">
+                        {item.name}
+                      </span>
+                      <Badge variant="default">
+                        {formatAmount(item.amount)}
+                      </Badge>
                     </div>
-                  </CardContent>
-                </Card>
+                    {item.reason && (
+                      <p className="text-sm text-muted-foreground">
+                        {item.reason}
+                      </p>
+                    )}
+                    {item.link && (
+                      <a
+                        href={item.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1 w-fit opacity-60"
+                      >
+                        <ExternalLink className="h-3 w-3" />
+                        View link
+                      </a>
+                    )}
+                    {item.gotItDate && (
+                      <p className="text-xs text-muted-foreground">
+                        Got it on{" "}
+                        {new Date(item.gotItDate).toLocaleDateString(
+                          "en-KE"
+                        )}
+                      </p>
+                    )}
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleDelete(item.id)}
+                    className="text-destructive"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </Item>
               ))}
             </div>
           )}
@@ -346,8 +374,8 @@ export default function EltiwList() {
       <SteppedFormModal
         open={showAddDialog}
         onOpenChange={handleModalChange}
-        title="Add Wishlist Item"
-        description="Track the little things you’re saving for."
+        title={editingItem ? "Edit Wishlist Item" : "Add Wishlist Item"}
+        description="Track the little things you're saving for."
         steps={steps}
         currentStep={currentStep}
         onStepChange={setCurrentStep}

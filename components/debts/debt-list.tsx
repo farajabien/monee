@@ -279,6 +279,19 @@ export function DebtList() {
                                 <Calendar className="h-3 w-3" />
                                 <span>Due day {debt.paymentDueDay}</span>
                               </div>
+                              {debt.deadline && (
+                                <div className="flex items-center gap-1">
+                                  <Calendar className="h-3 w-3" />
+                                  <span className="font-medium">
+                                    Deadline:{" "}
+                                    {new Date(debt.deadline).toLocaleDateString("en-KE", {
+                                      month: "short",
+                                      day: "numeric",
+                                      year: "numeric",
+                                    })}
+                                  </span>
+                                </div>
+                              )}
                               {debt.interestAccrued &&
                                 debt.interestAccrued > 0 && (
                                   <span className="text-amber-600">

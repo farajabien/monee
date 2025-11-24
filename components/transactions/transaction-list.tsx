@@ -22,6 +22,11 @@ export default function TransactionList() {
         limit: 50,
       },
     },
+    recipients: {
+      $: {
+        where: { "user.id": user.id },
+      },
+    },
   });
 
   if (isLoading) {
@@ -47,6 +52,13 @@ export default function TransactionList() {
   }
 
   const transactions = data?.transactions || [];
+  const recipients = data?.recipients || [];
+
+  // Helper to get display name (nickname or original)
+  const getDisplayName = (originalName: string) => {
+    const recipient = recipients.find((r: any) => r.originalName === originalName);
+    return recipient?.nickname || originalName;
+  };
 
   const deleteTransaction = (transactionId: string) => {
     db.transact(db.tx.transactions[transactionId].delete());
@@ -100,7 +112,7 @@ export default function TransactionList() {
                 </div>
                 {transaction.recipient && (
                   <p className="text-sm text-muted-foreground">
-                    To: {transaction.recipient}
+                    To: {getDisplayName(transaction.recipient)}
                   </p>
                 )}
                 <p className="text-xs text-muted-foreground">
