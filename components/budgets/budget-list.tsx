@@ -7,12 +7,11 @@ import db from "@/lib/db";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Item } from "@/components/ui/item";
 import { Plus, Edit, Trash2 } from "lucide-react";
 import { DataViewControls } from "@/components/ui/data-view-controls";
 import { BudgetForm } from "./budget-form";
 import { SteppedFormModal } from "@/components/stepped-form-modal";
-import type { BudgetWithRelations, Category } from "@/types";
+import type { BudgetWithRelations } from "@/types";
 
 export function BudgetList() {
   const user = db.useUser();

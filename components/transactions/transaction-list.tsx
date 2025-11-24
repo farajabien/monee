@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { id } from "@instantdb/react";
 import db from "@/lib/db";
 // import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -9,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Item } from "@/components/ui/item";
 import { DataTable } from "@/components/ui/data-table";
 import { transactionColumns } from "./transaction-columns";
-import { Trash2, Edit, TrendingUp, TrendingDown, Calendar, DollarSign } from "lucide-react";
+import { Trash2, Edit, TrendingUp, Calendar, DollarSign } from "lucide-react";
 import { EditTransactionDialog } from "./edit-transaction-dialog";
 import { DataViewControls } from "@/components/ui/data-view-controls";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -156,7 +155,7 @@ export default function TransactionList() {
 
   // Helper to get display name (nickname or original)
   const getDisplayName = (originalName: string) => {
-    const recipient = recipients.find((r: any) => r.originalName === originalName);
+    const recipient = recipients.find((r) => r.originalName === originalName);
     return recipient?.nickname || originalName;
   };
 

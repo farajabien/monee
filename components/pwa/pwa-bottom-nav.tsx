@@ -1,58 +1,49 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, ArrowLeftRight, Heart, TrendingUp, User } from "lucide-react";
+import { Home, ArrowLeftRight, Heart, TrendingUp, User, MoreHorizontal, Settings } from "lucide-react";
 
 export function PWABottomNav() {
   const pathname = usePathname();
-  const [isPWA, setIsPWA] = useState(false);
+  // React hooks must be called unconditionally
+  const [showMore, setShowMore] = useState(false);
+  // Show on all main app pages (dashboard, settings, etc), not on marketing/auth
+  const showNav = pathname.startsWith("/dashboard") || pathname.startsWith("/settings");
+  if (!showNav) return null;
 
-  useEffect(() => {
-    // Check if running in PWA mode - delayed to avoid SSR issues
-    const timer = setTimeout(() => {
-      const isStandalone =
-        window.matchMedia("(display-mode: standalone)").matches ||
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (window.navigator as any).standalone === true;
-      setIsPWA(isStandalone);
-    }, 0);
-
-    return () => clearTimeout(timer);
-  }, []);
-
-  // Don't show on marketing pages
-  if (!pathname.startsWith("/dashboard") || !isPWA) {
-    return null;
-  }
-
+  // Determine active tab from URL
   const getTabFromPath = () => {
-    const searchParams = new URLSearchParams(window.location.search);
+    if (pathname.startsWith("/settings")) return "settings";
+    const searchParams = new URLSearchParams(typeof window !== "undefined" ? window.location.search : "");
     return searchParams.get("tab") || "overview";
   };
-
   const activeTab = getTabFromPath();
 
+  // Main nav items (always visible)
   const navItems = [
-    { value: "overview", label: "Overview", icon: Home },
-    { value: "transactions", label: "Money", icon: ArrowLeftRight },
-    { value: "eltiw", label: "Wishlist", icon: Heart },
-    { value: "income", label: "Income", icon: TrendingUp },
-    { value: "year-review", label: "Year", icon: User },
+    { value: "overview", label: "Overview", icon: Home, href: "/dashboard?tab=overview" },
+    { value: "transactions", label: "Money", icon: ArrowLeftRight, href: "/dashboard?tab=transactions" },
+    { value: "eltiw", label: "Wishlist", icon: Heart, href: "/dashboard?tab=eltiw" },
+    { value: "income", label: "Income", icon: TrendingUp, href: "/dashboard?tab=income" },
+  ];
+  // Extra nav items (in More dropdown)
+  const moreItems = [
+    { value: "year-review", label: "Year", icon: User, href: "/dashboard?tab=year-review" },
+    { value: "settings", label: "Settings", icon: Settings, href: "/settings" },
   ];
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t pb-safe">
-      <div className="flex items-center justify-around h-16">
+      <div className="flex items-center justify-around h-16 relative">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.value;
-
           return (
             <Link
               key={item.value}
-              href={`/dashboard?tab=${item.value}`}
+              href={item.href}
               className={`flex flex-col items-center justify-center flex-1 h-full gap-1 transition-colors ${
                 isActive
                   ? "text-primary"
@@ -64,6 +55,44 @@ export function PWABottomNav() {
             </Link>
           );
         })}
+        {/* More dropdown */}
+        <div className="flex flex-col items-center justify-center flex-1 h-full gap-1 relative">
+          <button
+            className={`flex flex-col items-center justify-center w-full h-full gap-1 transition-colors ${
+              moreItems.some((item) => activeTab === item.value)
+                ? "text-primary"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+            onClick={() => setShowMore((v) => !v)}
+            aria-label="More"
+            type="button"
+          >
+            <MoreHorizontal className="h-5 w-5" />
+            <span className="text-[10px] font-medium">More</span>
+          </button>
+          {showMore && (
+            <div className="absolute bottom-16 left-1/2 -translate-x-1/2 bg-popover border rounded-lg shadow-lg py-2 px-3 z-50 min-w-[120px] animate-in fade-in">
+              {moreItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.value}
+                    href={item.href}
+                    className={`flex items-center gap-2 px-2 py-2 rounded-md text-sm transition-colors ${
+                      activeTab === item.value
+                        ? "bg-muted text-primary"
+                        : "hover:bg-muted text-foreground"
+                    }`}
+                    onClick={() => setShowMore(false)}
+                  >
+                    <Icon className="h-4 w-4" />
+                    {item.label}
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
     </nav>
   );

@@ -29,9 +29,10 @@ export function DataTable<TData, TValue>({ columns, data, onEdit, onDelete, onGo
   })
 
   // Helper to get sticky style
-  const getStickyStyle = (meta: any, idx: number, isLast: boolean) => {
+
+  type StickyMeta = { sticky?: "left" | "right"; className?: string };
+  const getStickyStyle = (meta: StickyMeta) => {
     if (!meta?.sticky) return {};
-    // left sticky: sum widths of all previous sticky columns
     if (meta.sticky === "left") {
       return {
         position: "sticky" as React.CSSProperties["position"],
@@ -40,7 +41,6 @@ export function DataTable<TData, TValue>({ columns, data, onEdit, onDelete, onGo
         background: "var(--color-background, #fff)",
       };
     }
-    // right sticky: stick to right
     if (meta.sticky === "right") {
       return {
         position: "sticky" as React.CSSProperties["position"],
@@ -58,13 +58,12 @@ export function DataTable<TData, TValue>({ columns, data, onEdit, onDelete, onGo
         <TableHeader>
           {table.getHeaderGroups().map(headerGroup => (
             <TableRow key={headerGroup.id}>
-              {headerGroup.headers.map((header, idx) => {
-                const meta = header.column.columnDef.meta;
-                const isLast = idx === headerGroup.headers.length - 1;
+              {headerGroup.headers.map((header) => {
+                const meta = header.column.columnDef.meta as StickyMeta;
                 return (
                   <TableHead
                     key={header.id}
-                    style={{ width: header.getSize(), ...getStickyStyle(meta, idx, isLast) }}
+                    style={{ width: header.getSize(), ...getStickyStyle(meta) }}
                     className={meta?.className || ""}
                   >
                     {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
@@ -78,13 +77,12 @@ export function DataTable<TData, TValue>({ columns, data, onEdit, onDelete, onGo
           {table.getRowModel().rows.length ? (
             table.getRowModel().rows.map(row => (
               <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
-                {row.getVisibleCells().map((cell, idx) => {
-                  const meta = cell.column.columnDef.meta;
-                  const isLast = idx === row.getVisibleCells().length - 1;
+                {row.getVisibleCells().map((cell) => {
+                  const meta = cell.column.columnDef.meta as StickyMeta;
                   return (
                     <TableCell
                       key={cell.id}
-                      style={getStickyStyle(meta, idx, isLast)}
+                      style={getStickyStyle(meta)}
                       className={meta?.className || ""}
                     >
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}

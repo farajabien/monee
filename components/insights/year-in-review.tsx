@@ -3,7 +3,6 @@
 import { useMemo } from "react";
 import db from "@/lib/db";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Sparkles, TrendingUp, Calendar, DollarSign, Award, ArrowRight, Users } from "lucide-react";
 import type { Transaction } from "@/types";
 

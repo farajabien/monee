@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import db from "@/lib/db";
 import { DataViewControls } from "@/components/ui/data-view-controls";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Item } from "@/components/ui/item";
@@ -13,9 +14,8 @@ import type { IncomeSourceWithUser } from "@/types";
 
 export function IncomeSourceList() {
   const user = db.useUser();
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [editingIncomeSource, setEditingIncomeSource] =
-    useState<IncomeSourceWithUser | null>(null);
+  const [showDialog, setShowDialog] = useState(false);
+  const [editingIncomeSource, setEditingIncomeSource] = useState<IncomeSourceWithUser | null>(null);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("amount-high");
@@ -38,43 +38,57 @@ export function IncomeSourceList() {
   const incomeSources: IncomeSourceWithUser[] = data?.income_sources || [];
 
   // Filter and sort income sources
-  const filteredAndSortedSources = useMemo(() => {
-    let result = [...incomeSources];
+    const filteredAndSortedSources = useMemo(() => {
+      let result = [...incomeSources];
 
-    // Search filter
-    if (searchQuery) {
-      result = result.filter((s) =>
-        s.name.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-
-    // Status filter
-    if (statusFilter !== "all") {
-      result = result.filter((s) => {
-        if (statusFilter === "active") return s.isActive !== false;
-        if (statusFilter === "inactive") return s.isActive === false;
-        return true;
-      });
-    }
-
-    // Sort
-    result.sort((a, b) => {
-      switch (sortBy) {
-        case "amount-high":
-          return b.amount - a.amount;
-        case "amount-low":
-          return a.amount - b.amount;
-        case "name":
-          return a.name.localeCompare(b.name);
-        case "payday":
-          return a.paydayDay - b.paydayDay;
-        default:
-          return b.amount - a.amount;
+      // Search filter
+      if (searchQuery) {
+        result = result.filter((s) =>
+          s.name.toLowerCase().includes(searchQuery.toLowerCase())
+        );
       }
-    });
 
-    return result;
-  }, [incomeSources, searchQuery, statusFilter, sortBy]);
+      // Status filter
+      if (statusFilter !== "all") {
+        result = result.filter((s) => {
+          if (statusFilter === "active") return s.isActive !== false;
+          if (statusFilter === "inactive") return s.isActive === false;
+          return true;
+        });
+      }
+
+      // Sort
+      result.sort((a, b) => {
+        switch (sortBy) {
+          case "amount-high":
+            return b.amount - a.amount;
+          case "amount-low":
+            return a.amount - b.amount;
+          case "name":
+            return a.name.localeCompare(b.name);
+          case "payday":
+            return a.paydayDay - b.paydayDay;
+          default:
+            return b.amount - a.amount;
+        }
+      });
+
+      return result;
+    }, [incomeSources, searchQuery, statusFilter, sortBy]);
+
+    // Metrics for badges
+    const metrics = useMemo(() => {
+      const active = incomeSources.filter((s) => s.isActive !== false);
+      const inactive = incomeSources.filter((s) => s.isActive === false);
+      const total = incomeSources.length;
+      const totalAmount = active.reduce((sum, s) => sum + s.amount, 0);
+      return {
+        activeCount: active.length,
+        inactiveCount: inactive.length,
+        totalCount: total,
+        totalAmount,
+      };
+    }, [incomeSources]);
 
   const handleDelete = (incomeSourceId: string) => {
     if (confirm("Are you sure you want to delete this income source?")) {
@@ -103,14 +117,29 @@ export function IncomeSourceList() {
   return (
     <div className="space-y-4">
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Income Sources</CardTitle>
+        <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-wrap gap-2 mb-1">
+            <Badge variant="secondary" className="text-sm px-3 py-1.5">
+              {metrics.activeCount} Active
+            </Badge>
+            <Badge variant="secondary" className="text-sm px-3 py-1.5">
+              💰 Ksh {formatAmount(metrics.totalAmount)}
+            </Badge>
+            <Badge variant="default" className="text-sm px-3 py-1.5">
+              {metrics.totalCount} Total
+            </Badge>
+            {metrics.inactiveCount > 0 && (
+              <Badge variant="outline" className="text-sm px-3 py-1.5">
+                {metrics.inactiveCount} Inactive
+              </Badge>
+            )}
+          </div>
           <Button
             variant="outline"
             size="sm"
             onClick={() => {
               setEditingIncomeSource(null);
-              setShowAddForm(true);
+              setShowDialog(true);
             }}
           >
             <Plus className="h-4 w-4 mr-2" />
@@ -118,52 +147,62 @@ export function IncomeSourceList() {
           </Button>
         </CardHeader>
         <CardContent className="space-y-4">
-          <DataViewControls
-            viewMode={viewMode}
-            onViewModeChange={handleViewModeChange}
-            searchValue={searchQuery}
-            onSearchChange={setSearchQuery}
-            searchPlaceholder="Search income sources..."
-            sortValue={sortBy}
-            onSortChange={setSortBy}
-            sortOptions={[
-              { value: "amount-high", label: "Amount: High to Low" },
-              { value: "amount-low", label: "Amount: Low to High" },
-              { value: "name", label: "Name (A-Z)" },
-              { value: "payday", label: "Payday" },
-            ]}
-            filterValue={statusFilter}
-            onFilterChange={setStatusFilter}
-            filterOptions={[
-              { value: "all", label: "All Sources" },
-              { value: "active", label: "Active" },
-              { value: "inactive", label: "Inactive" },
-            ]}
-            filterLabel="Status"
-            totalCount={incomeSources.length}
-            filteredCount={filteredAndSortedSources.length}
-          />
-
-          {showAddForm && (
-            <div className="p-4 border rounded-lg">
-              <IncomeSourceForm
-                onSuccess={() => setShowAddForm(false)}
-                onCancel={() => setShowAddForm(false)}
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div className="flex-1">
+              <DataViewControls
+                viewMode={viewMode}
+                onViewModeChange={handleViewModeChange}
+                searchValue={searchQuery}
+                onSearchChange={setSearchQuery}
+                searchPlaceholder="Search income sources..."
+                sortValue={sortBy}
+                onSortChange={setSortBy}
+                sortOptions={[
+                  { value: "amount-high", label: "Amount: High to Low" },
+                  { value: "amount-low", label: "Amount: Low to High" },
+                  { value: "name", label: "Name (A-Z)" },
+                  { value: "payday", label: "Payday" },
+                ]}
+                filterValue={statusFilter}
+                onFilterChange={setStatusFilter}
+                filterOptions={[
+                  { value: "all", label: "All Sources" },
+                  { value: "active", label: "Active" },
+                  { value: "inactive", label: "Inactive" },
+                ]}
+                filterLabel="Status"
+                totalCount={incomeSources.length}
+                filteredCount={filteredAndSortedSources.length}
               />
             </div>
-          )}
+          </div>
 
-          {editingIncomeSource && (
-            <div className="p-4 border rounded-lg">
+          {/* Dialog for add/edit income source */}
+          <Dialog open={showDialog || !!editingIncomeSource} onOpenChange={(open) => {
+            if (!open) {
+              setShowDialog(false);
+              setEditingIncomeSource(null);
+            }
+          }}>
+            <DialogContent className="max-w-md w-full">
+              <DialogHeader>
+                <DialogTitle>{editingIncomeSource ? "Edit Income Source" : "Add Income Source"}</DialogTitle>
+              </DialogHeader>
               <IncomeSourceForm
                 incomeSource={editingIncomeSource}
-                onSuccess={() => setEditingIncomeSource(null)}
-                onCancel={() => setEditingIncomeSource(null)}
+                onSuccess={() => {
+                  setShowDialog(false);
+                  setEditingIncomeSource(null);
+                }}
+                onCancel={() => {
+                  setShowDialog(false);
+                  setEditingIncomeSource(null);
+                }}
               />
-            </div>
-          )}
+            </DialogContent>
+          </Dialog>
 
-          {filteredAndSortedSources.length === 0 && !showAddForm && !editingIncomeSource && (
+          {filteredAndSortedSources.length === 0 && !showDialog && !editingIncomeSource && (
             <div className="text-center text-muted-foreground py-8">
               {searchQuery || statusFilter !== "all" ? (
                 <p>No income sources found matching your filters.</p>
@@ -203,7 +242,7 @@ export function IncomeSourceList() {
                       variant="ghost"
                       size="sm"
                       onClick={() => {
-                        setShowAddForm(false);
+                        setShowDialog(true);
                         setEditingIncomeSource(incomeSource);
                       }}
                     >
@@ -236,7 +275,7 @@ export function IncomeSourceList() {
                           size="icon"
                           className="h-7 w-7"
                           onClick={() => {
-                            setShowAddForm(false);
+                            setShowDialog(true);
                             setEditingIncomeSource(incomeSource);
                           }}
                         >

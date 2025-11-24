@@ -103,7 +103,11 @@ export const eltiwColumns: ColumnDef<EltiwItem>[] = [
     header: "Actions",
     cell: ({ row, table }) => {
       const item = row.original as EltiwItem
-      const meta = table.options.meta as any
+      const meta = table.options.meta as {
+        onEdit?: (item: EltiwItem) => void;
+        onDelete?: (id: string) => void;
+        onGotIt?: (item: EltiwItem) => void;
+      } | undefined;
       return (
         <div className="flex gap-1">
           <Button

@@ -5,7 +5,7 @@ import Link from "next/link";
 import db from "@/lib/db";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Settings } from "lucide-react";
+import { Settings, Home, ArrowLeftRight, Heart, TrendingUp, User } from "lucide-react";
 import type { Transaction, IncomeSource } from "@/types";
 
 export function DashboardHeader() {
@@ -176,6 +176,22 @@ export function DashboardHeader() {
     );
   }
 
+  // Main dashboard links for desktop
+  const navLinks = [
+    { href: "/dashboard?tab=overview", label: "Overview", icon: Home },
+    { href: "/dashboard?tab=transactions", label: "Money", icon: ArrowLeftRight },
+    { href: "/dashboard?tab=eltiw", label: "Wishlist", icon: Heart },
+    { href: "/dashboard?tab=income", label: "Income", icon: TrendingUp },
+    { href: "/dashboard?tab=year-review", label: "Year", icon: User },
+  ];
+
+  // Get current tab from URL (for active state)
+  let activeTab = "overview";
+  if (typeof window !== "undefined") {
+    const params = new URLSearchParams(window.location.search);
+    activeTab = params.get("tab") || "overview";
+  }
+
   return (
     <div className="flex items-center justify-between mb-6 gap-3 w-full">
       <div className="flex items-center gap-2 sm:gap-3">
@@ -203,6 +219,25 @@ export function DashboardHeader() {
           </div>
         </div>
       </div>
+      {/* Desktop nav links */}
+      <nav className="hidden md:flex items-center gap-2 flex-1 justify-center">
+        {navLinks.map((item) => {
+          const Icon = item.icon;
+          const isActive = typeof window !== "undefined" ? (new URLSearchParams(window.location.search).get("tab") || "overview") === item.href.split("tab=")[1] : false;
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`flex items-center gap-1 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                isActive ? "bg-muted text-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted"
+              }`}
+            >
+              <Icon className="h-4 w-4" />
+              <span>{item.label}</span>
+            </Link>
+          );
+        })}
+      </nav>
       <Link href="/settings">
         <Button variant="outline" size="sm" className="gap-2">
           <Settings className="h-4 w-4" />
