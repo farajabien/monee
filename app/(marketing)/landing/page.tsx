@@ -165,6 +165,15 @@ export default function LandingPage() {
             spending, helps you plan, and turns personal finance into a mindful
             daily ritual.
           </p>
+          <div className="flex justify-center">
+            <Card className="mt-4 border-primary/60 bg-primary/5 max-w-xl w-full">
+              <CardContent className="py-4 px-6 text-center">
+                <span className="font-semibold text-primary">If over 90% of your transactions happen on M-Pesa, Monee will save you hours.</span>
+                <br />
+                <span className="text-muted-foreground">We do automatic reconciliation, and the system learns your habits to improve your experience.</span>
+              </CardContent>
+            </Card>
+          </div>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/free-mpesa-analyzer-year-review">
               <Button size="lg" variant="outline" className="w-full sm:w-auto">
