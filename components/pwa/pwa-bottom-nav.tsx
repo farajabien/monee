@@ -3,16 +3,13 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, ArrowLeftRight, Heart, TrendingUp, User, MoreHorizontal, Settings } from "lucide-react";
+import { Home, ArrowLeftRight, Heart, TrendingUp, User, MoreHorizontal, Settings, Tag } from "lucide-react";
+import db from "@/lib/db";
 
 export function PWABottomNav() {
   const pathname = usePathname();
   // React hooks must be called unconditionally
   const [showMore, setShowMore] = useState(false);
-  // Show on all main app pages (dashboard, settings, etc), not on marketing/auth
-  const showNav = pathname.startsWith("/dashboard") || pathname.startsWith("/settings");
-  if (!showNav) return null;
-
   // Determine active tab from URL
   const getTabFromPath = () => {
     if (pathname.startsWith("/settings")) return "settings";
@@ -28,6 +25,14 @@ export function PWABottomNav() {
     { value: "eltiw", label: "Wishlist", icon: Heart, href: "/dashboard?tab=eltiw" },
     { value: "income", label: "Income", icon: TrendingUp, href: "/dashboard?tab=income" },
   ];
+  // Fetch user and categories for tabs
+  const user = db.useUser();
+  const { data } = db.useQuery({
+    categories: {
+      $: { where: { "user.id": user.id, isActive: true }, order: { name: "asc" } },
+    },
+  });
+  const categories = data?.categories || [];
   // Extra nav items (in More dropdown)
   const moreItems = [
     { value: "year-review", label: "Year", icon: User, href: "/dashboard?tab=year-review" },
@@ -52,6 +57,22 @@ export function PWABottomNav() {
             >
               <Icon className={`h-5 w-5 ${isActive ? "fill-current" : ""}`} />
               <span className="text-[10px] font-medium">{item.label}</span>
+            </Link>
+          );
+        })}
+        {/* Category tabs */}
+        {categories.map((cat) => {
+          const isActive = activeTab === `category-${cat.id}`;
+          return (
+            <Link
+              key={cat.id}
+              href={`/dashboard?tab=category-${cat.id}`}
+              className={`flex flex-col items-center justify-center flex-1 h-full gap-1 transition-colors ${
+                isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <Tag className="h-5 w-5" />
+              <span className="text-[10px] font-medium">{cat.name}</span>
             </Link>
           );
         })}

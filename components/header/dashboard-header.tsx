@@ -5,7 +5,7 @@ import Link from "next/link";
 import db from "@/lib/db";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Settings, Home, ArrowLeftRight, Heart, TrendingUp, User } from "lucide-react";
+import { Settings, Home, ArrowLeftRight, Heart, TrendingUp, User, Tag } from "lucide-react";
 import type { Transaction, IncomeSource } from "@/types";
 
 export function DashboardHeader() {
@@ -166,6 +166,13 @@ export function DashboardHeader() {
       .toUpperCase()
       .slice(0, 2);
   };
+  // Fetch categories for tabs
+  const { data: catData } = db.useQuery({
+    categories: {
+      $: { where: { "user.id": user.id, isActive: true }, order: { name: "asc" } },
+    },
+  });
+  const categories = catData?.categories || [];
 
   if (isLoading) {
     return (
@@ -185,12 +192,7 @@ export function DashboardHeader() {
     { href: "/dashboard?tab=year-review", label: "Year", icon: User },
   ];
 
-  // Get current tab from URL (for active state)
-  let activeTab = "overview";
-  if (typeof window !== "undefined") {
-    const params = new URLSearchParams(window.location.search);
-    activeTab = params.get("tab") || "overview";
-  }
+
 
   return (
     <div className="flex items-center justify-between mb-6 gap-3 w-full">
@@ -234,6 +236,22 @@ export function DashboardHeader() {
             >
               <Icon className="h-4 w-4" />
               <span>{item.label}</span>
+            </Link>
+          );
+        })}
+        {/* Category tabs */}
+        {categories.map((cat) => {
+          const isActive = typeof window !== "undefined" ? (new URLSearchParams(window.location.search).get("tab")) === `category-${cat.id}` : false;
+          return (
+            <Link
+              key={cat.id}
+              href={`/dashboard?tab=category-${cat.id}`}
+              className={`flex items-center gap-1 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                isActive ? "bg-muted text-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted"
+              }`}
+            >
+              <Tag className="h-4 w-4" />
+              <span>{cat.name}</span>
             </Link>
           );
         })}
