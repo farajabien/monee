@@ -46,6 +46,7 @@ const _schema = i.schema({
       link: i.string().optional(),
       source: i.string().optional().indexed(),
       sourceEmoji: i.string().optional(),
+      category: i.string().optional().indexed(),
       deadline: i.number().optional().indexed(),
       gotIt: i.boolean(),
       gotItDate: i.number().optional(),

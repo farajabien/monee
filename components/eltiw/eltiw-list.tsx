@@ -35,6 +35,7 @@ export default function EltiwList() {
   const [reason, setReason] = useState("");
   const [link, setLink] = useState("");
   const [deadline, setDeadline] = useState("");
+  const [category, setCategory] = useState("");
   const [currentStep, setCurrentStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<{
@@ -43,6 +44,18 @@ export default function EltiwList() {
   }>({});
   const [editingItem, setEditingItem] = useState<EltiwItem | null>(null);
   const [selectedSource, setSelectedSource] = useState("");
+
+  const CATEGORY_OPTIONS = [
+    { label: "Fashion", value: "fashion" },
+    { label: "Hygiene", value: "hygiene" },
+    { label: "Electronics", value: "electronics" },
+    { label: "Gaming", value: "gaming" },
+    { label: "Utensils", value: "utensils" },
+    { label: "Furniture", value: "furniture" },
+    { label: "Subscriptions", value: "subscriptions" },
+    { label: "Software", value: "software" },
+    { label: "Other", value: "other" },
+  ];
 
   const SOURCE_OPTIONS = [
     { name: "TikTok Shop", emoji: "🎵", value: "tiktok" },
@@ -63,6 +76,7 @@ export default function EltiwList() {
   const [sortBy, setSortBy] = useState("newest");
   const [statusFilter, setStatusFilter] = useState("all");
   const [sourceFilter, setSourceFilter] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState("all");
 
   const now = useMemo(() => new Date().getTime(), []);
 
@@ -97,6 +111,7 @@ export default function EltiwList() {
     setReason("");
     setLink("");
     setDeadline("");
+    setCategory("");
     setSelectedSource("");
     setCurrentStep(0);
     setFieldErrors({});
@@ -151,6 +166,7 @@ export default function EltiwList() {
             source: sourceOption?.name,
             sourceEmoji: sourceOption?.emoji,
             deadline: deadlineTimestamp,
+            category: category || undefined,
           })
         );
       } else {
@@ -167,6 +183,7 @@ export default function EltiwList() {
               deadline: deadlineTimestamp,
               gotIt: false,
               createdAt: Date.now(),
+              category: category || undefined,
             })
             .link({ user: user.id })
         );
@@ -186,6 +203,7 @@ export default function EltiwList() {
     setDeadline(
       item.deadline ? new Date(item.deadline).toISOString().split("T")[0] : ""
     );
+    setCategory(item.category || "");
     // Set source if exists
     const sourceOption = SOURCE_OPTIONS.find((s) => s.name === item.source);
     setSelectedSource(sourceOption?.value || "");
@@ -216,18 +234,20 @@ export default function EltiwList() {
 
   // Calculate metrics
   const metrics = useMemo(() => {
-    const activeItems = items.filter((item) => !item.gotIt);
-    const completedItems = items.filter((item) => item.gotIt);
+    // If a category filter is active, show metrics for that category only
+    const filterCat = categoryFilter !== "all" ? categoryFilter : null;
+    const filtered = filterCat ? items.filter((item) => item.category === filterCat) : items;
+    const activeItems = filtered.filter((item) => !item.gotIt);
+    const completedItems = filtered.filter((item) => item.gotIt);
     const totalValue = activeItems.reduce((sum, item) => sum + item.amount, 0);
     const completedValue = completedItems.reduce((sum, item) => sum + item.amount, 0);
-    
     return {
       activeCount: activeItems.length,
       totalValue,
       completedCount: completedItems.length,
       completedValue,
     };
-  }, [items]);
+  }, [items, categoryFilter]);
   
   // Get unique sources for filter
   const uniqueSources = useMemo(() => {
@@ -236,6 +256,15 @@ export default function EltiwList() {
       if (item.source) sources.add(item.source);
     });
     return Array.from(sources);
+  }, [items]);
+
+  // Get unique categories for filter
+  const uniqueCategories = useMemo(() => {
+    const cats = new Set<string>();
+    items.forEach((item) => {
+      if (item.category) cats.add(item.category);
+    });
+    return Array.from(cats);
   }, [items]);
 
   // Filter and sort items
@@ -264,6 +293,11 @@ export default function EltiwList() {
       result = result.filter((item) => item.source === sourceFilter);
     }
 
+    // Category filter
+    if (categoryFilter !== "all") {
+      result = result.filter((item) => item.category === categoryFilter);
+    }
+
     // Sort
     result.sort((a, b) => {
       switch (sortBy) {
@@ -286,7 +320,7 @@ export default function EltiwList() {
     });
 
     return result;
-  }, [items, searchQuery, statusFilter, sortBy, sourceFilter]);
+  }, [items, searchQuery, statusFilter, sortBy, sourceFilter, categoryFilter]);
 
 
   const completedItems = filteredAndSortedItems.filter((item: EltiwItem) => item.gotIt);
@@ -332,23 +366,24 @@ export default function EltiwList() {
     <div className="space-y-4 pb-[90px] sm:pb-0">
       <div>
         {/* Metrics Badges */}
-          <div className="flex flex-wrap gap-2 mb-1">
-            <Badge variant="secondary" className="text-sm px-3 py-1.5">
-              <Heart className="h-3.5 w-3.5 mr-1.5" />
-              {metrics.activeCount} Active
+        <div className="flex flex-wrap gap-2 mb-1 items-center">
+          <span className="text-xs text-muted-foreground mr-2">Metrics{categoryFilter !== "all" && uniqueCategories.length > 0 ? `: ${categoryFilter.charAt(0).toUpperCase() + categoryFilter.slice(1)}` : ""}</span>
+          <Badge variant="secondary" className="text-sm px-3 py-1.5">
+            <Heart className="h-3.5 w-3.5 mr-1.5" />
+            {metrics.activeCount} Active
+          </Badge>
+          <Badge variant="secondary" className="text-sm px-3 py-1.5">
+            💰 Ksh {formatCompact(metrics.totalValue)}
+          </Badge>
+          <Badge variant="default" className="text-sm px-3 py-1.5">
+            ✓ {metrics.completedCount} Done
+          </Badge>
+          {metrics.completedValue > 0 && (
+            <Badge variant="outline" className="text-sm px-3 py-1.5">
+              🎉 Ksh {formatCompact(metrics.completedValue)}
             </Badge>
-            <Badge variant="secondary" className="text-sm px-3 py-1.5">
-              💰 Ksh {formatCompact(metrics.totalValue)}
-            </Badge>
-            <Badge variant="default" className="text-sm px-3 py-1.5">
-              ✓ {metrics.completedCount} Done
-            </Badge>
-            {metrics.completedValue > 0 && (
-              <Badge variant="outline" className="text-sm px-3 py-1.5">
-                🎉 Ksh {formatCompact(metrics.completedValue)}
-              </Badge>
-            )}
-          </div>
+          )}
+        </div>
         <div className="space-y-4">
           {/* Compact controls row */}
           <div className="flex flex-col gap-3">
@@ -385,7 +420,7 @@ export default function EltiwList() {
               </div>
             </div>
 
-            {/* Sort + Status Filter + Source Filters in one row */}
+            {/* Sort + Status Filter + Source/Category Filters in one row */}
             <div className="flex flex-wrap gap-2 items-center">
               <Select value={sortBy} onValueChange={setSortBy}>
                 <SelectTrigger className="w-[140px] h-9">
@@ -411,6 +446,34 @@ export default function EltiwList() {
                 </SelectContent>
               </Select>
 
+              {/* Category Filter */}
+              {uniqueCategories.length > 0 && (
+                <>
+                  <div className="h-4 w-px bg-border" />
+                  <Button
+                    variant={categoryFilter === "all" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setCategoryFilter("all")}
+                    className="h-9"
+                  >
+                    All Categories
+                  </Button>
+                  {uniqueCategories.map((cat) => (
+                    <Button
+                      key={cat}
+                      variant={categoryFilter === cat ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setCategoryFilter(cat)}
+                      className="h-9"
+                      title={cat}
+                    >
+                      {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                    </Button>
+                  ))}
+                </>
+              )}
+
+              {/* Source Filter */}
               {uniqueSources.length > 0 && (
                 <>
                   <div className="h-4 w-px bg-border" />
@@ -420,7 +483,7 @@ export default function EltiwList() {
                     onClick={() => setSourceFilter("all")}
                     className="h-9"
                   >
-                    All
+                    All Sources
                   </Button>
                   {uniqueSources.map((source) => {
                     const sourceEmoji = items.find((i) => i.source === source)?.sourceEmoji;
@@ -664,6 +727,21 @@ export default function EltiwList() {
                       {fieldErrors.amount}
                     </p>
                   )}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="eltiw-category">Category (optional)</Label>
+                  <Select value={category} onValueChange={setCategory}>
+                    <SelectTrigger id="eltiw-category" className="w-full">
+                      <SelectValue placeholder="Select category..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {CATEGORY_OPTIONS.map((cat) => (
+                        <SelectItem key={cat.value} value={cat.value}>
+                          {cat.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             );

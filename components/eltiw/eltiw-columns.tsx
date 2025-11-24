@@ -23,6 +23,17 @@ export const eltiwColumns: ColumnDef<EltiwItem>[] = [
     ),
   },
   {
+    accessorKey: "category",
+    header: "Category",
+    cell: ({ row }) =>
+      row.original.category ? (
+        <Badge variant="outline">{row.original.category.charAt(0).toUpperCase() + row.original.category.slice(1)}</Badge>
+      ) : (
+        <span className="text-muted-foreground text-xs">—</span>
+      ),
+    size: 90,
+  },
+  {
     accessorKey: "amount",
     header: "Amount",
     cell: ({ row }) => (
