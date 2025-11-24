@@ -248,10 +248,18 @@ export default function FreeMpesaAnalyzerPage() {
           <h1 className="text-4xl sm:text-5xl font-bold mb-4">
             Free M-Pesa Statement Analyzer 🇰🇪
           </h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-6">
             Instantly analyze your M-Pesa spending and get your year in review. Upload your statement PDF, paste the text, or copy your SMS messages. 
             Get detailed insights about where your money goes - completely free, private, and works offline!
           </p>
+          <div className="flex justify-center">
+            <Link href="/login">
+              <Button size="lg" className="gap-2">
+                Get Full MONEE Experience
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </Link>
+          </div>
         </div>
 
         {!yearStats ? (
