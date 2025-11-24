@@ -1,7 +1,7 @@
 "use client";
 
 import db from "@/lib/db";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent} from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
@@ -128,7 +128,7 @@ export default function MonthlySummary() {
 
   // Helper to get display name (nickname or original)
   const getDisplayName = (originalName: string) => {
-    const recipient = recipients.find((r: any) => r.originalName === originalName);
+    const recipient = recipients.find((r) => r.originalName === originalName);
     return recipient?.nickname || originalName;
   };
 
@@ -219,12 +219,7 @@ export default function MonthlySummary() {
     monthlyBudget > 0 ? (totalSpent / monthlyBudget) * 100 : 0;
 
   return (
-    <div className="space-y-4">
-      <Card>
-        <CardHeader>
-          <CardTitle>{formatMonth()} Summary</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
+     <div className="space-y-6">
           {/* Income vs Expenses */}
           <div className="grid grid-cols-2 gap-4 p-4 bg-muted rounded-lg">
             <div>
@@ -462,8 +457,6 @@ export default function MonthlySummary() {
               </p>
             </div>
           )}
-        </CardContent>
-      </Card>
-    </div>
+        </div>
   );
 }
