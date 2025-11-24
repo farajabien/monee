@@ -1,9 +1,11 @@
 "use client";
+import { DataTable } from "@/components/ui/data-table";
+import { eltiwColumns } from "@/components/eltiw/eltiw-columns";
 
 import { useState, useMemo, useCallback } from "react";
 import { id } from "@instantdb/react";
 import db from "@/lib/db";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+// import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -327,22 +329,9 @@ export default function EltiwList() {
   };
 
   return (
-    <div className="space-y-4">
-      <Card>
-        <CardHeader className="flex flex-col gap-3">
-          <div className="flex flex-row items-center justify-between">
-            <CardTitle>Every Little Thing I Want</CardTitle>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowAddDialog(true)}
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add Item
-            </Button>
-          </div>
-          
-          {/* Metrics Badges */}
+    <div className="space-y-4 pb-[90px] sm:pb-0">
+      <div>
+        {/* Metrics Badges */}
           <div className="flex flex-wrap gap-2">
             <Badge variant="secondary" className="text-sm px-3 py-1.5">
               <Heart className="h-3.5 w-3.5 mr-1.5" />
@@ -360,8 +349,7 @@ export default function EltiwList() {
               </Badge>
             )}
           </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
+        <div className="space-y-4">
           {/* Compact controls row */}
           <div className="flex flex-col gap-3">
             {/* Search + View Toggle */}
@@ -480,157 +468,92 @@ export default function EltiwList() {
           )}
 
           {filteredAndSortedItems.length > 0 && viewMode === "grid" && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
               {filteredAndSortedItems.map((item: EltiwItem, index: number) => (
-                <Card key={item.id} className={item.gotIt ? "opacity-60" : ""}>
-                  <CardContent className="p-4 space-y-3">
-                    <div className="flex items-start justify-between gap-2">
-                      <Badge variant="outline" className="text-xs">#{index + 1}</Badge>
-                      <div className="flex gap-1">
-                        {!item.gotIt && (
-                          <>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-7 w-7"
-                              onClick={() => handleEdit(item)}
-                            >
-                              <Edit className="h-3 w-3" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-7 w-7"
-                              onClick={() => handleGotIt(item)}
-                            >
-                              <CheckCircle2 className="h-3 w-3" />
-                            </Button>
-                          </>
-                        )}
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7 text-destructive"
-                          onClick={() => handleDelete(item.id)}
-                        >
-                          <X className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <h4 className={`font-semibold ${item.gotIt ? "line-through" : ""} flex items-center gap-2`}>
-                        {item.sourceEmoji && <span className="text-lg">{item.sourceEmoji}</span>}
-                        {item.name}
-                      </h4>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <Badge variant={item.gotIt ? "default" : "secondary"}>
-                          {formatAmount(item.amount)}
-                        </Badge>
-                        {item.deadline && !item.gotIt && (
-                          <Badge
-                            variant={getDeadlineBadgeVariant(item.deadline)}
-                            className="flex items-center gap-1"
+                <Item key={item.id} className={`flex flex-col gap-2 ${item.gotIt ? "opacity-60" : ""}`} variant="outline" size="sm">
+                  <div className="flex items-start justify-between gap-2">
+                    <Badge variant="outline" className="text-xs">#{index + 1}</Badge>
+                    <div className="flex gap-1">
+                      {!item.gotIt && (
+                        <>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7"
+                            onClick={() => handleEdit(item)}
                           >
-                            <Calendar className="h-3 w-3" />
-                            {formatDeadline(item.deadline)}
-                          </Badge>
-                        )}
-                      </div>
-                      {item.reason && (
-                        <p className="text-sm text-muted-foreground line-clamp-2">
-                          {item.reason}
-                        </p>
+                            <Edit className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7"
+                            onClick={() => handleGotIt(item)}
+                          >
+                            <CheckCircle2 className="h-3 w-3" />
+                          </Button>
+                        </>
                       )}
-                      {item.link && (
-                        <a
-                          href={item.link}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1 w-fit"
-                        >
-                          <ExternalLink className="h-3 w-3" />
-                          View link
-                        </a>
-                      )}
-                      {item.gotItDate && (
-                        <p className="text-xs text-muted-foreground">
-                          Got it on {new Date(item.gotItDate).toLocaleDateString("en-KE")}
-                        </p>
-                      )}
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-destructive"
+                        onClick={() => handleDelete(item.id)}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
                     </div>
-                  </CardContent>
-                </Card>
+                  </div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {item.sourceEmoji && <span className="text-lg">{item.sourceEmoji}</span>}
+                    <span className={`font-semibold ${item.gotIt ? "line-through" : ""}`}>{item.name}</span>
+                    <Badge variant={item.gotIt ? "default" : "secondary"}>
+                      {formatAmount(item.amount)}
+                    </Badge>
+                    {item.deadline && !item.gotIt && (
+                      <Badge
+                        variant={getDeadlineBadgeVariant(item.deadline)}
+                        className="flex items-center gap-1"
+                      >
+                        <Calendar className="h-3 w-3" />
+                        {formatDeadline(item.deadline)}
+                      </Badge>
+                    )}
+                  </div>
+                  {item.reason && (
+                    <p className="text-xs text-muted-foreground line-clamp-2">
+                      {item.reason}
+                    </p>
+                  )}
+                  {item.link && (
+                    <a
+                      href={item.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1 w-fit"
+                    >
+                      <ExternalLink className="h-3 w-3" />
+                      View link
+                    </a>
+                  )}
+                  {item.gotItDate && (
+                    <p className="text-xs text-muted-foreground">
+                      Got it on {new Date(item.gotItDate).toLocaleDateString("en-KE")}
+                    </p>
+                  )}
+                </Item>
               ))}
             </div>
           )}
 
           {filteredAndSortedItems.length > 0 && viewMode === "list" && (
-            <div className="space-y-2">
-              {filteredAndSortedItems.map((item: EltiwItem, index: number) => (
-                 <Item key={item.id} className={`flex items-start gap-4 ${item.gotIt ? "opacity-60" : ""}`}>
-                      <Badge variant="outline" className="text-xs shrink-0">#{index + 1}</Badge>
-                      <div className="flex-1 space-y-1">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          {item.sourceEmoji && <span className="text-lg">{item.sourceEmoji}</span>}
-                          <span className={`font-semibold ${item.gotIt ? "line-through" : ""}`}>{item.name}</span>
-                          <Badge variant="secondary">
-                            {formatAmount(item.amount)}
-                          </Badge>
-                          {item.deadline && (
-                            <Badge
-                              variant={getDeadlineBadgeVariant(item.deadline)}
-                              className="flex items-center gap-1"
-                            >
-                              <Calendar className="h-3 w-3" />
-                              {formatDeadline(item.deadline)}
-                            </Badge>
-                          )}
-                        </div>
-                        {item.reason && (
-                          <p className="text-sm text-muted-foreground">
-                            {item.reason}
-                          </p>
-                        )}
-                        {item.link && (
-                          <a
-                            href={item.link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1 w-fit"
-                          >
-                            <ExternalLink className="h-3 w-3" />
-                            View link
-                          </a>
-                        )}
-                      </div>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleEdit(item)}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleGotIt(item)}
-                        >
-                          <CheckCircle2 className="h-4 w-4 mr-2" />
-                          Got it!
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDelete(item.id)}
-                          className="text-destructive"
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </Item>
-              ))}
-            </div>
+            <DataTable
+              columns={eltiwColumns}
+              data={filteredAndSortedItems}
+              onEdit={handleEdit}
+              onGotIt={handleGotIt}
+              onDelete={handleDelete}
+            />
           )}
 
           {completedItems.length > 0 && (
@@ -686,8 +609,19 @@ export default function EltiwList() {
               ))}
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
+
+      {/* Floating Action Button (FAB) for Add */}
+      <button
+        type="button"
+        onClick={() => setShowAddDialog(true)}
+        className="fixed z-30 bottom-[calc(env(safe-area-inset-bottom,0px)+72px)] right-4 sm:right-8 bg-primary text-primary-foreground rounded-full shadow-lg p-4 flex items-center justify-center transition hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+        aria-label="Add Wishlist Item"
+        style={{ boxShadow: "0 4px 24px 0 rgba(0,0,0,0.10)" }}
+      >
+        <Plus className="h-6 w-6" />
+      </button>
 
       <SteppedFormModal
         open={showAddDialog}

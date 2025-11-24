@@ -3,10 +3,12 @@
 import { useState, useMemo } from "react";
 import { id } from "@instantdb/react";
 import db from "@/lib/db";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+// import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Item } from "@/components/ui/item";
+import { DataTable } from "@/components/ui/data-table";
+import { transactionColumns } from "./transaction-columns";
 import { Trash2, Edit, TrendingUp, TrendingDown, Calendar, DollarSign } from "lucide-react";
 import { EditTransactionDialog } from "./edit-transaction-dialog";
 import { DataViewControls } from "@/components/ui/data-view-controls";
@@ -42,8 +44,8 @@ export default function TransactionList() {
     },
   });
 
-  const transactions = data?.transactions || [];
-  const recipients = data?.recipients || [];
+  const transactions = useMemo(() => data?.transactions || [], [data?.transactions]);
+  const recipients = useMemo(() => data?.recipients || [], [data?.recipients]);
   
   // Get unique categories for filter
   const categories = useMemo(() => {
@@ -208,7 +210,7 @@ export default function TransactionList() {
         </Badge>
         <Badge variant="secondary" className="text-sm px-3 py-1.5">
           <Calendar className="h-3.5 w-3.5 mr-1.5" />
-          {metrics.transactionCount} Transactions
+          {metrics.transactionCount} Trans.
         </Badge>
         <Badge variant="outline" className="text-sm px-3 py-1.5">
           <TrendingUp className="h-3.5 w-3.5 mr-1.5" />
@@ -244,9 +246,9 @@ export default function TransactionList() {
         {/* Date range picker and more filters can go here */}
       </div>
 
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Transactions</CardTitle>
+      <div className="border rounded-lg bg-background p-0 mb-4">
+        <div className="flex flex-row items-center justify-between px-4 pt-4">
+          <div className="font-semibold text-lg">Transactions</div>
           {/* Month Filter */}
           <Select value={monthFilter} onValueChange={setMonthFilter}>
             <SelectTrigger className="w-[200px]">
@@ -261,8 +263,8 @@ export default function TransactionList() {
               ))}
             </SelectContent>
           </Select>
-        </CardHeader>
-        <CardContent className="space-y-4">
+        </div>
+        <div className="space-y-4 px-4 pb-4">
           <DataViewControls
             viewMode={viewMode}
             onViewModeChange={handleViewModeChange}
@@ -299,105 +301,67 @@ export default function TransactionList() {
           )}
 
           {filteredAndSortedTransactions.length > 0 && viewMode === "list" && (
-            <div className="space-y-2">
+            <DataTable
+              columns={transactionColumns}
+              data={filteredAndSortedTransactions}
+              onEdit={(transaction) => {
+                setEditingTransaction(transaction);
+                setIsEditDialogOpen(true);
+              }}
+              onDelete={deleteTransaction}
+            />
+          )}
+
+          {filteredAndSortedTransactions.length > 0 && viewMode === "grid" && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
               {filteredAndSortedTransactions.map((transaction: Transaction, index: number) => (
-                <Item key={transaction.id} variant="outline">
-                  <Badge variant="outline" className="text-xs shrink-0">#{index + 1}</Badge>
-                  <div className="flex-1 space-y-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-semibold">
-                        {formatAmount(transaction.amount)}
-                      </span>
-                      {transaction.category && (
-                        <Badge variant="secondary">{transaction.category}</Badge>
-                      )}
+                <Item key={transaction.id} className="flex flex-col gap-2" variant="outline" size="sm">
+                  <div className="flex items-start justify-between gap-2">
+                    <Badge variant="outline" className="text-xs">#{index + 1}</Badge>
+                    <div className="flex gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7"
+                        onClick={() => {
+                          setEditingTransaction(transaction);
+                          setIsEditDialogOpen(true);
+                        }}
+                      >
+                        <Edit className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-destructive"
+                        onClick={() => deleteTransaction(transaction.id)}
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
                     </div>
-                    {transaction.recipient && (
-                      <p className="text-sm text-muted-foreground">
-                        To: {getDisplayName(transaction.recipient)}
-                      </p>
+                  </div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-semibold text-lg">
+                      {formatAmount(transaction.amount)}
+                    </span>
+                    {transaction.category && (
+                      <Badge variant="secondary">{transaction.category}</Badge>
                     )}
+                  </div>
+                  {transaction.recipient && (
                     <p className="text-xs text-muted-foreground">
-                      {formatDate(transaction.date || transaction.createdAt)}
+                      To: {getDisplayName(transaction.recipient)}
                     </p>
-                  </div>
-                  <div className="flex gap-1">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        setEditingTransaction(transaction);
-                        setIsEditDialogOpen(true);
-                      }}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => deleteTransaction(transaction.id)}
-                      className="text-destructive hover:text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    {formatDate(transaction.date || transaction.createdAt)}
+                  </p>
                 </Item>
               ))}
             </div>
           )}
-
-          {filteredAndSortedTransactions.length > 0 && viewMode === "grid" && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredAndSortedTransactions.map((transaction: Transaction, index: number) => (
-                <Card key={transaction.id}>
-                  <CardContent className="p-4 space-y-3">
-                    <div className="flex items-start justify-between gap-2">
-                      <Badge variant="outline" className="text-xs">#{index + 1}</Badge>
-                      <div className="flex gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7"
-                          onClick={() => {
-                            setEditingTransaction(transaction);
-                            setIsEditDialogOpen(true);
-                          }}
-                        >
-                          <Edit className="h-3 w-3" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7 text-destructive"
-                          onClick={() => deleteTransaction(transaction.id)}
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="font-semibold text-lg">
-                        {formatAmount(transaction.amount)}
-                      </div>
-                      {transaction.category && (
-                        <Badge variant="secondary">{transaction.category}</Badge>
-                      )}
-                      {transaction.recipient && (
-                        <p className="text-sm text-muted-foreground">
-                          To: {getDisplayName(transaction.recipient)}
-                        </p>
-                      )}
-                      <p className="text-xs text-muted-foreground">
-                        {formatDate(transaction.date || transaction.createdAt)}
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       <EditTransactionDialog
         open={isEditDialogOpen}

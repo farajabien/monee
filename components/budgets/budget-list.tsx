@@ -1,4 +1,6 @@
 "use client";
+import { DataTable } from "@/components/ui/data-table";
+import { budgetColumns } from "@/components/budgets/budget-columns";
 
 import { useState, useMemo } from "react";
 import db from "@/lib/db";
@@ -141,52 +143,15 @@ export function BudgetList() {
           )}
 
           {filteredAndSortedBudgets.length > 0 && viewMode === "list" && (
-            <div className="space-y-2">
-              {filteredAndSortedBudgets.map((budget, index) => (
-                <Item key={budget.id} variant="outline">
-                  <Badge variant="outline" className="text-xs shrink-0">#{index + 1}</Badge>
-                  <div className="flex-1 space-y-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-semibold">
-                        {budget.category?.name || "Unknown Category"}
-                      </span>
-                      <Badge variant="secondary">
-                        {formatAmount(budget.amount)}
-                      </Badge>
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      {new Date(2000, budget.month - 1).toLocaleString(
-                        "default",
-                        {
-                          month: "long",
-                        }
-                      )}{" "}
-                      {budget.year}
-                    </p>
-                  </div>
-                  <div className="flex gap-1">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        setEditingBudget(budget);
-                        setShowAddDialog(true);
-                      }}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDelete(budget.id)}
-                      className="text-destructive hover:text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </Item>
-              ))}
-            </div>
+            <DataTable
+              columns={budgetColumns}
+              data={filteredAndSortedBudgets}
+              onEdit={(budget) => {
+                setEditingBudget(budget);
+                setShowAddDialog(true);
+              }}
+              onDelete={handleDelete}
+            />
           )}
 
           {filteredAndSortedBudgets.length > 0 && viewMode === "grid" && (
