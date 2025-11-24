@@ -4,7 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Home, ArrowLeftRight, Heart, TrendingUp, User, MoreHorizontal, Settings, Tag } from "lucide-react";
-import db from "@/lib/db";
 
 export function PWABottomNav() {
   const pathname = usePathname();
@@ -25,16 +24,10 @@ export function PWABottomNav() {
     { value: "eltiw", label: "Wishlist", icon: Heart, href: "/dashboard?tab=eltiw" },
     { value: "income", label: "Income", icon: TrendingUp, href: "/dashboard?tab=income" },
   ];
-  // Fetch user and categories for tabs
-  const user = db.useUser();
-  const { data } = db.useQuery({
-    categories: {
-      $: { where: { "user.id": user.id, isActive: true }, order: { name: "asc" } },
-    },
-  });
-  const categories = data?.categories || [];
+  // No need to fetch categories for bottom nav, just add a Categories button in More
   // Extra nav items (in More dropdown)
   const moreItems = [
+    { value: "categories", label: "Categories", icon: Tag, href: "/dashboard?tab=categories" },
     { value: "year-review", label: "Year", icon: User, href: "/dashboard?tab=year-review" },
     { value: "settings", label: "Settings", icon: Settings, href: "/settings" },
   ];
@@ -60,22 +53,7 @@ export function PWABottomNav() {
             </Link>
           );
         })}
-        {/* Category tabs */}
-        {categories.map((cat) => {
-          const isActive = activeTab === `category-${cat.id}`;
-          return (
-            <Link
-              key={cat.id}
-              href={`/dashboard?tab=category-${cat.id}`}
-              className={`flex flex-col items-center justify-center flex-1 h-full gap-1 transition-colors ${
-                isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <Tag className="h-5 w-5" />
-              <span className="text-[10px] font-medium">{cat.name}</span>
-            </Link>
-          );
-        })}
+        {/* No category tabs in main bar */}
         {/* More dropdown */}
         <div className="flex flex-col items-center justify-center flex-1 h-full gap-1 relative">
           <button

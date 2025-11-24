@@ -166,13 +166,7 @@ export function DashboardHeader() {
       .toUpperCase()
       .slice(0, 2);
   };
-  // Fetch categories for tabs
-  const { data: catData } = db.useQuery({
-    categories: {
-      $: { where: { "user.id": user.id, isActive: true }, order: { name: "asc" } },
-    },
-  });
-  const categories = catData?.categories || [];
+  // No individual category tabs, just a single Categories tab
 
   if (isLoading) {
     return (
@@ -189,6 +183,7 @@ export function DashboardHeader() {
     { href: "/dashboard?tab=transactions", label: "Money", icon: ArrowLeftRight },
     { href: "/dashboard?tab=eltiw", label: "Wishlist", icon: Heart },
     { href: "/dashboard?tab=income", label: "Income", icon: TrendingUp },
+    { href: "/dashboard?tab=categories", label: "Categories", icon: Tag },
     { href: "/dashboard?tab=year-review", label: "Year", icon: User },
   ];
 
@@ -239,22 +234,7 @@ export function DashboardHeader() {
             </Link>
           );
         })}
-        {/* Category tabs */}
-        {categories.map((cat) => {
-          const isActive = typeof window !== "undefined" ? (new URLSearchParams(window.location.search).get("tab")) === `category-${cat.id}` : false;
-          return (
-            <Link
-              key={cat.id}
-              href={`/dashboard?tab=category-${cat.id}`}
-              className={`flex items-center gap-1 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                isActive ? "bg-muted text-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted"
-              }`}
-            >
-              <Tag className="h-4 w-4" />
-              <span>{cat.name}</span>
-            </Link>
-          );
-        })}
+        {/* No individual category tabs, just the main nav links */}
       </nav>
       <Link href="/settings">
         <Button variant="outline" size="sm" className="gap-2">
