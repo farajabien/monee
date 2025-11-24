@@ -90,8 +90,8 @@ export function BudgetList() {
 
   return (
     <div className="space-y-4">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+       <div className="space-y-4">
+            <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>
             Budgets for{" "}
             {now.toLocaleString("default", { month: "long", year: "numeric" })}
@@ -108,7 +108,6 @@ export function BudgetList() {
             Add Budget
           </Button>
         </CardHeader>
-        <CardContent className="space-y-4">
           <DataViewControls
             viewMode={viewMode}
             onViewModeChange={handleViewModeChange}
@@ -204,8 +203,7 @@ export function BudgetList() {
               ))}
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
 
       <SteppedFormModal
         open={showAddDialog}

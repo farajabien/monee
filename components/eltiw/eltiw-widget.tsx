@@ -39,8 +39,8 @@ export function EltiwWidget() {
 
   return (
     <>
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
+      <div className="space-y-3">
+           <CardHeader className="flex flex-row items-center justify-between pb-2">
           <CardTitle className="text-sm font-medium flex items-center gap-2">
             <Heart className="h-4 w-4 text-primary" />
             ELTIW Wishlist
@@ -49,7 +49,6 @@ export function EltiwWidget() {
             <Plus className="h-4 w-4" />
           </Button>
         </CardHeader>
-        <CardContent className="space-y-3">
           <div className="flex items-center justify-between">
             <div>
               <div className="text-2xl font-bold">{activeItems.length}</div>
@@ -105,8 +104,7 @@ export function EltiwWidget() {
               </Button>
             </Link>
           )}
-        </CardContent>
-      </Card>
+        </div>
       <QuickAddEltiwModal open={showQuickAdd} onOpenChange={setShowQuickAdd} />
     </>
   );
