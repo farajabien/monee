@@ -157,8 +157,8 @@
 
 **Files to Create/Update:**
 - `/docs/mpesa-statement-guide.md` - ✅ Created
-- `/docs/images/mpesa-see-all-button.png` - Need screenshot
-- `/docs/images/mpesa-generate-statements.png` - Need screenshot
+- `/docs/images/mpesa-see-all-button.jpg` - Need screenshot
+- `/docs/images/mpesa-generate-statements.jpg` - Need screenshot
 - `/lib/statement-parser.ts` - ✅ Exists, needs multi-file support
 - `/components/transactions/multi-statement-upload.tsx` - New component
 - Update free analyzer page with multi-upload UI

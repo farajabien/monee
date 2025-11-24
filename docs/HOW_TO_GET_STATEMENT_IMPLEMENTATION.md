@@ -16,8 +16,8 @@ Created reusable component with screenshots to guide users on exporting M-Pesa s
 
 ### Screenshots Added
 **Location:** `/docs/images/`
-- `mpesa-see-all-button.png` - Shows "SEE ALL" button next to M-PESA STATEMENTS
-- `mpesa-generate-statements.png` - Shows export statements interface
+- `mpesa-see-all-button.jpg` - Shows "SEE ALL" button next to M-PESA STATEMENTS
+- `mpesa-generate-statements.jpg` - Shows export statements interface
 
 ### Pages Updated
 
@@ -67,8 +67,8 @@ interface HowToGetStatementProps {
 
 ### Image Paths
 Images use absolute paths from public directory:
-- `/docs/images/mpesa-see-all-button.png`
-- `/docs/images/mpesa-generate-statements.png`
+- `/docs/images/mpesa-see-all-button.jpg`
+- `/docs/images/mpesa-generate-statements.jpg`
 
 Next.js Image component automatically optimizes these.
 

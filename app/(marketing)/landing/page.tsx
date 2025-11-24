@@ -78,27 +78,37 @@ export default function LandingPage() {
       competitors: false,
     },
     {
-      feature: "Auto-Categorization",
+      feature: "Automatic Reconciliation",
       monee: true,
       competitors: false,
     },
     {
-      feature: "Income Tracking",
+      feature: "Auto-Categorization & Learning",
       monee: true,
       competitors: "Manual",
     },
     {
-      feature: "Debt Management",
+      feature: "Income & Expense Tracking",
+      monee: true,
+      competitors: "Manual",
+    },
+    {
+      feature: "Debt Management & Progress",
       monee: true,
       competitors: "Basic",
     },
     {
-      feature: "Daily Check-In Flow",
+      feature: "Budgets & Limits",
+      monee: true,
+      competitors: "Manual",
+    },
+    {
+      feature: "Personal Wishlist (ELTIW)",
       monee: true,
       competitors: false,
     },
     {
-      feature: "Personal Wishlist (ELTIW)",
+      feature: "Daily Check-In Ritual",
       monee: true,
       competitors: false,
     },
@@ -108,9 +118,19 @@ export default function LandingPage() {
       competitors: false,
     },
     {
+      feature: "Mobile Friendly",
+      monee: true,
+      competitors: false,
+    },
+    {
       feature: "Updates & New Features",
       monee: "Free Forever",
       competitors: "Pay Again",
+    },
+    {
+      feature: "Privacy & Security",
+      monee: true,
+      competitors: false,
     },
   ];
 

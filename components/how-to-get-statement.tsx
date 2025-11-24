@@ -68,7 +68,7 @@ export function HowToGetStatement() {
           <div className="space-y-3">
             <div className="rounded-lg overflow-hidden border">
               <Image
-                src="/docs/images/mpesa-see-all-button.png"
+                src="/images/mpesa-see-all-button.jpg"
                 alt="M-Pesa See All Button"
                 width={400}
                 height={300}
@@ -80,7 +80,7 @@ export function HowToGetStatement() {
             </div>
             <div className="rounded-lg overflow-hidden border">
               <Image
-                src="/docs/images/mpesa-generate-statements.png"
+                src="/images/mpesa-generate-statements.jpg"
                 alt="M-Pesa Generate Statements"
                 width={400}
                 height={300}

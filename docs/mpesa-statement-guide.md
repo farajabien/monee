@@ -29,8 +29,8 @@
    - **No password required!** ✅
 
 ### Screenshots Locations
-- `docs/images/mpesa-see-all-button.png` - Shows the "SEE ALL" button location
-- `docs/images/mpesa-generate-statements.png` - Shows the generate statements interface
+- `docs/images/mpesa-see-all-button.jpg` - Shows the "SEE ALL" button location
+- `docs/images/mpesa-generate-statements.jpg` - Shows the generate statements interface
 
 ---
 

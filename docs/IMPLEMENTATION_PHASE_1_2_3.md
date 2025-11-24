@@ -258,8 +258,8 @@ function analyzeStatementCoverage(transactions: Transaction[]): {
 ## Next Steps
 
 ### Immediate (Screenshots):
-- [ ] Add `mpesa-see-all-button.png` to `/docs/images/`
-- [ ] Add `mpesa-generate-statements.png` to `/docs/images/`
+- [ ] Add `mpesa-see-all-button.jpg` to `/docs/images/`
+- [ ] Add `mpesa-generate-statements.jpg` to `/docs/images/`
 - [ ] Update analyzer page to show screenshots
 
 ### Future Enhancements:
