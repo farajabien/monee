@@ -134,7 +134,7 @@ Debts don't have to be stressful — they just need to be organized.
 - 💸 **Auto-Expense Tracking** – debt payments automatically appear in expenses tab
 - 💰 **Payment Integration** – one-time Ksh 999 payment via Paystack (M-Pesa, cards, bank transfer)
 - 🔐 **Secure Webhooks** – server-side payment verification with duplicate detection
-- 🆓 **Free Analyzer Tool** – no login required, 100% offline transaction analysis
+- 🆓 **Free M-Pesa Statement Analyzer** – no login required, 100% offline, supports PDF upload & full statement analysis
 - 🎨 **Professional Landing Page** – full feature showcase with comparison table
 - 📄 **Legal Pages** – comprehensive Terms of Service and Privacy Policy
 - 💰 **Money-Bag Branding** – professional logo across all pages
@@ -195,7 +195,7 @@ You don’t need a financial degree to manage your money — you just need MONEE
 - Built as a **Progressive Web App (PWA)** using Next.js 16 and shadcn
 - Using **InstantDB** for realtime sync, authentication (magic links)
 - Landing page live at `/landing` with full feature showcase
-- Free analyzer tool at `/analyzer` (no login, 100% offline)
+- Free M-Pesa Statement Analyzer at `/free-mpesa-analyzer-year-review` (no login, 100% offline, PDF support)
 - Terms of Service and Privacy Policy pages
 - Professional branding with money-bag logo 💰
 - **Payment integration via Paystack** – supports M-Pesa, cards, bank transfer
@@ -247,25 +247,26 @@ You don’t need a financial degree to manage your money — you just need MONEE
 
 ---
 
-## **Free M-Pesa Analyzer Tool** 💡
+## **Free M-Pesa Statement Analyzer Tool** 💡
 
-Before committing to the full app, try our **free analyzer** at `/analyzer`:
+Before committing to the full app, try our **free analyzer** at `/free-mpesa-analyzer-year-review`:
 
 ✅ **No login required** — start analyzing immediately
-✅ **100% offline** — all processing happens in your browser using IndexedDB
+✅ **100% offline** — all processing happens in your browser
 ✅ **Zero data sent to servers** — your privacy is guaranteed
-✅ **Paste multiple messages** — analyze bulk transactions at once
-✅ **Auto-categorization** — assign categories while analyzing
-✅ **Smart grouping** — see spending by recipient and date
-✅ **Export data** — download as JSON or CSV
-✅ **ScrollArea for long messages** — handles 100+ messages smoothly
-✅ **Duplicate detection** — shows "3× Ksh 500" for repeated amounts
+✅ **PDF Upload Support** — upload your M-Pesa Full Statement PDF for automatic extraction
+✅ **All Statement Fields** — extracts Receipt No, Completion Time, Details, Status, Paid in, Withdrawn, Balance
+✅ **Multiple Input Methods** — PDF upload, paste statement text, or paste SMS messages
+✅ **Year-by-Year Analysis** — automatically detects and groups transactions by year
+✅ **Auto-categorization** — groups spending by transaction type
+✅ **Smart insights** — see top recipients, monthly trends, and spending patterns
 
 **Perfect for:**
+- Getting your year-in-review from M-Pesa statements
 - Trying MONEE without commitment
-- Quick one-time analysis
+- One-time spending analysis from any date range
 - Sharing with friends who need to see their spending patterns
-- Lead magnet to convert users to full app
+- Lead magnet to convert users to full app with real-time tracking
 
 ---
 

@@ -129,8 +129,8 @@ export default function LandingPage() {
             <span className="font-bold text-xl">MONEE</span>
           </Link>
           <div className="flex items-center gap-4">
-            <Link href="/analyzer">
-              <Button variant="ghost">Free Analyzer</Button>
+            <Link href="/free-mpesa-analyzer-year-review">
+              <Button variant="ghost">Free M-Pesa Analyzer</Button>
             </Link>
             <Link href="/login">
               <Button variant="default">
@@ -158,9 +158,9 @@ export default function LandingPage() {
             daily ritual.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/analyzer">
+            <Link href="/free-mpesa-analyzer-year-review">
               <Button size="lg" variant="outline" className="w-full sm:w-auto">
-                Try Free Analyzer
+                Try Free M-Pesa Analyzer
               </Button>
             </Link>
             <Link href="/login">
@@ -423,13 +423,13 @@ export default function LandingPage() {
               building better money habits — one M-Pesa message at a time.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-              <Link href="/analyzer">
+              <Link href="/free-mpesa-analyzer-year-review">
                 <Button
                   size="lg"
                   variant="secondary"
                   className="w-full sm:w-auto"
                 >
-                  Try Free Analyzer First
+                  Try Free Statement Analyzer First
                 </Button>
               </Link>
               <Link href="/login">
