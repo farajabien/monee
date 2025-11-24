@@ -332,7 +332,7 @@ export default function EltiwList() {
     <div className="space-y-4 pb-[90px] sm:pb-0">
       <div>
         {/* Metrics Badges */}
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 mb-1">
             <Badge variant="secondary" className="text-sm px-3 py-1.5">
               <Heart className="h-3.5 w-3.5 mr-1.5" />
               {metrics.activeCount} Active
