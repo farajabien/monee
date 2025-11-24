@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { id } from "@instantdb/react";
 import db from "@/lib/db";
+import { DataViewControls } from "@/components/ui/data-view-controls";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -63,6 +64,13 @@ export default function CategoryList() {
   const [name, setName] = useState("");
   const [color, setColor] = useState(CATEGORY_COLORS[0]);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+
+  const handleViewModeChange = (mode: "grid" | "list" | "table") => {
+    if (mode !== "table") setViewMode(mode);
+  };
 
   const {
     isLoading,
@@ -208,6 +216,47 @@ export default function CategoryList() {
   // Sort defaults by name
   displayDefaults.sort((a, b) => a.name.localeCompare(b.name));
 
+  // Filter categories
+  const filteredDefaults = useMemo(() => {
+    let result = [...displayDefaults];
+
+    if (searchQuery) {
+      result = result.filter((c) =>
+        c.name.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    if (statusFilter !== "all") {
+      result = result.filter((c) => {
+        if (statusFilter === "active") return c.isActive;
+        if (statusFilter === "inactive") return !c.isActive;
+        return true;
+      });
+    }
+
+    return result;
+  }, [displayDefaults, searchQuery, statusFilter]);
+
+  const filteredCustoms = useMemo(() => {
+    let result = [...customDisplays];
+
+    if (searchQuery) {
+      result = result.filter((c) =>
+        c.name.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    if (statusFilter !== "all") {
+      result = result.filter((c) => {
+        if (statusFilter === "active") return c.isActive;
+        if (statusFilter === "inactive") return !c.isActive;
+        return true;
+      });
+    }
+
+    return result;
+  }, [customDisplays, searchQuery, statusFilter]);
+
   const handleToggleActive = async (
     category: DisplayCategory,
     nextState: boolean
@@ -249,6 +298,29 @@ export default function CategoryList() {
           </Button>
         </CardHeader>
         <CardContent className="space-y-6">
+          <DataViewControls
+            viewMode={viewMode}
+            onViewModeChange={handleViewModeChange}
+            searchValue={searchQuery}
+            onSearchChange={setSearchQuery}
+            searchPlaceholder="Search categories..."
+            sortValue="name"
+            onSortChange={() => {}}
+            sortOptions={[
+              { value: "name", label: "Name (A-Z)" },
+            ]}
+            filterValue={statusFilter}
+            onFilterChange={setStatusFilter}
+            filterOptions={[
+              { value: "all", label: "All Categories" },
+              { value: "active", label: "Active" },
+              { value: "inactive", label: "Inactive" },
+            ]}
+            filterLabel="Status"
+            totalCount={displayDefaults.length + customDisplays.length}
+            filteredCount={filteredDefaults.length + filteredCustoms.length}
+          />
+
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <p className="text-sm font-medium">System categories</p>
@@ -256,9 +328,13 @@ export default function CategoryList() {
                 Toggle to add/remove
               </p>
             </div>
-            {displayDefaults.length > 0 ? (
-              <div className="flex flex-wrap gap-3">
-                {displayDefaults.map((category) => (
+            {filteredDefaults.length > 0 ? (
+              <div className={cn(
+                viewMode === "grid" 
+                  ? "flex flex-wrap gap-3" 
+                  : "space-y-2"
+              )}>
+                {filteredDefaults.map((category) => (
                   <div
                     key={category.key}
                     className={cn(
@@ -297,9 +373,13 @@ export default function CategoryList() {
                 Custom and imported
               </p>
             </div>
-            {customDisplays.length > 0 ? (
-              <div className="flex flex-wrap gap-3">
-                {customDisplays.map((category) => (
+            {filteredCustoms.length > 0 ? (
+              <div className={cn(
+                viewMode === "grid" 
+                  ? "flex flex-wrap gap-3" 
+                  : "space-y-2"
+              )}>
+                {filteredCustoms.map((category) => (
                   <div
                     key={category.key}
                     className={cn(

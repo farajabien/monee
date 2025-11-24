@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import db from "@/lib/db";
+import { DataViewControls } from "@/components/ui/data-view-controls";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Item } from "@/components/ui/item";
 import { Plus, Edit, Trash2, Calendar } from "lucide-react";
 import { IncomeSourceForm } from "./income-source-form";
 import type { IncomeSourceWithUser } from "@/types";
@@ -14,8 +16,16 @@ export function IncomeSourceList() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingIncomeSource, setEditingIncomeSource] =
     useState<IncomeSourceWithUser | null>(null);
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState("amount-high");
+  const [statusFilter, setStatusFilter] = useState("all");
 
-  const { isLoading, error, data } = db.useQuery({
+  const handleViewModeChange = (mode: "grid" | "list" | "table") => {
+    if (mode !== "table") setViewMode(mode);
+  };
+
+  const { data } = db.useQuery({
     income_sources: {
       $: {
         where: { "user.id": user.id },
@@ -26,6 +36,45 @@ export function IncomeSourceList() {
   });
 
   const incomeSources: IncomeSourceWithUser[] = data?.income_sources || [];
+
+  // Filter and sort income sources
+  const filteredAndSortedSources = useMemo(() => {
+    let result = [...incomeSources];
+
+    // Search filter
+    if (searchQuery) {
+      result = result.filter((s) =>
+        s.name.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    // Status filter
+    if (statusFilter !== "all") {
+      result = result.filter((s) => {
+        if (statusFilter === "active") return s.isActive !== false;
+        if (statusFilter === "inactive") return s.isActive === false;
+        return true;
+      });
+    }
+
+    // Sort
+    result.sort((a, b) => {
+      switch (sortBy) {
+        case "amount-high":
+          return b.amount - a.amount;
+        case "amount-low":
+          return a.amount - b.amount;
+        case "name":
+          return a.name.localeCompare(b.name);
+        case "payday":
+          return a.paydayDay - b.paydayDay;
+        default:
+          return b.amount - a.amount;
+      }
+    });
+
+    return result;
+  }, [incomeSources, searchQuery, statusFilter, sortBy]);
 
   const handleDelete = (incomeSourceId: string) => {
     if (confirm("Are you sure you want to delete this income source?")) {
@@ -51,26 +100,6 @@ export function IncomeSourceList() {
     return `Day ${paydayDay} of each month`;
   };
 
-  if (isLoading) {
-    return (
-      <Card>
-        <CardContent className="p-6">
-          <div className="text-center text-muted-foreground">Loading income sources...</div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (error) {
-    return (
-      <Card>
-        <CardContent className="p-6">
-          <div className="text-center text-red-500">Error: {error.message}</div>
-        </CardContent>
-      </Card>
-    );
-  }
-
   return (
     <div className="space-y-4">
       <Card>
@@ -89,6 +118,32 @@ export function IncomeSourceList() {
           </Button>
         </CardHeader>
         <CardContent className="space-y-4">
+          <DataViewControls
+            viewMode={viewMode}
+            onViewModeChange={handleViewModeChange}
+            searchValue={searchQuery}
+            onSearchChange={setSearchQuery}
+            searchPlaceholder="Search income sources..."
+            sortValue={sortBy}
+            onSortChange={setSortBy}
+            sortOptions={[
+              { value: "amount-high", label: "Amount: High to Low" },
+              { value: "amount-low", label: "Amount: Low to High" },
+              { value: "name", label: "Name (A-Z)" },
+              { value: "payday", label: "Payday" },
+            ]}
+            filterValue={statusFilter}
+            onFilterChange={setStatusFilter}
+            filterOptions={[
+              { value: "all", label: "All Sources" },
+              { value: "active", label: "Active" },
+              { value: "inactive", label: "Inactive" },
+            ]}
+            filterLabel="Status"
+            totalCount={incomeSources.length}
+            filteredCount={filteredAndSortedSources.length}
+          />
+
           {showAddForm && (
             <div className="p-4 border rounded-lg">
               <IncomeSourceForm
@@ -108,54 +163,109 @@ export function IncomeSourceList() {
             </div>
           )}
 
-          {incomeSources.length === 0 && !showAddForm && !editingIncomeSource ? (
+          {filteredAndSortedSources.length === 0 && !showAddForm && !editingIncomeSource && (
             <div className="text-center text-muted-foreground py-8">
-              <p className="mb-2">No income sources added yet.</p>
-              <p className="text-sm">Add your income sources to track your earnings.</p>
+              {searchQuery || statusFilter !== "all" ? (
+                <p>No income sources found matching your filters.</p>
+              ) : (
+                <>
+                  <p className="mb-2">No income sources added yet.</p>
+                  <p className="text-sm">Add your income sources to track your earnings.</p>
+                </>
+              )}
             </div>
-          ) : (
+          )}
+
+          {filteredAndSortedSources.length > 0 && viewMode === "list" && (
             <div className="space-y-2">
-              {incomeSources.map((incomeSource) => (
+              {filteredAndSortedSources.map((incomeSource, index) => (
+                <Item key={incomeSource.id} variant="outline">
+                  <Badge variant="outline" className="text-xs shrink-0">#{index + 1}</Badge>
+                  <div className="flex-1 space-y-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-semibold">{incomeSource.name}</span>
+                      <Badge variant="secondary">
+                        {formatAmount(incomeSource.amount)}
+                      </Badge>
+                      {!incomeSource.isActive && (
+                        <Badge variant="outline">Inactive</Badge>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                      <Calendar className="h-3 w-3" />
+                      <span>
+                        {formatPayday(incomeSource.paydayDay, incomeSource.paydayMonth)}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex gap-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setShowAddForm(false);
+                        setEditingIncomeSource(incomeSource);
+                      }}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDelete(incomeSource.id)}
+                      className="text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </Item>
+              ))}
+            </div>
+          )}
+
+          {filteredAndSortedSources.length > 0 && viewMode === "grid" && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredAndSortedSources.map((incomeSource, index) => (
                 <Card key={incomeSource.id}>
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1 space-y-1">
-                        <div className="flex items-center gap-2">
-                          <span className="font-semibold">{incomeSource.name}</span>
-                          <Badge variant="secondary">
-                            {formatAmount(incomeSource.amount)}
-                          </Badge>
-                          {!incomeSource.isActive && (
-                            <Badge variant="outline">Inactive</Badge>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                          <Calendar className="h-3 w-3" />
-                          <span>
-                            {formatPayday(incomeSource.paydayDay, incomeSource.paydayMonth)}
-                          </span>
-                        </div>
-                      </div>
+                  <CardContent className="p-4 space-y-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <Badge variant="outline" className="text-xs">#{index + 1}</Badge>
                       <div className="flex gap-1">
                         <Button
                           variant="ghost"
-                          size="sm"
+                          size="icon"
+                          className="h-7 w-7"
                           onClick={() => {
                             setShowAddForm(false);
                             setEditingIncomeSource(incomeSource);
                           }}
                         >
-                          <Edit className="h-4 w-4" />
+                          <Edit className="h-3 w-3" />
                         </Button>
                         <Button
                           variant="ghost"
-                          size="sm"
+                          size="icon"
+                          className="h-7 w-7 text-destructive"
                           onClick={() => handleDelete(incomeSource.id)}
-                          className="text-destructive hover:text-destructive"
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="h-3 w-3" />
                         </Button>
                       </div>
+                    </div>
+                    <div className="space-y-2">
+                      <h4 className="font-semibold">{incomeSource.name}</h4>
+                      <div className="text-2xl font-bold text-primary">
+                        {formatAmount(incomeSource.amount)}
+                      </div>
+                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                        <Calendar className="h-3 w-3" />
+                        <span>
+                          {formatPayday(incomeSource.paydayDay, incomeSource.paydayMonth)}
+                        </span>
+                      </div>
+                      {!incomeSource.isActive && (
+                        <Badge variant="outline">Inactive</Badge>
+                      )}
                     </div>
                   </CardContent>
                 </Card>

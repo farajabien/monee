@@ -1,20 +1,31 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { id } from "@instantdb/react";
 import db from "@/lib/db";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Item } from "@/components/ui/item";
 import { Trash2, Edit } from "lucide-react";
 import { EditTransactionDialog } from "./edit-transaction-dialog";
+import { DataViewControls } from "@/components/ui/data-view-controls";
 import type { Transaction } from "@/types";
 
 export default function TransactionList() {
   const user = db.useUser();
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const { isLoading, error, data } = db.useQuery({
+  const [viewMode, setViewMode] = useState<"grid" | "list">("list");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState("newest");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+
+  const handleViewModeChange = (mode: "grid" | "list" | "table") => {
+    if (mode !== "table") setViewMode(mode);
+  };
+  
+  const { data } = db.useQuery({
     transactions: {
       $: {
         where: { "user.id": user.id },
@@ -29,30 +40,54 @@ export default function TransactionList() {
     },
   });
 
-  if (isLoading) {
-    return (
-      <Card>
-        <CardContent className="p-6">
-          <div className="text-center text-muted-foreground">Loading...</div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (error) {
-    return (
-      <Card>
-        <CardContent className="p-6">
-          <div className="text-center text-red-500">
-            Error: {error.message}
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
   const transactions = data?.transactions || [];
   const recipients = data?.recipients || [];
+  
+  // Get unique categories for filter
+  const categories = useMemo(() => {
+    const cats = new Set(transactions.map((t: Transaction) => t.category).filter(Boolean));
+    return Array.from(cats);
+  }, [transactions]);
+
+  // Filter and sort transactions
+  const filteredAndSortedTransactions = useMemo(() => {
+    let result = [...transactions];
+
+    // Search filter
+    if (searchQuery) {
+      result = result.filter((t: Transaction) => {
+        const displayName = getDisplayName(t.recipient || "");
+        return (
+          displayName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          t.category?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          formatAmount(t.amount).toLowerCase().includes(searchQuery.toLowerCase())
+        );
+      });
+    }
+
+    // Category filter
+    if (categoryFilter !== "all") {
+      result = result.filter((t: Transaction) => t.category === categoryFilter);
+    }
+
+    // Sort
+    result.sort((a: Transaction, b: Transaction) => {
+      switch (sortBy) {
+        case "newest":
+          return (b.date || b.createdAt) - (a.date || a.createdAt);
+        case "oldest":
+          return (a.date || a.createdAt) - (b.date || b.createdAt);
+        case "amount-high":
+          return b.amount - a.amount;
+        case "amount-low":
+          return a.amount - b.amount;
+        default:
+          return (b.date || b.createdAt) - (a.date || a.createdAt);
+      }
+    });
+
+    return result;
+  }, [transactions, searchQuery, categoryFilter, sortBy]);
 
   // Helper to get display name (nickname or original)
   const getDisplayName = (originalName: string) => {
@@ -82,68 +117,148 @@ export default function TransactionList() {
     }).format(amount);
   };
 
-  if (transactions.length === 0) {
-    return (
-      <Card>
-        <CardContent className="p-6">
-          <div className="text-center text-muted-foreground py-8">
-            No transactions yet. Add your first Mpesa message above!
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
   return (
     <>
-      <div className="space-y-2">
-        {transactions.map((transaction: Transaction) => (
-        <Card key={transaction.id}>
-          <CardContent className="p-4">
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex-1 space-y-1">
-                <div className="flex items-center gap-2">
-                  <span className="font-semibold">
-                    {formatAmount(transaction.amount)}
-                  </span>
-                  {transaction.category && (
-                    <Badge variant="secondary">{transaction.category}</Badge>
-                  )}
-                </div>
-                {transaction.recipient && (
-                  <p className="text-sm text-muted-foreground">
-                    To: {getDisplayName(transaction.recipient)}
-                  </p>
-                )}
-                <p className="text-xs text-muted-foreground">
-                  {formatDate(transaction.date || transaction.createdAt)}
-                </p>
-              </div>
-              <div className="flex gap-1">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setEditingTransaction(transaction);
-                    setIsEditDialogOpen(true);
-                  }}
-                >
-                  <Edit className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => deleteTransaction(transaction.id)}
-                  className="text-destructive hover:text-destructive"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Transactions</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <DataViewControls
+            viewMode={viewMode}
+            onViewModeChange={handleViewModeChange}
+            searchValue={searchQuery}
+            onSearchChange={setSearchQuery}
+            searchPlaceholder="Search transactions..."
+            sortValue={sortBy}
+            onSortChange={setSortBy}
+            sortOptions={[
+              { value: "newest", label: "Newest First" },
+              { value: "oldest", label: "Oldest First" },
+              { value: "amount-high", label: "Amount: High to Low" },
+              { value: "amount-low", label: "Amount: Low to High" },
+            ]}
+            filterValue={categoryFilter}
+            onFilterChange={setCategoryFilter}
+            filterOptions={[
+              { value: "all", label: "All Categories" },
+              ...categories.map(cat => ({ value: cat, label: cat })),
+            ]}
+            filterLabel="Category"
+            totalCount={transactions.length}
+            filteredCount={filteredAndSortedTransactions.length}
+          />
+
+          {filteredAndSortedTransactions.length === 0 && (
+            <div className="text-center text-muted-foreground py-8">
+              {searchQuery || categoryFilter !== "all" ? (
+                <p>No transactions found matching your filters.</p>
+              ) : (
+                <p>No transactions yet. Add your first Mpesa message above!</p>
+              )}
             </div>
-          </CardContent>
-        </Card>
-      ))}
-      </div>
+          )}
+
+          {filteredAndSortedTransactions.length > 0 && viewMode === "list" && (
+            <div className="space-y-2">
+              {filteredAndSortedTransactions.map((transaction: Transaction, index: number) => (
+                <Item key={transaction.id} variant="outline">
+                  <Badge variant="outline" className="text-xs shrink-0">#{index + 1}</Badge>
+                  <div className="flex-1 space-y-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-semibold">
+                        {formatAmount(transaction.amount)}
+                      </span>
+                      {transaction.category && (
+                        <Badge variant="secondary">{transaction.category}</Badge>
+                      )}
+                    </div>
+                    {transaction.recipient && (
+                      <p className="text-sm text-muted-foreground">
+                        To: {getDisplayName(transaction.recipient)}
+                      </p>
+                    )}
+                    <p className="text-xs text-muted-foreground">
+                      {formatDate(transaction.date || transaction.createdAt)}
+                    </p>
+                  </div>
+                  <div className="flex gap-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setEditingTransaction(transaction);
+                        setIsEditDialogOpen(true);
+                      }}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => deleteTransaction(transaction.id)}
+                      className="text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </Item>
+              ))}
+            </div>
+          )}
+
+          {filteredAndSortedTransactions.length > 0 && viewMode === "grid" && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredAndSortedTransactions.map((transaction: Transaction, index: number) => (
+                <Card key={transaction.id}>
+                  <CardContent className="p-4 space-y-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <Badge variant="outline" className="text-xs">#{index + 1}</Badge>
+                      <div className="flex gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={() => {
+                            setEditingTransaction(transaction);
+                            setIsEditDialogOpen(true);
+                          }}
+                        >
+                          <Edit className="h-3 w-3" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 text-destructive"
+                          onClick={() => deleteTransaction(transaction.id)}
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="font-semibold text-lg">
+                        {formatAmount(transaction.amount)}
+                      </div>
+                      {transaction.category && (
+                        <Badge variant="secondary">{transaction.category}</Badge>
+                      )}
+                      {transaction.recipient && (
+                        <p className="text-sm text-muted-foreground">
+                          To: {getDisplayName(transaction.recipient)}
+                        </p>
+                      )}
+                      <p className="text-xs text-muted-foreground">
+                        {formatDate(transaction.date || transaction.createdAt)}
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       <EditTransactionDialog
         open={isEditDialogOpen}
