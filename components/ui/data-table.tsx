@@ -34,8 +34,8 @@ export function DataTable<TData, TValue>({ columns, data, onEdit, onDelete, onGo
     // left sticky: sum widths of all previous sticky columns
     if (meta.sticky === "left") {
       return {
-        position: "sticky",
-        left: 0,
+        position: "sticky" as React.CSSProperties["position"],
+        left: 0 as number | string,
         zIndex: 2,
         background: "var(--color-background, #fff)",
       };
@@ -43,8 +43,8 @@ export function DataTable<TData, TValue>({ columns, data, onEdit, onDelete, onGo
     // right sticky: stick to right
     if (meta.sticky === "right") {
       return {
-        position: "sticky",
-        right: 0,
+        position: "sticky" as React.CSSProperties["position"],
+        right: 0 as number | string,
         zIndex: 2,
         background: "var(--color-background, #fff)",
       };

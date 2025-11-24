@@ -388,8 +388,8 @@ export default function EltiwList() {
           {/* Category Filter Dropdown (always visible) */}
           {uniqueCategories.length > 0 && (
             <div className="flex items-center gap-2 mb-2">
-              <Label htmlFor="eltiw-category-filter" className="text-xs text-muted-foreground">Filter by Category:</Label>
-              <Select id="eltiw-category-filter" value={categoryFilter} onValueChange={setCategoryFilter}>
+              <Label className="text-xs text-muted-foreground">Filter by Category:</Label>
+              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
                 <SelectTrigger className="w-[180px] h-8 text-xs">
                   <SelectValue placeholder="All Categories" />
                 </SelectTrigger>
