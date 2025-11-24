@@ -46,6 +46,7 @@ export function ManualTransactionDialog({
     new Date().toISOString().split("T")[0]
   );
   const [notes, setNotes] = useState<string>("");
+  const [mpesaReference, setMpesaReference] = useState<string>("");
   const [showAddCategoryDialog, setShowAddCategoryDialog] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -88,6 +89,7 @@ export function ManualTransactionDialog({
           type: "manual",
         },
         notes: notes.trim() || undefined,
+        mpesaReference: mpesaReference.trim() || undefined,
         createdAt: Date.now(),
       };
 
@@ -104,6 +106,7 @@ export function ManualTransactionDialog({
       setTransactionDate(new Date().toISOString().split("T")[0]);
       setNotes("");
       setDialogOpen(false);
+      setMpesaReference("");
     } catch (error) {
       console.error("Error adding manual transaction:", error);
       alert("Failed to add transaction. Please try again.");
@@ -213,6 +216,18 @@ export function ManualTransactionDialog({
                 placeholder="Additional details..."
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="mpesa-reference">Mpesa Reference (Optional)</Label>
+              <Input
+                id="mpesa-reference"
+                type="text"
+                placeholder="e.g. TKLPNAO4DP"
+                value={mpesaReference}
+                onChange={(e) => setMpesaReference(e.target.value)}
+                maxLength={20}
               />
             </div>
 
