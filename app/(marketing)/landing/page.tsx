@@ -3,6 +3,7 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { HowToGetStatement } from "@/components/how-to-get-statement";
 import {
   ArrowRight,
   Smartphone,
@@ -408,6 +409,21 @@ export default function LandingPage() {
               </p>
             </CardContent>
           </Card>
+        </div>
+      </section>
+
+      {/* How to Get Your Statement Section */}
+      <section className="container mx-auto px-4 py-20">
+        <div className="max-w-5xl mx-auto space-y-8">
+          <div className="text-center space-y-4">
+            <h2 className="text-3xl md:text-4xl font-bold">
+              Get Started in 60 Seconds
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              No need to copy hundreds of SMS messages. Just export your M-Pesa statement and upload it.
+            </p>
+          </div>
+          <HowToGetStatement />
         </div>
       </section>
 

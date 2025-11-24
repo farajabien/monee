@@ -132,24 +132,36 @@
 
 ### Critical Missing Features
 
-#### 1. **M-Pesa Statement Upload** 🔴 HIGH PRIORITY
-**What's Missing:**
-- No CSV/Excel file upload capability
-- No bulk import from M-Pesa statement files
-- Users can only paste messages manually
+#### 1. **M-Pesa Statement Upload - ENHANCED** 🔴 HIGH PRIORITY
+**Current Status:**
+- ✅ PDF upload working in free analyzer
+- ✅ PDF text extraction with pdfjs-dist
+- ✅ Statement parser handles tabular format
+- ✅ Supports Receipt No, Completion Time, Details, Status, Paid in, Withdrawn, Balance
+
+**NEW Discovery - Better UX:**
+- Users can generate statements directly in M-Pesa app (no password!)
+- Process: Open app → "SEE ALL" → "Export Statements" → Select range → Generate
+- Max 6 months per statement (need 2 for full year)
+- Use case: Daily routine (last 7 days) OR catch-up mode (missing weeks)
 
 **What's Needed:**
-- [ ] File upload component (CSV/TXT/Excel)
-- [ ] CSV parser for M-Pesa statement format
-- [ ] Bulk transaction import flow
-- [ ] Preview before importing
-- [ ] Duplicate detection
-- [ ] Date range selection
+- [ ] **Multi-PDF upload support** - Handle 2+ statements at once
+- [ ] **Duplicate detection** - Merge statements without duplicates (by receipt #)
+- [ ] **Date range analysis** - Show coverage, detect gaps
+- [ ] **Progress feedback** - "Processing 2 of 3 statements..."
+- [ ] **Smart recommendations** - "For full year, upload Jan-Jun + Jul-Dec"
+- [ ] **Gap warnings** - "Missing transactions between Jun 30 - Jul 1"
+- [ ] **Incremental updates** - Add new statement to existing data
+- [ ] **How-to guide section** - Step-by-step with screenshots
 
-**Files to Create:**
-- `/components/transactions/statement-upload.tsx`
-- `/lib/mpesa-csv-parser.ts`
-- Add to Transactions tab
+**Files to Create/Update:**
+- `/docs/mpesa-statement-guide.md` - ✅ Created
+- `/docs/images/mpesa-see-all-button.png` - Need screenshot
+- `/docs/images/mpesa-generate-statements.png` - Need screenshot
+- `/lib/statement-parser.ts` - ✅ Exists, needs multi-file support
+- `/components/transactions/multi-statement-upload.tsx` - New component
+- Update free analyzer page with multi-upload UI
 
 ---
 
@@ -281,6 +293,25 @@
 - [ ] Support for Lipa na M-Pesa messages
 - [ ] Support for M-Pesa Global messages
 - [ ] Better error recovery for malformed messages
+
+---
+
+## 🎨 DESIGN UPDATES NEEDED
+
+### Safaricom Brand Colors
+- [ ] Update primary color to Safaricom green (#00A65E)
+- [ ] Add red accent for CTAs
+- [ ] Update `globals.css` with new color tokens
+- [ ] Maintain dark mode compatibility
+- [ ] Test across all pages (landing, analyzer, dashboard)
+
+**Proposed Color Scheme:**
+```css
+--safaricom-green: oklch(0.65 0.15 155);
+--safaricom-green-dark: oklch(0.45 0.12 155);
+--accent-red: oklch(0.577 0.245 27.325);
+--primary: var(--safaricom-green);
+```
 
 ---
 

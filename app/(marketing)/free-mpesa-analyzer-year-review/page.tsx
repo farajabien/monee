@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import { HowToGetStatement } from "@/components/how-to-get-statement";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
@@ -33,7 +34,7 @@ interface YearStats {
 export default function FreeMpesaAnalyzerPage() {
   const [messages, setMessages] = useState("");
   const [statementText, setStatementText] = useState("");
-  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [yearStats, setYearStats] = useState<YearStats | null>(null);
   const [inputMethod, setInputMethod] = useState<"sms" | "statement" | "pdf">("pdf");
@@ -132,29 +133,33 @@ export default function FreeMpesaAnalyzerPage() {
   };
 
   const analyzeYear = async () => {
-    if (!messages.trim() && !statementText.trim() && !uploadedFile) return;
+    if (!messages.trim() && !statementText.trim() && uploadedFiles.length === 0) return;
     
     setIsAnalyzing(true);
     
     try {
       let messagesToParse: string[] = [];
 
-      // Handle PDF upload
-      if (inputMethod === "pdf" && uploadedFile) {
-        console.log("Starting PDF extraction...");
-        const pdfText = await extractTextFromPDF(uploadedFile);
-        console.log("PDF Text length:", pdfText.length);
-        console.log("PDF Text sample (first 500 chars):", pdfText.substring(0, 500));
-        console.log("PDF Text sample (middle 500 chars):", pdfText.substring(Math.floor(pdfText.length / 2), Math.floor(pdfText.length / 2) + 500));
+      // Handle PDF upload (supports multiple files)
+      if (inputMethod === "pdf" && uploadedFiles.length > 0) {
+        console.log(`Starting PDF extraction for ${uploadedFiles.length} file(s)...`);
         
-        const statementTransactions = parseStatementText(pdfText);
-        console.log("Parsed statement transactions:", statementTransactions.length);
-        if (statementTransactions.length > 0) {
-          console.log("First transaction sample:", statementTransactions[0]);
+        for (let i = 0; i < uploadedFiles.length; i++) {
+          const file = uploadedFiles[i];
+          console.log(`Processing file ${i + 1}/${uploadedFiles.length}: ${file.name}`);
+          
+          const pdfText = await extractTextFromPDF(file);
+          console.log(`File ${i + 1} - PDF Text length:`, pdfText.length);
+          
+          const statementTransactions = parseStatementText(pdfText);
+          console.log(`File ${i + 1} - Parsed transactions:`, statementTransactions.length);
+          
+          const fileMessages = convertStatementToMessages(statementTransactions);
+          messagesToParse = [...messagesToParse, ...fileMessages];
+          console.log(`File ${i + 1} - Converted to messages:`, fileMessages.length);
         }
         
-        messagesToParse = convertStatementToMessages(statementTransactions);
-        console.log("Converted to messages:", messagesToParse.length);
+        console.log(`Total messages from ${uploadedFiles.length} file(s):`, messagesToParse.length);
         if (messagesToParse.length > 0) {
           console.log("First message sample:", messagesToParse[0]);
         }
@@ -302,45 +307,43 @@ export default function FreeMpesaAnalyzerPage() {
                     <input
                       type="file"
                       accept=".pdf"
+                      multiple
                       onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) setUploadedFile(file);
+                        const files = Array.from(e.target.files || []);
+                        if (files.length > 0) {
+                          setUploadedFiles(prev => [...prev, ...files]);
+                        }
                       }}
                       className="hidden"
                       id="pdf-upload"
                     />
                     <label htmlFor="pdf-upload">
                       <Button variant="outline" className="cursor-pointer" asChild>
-                        <span>Choose PDF File</span>
+                        <span>Choose PDF File(s)</span>
                       </Button>
                     </label>
-                    {uploadedFile && (
-                      <div className="mt-4 p-3 bg-muted rounded-lg flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <FileText className="h-4 w-4" />
-                          <span className="text-sm font-medium">{uploadedFile.name}</span>
-                        </div>
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={() => setUploadedFile(null)}
-                        >
-                          Remove
-                        </Button>
+                    {uploadedFiles.length > 0 && (
+                      <div className="mt-4 space-y-2">
+                        <p className="text-sm font-medium">Uploaded Files ({uploadedFiles.length}):</p>
+                        {uploadedFiles.map((file, idx) => (
+                          <div key={idx} className="p-3 bg-muted rounded-lg flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <FileText className="h-4 w-4" />
+                              <span className="text-sm font-medium">{file.name}</span>
+                            </div>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => setUploadedFiles(prev => prev.filter((_, i) => i !== idx))}
+                            >
+                              Remove
+                            </Button>
+                          </div>
+                        ))}
                       </div>
                     )}
                   </div>
-                  <div className="bg-muted/50 p-4 rounded-lg">
-                    <p className="text-sm font-medium mb-2">📄 How to get your M-Pesa Full Statement:</p>
-                    <ol className="text-sm text-muted-foreground space-y-1 list-decimal list-inside">
-                      <li>Dial *234# or open MySafaricom app</li>
-                      <li>Go to My Account {">"} M-Pesa Statement</li>
-                      <li>Select your date range (any period works!)</li>
-                      <li>Request &quot;Full Statement&quot; (not Mini Statement)</li>
-                      <li>Download the PDF sent to your email</li>
-                      <li>Upload it here - we&apos;ll extract all transaction details</li>
-                    </ol>
-                  </div>
+                  <HowToGetStatement />
                 </TabsContent>
 
                 {/* Statement Text Tab */}
@@ -397,7 +400,7 @@ RCH4J8K9L1 Confirmed. Ksh1,200.00 sent to UBER KENYA on 20/2/25 at 8:15 PM..."
 
               <Button 
                 onClick={analyzeYear}
-                disabled={(!messages.trim() && !statementText.trim() && !uploadedFile) || isAnalyzing}
+                disabled={(!messages.trim() && !statementText.trim() && uploadedFiles.length === 0) || isAnalyzing}
                 className="w-full"
                 size="lg"
               >
