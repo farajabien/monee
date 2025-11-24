@@ -13,7 +13,7 @@ import {
   SteppedFormModal,
   type FormStep,
 } from "@/components/stepped-form-modal";
-import { CheckCircle2, Plus, X, ExternalLink, Calendar, Edit, Search, List, Grid3x3 } from "lucide-react";
+import { CheckCircle2, Plus, X, ExternalLink, Calendar, Edit, Search, List, Grid3x3, Heart } from "lucide-react";
 import type { EltiwItem } from "@/types";
 import { Item } from "../ui/item";
 import type { ViewMode } from "../ui/data-view-controls";
@@ -205,6 +205,28 @@ export default function EltiwList() {
 
   const items = useMemo(() => data?.eltiw_items || [], [data?.eltiw_items]);
   
+  // Format number to compact form (1000 -> 1K, 1000000 -> 1M)
+  const formatCompact = (num: number) => {
+    if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
+    if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
+    return num.toString();
+  };
+
+  // Calculate metrics
+  const metrics = useMemo(() => {
+    const activeItems = items.filter((item) => !item.gotIt);
+    const completedItems = items.filter((item) => item.gotIt);
+    const totalValue = activeItems.reduce((sum, item) => sum + item.amount, 0);
+    const completedValue = completedItems.reduce((sum, item) => sum + item.amount, 0);
+    
+    return {
+      activeCount: activeItems.length,
+      totalValue,
+      completedCount: completedItems.length,
+      completedValue,
+    };
+  }, [items]);
+  
   // Get unique sources for filter
   const uniqueSources = useMemo(() => {
     const sources = new Set<string>();
@@ -307,16 +329,37 @@ export default function EltiwList() {
   return (
     <div className="space-y-4">
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Every Little Thing I Want</CardTitle>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowAddDialog(true)}
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Add Item
-          </Button>
+        <CardHeader className="flex flex-col gap-3">
+          <div className="flex flex-row items-center justify-between">
+            <CardTitle>Every Little Thing I Want</CardTitle>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowAddDialog(true)}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Item
+            </Button>
+          </div>
+          
+          {/* Metrics Badges */}
+          <div className="flex flex-wrap gap-2">
+            <Badge variant="secondary" className="text-sm px-3 py-1.5">
+              <Heart className="h-3.5 w-3.5 mr-1.5" />
+              {metrics.activeCount} Active
+            </Badge>
+            <Badge variant="secondary" className="text-sm px-3 py-1.5">
+              💰 Ksh {formatCompact(metrics.totalValue)}
+            </Badge>
+            <Badge variant="default" className="text-sm px-3 py-1.5">
+              ✓ {metrics.completedCount} Done
+            </Badge>
+            {metrics.completedValue > 0 && (
+              <Badge variant="outline" className="text-sm px-3 py-1.5">
+                🎉 Ksh {formatCompact(metrics.completedValue)}
+              </Badge>
+            )}
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Compact controls row */}

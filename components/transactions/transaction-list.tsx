@@ -186,51 +186,29 @@ export default function TransactionList() {
     return date.toLocaleDateString("en-KE", { month: "long", year: "numeric" });
   };
 
+  // Format number to compact form (1000 -> 1K, 1000000 -> 1M)
+  const formatCompact = (num: number) => {
+    if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
+    if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
+    return num.toString();
+  };
+
   return (
     <>
-      {/* Metrics Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-primary/10 rounded-lg">
-                <DollarSign className="h-5 w-5 text-primary" />
-              </div>
-              <div className="flex-1">
-                <p className="text-xs text-muted-foreground">Total Spent</p>
-                <p className="text-2xl font-bold">{formatAmount(metrics.totalSpent)}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-500/10 rounded-lg">
-                <Calendar className="h-5 w-5 text-blue-500" />
-              </div>
-              <div className="flex-1">
-                <p className="text-xs text-muted-foreground">Transactions</p>
-                <p className="text-2xl font-bold">{metrics.transactionCount}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-green-500/10 rounded-lg">
-                <TrendingUp className="h-5 w-5 text-green-500" />
-              </div>
-              <div className="flex-1">
-                <p className="text-xs text-muted-foreground">Avg Transaction</p>
-                <p className="text-2xl font-bold">{formatAmount(metrics.avgTransaction)}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Metrics Badges */}
+      <div className="flex flex-wrap gap-2 mb-4">
+        <Badge variant="secondary" className="text-sm px-3 py-1.5">
+          <DollarSign className="h-3.5 w-3.5 mr-1.5" />
+          Ksh {formatCompact(metrics.totalSpent)} Spent
+        </Badge>
+        <Badge variant="secondary" className="text-sm px-3 py-1.5">
+          <Calendar className="h-3.5 w-3.5 mr-1.5" />
+          {metrics.transactionCount} Transactions
+        </Badge>
+        <Badge variant="outline" className="text-sm px-3 py-1.5">
+          <TrendingUp className="h-3.5 w-3.5 mr-1.5" />
+          Avg: Ksh {formatCompact(metrics.avgTransaction)}
+        </Badge>
       </div>
 
       <Card>
