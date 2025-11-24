@@ -385,6 +385,25 @@ export default function EltiwList() {
           )}
         </div>
         <div className="space-y-4">
+          {/* Category Filter Dropdown (always visible) */}
+          {uniqueCategories.length > 0 && (
+            <div className="flex items-center gap-2 mb-2">
+              <Label htmlFor="eltiw-category-filter" className="text-xs text-muted-foreground">Filter by Category:</Label>
+              <Select id="eltiw-category-filter" value={categoryFilter} onValueChange={setCategoryFilter}>
+                <SelectTrigger className="w-[180px] h-8 text-xs">
+                  <SelectValue placeholder="All Categories" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  {uniqueCategories.map((cat) => (
+                    <SelectItem key={cat} value={cat} className="capitalize">
+                      {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
           {/* Compact controls row */}
           <div className="flex flex-col gap-3">
             {/* Search + View Toggle */}

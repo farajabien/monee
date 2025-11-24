@@ -21,6 +21,7 @@ export const eltiwColumns: ColumnDef<EltiwItem>[] = [
         {row.original.name}
       </span>
     ),
+    meta: { sticky: "left", className: "bg-background z-10" },
   },
   {
     accessorKey: "category",
@@ -45,6 +46,7 @@ export const eltiwColumns: ColumnDef<EltiwItem>[] = [
         }).format(row.original.amount)}
       </Badge>
     ),
+    meta: { sticky: "left", className: "bg-background z-10" },
   },
   {
     accessorKey: "deadline",
@@ -133,5 +135,6 @@ export const eltiwColumns: ColumnDef<EltiwItem>[] = [
       )
     },
     size: 120,
+    meta: { sticky: "right", className: "bg-background z-10" },
   },
 ]
