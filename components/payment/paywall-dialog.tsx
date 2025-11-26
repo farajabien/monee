@@ -62,7 +62,7 @@ export function PaywallDialog({ open, onOpenChange }: PaywallDialogProps) {
       // Dynamically import Paystack to avoid SSR issues
       const PaystackPop = (await import("@paystack/inline-js")).default;
       const paystack = new PaystackPop();
-      paystack.newExpense({
+      paystack.newTransaction({
         key: PAYSTACK_PUBLIC_KEY,
         email: user.email,
         amount: PRICE_KES,
