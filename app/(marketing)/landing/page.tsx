@@ -216,7 +216,7 @@ export default function LandingPage() {
             </Link>
             <Link href="/login">
               <Button size="lg" className="w-full sm:w-auto">
-                Get Full Access - Ksh 999
+                Get Full Access - Ksh 499
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>
@@ -406,12 +406,12 @@ export default function LandingPage() {
               <div className="text-center space-y-2">
                 <h3 className="text-2xl font-bold">MONEE Lifetime</h3>
                 <div className="flex items-center justify-center gap-3">
-                  <span className="text-4xl font-bold">Ksh 999</span>
+                  <span className="text-4xl font-bold">Ksh 499</span>
                   <span className="text-2xl text-muted-foreground line-through">
-                    Ksh 1,500
+                    Ksh 999
                   </span>
                 </div>
-                <Badge variant="secondary">Save Ksh 501 (33% OFF)</Badge>
+                <Badge variant="secondary">Save Ksh 500 (50% OFF)</Badge>
               </div>
 
               <div className="space-y-3">
@@ -507,7 +507,7 @@ export default function LandingPage() {
                   variant="outline"
                   className="w-full sm:w-auto bg-transparent border-2 border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary"
                 >
-                  Get Full Access - Ksh 999
+                  Get Full Access - Ksh 499
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>

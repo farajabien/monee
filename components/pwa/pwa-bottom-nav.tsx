@@ -12,6 +12,7 @@ import {
   MoreHorizontal,
   Settings,
   Tag,
+  Wallet,
 } from "lucide-react";
 
 export function PWABottomNav() {
@@ -28,7 +29,7 @@ export function PWABottomNav() {
   };
   const activeTab = getTabFromPath();
 
-  // Main nav items (always visible)
+  // Main nav items (always visible) - aligned with MONEE core features
   const navItems = [
     {
       value: "overview",
@@ -38,7 +39,7 @@ export function PWABottomNav() {
     },
     {
       value: "expenses",
-      label: "Money",
+      label: "Expenses",
       icon: ArrowLeftRight,
       href: "/dashboard?tab=expenses",
     },
@@ -48,10 +49,22 @@ export function PWABottomNav() {
       icon: TrendingUp,
       href: "/dashboard?tab=income",
     },
+    {
+      value: "savings",
+      label: "Savings",
+      icon: Wallet,
+      href: "/dashboard?tab=savings",
+    },
   ];
-  // No need to fetch categories for bottom nav, just add a Categories button in More
+
   // Extra nav items (in More dropdown)
   const moreItems = [
+    {
+      value: "debts",
+      label: "Debts",
+      icon: Heart,
+      href: "/dashboard?tab=debts",
+    },
     {
       value: "categories",
       label: "Categories",
@@ -59,14 +72,8 @@ export function PWABottomNav() {
       href: "/dashboard?tab=categories",
     },
     {
-      value: "debts",
-      label: "Debts",
-      icon: TrendingUp,
-      href: "/dashboard?tab=debts",
-    },
-    {
       value: "year-review",
-      label: "Year",
+      label: "Year Review",
       icon: User,
       href: "/dashboard?tab=year-review",
     },
@@ -94,7 +101,6 @@ export function PWABottomNav() {
             </Link>
           );
         })}
-        {/* No category tabs in main bar */}
         {/* More dropdown */}
         <div className="flex flex-col items-center justify-center flex-1 h-full gap-1 relative">
           <button

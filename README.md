@@ -1,284 +1,74 @@
 # **MONEE – Your Money, Finally in One Place**
 
-Most of us _think_ we know where our money goes.
-Until the end of the month, when it’s gone — and we’re left with screenshots of Mpesa messages and good intentions.
+Most of us _think_ we know where our money goes… until the end of the month, when it’s gone — leaving only screenshots of payments and good intentions.
 
-**MONEE** is your simple, personal money assistant — built for real life in Kenya 🇰🇪.
-It helps you **track, understand, and plan your money** — all in one beautiful daily ritual.
+**MONEE** is your simple, personal money assistant — built for real life in Kenya 🇰🇪 and beyond.
+It helps you **track, understand, and plan your money** — all in one calm, habit-forming routine.
 
 ---
 
 ## **Why MONEE Exists**
 
-Budgeting tools often feel too complicated, too Western, or too disconnected from how we actually live and spend.
+Budgeting tools are often too complicated, disconnected from reality, or boring.
 
-But for most of us, our money flows through one place: **Mpesa**.
-
-Every expense tells a story — rent, food, house help, little treats, and all the “I’ll just buy this quickly” moments that add up.
-
-**MONEE** brings all that together and helps you finally _see_ your financial reality — clearly, gently, and honestly.
+**MONEE** is about **awareness, control, and saving**, not spreadsheets. By recording your transactions daily, weekly, or monthly, you start seeing where your money goes — and make sure every shilling is accounted for.
 
 ---
 
-## **How It Works**
+## **Core Experience**
 
-### **1. Start by Uploading Your Mpesa Statement**
+### **1. Zero-Sum Budgeting**
 
-You can upload your Mpesa statement or paste your recent messages.
-MONEE automatically reads and groups your expenses — showing where your money actually goes.
+- Set your income sources and amounts for the month
+- Allocate for **recurring expenses** (rent, utilities, transport, subscriptions)
+- Track **one-time daily expenses** alongside your budget
+- Automatically shows how much is left for spending or saving
 
-You can then label them easily — rent, transport, food, or personal care — and MONEE will remember those labels for next time.
+### **2. Track Savings**
 
----
+- Set savings goals for the month or year
+- Track progress automatically as you record expenses
+- Understand how your spending decisions affect your goals
 
-### **2. Record As You Go**
+### **3. Habit-Building & Transaction Recording**
 
-Each time you spend or send money, just copy the Mpesa message into MONEE.
-It instantly detects the amount, who you paid, and what it’s for.
+- Record transactions daily, weekly, or monthly
+- Manual entry or paste payment messages (optional Mpesa parsing)
+- Fuzzy auto-categorization for repeat payees
+- Gentle reminders to keep your habit consistent
 
-If it’s someone you’ve paid before (like Grace, your house cleaner), it automatically tags it for you — no setup needed.
-If not, you can assign a new label in seconds.
+### **4. Income & Debt Management**
 
----
-
-### **3. Your Evening Money Check-In**
-
-Every evening, MONEE gives you a gentle nudge — a push notification that says:
-
-> “Did you record today’s spending?”
-
-You open MONEE, paste all your Mpesa messages for the day, and it sorts them out for you.
-Matched ones are ticked automatically. The rest you can quickly label or ignore.
-
-It becomes a peaceful 2-minute routine — your daily pause to check how you’re doing financially.
-
----
-
-### **4. See Your Monthly Reality**
-
-As you keep recording, MONEE shows a clear picture of where your money goes — by category, by person, by week.
-
-No spreadsheets. No math. Just calm, simple insights that help you understand:
-
-- How much you actually spend on food or transport
-- Which people or shops you send money to most
-- How much you’re saving (or not saving) each month
-
----
-
-### **5. Every Little Thing I Want (ELTIW)**
-
-Sometimes, budgeting isn't about cutting costs — it's about taking care of yourself.
-
-That's why MONEE includes a soft, personal space called **Every Little Thing I Want**.
-
-It's a simple list where you write down _everything you want for yourself_:
-
-> "New shoes – Ksh 3,000"
-> "Skincare restock – Ksh 1,200"
-> "Weekend getaway – Ksh 4,500"
-
-You can add a reason or goal, but you don't have to.
-When you finally buy it, you just tap **"Got it"** — and MONEE celebrates with you. 🎉
-
-It's not just about money — it's about self-care, priorities, and giving yourself permission to enjoy what you've worked for.
-
----
-
-### **6. Track Your Income**
-
-Money doesn't just go out — it comes in too. MONEE helps you see the full picture.
-
-**Multiple Income Sources**: Add all your income streams — salary, freelance work, side hustles, rental income, or anything else. Each source has its own name and amount.
-
-**Payday Tracking**: Set when you get paid for each income source. MONEE remembers your paydays and helps you plan around them.
-
-**Monthly Income View**: See your total expected income for the month at a glance. Compare it to your actual spending to understand your financial health.
-
-**Income vs Expenses**: In your monthly insights, MONEE shows you the balance — how much you're earning versus how much you're spending. It's the simple math that helps you make better decisions.
-
----
-
-### **7. Manage Your Debts**
-
-Debts don't have to be stressful — they just need to be organized.
-
-**Debt List**: Track all your debts in one place — loans, credit cards, money you owe friends, or any other obligations. Each debt has a name, total amount, and current balance.
-
-**Monthly Payment Rules**: Set up recurring payment rules for each debt. Tell MONEE how much you pay each month and when the payment is due. MONEE will remind you and help you stay on track.
-
-**Payment Tracking**: Mark payments as made when you pay them. MONEE keeps a history of all your payments, so you can see your progress over time.
-
-**Auto-Expense Recording**: Every debt payment (principal, interest, or both) automatically creates an expense expense. This means your total spending picture includes debt obligations — no manual entry needed.
-
-**Debt Progress**: See how much you've paid off and how much remains. MONEE shows you a clear timeline of when you'll be debt-free, giving you motivation to keep going.
-
-**Debt Tab**: A dedicated space in your dashboard where all your debt information lives — organized, clear, and manageable.
+- Multiple income sources with payday tracking
+- Track debts, payment rules, and progress
+- Automatic integration of debt payments into your monthly budget
 
 ---
 
 ## **Features at a Glance**
 
-- 🧾 **Mpesa Smart Parsing** – paste any Mpesa message (6+ formats including M-Shwari), MONEE reads it instantly
-- 📂 **Labels & Categories** – easily group expenses by purpose or person
-- 🎨 **Built-in Essentials** – Food, Transport, Housing, Utilities, Savings, and Misc categories ready out of the box
-- 🤖 **Smart Auto-Categorization** – fuzzy recipient matching remembers categories for known recipients
-- 📊 **Monthly Insights** – see where your money truly goes with top recipients list
-- 🔔 **Daily Check-In Reminders** – gentle push to stay consistent (coming soon)
-- 🌙 **Evening Routine Mode** – quick checklist for all your daily expenses
-- 💖 **ELTIW (Every Little Thing I Want)** – track what you want and celebrate your wins
-- 💰 **Income Tracking** – track multiple income sources and payday dates
-- 📈 **Income vs Expenses** – see your financial balance at a glance
-- 💳 **Debt Management** – track all debts with monthly payment rules
-- 📅 **Payment Tracking** – mark payments and see your debt payoff progress
-- 💸 **Auto-Expense Tracking** – debt payments automatically appear in expenses tab
-- 💰 **Payment Integration** – one-time Ksh 999 payment via Paystack (M-Pesa, cards, bank transfer)
-- 🔐 **Secure Webhooks** – server-side payment verification with duplicate detection
-- 🆓 **Free M-Pesa Statement Analyzer** – no login required, 100% offline, supports PDF upload & full statement analysis
-- 🎨 **Professional Landing Page** – full feature showcase with comparison table
-- 📄 **Legal Pages** – comprehensive Terms of Service and Privacy Policy
-- 💰 **Money-Bag Branding** – professional logo across all pages
-- 🔒 **Private & Secure** – your data is yours, always encrypted and synced safely
-- ☁️ **Cloud Sync via InstantDB** – access your data from any device, even offline
-- 📱 **PWA Support** – install on phone, works offline, feels like native app
+- 📝 Manual or semi-automatic transaction recording
+- 📊 Zero-sum monthly budgeting by category
+- 💰 Savings goals & tracking
+- 💳 Debt management and payment tracking
+- ☁️ Cloud sync & offline support
+- 🔔 Gentle daily/weekly check-in reminders
+- 📄 Optional Mpesa statement parsing for convenience
 
 ---
 
-## **The MONEE Flow**
+## **MONEE Flow**
 
-1. **Add your income sources** → set up all your income streams and payday dates.
-2. **Upload your Mpesa statement** → MONEE groups and labels your expenses.
-3. **Set your monthly budget** → per category (Food, Rent, Self-care, etc.).
-4. **Add your debts** → track all your debts and set up monthly payment rules.
-5. **Paste new Mpesa messages as you spend** → MONEE tracks them for you.
-6. **Get a daily reminder** → do your evening check and mark the day done.
-7. **Track your debt payments** → mark payments as made and see your progress.
-8. **Add your personal wishes** → everything you want, one small list.
-9. **See your progress grow** → both financially and emotionally.
+1. Set your income sources & amounts
+2. Allocate your budget for recurring expenses
+3. Track one-time daily expenses
+4. Record debt payments & progress
+5. Check savings goals & monthly insights
+6. Maintain your habit and stay in control
 
 ---
 
 ## **Business Model**
 
-- **Free M-Pesa Analyzer** - No login required, 100% offline expense analysis tool
-- **Full App Access** - One-time payment of **Ksh 999** (valued at Ksh 1,500)
-- Lifetime access — no subscriptions, no surprises
-- All future updates included free
-
-This simple model keeps MONEE sustainable while staying affordable for everyone.
-
-### **Why Ksh 999?**
-
-Compared to Excel templates (Ksh 500-1,000) that require manual work:
-
-- ✅ Auto-parses M-Pesa messages (6+ formats)
-- ✅ Smart categorization with recipient matching
-- ✅ Real-time sync across devices
-- ✅ Income, debt, and budget tracking
-- ✅ Daily check-in reminders
-- ✅ ELTIW wishlist feature
-- ✅ Lifetime updates
-
----
-
-## **Our Promise**
-
-MONEE isn’t about making you feel guilty for spending.
-It’s about **helping you build awareness** — one expense, one small decision, one self-care moment at a time.
-
-You don’t need a financial degree to manage your money — you just need MONEE.
-
----
-
-## **Launch Plan**
-
-✅ **COMPLETED:**
-
-- Built as a **Progressive Web App (PWA)** using Next.js 16 and shadcn
-- Using **InstantDB** for realtime sync, authentication (magic links)
-- Landing page live at `/landing` with full feature showcase
-- Free M-Pesa Statement Analyzer at `/free-mpesa-analyzer-year-review` (no login, 100% offline, PDF support)
-- Terms of Service and Privacy Policy pages
-- Professional branding with money-bag logo 💰
-- **Payment integration via Paystack** – supports M-Pesa, cards, bank transfer
-- **Server-side verification webhook** – secure payment confirmation with duplicate detection
-- **Automatic expense tracking** – debt payments auto-record as expenses
-
-🚀 **NEXT STEPS:**
-
-- TikTok content & UGC focused on:
-  - "Stop using Excel for your budget — try this Kenya-built app 🇰🇪"
-  - "The 2-minute evening money check ritual"
-  - "How I tracked 100+ M-Pesa messages in 5 minutes"
-  - "Every Little Thing I Want — reward yourself intentionally"
-  - "Pay once, own forever — no subscriptions 💰"
-- Organic content first, then boosted TikTok ads driving to the **landing page**
-- Launch with free analyzer as lead magnet → convert to Ksh 999 full app
-- Set up production Paystack keys and webhook URL
-
----
-
-## **Landing Page Sections**
-
-1. **Hero:** “Finally, a budgeting app made for real life in Kenya.”
-
-   - [Try for Free] button
-   - Screenshot / demo video
-
-2. **How it works:** Four steps (Income – Track – Debts – Reflect).
-
-3. **Income Tracking:** Visual showing multiple income sources with payday calendar — _"Know exactly when money comes in, so you can plan when it goes out."_
-
-4. **Debt Management:** Simple debt list with progress bars — _"Debts don't have to be stressful — just organized."_
-
-5. **ELTIW section:** Emotional headline — _"Every Little Thing I Want — because your money should make you happy, not guilty."_
-
-6. **Daily check-in:** visual of checklist + quote "A 2-minute habit that changes your relationship with money."
-
-7. **Testimonials & Reviews:** short, relatable ones like:
-
-   > "I actually understand my money now."
-   > "It's like journaling for your finances."
-   > "Finally, I can see my income and debts in one place."
-
-8. **Pricing:** Free trial, then Ksh 499 lifetime access.
-
-   - No subscriptions.
-   - Instant access via email.
-
-9. **CTA:** "Start your free 3-day trial today."
-
----
-
-## **Free M-Pesa Statement Analyzer Tool** 💡
-
-Before committing to the full app, try our **free analyzer** at `/free-mpesa-analyzer-year-review`:
-
-✅ **No login required** — start analyzing immediately
-✅ **100% offline** — all processing happens in your browser
-✅ **Zero data sent to servers** — your privacy is guaranteed
-✅ **PDF Upload Support** — upload your M-Pesa Full Statement PDF for automatic extraction
-✅ **All Statement Fields** — extracts Receipt No, Completion Time, Details, Status, Paid in, Withdrawn, Balance
-✅ **Multiple Input Methods** — PDF upload, paste statement text, or paste SMS messages
-✅ **Year-by-Year Analysis** — automatically detects and groups expenses by year
-✅ **Auto-categorization** — groups spending by expense type
-✅ **Smart insights** — see top recipients, monthly trends, and spending patterns
-
-**Perfect for:**
-
-- Getting your year-in-review from M-Pesa statements
-- Trying MONEE without commitment
-- One-time spending analysis from any date range
-- Sharing with friends who need to see their spending patterns
-- Lead magnet to convert users to full app with real-time tracking
-
----
-
-## **Vision**
-
-To turn personal finance into a mindful daily ritual — not a stressful chore.
-
-Because money management isn't about control;
-it's about awareness, self-respect, and peace of mind.
-
-**MONEE** is that — your quiet, caring money companion.
+- Free basic offline tracker
+- One-time payment (Ksh 999) for full app access — lifetime, no subscriptions
