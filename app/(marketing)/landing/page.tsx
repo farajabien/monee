@@ -37,7 +37,7 @@ export default function LandingPage() {
       icon: Calendar,
       title: "Daily Check-In Ritual",
       description:
-        "A gentle 2-minute evening routine to paste your day's transactions. Build awareness, not guilt.",
+        "A gentle 2-minute evening routine to paste your day's expenses. Build awareness, not guilt.",
     },
     {
       icon: Heart,
@@ -73,7 +73,7 @@ export default function LandingPage() {
 
   const comparison = [
     {
-      feature: "M-Pesa Transaction Parsing",
+      feature: "M-Pesa Expense Parsing",
       monee: true,
       competitors: false,
     },
@@ -151,7 +151,11 @@ export default function LandingPage() {
           </Link>
           <div className="flex items-center gap-2 sm:gap-4">
             <Link href="/free-mpesa-analyzer-year-review">
-              <Button variant="ghost" size="sm" className="hidden sm:inline-flex">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="hidden sm:inline-flex"
+              >
                 Free M-Pesa Analyzer
               </Button>
               <Button variant="ghost" size="sm" className="sm:hidden">
@@ -191,10 +195,14 @@ export default function LandingPage() {
             <Card className="mt-4 border-primary/80 bg-primary/10 max-w-xl w-full shadow-sm">
               <CardContent className="py-5 px-7 text-center">
                 <span className="font-semibold text-primary block mb-1">
-                  If your main source of income is a stipend, pocket money, salary, or small business — and you use M-Pesa for 90% of your transactions — MONEE is built for you.
+                  If your main source of income is a stipend, pocket money,
+                  salary, or small business — and you use M-Pesa for 90% of your
+                  expenses — MONEE is built for you.
                 </span>
                 <span className="text-muted-foreground text-sm">
-                  Designed for students, early professionals, tech-savvy and organized people who want clarity and control over their money.
+                  Designed for students, early professionals, tech-savvy and
+                  organized people who want clarity and control over their
+                  money.
                 </span>
               </CardContent>
             </Card>
@@ -251,7 +259,10 @@ export default function LandingPage() {
         </div>
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           {features.map((feature, index) => (
-            <Card key={index} className="border-2 hover:border-primary/50 transition-colors">
+            <Card
+              key={index}
+              className="border-2 hover:border-primary/50 transition-colors"
+            >
               <CardContent className="p-6 space-y-4">
                 <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
                   <feature.icon className="h-6 w-6 text-primary" />
@@ -462,7 +473,8 @@ export default function LandingPage() {
               Get Started in 60 Seconds
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              No need to copy hundreds of SMS messages. Just export your M-Pesa statement and upload it.
+              No need to copy hundreds of SMS messages. Just export your M-Pesa
+              statement and upload it.
             </p>
           </div>
           <HowToGetStatement />

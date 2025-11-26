@@ -5,14 +5,41 @@ import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { HowToGetStatement } from "@/components/how-to-get-statement";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { Sparkles, TrendingUp, TrendingDown, Calendar, DollarSign, Users, Award, ArrowRight, Upload, FileText } from "lucide-react";
+import {
+  Sparkles,
+  TrendingUp,
+  TrendingDown,
+  Calendar,
+  DollarSign,
+  Users,
+  Award,
+  ArrowRight,
+  Upload,
+  FileText,
+} from "lucide-react";
 import { parseMpesaMessage } from "@/lib/mpesa-parser";
-import { parseStatementText, convertStatementToMessages, extractTextFromPDF } from "@/lib/statement-parser";
+import {
+  parseStatementText,
+  convertStatementToMessages,
+  extractTextFromPDF,
+} from "@/lib/statement-parser";
 import type { ParsedTransactionData } from "@/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 
 interface YearStats {
@@ -36,36 +63,45 @@ export default function FreeMpesaAnalyzerPage() {
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [yearStats, setYearStats] = useState<YearStats | null>(null);
-  const [inputMethod, setInputMethod] = useState<"sms" | "statement" | "pdf">("pdf");
+  const [inputMethod, setInputMethod] = useState<"sms" | "statement" | "pdf">(
+    "pdf"
+  );
 
-  const calculateAndSetStats = (allTransactions: ParsedTransactionData[], year: number, availableYears: number[]) => {
+  const calculateAndSetStats = (
+    allTransactions: ParsedTransactionData[],
+    year: number,
+    availableYears: number[]
+  ) => {
     // Filter for selected year
-    const yearTransactions = allTransactions.filter(t => {
+    const yearTransactions = allTransactions.filter((t) => {
       if (!t.timestamp) return false;
       const date = new Date(t.timestamp);
       return date.getFullYear() === year;
     });
 
     if (yearTransactions.length === 0) {
-      alert(`No transactions found for ${year}`);
+      alert(`No expenses found for ${year}`);
       return;
     }
 
     // Calculate total spent
     const totalSpent = yearTransactions.reduce((sum, t) => sum + t.amount, 0);
-    
+
     // Find top recipient
     const recipientMap = new Map<string, { amount: number; count: number }>();
-    yearTransactions.forEach(t => {
+    yearTransactions.forEach((t) => {
       if (t.recipient) {
-        const current = recipientMap.get(t.recipient) || { amount: 0, count: 0 };
+        const current = recipientMap.get(t.recipient) || {
+          amount: 0,
+          count: 0,
+        };
         recipientMap.set(t.recipient, {
           amount: current.amount + t.amount,
-          count: current.count + 1
+          count: current.count + 1,
         });
       }
     });
-    
+
     let topRecipient = { name: "Unknown", amount: 0, count: 0 };
     recipientMap.forEach((data, name) => {
       if (data.amount > topRecipient.amount) {
@@ -75,43 +111,58 @@ export default function FreeMpesaAnalyzerPage() {
 
     // Monthly spending
     const monthlyMap = new Map<string, number>();
-    yearTransactions.forEach(t => {
+    yearTransactions.forEach((t) => {
       if (!t.timestamp) return;
       const date = new Date(t.timestamp);
       const monthKey = date.toLocaleDateString("en-US", { month: "long" });
       monthlyMap.set(monthKey, (monthlyMap.get(monthKey) || 0) + t.amount);
     });
-    
+
     const monthlySpending = Array.from(monthlyMap.entries())
       .map(([month, amount]) => ({ month, amount }))
       .sort((a, b) => {
-        const months = ["January", "February", "March", "April", "May", "June", 
-                       "July", "August", "September", "October", "November", "December"];
+        const months = [
+          "January",
+          "February",
+          "March",
+          "April",
+          "May",
+          "June",
+          "July",
+          "August",
+          "September",
+          "October",
+          "November",
+          "December",
+        ];
         return months.indexOf(a.month) - months.indexOf(b.month);
       });
 
-    const mostExpensiveMonth = monthlySpending.reduce((max, curr) => 
-      curr.amount > max.amount ? curr : max
-    , { month: "", amount: 0 });
+    const mostExpensiveMonth = monthlySpending.reduce(
+      (max, curr) => (curr.amount > max.amount ? curr : max),
+      { month: "", amount: 0 }
+    );
 
-    // Transaction type breakdown
+    // Expense type breakdown
     const typeMap = new Map<string, { amount: number; count: number }>();
-    yearTransactions.forEach(t => {
+    yearTransactions.forEach((t) => {
       const type = t.transactionType || "Other";
       const current = typeMap.get(type) || { amount: 0, count: 0 };
       typeMap.set(type, {
         amount: current.amount + t.amount,
-        count: current.count + 1
+        count: current.count + 1,
       });
     });
-    
+
     const categories = Array.from(typeMap.entries())
       .map(([category, data]) => ({ category, ...data }))
       .sort((a, b) => b.amount - a.amount);
 
     // Calculate stats
     const avgTransaction = totalSpent / yearTransactions.length;
-    const timestamps = yearTransactions.map(t => t.timestamp || 0).filter(ts => ts > 0);
+    const timestamps = yearTransactions
+      .map((t) => t.timestamp || 0)
+      .filter((ts) => ts > 0);
     const firstTransaction = new Date(Math.min(...timestamps));
     const lastTransaction = new Date(Math.max(...timestamps));
 
@@ -132,33 +183,49 @@ export default function FreeMpesaAnalyzerPage() {
   };
 
   const analyzeYear = async () => {
-    if (!messages.trim() && !statementText.trim() && uploadedFiles.length === 0) return;
-    
+    if (!messages.trim() && !statementText.trim() && uploadedFiles.length === 0)
+      return;
+
     setIsAnalyzing(true);
-    
+
     try {
       let messagesToParse: string[] = [];
 
       // Handle PDF upload (supports multiple files)
       if (inputMethod === "pdf" && uploadedFiles.length > 0) {
-        console.log(`Starting PDF extraction for ${uploadedFiles.length} file(s)...`);
-        
+        console.log(
+          `Starting PDF extraction for ${uploadedFiles.length} file(s)...`
+        );
+
         for (let i = 0; i < uploadedFiles.length; i++) {
           const file = uploadedFiles[i];
-          console.log(`Processing file ${i + 1}/${uploadedFiles.length}: ${file.name}`);
-          
+          console.log(
+            `Processing file ${i + 1}/${uploadedFiles.length}: ${file.name}`
+          );
+
           const pdfText = await extractTextFromPDF(file);
           console.log(`File ${i + 1} - PDF Text length:`, pdfText.length);
-          
+
           const statementTransactions = parseStatementText(pdfText);
-          console.log(`File ${i + 1} - Parsed transactions:`, statementTransactions.length);
-          
-          const fileMessages = convertStatementToMessages(statementTransactions);
+          console.log(
+            `File ${i + 1} - Parsed expenses:`,
+            statementTransactions.length
+          );
+
+          const fileMessages = convertStatementToMessages(
+            statementTransactions
+          );
           messagesToParse = [...messagesToParse, ...fileMessages];
-          console.log(`File ${i + 1} - Converted to messages:`, fileMessages.length);
+          console.log(
+            `File ${i + 1} - Converted to messages:`,
+            fileMessages.length
+          );
         }
-        
-        console.log(`Total messages from ${uploadedFiles.length} file(s):`, messagesToParse.length);
+
+        console.log(
+          `Total messages from ${uploadedFiles.length} file(s):`,
+          messagesToParse.length
+        );
         if (messagesToParse.length > 0) {
           console.log("First message sample:", messagesToParse[0]);
         }
@@ -167,18 +234,18 @@ export default function FreeMpesaAnalyzerPage() {
       else if (inputMethod === "statement" && statementText.trim()) {
         console.log("Parsing statement text, length:", statementText.length);
         const statementTransactions = parseStatementText(statementText);
-        console.log("Parsed statement transactions:", statementTransactions.length);
+        console.log("Parsed statement expenses:", statementTransactions.length);
         messagesToParse = convertStatementToMessages(statementTransactions);
         console.log("Converted to messages:", messagesToParse.length);
       }
       // Handle SMS messages
       else {
-        messagesToParse = messages.split('\n').filter(line => line.trim());
+        messagesToParse = messages.split("\n").filter((line) => line.trim());
       }
 
       // Parse all messages
-      const transactions = messagesToParse
-        .map(line => {
+      const expenses = messagesToParse
+        .map((line) => {
           try {
             return parseMpesaMessage(line);
           } catch {
@@ -188,17 +255,19 @@ export default function FreeMpesaAnalyzerPage() {
         })
         .filter((t): t is NonNullable<typeof t> => t !== null);
 
-      console.log("Successfully parsed transactions:", transactions.length);
+      console.log("Successfully parsed expenses:", expenses.length);
 
-      if (transactions.length === 0) {
-        alert("No valid M-Pesa transactions found. Please check your input format.");
+      if (expenses.length === 0) {
+        alert(
+          "No valid M-Pesa expenses found. Please check your input format."
+        );
         setIsAnalyzing(false);
         return;
       }
 
-      // Get all unique years from transactions
+      // Get all unique years from expenses
       const yearsSet = new Set<number>();
-      transactions.forEach(t => {
+      expenses.forEach((t) => {
         if (t.timestamp) {
           const year = new Date(t.timestamp).getFullYear();
           yearsSet.add(year);
@@ -207,20 +276,24 @@ export default function FreeMpesaAnalyzerPage() {
       const availableYears = Array.from(yearsSet).sort((a, b) => b - a);
 
       if (availableYears.length === 0) {
-        alert("No valid dates found in transactions.");
+        alert("No valid dates found in expenses.");
         setIsAnalyzing(false);
         return;
       }
 
       // Default to most recent year (or 2025 if available)
-      const defaultYear = availableYears.includes(2025) ? 2025 : availableYears[0];
-      
-      calculateAndSetStats(transactions, defaultYear, availableYears);
+      const defaultYear = availableYears.includes(2025)
+        ? 2025
+        : availableYears[0];
 
-
+      calculateAndSetStats(expenses, defaultYear, availableYears);
     } catch (error) {
       console.error("Analysis failed:", error);
-      alert(`Failed to analyze: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      alert(
+        `Failed to analyze: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
     } finally {
       setIsAnalyzing(false);
     }
@@ -239,7 +312,10 @@ export default function FreeMpesaAnalyzerPage() {
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         {/* Header */}
         <div className="text-center mb-8">
-          <Link href="/landing" className="inline-flex items-center gap-2 hover:opacity-80 transition-opacity mb-4">
+          <Link
+            href="/landing"
+            className="inline-flex items-center gap-2 hover:opacity-80 transition-opacity mb-4"
+          >
             <Image
               src="/AppImages/money-bag.png"
               alt="MONEE"
@@ -253,8 +329,10 @@ export default function FreeMpesaAnalyzerPage() {
             Free M-Pesa Statement Analyzer 🇰🇪
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-6">
-            Instantly analyze your M-Pesa spending and get your year in review. Upload your statement PDF, paste the text, or copy your SMS messages. 
-            Get detailed insights about where your money goes - completely free, private, and works offline!
+            Instantly analyze your M-Pesa spending and get your year in review.
+            Upload your statement PDF, paste the text, or copy your SMS
+            messages. Get detailed insights about where your money goes -
+            completely free, private, and works offline!
           </p>
           <div className="flex justify-center">
             <Link href="/login">
@@ -275,17 +353,27 @@ export default function FreeMpesaAnalyzerPage() {
                 Analyze Your M-Pesa Statement
               </CardTitle>
               <CardDescription>
-                Upload your Full Statement PDF for the best experience. Supports all M-Pesa fields: Receipt No, Completion Time, Details, Transaction Status, Paid in, Withdrawn, Balance
+                Upload your Full Statement PDF for the best experience. Supports
+                all M-Pesa fields: Receipt No, Completion Time, Details, Expense
+                Status, Paid in, Withdrawn, Balance
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Tabs value={inputMethod} onValueChange={(v) => setInputMethod(v as "sms" | "statement" | "pdf")}>
+              <Tabs
+                value={inputMethod}
+                onValueChange={(v) =>
+                  setInputMethod(v as "sms" | "statement" | "pdf")
+                }
+              >
                 <TabsList className="grid w-full grid-cols-3">
                   <TabsTrigger value="pdf" className="flex items-center gap-2">
                     <Upload className="h-4 w-4" />
                     PDF Upload
                   </TabsTrigger>
-                  <TabsTrigger value="statement" className="flex items-center gap-2">
+                  <TabsTrigger
+                    value="statement"
+                    className="flex items-center gap-2"
+                  >
                     <FileText className="h-4 w-4" />
                     Paste Statement
                   </TabsTrigger>
@@ -299,7 +387,9 @@ export default function FreeMpesaAnalyzerPage() {
                 <TabsContent value="pdf" className="space-y-4 mt-4">
                   <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center">
                     <Upload className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                    <p className="font-medium mb-2">Upload M-Pesa Full Statement PDF</p>
+                    <p className="font-medium mb-2">
+                      Upload M-Pesa Full Statement PDF
+                    </p>
                     <p className="text-sm text-muted-foreground mb-4">
                       Drag and drop your statement PDF here, or click to browse
                     </p>
@@ -310,30 +400,45 @@ export default function FreeMpesaAnalyzerPage() {
                       onChange={(e) => {
                         const files = Array.from(e.target.files || []);
                         if (files.length > 0) {
-                          setUploadedFiles(prev => [...prev, ...files]);
+                          setUploadedFiles((prev) => [...prev, ...files]);
                         }
                       }}
                       className="hidden"
                       id="pdf-upload"
                     />
                     <label htmlFor="pdf-upload">
-                      <Button variant="outline" className="cursor-pointer" asChild>
+                      <Button
+                        variant="outline"
+                        className="cursor-pointer"
+                        asChild
+                      >
                         <span>Choose PDF File(s)</span>
                       </Button>
                     </label>
                     {uploadedFiles.length > 0 && (
                       <div className="mt-4 space-y-2">
-                        <p className="text-sm font-medium">Uploaded Files ({uploadedFiles.length}):</p>
+                        <p className="text-sm font-medium">
+                          Uploaded Files ({uploadedFiles.length}):
+                        </p>
                         {uploadedFiles.map((file, idx) => (
-                          <div key={idx} className="p-3 bg-muted rounded-lg flex items-center justify-between">
+                          <div
+                            key={idx}
+                            className="p-3 bg-muted rounded-lg flex items-center justify-between"
+                          >
                             <div className="flex items-center gap-2">
                               <FileText className="h-4 w-4" />
-                              <span className="text-sm font-medium">{file.name}</span>
+                              <span className="text-sm font-medium">
+                                {file.name}
+                              </span>
                             </div>
-                            <Button 
-                              variant="ghost" 
+                            <Button
+                              variant="ghost"
                               size="sm"
-                              onClick={() => setUploadedFiles(prev => prev.filter((_, i) => i !== idx))}
+                              onClick={() =>
+                                setUploadedFiles((prev) =>
+                                  prev.filter((_, i) => i !== idx)
+                                )
+                              }
                             >
                               Remove
                             </Button>
@@ -351,7 +456,7 @@ export default function FreeMpesaAnalyzerPage() {
                     placeholder="Paste your M-Pesa Full Statement text here...
 
 Example format with all fields:
-Receipt No Completion Time Details Transaction Status Paid in Withdrawn Balance
+Receipt No Completion Time Details Expense Status Paid in Withdrawn Balance
 REO5BUMKYX 2023-05-24 17:13:28 Pay Bill to 888880 - KPLC PREPAID COMPLETED 0.00 350.00 58.69
 REO5B2H9CJ 2023-05-24 12:15:00 Airtime Purchase COMPLETED 0.00 50.00 408.69
 ..."
@@ -360,7 +465,9 @@ REO5B2H9CJ 2023-05-24 12:15:00 Airtime Purchase COMPLETED 0.00 50.00 408.69
                     className="min-h-[300px] font-mono text-sm"
                   />
                   <div className="bg-muted/50 p-4 rounded-lg">
-                    <p className="text-sm font-medium mb-2">📄 How to copy statement text:</p>
+                    <p className="text-sm font-medium mb-2">
+                      📄 How to copy statement text:
+                    </p>
                     <ol className="text-sm text-muted-foreground space-y-1 list-decimal list-inside">
                       <li>Download your M-Pesa Full Statement PDF</li>
                       <li>Open the PDF and select all transaction rows</li>
@@ -383,23 +490,35 @@ RCH4J8K9L1 Confirmed. Ksh1,200.00 sent to UBER KENYA on 20/2/25 at 8:15 PM..."
                     className="min-h-[300px] font-mono text-sm"
                   />
                   <div className="bg-muted/50 p-4 rounded-lg">
-                    <p className="text-sm font-medium mb-2">💡 How to get SMS messages:</p>
+                    <p className="text-sm font-medium mb-2">
+                      💡 How to get SMS messages:
+                    </p>
                     <ol className="text-sm text-muted-foreground space-y-1 list-decimal list-inside">
                       <li>Open your Messages app</li>
                       <li>Search for &quot;M-PESA&quot;</li>
-                      <li>Select and copy all messages from your desired period</li>
+                      <li>
+                        Select and copy all messages from your desired period
+                      </li>
                       <li>Paste them here</li>
                     </ol>
                     <p className="text-xs text-muted-foreground mt-2">
-                      ⚠️ Note: SMS messages don&apos;t include all transaction fields. For complete analysis with Receipt No, Completion Time, Status, and exact amounts, use the Full Statement PDF.
+                      ⚠️ Note: SMS messages don&apos;t include all transaction
+                      fields. For complete analysis with Receipt No, Completion
+                      Time, Status, and exact amounts, use the Full Statement
+                      PDF.
                     </p>
                   </div>
                 </TabsContent>
               </Tabs>
 
-              <Button 
+              <Button
                 onClick={analyzeYear}
-                disabled={(!messages.trim() && !statementText.trim() && uploadedFiles.length === 0) || isAnalyzing}
+                disabled={
+                  (!messages.trim() &&
+                    !statementText.trim() &&
+                    uploadedFiles.length === 0) ||
+                  isAnalyzing
+                }
                 className="w-full"
                 size="lg"
               >
@@ -417,7 +536,10 @@ RCH4J8K9L1 Confirmed. Ksh1,200.00 sent to UBER KENYA on 20/2/25 at 8:15 PM..."
               </Button>
 
               <div className="text-center text-xs text-muted-foreground">
-                <p>🔒 100% Private - Your data is processed locally in your browser and never uploaded to any server</p>
+                <p>
+                  🔒 100% Private - Your data is processed locally in your
+                  browser and never uploaded to any server
+                </p>
               </div>
             </CardContent>
           </Card>
@@ -427,19 +549,33 @@ RCH4J8K9L1 Confirmed. Ksh1,200.00 sent to UBER KENYA on 20/2/25 at 8:15 PM..."
             {/* Hero Stats */}
             <Card className="bg-gradient-to-br from-primary/10 to-secondary/10 border-2">
               <CardContent className="p-8 text-center">
-                <h2 className="text-3xl font-bold mb-2">Your {yearStats.selectedYear} M-Pesa Summary</h2>
+                <h2 className="text-3xl font-bold mb-2">
+                  Your {yearStats.selectedYear} M-Pesa Summary
+                </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-6">
                   <div>
-                    <p className="text-sm text-muted-foreground mb-1">Total Spent</p>
-                    <p className="text-3xl font-bold text-primary">{formatAmount(yearStats.totalSpent)}</p>
+                    <p className="text-sm text-muted-foreground mb-1">
+                      Total Spent
+                    </p>
+                    <p className="text-3xl font-bold text-primary">
+                      {formatAmount(yearStats.totalSpent)}
+                    </p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground mb-1">Transactions</p>
-                    <p className="text-3xl font-bold">{yearStats.totalTransactions}</p>
+                    <p className="text-sm text-muted-foreground mb-1">
+                      Expenses
+                    </p>
+                    <p className="text-3xl font-bold">
+                      {yearStats.totalTransactions}
+                    </p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground mb-1">Avg Transaction</p>
-                    <p className="text-3xl font-bold text-green-500">{formatAmount(yearStats.avgTransaction)}</p>
+                    <p className="text-sm text-muted-foreground mb-1">
+                      Avg Expense
+                    </p>
+                    <p className="text-3xl font-bold text-green-500">
+                      {formatAmount(yearStats.avgTransaction)}
+                    </p>
                   </div>
                 </div>
               </CardContent>
@@ -453,18 +589,25 @@ RCH4J8K9L1 Confirmed. Ksh1,200.00 sent to UBER KENYA on 20/2/25 at 8:15 PM..."
                     <div>
                       <Label className="text-sm font-medium">Select Year</Label>
                       <p className="text-xs text-muted-foreground mt-1">
-                        Switch between {yearStats.availableYears.join(", ")} to see different years
+                        Switch between {yearStats.availableYears.join(", ")} to
+                        see different years
                       </p>
                     </div>
-                    <Select 
-                      value={yearStats.selectedYear.toString()} 
-                      onValueChange={(y) => calculateAndSetStats(yearStats.allTransactions, parseInt(y), yearStats.availableYears)}
+                    <Select
+                      value={yearStats.selectedYear.toString()}
+                      onValueChange={(y) =>
+                        calculateAndSetStats(
+                          yearStats.allTransactions,
+                          parseInt(y),
+                          yearStats.availableYears
+                        )
+                      }
                     >
                       <SelectTrigger className="w-[150px]">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {yearStats.availableYears.map(year => (
+                        {yearStats.availableYears.map((year) => (
                           <SelectItem key={year} value={year.toString()}>
                             {year}
                           </SelectItem>
@@ -488,10 +631,14 @@ RCH4J8K9L1 Confirmed. Ksh1,200.00 sent to UBER KENYA on 20/2/25 at 8:15 PM..."
                 <CardContent>
                   <div className="space-y-3">
                     <div className="text-center p-6 bg-yellow-500/10 rounded-lg">
-                      <p className="text-2xl font-bold mb-2">{yearStats.topRecipient.name}</p>
-                      <p className="text-3xl font-bold text-yellow-500">{formatAmount(yearStats.topRecipient.amount)}</p>
+                      <p className="text-2xl font-bold mb-2">
+                        {yearStats.topRecipient.name}
+                      </p>
+                      <p className="text-3xl font-bold text-yellow-500">
+                        {formatAmount(yearStats.topRecipient.amount)}
+                      </p>
                       <p className="text-sm text-muted-foreground mt-2">
-                        {yearStats.topRecipient.count} transactions
+                        {yearStats.topRecipient.count} expenses
                       </p>
                     </div>
                   </div>
@@ -508,8 +655,12 @@ RCH4J8K9L1 Confirmed. Ksh1,200.00 sent to UBER KENYA on 20/2/25 at 8:15 PM..."
                 </CardHeader>
                 <CardContent>
                   <div className="text-center p-6 bg-red-500/10 rounded-lg">
-                    <p className="text-2xl font-bold mb-2">{yearStats.mostExpensiveMonth.month}</p>
-                    <p className="text-3xl font-bold text-red-500">{formatAmount(yearStats.mostExpensiveMonth.amount)}</p>
+                    <p className="text-2xl font-bold mb-2">
+                      {yearStats.mostExpensiveMonth.month}
+                    </p>
+                    <p className="text-3xl font-bold text-red-500">
+                      {formatAmount(yearStats.mostExpensiveMonth.amount)}
+                    </p>
                     <p className="text-sm text-muted-foreground mt-2">
                       Your biggest spending month
                     </p>
@@ -532,13 +683,17 @@ RCH4J8K9L1 Confirmed. Ksh1,200.00 sent to UBER KENYA on 20/2/25 at 8:15 PM..."
                     <div key={month.month} className="space-y-1">
                       <div className="flex items-center justify-between text-sm">
                         <span className="font-medium">{month.month}</span>
-                        <span className="text-muted-foreground">{formatAmount(month.amount)}</span>
+                        <span className="text-muted-foreground">
+                          {formatAmount(month.amount)}
+                        </span>
                       </div>
                       <div className="w-full bg-muted rounded-full h-2">
-                        <div 
+                        <div
                           className="bg-primary rounded-full h-2 transition-all"
-                          style={{ 
-                            width: `${(month.amount / yearStats.totalSpent) * 100}%` 
+                          style={{
+                            width: `${
+                              (month.amount / yearStats.totalSpent) * 100
+                            }%`,
                           }}
                         />
                       </div>
@@ -561,8 +716,12 @@ RCH4J8K9L1 Confirmed. Ksh1,200.00 sent to UBER KENYA on 20/2/25 at 8:15 PM..."
                   {yearStats.categories.slice(0, 6).map((cat) => (
                     <div key={cat.category} className="p-4 bg-muted rounded-lg">
                       <p className="text-sm font-medium mb-1">{cat.category}</p>
-                      <p className="text-2xl font-bold">{formatAmount(cat.amount)}</p>
-                      <p className="text-xs text-muted-foreground">{cat.count} transactions</p>
+                      <p className="text-2xl font-bold">
+                        {formatAmount(cat.amount)}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {cat.count} expenses
+                      </p>
                     </div>
                   ))}
                 </div>
@@ -577,17 +736,29 @@ RCH4J8K9L1 Confirmed. Ksh1,200.00 sent to UBER KENYA on 20/2/25 at 8:15 PM..."
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
                   <div>
-                    <p className="text-sm text-muted-foreground">First Transaction</p>
-                    <p className="font-medium">{yearStats.firstTransaction.toLocaleDateString("en-KE", { 
-                      day: "numeric", month: "long", year: "numeric" 
-                    })}</p>
+                    <p className="text-sm text-muted-foreground">
+                      First Expense
+                    </p>
+                    <p className="font-medium">
+                      {yearStats.firstTransaction.toLocaleDateString("en-KE", {
+                        day: "numeric",
+                        month: "long",
+                        year: "numeric",
+                      })}
+                    </p>
                   </div>
                   <ArrowRight className="h-5 w-5 text-muted-foreground" />
                   <div>
-                    <p className="text-sm text-muted-foreground">Last Transaction</p>
-                    <p className="font-medium">{yearStats.lastTransaction.toLocaleDateString("en-KE", { 
-                      day: "numeric", month: "long", year: "numeric" 
-                    })}</p>
+                    <p className="text-sm text-muted-foreground">
+                      Last Expense
+                    </p>
+                    <p className="font-medium">
+                      {yearStats.lastTransaction.toLocaleDateString("en-KE", {
+                        day: "numeric",
+                        month: "long",
+                        year: "numeric",
+                      })}
+                    </p>
                   </div>
                 </div>
               </CardContent>
@@ -596,11 +767,15 @@ RCH4J8K9L1 Confirmed. Ksh1,200.00 sent to UBER KENYA on 20/2/25 at 8:15 PM..."
             {/* CTA */}
             <Card className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground">
               <CardContent className="p-8 text-center">
-                <h3 className="text-2xl font-bold mb-3">Ready for Real-Time Money Tracking?</h3>
+                <h3 className="text-2xl font-bold mb-3">
+                  Ready for Real-Time Money Tracking?
+                </h3>
                 <p className="text-primary-foreground/90 mb-6 max-w-2xl mx-auto">
-                  This free analyzer shows you the past. MONEE shows you the present and helps you plan the future. 
-                  Automatic tracking, smart budgets, debt management, daily check-ins, and AI-powered insights. 
-                  Stop analyzing statements manually - start tracking automatically.
+                  This free analyzer shows you the past. MONEE shows you the
+                  present and helps you plan the future. Automatic tracking,
+                  smart budgets, debt management, daily check-ins, and
+                  AI-powered insights. Stop analyzing statements manually -
+                  start tracking automatically.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
                   <Button size="lg" variant="secondary" asChild>
@@ -609,7 +784,12 @@ RCH4J8K9L1 Confirmed. Ksh1,200.00 sent to UBER KENYA on 20/2/25 at 8:15 PM..."
                       <ArrowRight className="ml-2 h-4 w-4" />
                     </Link>
                   </Button>
-                  <Button size="lg" variant="outline" className="border-primary-foreground text-primary-foreground hover:bg-primary-foreground/10" onClick={() => setYearStats(null)}>
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="border-primary-foreground text-primary-foreground hover:bg-primary-foreground/10"
+                    onClick={() => setYearStats(null)}
+                  >
                     Analyze Another Statement
                   </Button>
                 </div>
@@ -622,9 +802,15 @@ RCH4J8K9L1 Confirmed. Ksh1,200.00 sent to UBER KENYA on 20/2/25 at 8:15 PM..."
         <div className="text-center mt-12 text-sm text-muted-foreground">
           <p>Built in Kenya, for Kenyans 🇰🇪</p>
           <div className="flex items-center justify-center gap-4 mt-2">
-            <Link href="/landing" className="hover:text-primary">Home</Link>
-            <Link href="/privacy" className="hover:text-primary">Privacy</Link>
-            <Link href="/terms" className="hover:text-primary">Terms</Link>
+            <Link href="/landing" className="hover:text-primary">
+              Home
+            </Link>
+            <Link href="/privacy" className="hover:text-primary">
+              Privacy
+            </Link>
+            <Link href="/terms" className="hover:text-primary">
+              Terms
+            </Link>
           </div>
         </div>
       </div>

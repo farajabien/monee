@@ -1,11 +1,11 @@
-import * as React from "react"
-import { ColumnDef } from "@tanstack/react-table"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Edit, Trash2 } from "lucide-react"
-import type { Transaction } from "@/types"
+import * as React from "react";
+import { ColumnDef } from "@tanstack/react-table";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Edit, Trash2 } from "lucide-react";
+import type { Expense } from "@/types";
 
-export const transactionColumns: ColumnDef<Transaction, unknown>[] = [
+export const transactionColumns: ColumnDef<Expense, unknown>[] = [
   {
     accessorKey: "index",
     header: "#",
@@ -57,8 +57,11 @@ export const transactionColumns: ColumnDef<Transaction, unknown>[] = [
     id: "actions",
     header: "Actions",
     cell: ({ row, table }) => {
-      const transaction = row.original as Transaction;
-      const meta = table.options.meta as { onEdit?: (t: Transaction) => void; onDelete?: (id: string) => void };
+      const transaction = row.original as Expense;
+      const meta = table.options.meta as {
+        onEdit?: (t: Expense) => void;
+        onDelete?: (id: string) => void;
+      };
       return (
         <div className="flex gap-1">
           <Button
@@ -81,4 +84,4 @@ export const transactionColumns: ColumnDef<Transaction, unknown>[] = [
     },
     size: 80,
   },
-]
+];

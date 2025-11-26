@@ -11,11 +11,11 @@ export type ProfileWithUser = InstaQLEntity<
   { user: {} }
 >;
 
-// Transaction types
-export type Transaction = InstaQLEntity<typeof schema, "transactions">;
+// Expense types
+export type Expense = InstaQLEntity<typeof schema, "expenses">;
 export type TransactionWithUser = InstaQLEntity<
   typeof schema,
-  "transactions",
+  "expenses",
   { user: {} }
 >;
 

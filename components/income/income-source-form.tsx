@@ -182,8 +182,8 @@ export function IncomeSourceForm({
           {isSubmitting
             ? "Saving..."
             : incomeSource
-            ? "Update Income Source"
-            : "Add Income Source"}
+            ? "Update Source"
+            : "Add  Source"}
         </Button>
       </div>
     </form>

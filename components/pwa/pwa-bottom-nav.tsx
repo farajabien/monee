@@ -3,7 +3,16 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, ArrowLeftRight, Heart, TrendingUp, User, MoreHorizontal, Settings, Tag } from "lucide-react";
+import {
+  Home,
+  ArrowLeftRight,
+  Heart,
+  TrendingUp,
+  User,
+  MoreHorizontal,
+  Settings,
+  Tag,
+} from "lucide-react";
 
 export function PWABottomNav() {
   const pathname = usePathname();
@@ -12,23 +21,61 @@ export function PWABottomNav() {
   // Determine active tab from URL
   const getTabFromPath = () => {
     if (pathname.startsWith("/settings")) return "settings";
-    const searchParams = new URLSearchParams(typeof window !== "undefined" ? window.location.search : "");
+    const searchParams = new URLSearchParams(
+      typeof window !== "undefined" ? window.location.search : ""
+    );
     return searchParams.get("tab") || "overview";
   };
   const activeTab = getTabFromPath();
 
   // Main nav items (always visible)
   const navItems = [
-    { value: "overview", label: "Overview", icon: Home, href: "/dashboard?tab=overview" },
-    { value: "transactions", label: "Money", icon: ArrowLeftRight, href: "/dashboard?tab=transactions" },
-    { value: "eltiw", label: "Wishlist", icon: Heart, href: "/dashboard?tab=eltiw" },
-    { value: "income", label: "Income", icon: TrendingUp, href: "/dashboard?tab=income" },
+    {
+      value: "overview",
+      label: "Overview",
+      icon: Home,
+      href: "/dashboard?tab=overview",
+    },
+    {
+      value: "expenses",
+      label: "Money",
+      icon: ArrowLeftRight,
+      href: "/dashboard?tab=expenses",
+    },
+    {
+      value: "eltiw",
+      label: "Wishlist",
+      icon: Heart,
+      href: "/dashboard?tab=eltiw",
+    },
+    {
+      value: "income",
+      label: "Income",
+      icon: TrendingUp,
+      href: "/dashboard?tab=income",
+    },
   ];
   // No need to fetch categories for bottom nav, just add a Categories button in More
   // Extra nav items (in More dropdown)
   const moreItems = [
-    { value: "categories", label: "Categories", icon: Tag, href: "/dashboard?tab=categories" },
-    { value: "year-review", label: "Year", icon: User, href: "/dashboard?tab=year-review" },
+    {
+      value: "categories",
+      label: "Categories",
+      icon: Tag,
+      href: "/dashboard?tab=categories",
+    },
+    {
+      value: "debts",
+      label: "Debts",
+      icon: TrendingUp,
+      href: "/dashboard?tab=debts",
+    },
+    {
+      value: "year-review",
+      label: "Year",
+      icon: User,
+      href: "/dashboard?tab=year-review",
+    },
     { value: "settings", label: "Settings", icon: Settings, href: "/settings" },
   ];
 

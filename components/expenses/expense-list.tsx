@@ -8,14 +8,20 @@ import { Item } from "@/components/ui/item";
 import { DataTable } from "@/components/ui/data-table";
 import { transactionColumns } from "./transaction-columns";
 import { Trash2, Edit, TrendingUp, Calendar, DollarSign } from "lucide-react";
-import { EditTransactionDialog } from "./edit-transaction-dialog";
+import { EditExpenseDialog } from "./edit-expense-dialog";
 import { DataViewControls } from "@/components/ui/data-view-controls";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import type { Transaction } from "@/types";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import type { Expense } from "@/types";
 
-export default function TransactionList() {
+export default function ExpenseList() {
   const user = db.useUser();
-  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+  const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [viewMode, setViewMode] = useState<"grid" | "list">("list");
   const [searchQuery, setSearchQuery] = useState("");
@@ -26,9 +32,9 @@ export default function TransactionList() {
   const handleViewModeChange = (mode: "grid" | "list" | "table") => {
     if (mode !== "table") setViewMode(mode);
   };
-  
+
   const { data } = db.useQuery({
-    transactions: {
+    expenses: {
       $: {
         where: { "user.id": user.id },
         order: { createdAt: "desc" },
@@ -42,88 +48,101 @@ export default function TransactionList() {
     },
   });
 
-  const transactions = useMemo(() => data?.transactions || [], [data?.transactions]);
+  const expenses = useMemo(() => data?.expenses || [], [data?.expenses]);
   const recipients = useMemo(() => data?.recipients || [], [data?.recipients]);
-  
+
   const categories = useMemo(() => {
-    const cats = new Set(transactions.map((t: Transaction) => t.category).filter(Boolean));
+    const cats = new Set(
+      expenses.map((t: Expense) => t.category).filter(Boolean)
+    );
     return Array.from(cats);
-  }, [transactions]);
+  }, [expenses]);
 
   const availableMonths = useMemo(() => {
     const months = new Set<string>();
-    transactions.forEach((t: Transaction) => {
+    expenses.forEach((t: Expense) => {
       const date = new Date(t.date || t.createdAt);
-      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      const monthKey = `${date.getFullYear()}-${String(
+        date.getMonth() + 1
+      ).padStart(2, "0")}`;
       months.add(monthKey);
     });
     return Array.from(months).sort().reverse();
-  }, [transactions]);
+  }, [expenses]);
 
   const metrics = useMemo(() => {
-    let filtered = [...transactions];
+    let filtered = [...expenses];
 
     if (monthFilter !== "all") {
-      filtered = filtered.filter((t: Transaction) => {
+      filtered = filtered.filter((t: Expense) => {
         const date = new Date(t.date || t.createdAt);
-        const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        const monthKey = `${date.getFullYear()}-${String(
+          date.getMonth() + 1
+        ).padStart(2, "0")}`;
         return monthKey === monthFilter;
       });
     }
 
     if (categoryFilter !== "all") {
-      filtered = filtered.filter((t: Transaction) => t.category === categoryFilter);
+      filtered = filtered.filter((t: Expense) => t.category === categoryFilter);
     }
 
     if (searchQuery) {
-      filtered = filtered.filter((t: Transaction) => {
+      filtered = filtered.filter((t: Expense) => {
         const displayName = getDisplayName(t.recipient || "");
         return (
           displayName.toLowerCase().includes(searchQuery.toLowerCase()) ||
           t.category?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          formatAmount(t.amount).toLowerCase().includes(searchQuery.toLowerCase())
+          formatAmount(t.amount)
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase())
         );
       });
     }
 
     const totalSpent = filtered.reduce((sum, t) => sum + t.amount, 0);
     const transactionCount = filtered.length;
-    const avgTransaction = transactionCount > 0 ? totalSpent / transactionCount : 0;
+    const avgTransaction =
+      transactionCount > 0 ? totalSpent / transactionCount : 0;
 
     return {
       totalSpent,
       transactionCount,
       avgTransaction,
     };
-  }, [transactions, monthFilter, categoryFilter, searchQuery]);
+  }, [expenses, monthFilter, categoryFilter, searchQuery]);
 
   const filteredAndSortedTransactions = useMemo(() => {
-    let result = [...transactions];
+    let result = [...expenses];
 
     if (monthFilter !== "all") {
-      result = result.filter((t: Transaction) => {
+      result = result.filter((t: Expense) => {
         const date = new Date(t.date || t.createdAt);
-        const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        const monthKey = `${date.getFullYear()}-${String(
+          date.getMonth() + 1
+        ).padStart(2, "0")}`;
         return monthKey === monthFilter;
       });
     }
 
     if (searchQuery) {
-      result = result.filter((t: Transaction) => {
+      result = result.filter((t: Expense) => {
         const displayName = getDisplayName(t.recipient || "");
         return (
           displayName.toLowerCase().includes(searchQuery.toLowerCase()) ||
           t.category?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          formatAmount(t.amount).toLowerCase().includes(searchQuery.toLowerCase())
+          formatAmount(t.amount)
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase())
         );
       });
     }
 
     if (categoryFilter !== "all") {
-      result = result.filter((t: Transaction) => t.category === categoryFilter);
+      result = result.filter((t: Expense) => t.category === categoryFilter);
     }
 
-    result.sort((a: Transaction, b: Transaction) => {
+    result.sort((a: Expense, b: Expense) => {
       switch (sortBy) {
         case "newest":
           return (b.date || b.createdAt) - (a.date || a.createdAt);
@@ -139,15 +158,15 @@ export default function TransactionList() {
     });
 
     return result;
-  }, [transactions, searchQuery, categoryFilter, sortBy, monthFilter]);
+  }, [expenses, searchQuery, categoryFilter, sortBy, monthFilter]);
 
   const getDisplayName = (originalName: string) => {
     const recipient = recipients.find((r) => r.originalName === originalName);
     return recipient?.nickname || originalName;
   };
 
-  const deleteTransaction = (transactionId: string) => {
-    db.transact(db.tx.transactions[transactionId].delete());
+  const deleteExpense = (expenseId: string) => {
+    db.transact(db.tx.expenses[expenseId].delete());
   };
 
   const formatDate = (timestamp: number) => {
@@ -169,7 +188,7 @@ export default function TransactionList() {
   };
 
   const formatMonthLabel = (monthKey: string) => {
-    const [year, month] = monthKey.split('-');
+    const [year, month] = monthKey.split("-");
     const date = new Date(parseInt(year), parseInt(month) - 1);
     return date.toLocaleDateString("en-KE", { month: "long", year: "numeric" });
   };
@@ -200,7 +219,7 @@ export default function TransactionList() {
 
       <div className="border rounded-lg bg-background p-3">
         <div className="flex items-center justify-between mb-3">
-          <div className="font-semibold text-base">Transactions</div>
+          <div className="font-semibold text-base">Expenses</div>
           {availableMonths.length > 0 && (
             <Select value={monthFilter} onValueChange={setMonthFilter}>
               <SelectTrigger className="w-[160px] h-8 text-xs">
@@ -237,20 +256,24 @@ export default function TransactionList() {
             onFilterChange={setCategoryFilter}
             filterOptions={[
               { value: "all", label: "All" },
-              ...categories.map(cat => ({ value: cat, label: cat })),
+              ...categories.map((cat) => ({ value: cat, label: cat })),
             ]}
             filterLabel="Category"
-            totalCount={transactions.length}
+            totalCount={expenses.length}
             filteredCount={filteredAndSortedTransactions.length}
           />
 
           {filteredAndSortedTransactions.length === 0 && (
             <div className="text-center text-muted-foreground py-12">
-              {searchQuery || categoryFilter !== "all" || monthFilter !== "all" ? (
-                <p className="text-sm">No transactions found matching your filters</p>
+              {searchQuery ||
+              categoryFilter !== "all" ||
+              monthFilter !== "all" ? (
+                <p className="text-sm">
+                  No expenses found matching your filters
+                </p>
               ) : (
                 <>
-                  <p className="text-sm mb-1">No transactions yet</p>
+                  <p className="text-sm mb-1">No expenses yet</p>
                   <p className="text-xs">Add your first Mpesa message above</p>
                 </>
               )}
@@ -261,78 +284,91 @@ export default function TransactionList() {
             <DataTable
               columns={transactionColumns}
               data={filteredAndSortedTransactions}
-              onEdit={(transaction) => {
-                setEditingTransaction(transaction);
+              onEdit={(expense) => {
+                setEditingExpense(expense);
                 setIsEditDialogOpen(true);
               }}
-              onDelete={deleteTransaction}
+              onDelete={deleteExpense}
             />
           )}
 
           {filteredAndSortedTransactions.length > 0 && viewMode === "grid" && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-              {filteredAndSortedTransactions.map((transaction: Transaction, index: number) => (
-                <Item key={transaction.id} className="flex flex-col gap-2 p-3" variant="outline" size="sm">
-                  <div className="flex items-start justify-between gap-2">
-                    <Badge variant="outline" className="text-[10px] px-1.5 py-0">
-                      #{index + 1}
-                    </Badge>
-                    <div className="flex gap-0.5">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-6 w-6"
-                        onClick={() => {
-                          setEditingTransaction(transaction);
-                          setIsEditDialogOpen(true);
-                        }}
+              {filteredAndSortedTransactions.map(
+                (expense: Expense, index: number) => (
+                  <Item
+                    key={expense.id}
+                    className="flex flex-col gap-2 p-3"
+                    variant="outline"
+                    size="sm"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <Badge
+                        variant="outline"
+                        className="text-[10px] px-1.5 py-0"
                       >
-                        <Edit className="h-3 w-3" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-6 w-6 text-destructive"
-                        onClick={() => deleteTransaction(transaction.id)}
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
+                        #{index + 1}
+                      </Badge>
+                      <div className="flex gap-0.5">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6"
+                          onClick={() => {
+                            setEditingExpense(expense);
+                            setIsEditDialogOpen(true);
+                          }}
+                        >
+                          <Edit className="h-3 w-3" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 text-destructive"
+                          onClick={() => deleteExpense(expense.id)}
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="font-semibold text-base">
-                        {formatAmount(transaction.amount)}
-                      </span>
-                      {transaction.category && (
-                        <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
-                          {transaction.category}
-                        </Badge>
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="font-semibold text-base">
+                          {formatAmount(expense.amount)}
+                        </span>
+                        {expense.category && (
+                          <Badge
+                            variant="secondary"
+                            className="text-[10px] px-1.5 py-0"
+                          >
+                            {expense.category}
+                          </Badge>
+                        )}
+                      </div>
+
+                      {expense.recipient && (
+                        <p className="text-xs text-muted-foreground line-clamp-1">
+                          To: {getDisplayName(expense.recipient)}
+                        </p>
                       )}
-                    </div>
 
-                    {transaction.recipient && (
-                      <p className="text-xs text-muted-foreground line-clamp-1">
-                        To: {getDisplayName(transaction.recipient)}
+                      <p className="text-[10px] text-muted-foreground">
+                        {formatDate(expense.date || expense.createdAt)}
                       </p>
-                    )}
-
-                    <p className="text-[10px] text-muted-foreground">
-                      {formatDate(transaction.date || transaction.createdAt)}
-                    </p>
-                  </div>
-                </Item>
-              ))}
+                    </div>
+                  </Item>
+                )
+              )}
             </div>
           )}
         </div>
       </div>
 
-      <EditTransactionDialog
+      <EditExpenseDialog
         open={isEditDialogOpen}
         onOpenChange={setIsEditDialogOpen}
-        transaction={editingTransaction}
+        expense={editingExpense}
       />
     </div>
   );

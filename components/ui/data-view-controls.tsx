@@ -10,40 +10,25 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./select";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "./popover";
+import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 
 export type ViewMode = "list" | "grid" | "table";
 
 export interface DataViewControlsProps {
-  // View mode
   viewMode: ViewMode;
   onViewModeChange: (mode: ViewMode) => void;
   availableViews?: ViewMode[];
-  
-  // Search
   searchValue: string;
   onSearchChange: (value: string) => void;
   searchPlaceholder?: string;
-  
-  // Sort
   sortValue: string;
   onSortChange: (value: string) => void;
   sortOptions: Array<{ value: string; label: string }>;
-  
-  // Filter
   filterValue?: string;
   onFilterChange?: (value: string) => void;
   filterOptions?: Array<{ value: string; label: string }>;
   filterLabel?: string;
-  
-  // Additional filters (for popover)
   children?: React.ReactNode;
-  
-  // Status/stats
   totalCount?: number;
   filteredCount?: number;
 }
@@ -70,8 +55,8 @@ export function DataViewControls({
   const hasAdvancedFilters = !!children;
 
   return (
-    <div className="space-y-3">
-      <div className="flex flex-col sm:flex-row gap-3">
+    <div className="space-y-2">
+      <div className="flex flex-col sm:flex-row gap-2">
         {/* Search */}
         <div className="relative flex-1">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />

@@ -12,6 +12,7 @@
 A comprehensive settings page with:
 
 #### Notifications Section
+
 - **Enable/Disable Toggle** - Switch for push notifications
 - **Permission Handling** - Requests browser notification permission
 - **Reminder Time Selector** - Choose daily reminder time (6 PM - 10 PM, default 8 PM)
@@ -19,22 +20,26 @@ A comprehensive settings page with:
 - **Permission Denial UI** - Clear message if notifications blocked
 
 #### Appearance Section
+
 - **Theme Selector** - Light, Dark, or System theme
 - **Uses next-themes** - Integrated with existing theme system
 
 #### Currency & Format Section
+
 - **Display Format** - Shows Kenyan Shilling format (Ksh 1,000.00)
 - **Read-only** - Currently fixed to KES, extensible for future
 
 #### Data & Privacy Section
+
 - **Export All Data** - Downloads complete JSON export of user data
-  - Transactions, categories, budgets
+  - Expenses, categories, budgets
   - Income sources, debts, ELTIW items
   - Recipients, profile data
 - **Delete Account** - Danger zone with confirmation dialog
   - Currently shows alert (needs InstantDB delete API implementation)
 
 #### Account Information Section
+
 - **Email Display** - Shows user's email
 - **Account Status Badge** - Premium (Lifetime) or Free Trial
 - **Payment Date** - Shows when premium was activated
@@ -42,6 +47,7 @@ A comprehensive settings page with:
 - **Footer Links** - Terms, Privacy, Support
 
 **Features:**
+
 - Fully responsive (mobile & desktop)
 - Uses localStorage for notification preferences
 - Integrates with service worker for scheduled notifications
@@ -54,12 +60,14 @@ A comprehensive settings page with:
 Implemented complete Web Push API integration:
 
 #### Notification Scheduling
+
 - **Daily Reminders** - Scheduled at user-selected time (default 8 PM)
 - **Automatic Rescheduling** - After notification fires, schedules next day
 - **Message Passing** - Service worker receives schedule/cancel commands
 - **Persistent Timing** - Uses localStorage to persist reminder time
 
 #### Service Worker Features
+
 ```javascript
 // Message handlers for scheduling
 SCHEDULE_NOTIFICATION - Schedules daily reminder
@@ -80,6 +88,7 @@ CANCEL_NOTIFICATION - Cancels scheduled reminder
 ```
 
 #### Notification Content
+
 **Title:** "MONEE Evening Check-In 🇰🇪"  
 **Body:** "Have you tracked today's expenses? Take 2 minutes to paste your M-Pesa messages."  
 **Icon:** Money-bag logo  
@@ -90,6 +99,7 @@ CANCEL_NOTIFICATION - Cancels scheduled reminder
 ### 3. **Dashboard Header Settings Link** ✅ `/components/header/dashboard-header.tsx`
 
 Added settings button:
+
 - **Settings Icon** - Lucide Settings icon
 - **Responsive** - "Settings" text hidden on mobile
 - **Link to /settings** - Direct navigation
@@ -102,6 +112,7 @@ Added settings button:
 Added visual data insights with Recharts:
 
 #### Top Recipients Bar Chart
+
 - **Horizontal Layout** - Easy to read names
 - **Top 8 Recipients** - Sorted by amount
 - **Truncated Names** - Long names shortened with "..."
@@ -110,6 +121,7 @@ Added visual data insights with Recharts:
 - **Height:** 300px
 
 #### Category Pie Chart
+
 - **Percentage Labels** - Shows category % of total spending
 - **Color-coded Slices** - Rotating theme colors (--chart-1 to --chart-5)
 - **Interactive Tooltips** - Hover shows exact amounts
@@ -118,6 +130,7 @@ Added visual data insights with Recharts:
 - **Height:** 300px
 
 #### Both Charts Include:
+
 - ChartContainer wrapper with theme config
 - Formatted currency tooltips
 - Responsive design
@@ -129,9 +142,11 @@ Added visual data insights with Recharts:
 ## 📁 Files Created/Modified
 
 ### Created
+
 1. `/app/(app)/settings/page.tsx` - Complete settings page (426 lines)
 
 ### Modified
+
 1. `/public/sw.js` - Enhanced with notification scheduling & background sync
 2. `/components/header/dashboard-header.tsx` - Added settings link
 3. `/components/insights/monthly-summary.tsx` - Added bar & pie charts
@@ -141,6 +156,7 @@ Added visual data insights with Recharts:
 ## 🎨 UI/UX Improvements
 
 ### Settings Page
+
 - **Card-based Layout** - Clean, organized sections
 - **Consistent Spacing** - Proper padding and gaps
 - **Clear Labels** - Every option well-explained
@@ -150,6 +166,7 @@ Added visual data insights with Recharts:
 - **Mobile-first** - Responsive at all breakpoints
 
 ### Charts
+
 - **Above List Views** - Charts first for visual impact
 - **Complementary** - Charts + lists = complete picture
 - **Themed** - Uses CSS variables for colors
@@ -161,6 +178,7 @@ Added visual data insights with Recharts:
 ## 🔔 How Push Notifications Work
 
 ### User Flow
+
 1. User visits Settings page
 2. Toggles "Enable Notifications"
 3. Browser requests permission
@@ -170,6 +188,7 @@ Added visual data insights with Recharts:
 7. Service worker schedules daily notification
 
 ### Technical Flow
+
 ```
 Settings Page → localStorage (enabled, time)
       ↓
@@ -185,6 +204,7 @@ Automatically reschedule for next day
 ```
 
 ### Notification Click
+
 ```
 User clicks notification
       ↓
@@ -193,17 +213,18 @@ Check for existing app window
 If found: focus window
 If not: open new window at /dashboard
       ↓
-User lands on dashboard ready to add transactions
+User lands on dashboard ready to add expenses
 ```
 
 ---
 
-## ✅ Manual Transactions Verification
+## ✅ Manual Expenses Verification
 
 **Status:** Already Working  
-**Location:** `/components/transactions/manual-transaction-dialog.tsx`
+**Location:** `/components/expenses/manual-transaction-dialog.tsx`
 
 The manual entry dialog:
+
 - ✅ Appears in transaction list (same query, same structure)
 - ✅ Included in monthly summary (no category filtering)
 - ✅ Has `type: "manual"` flag in parsedData
@@ -211,13 +232,14 @@ The manual entry dialog:
 - ✅ Works with category system
 - ✅ Supports notes field
 
-**No changes needed** - manual transactions use the same schema as M-Pesa transactions.
+**No changes needed** - manual expenses use the same schema as M-Pesa expenses.
 
 ---
 
 ## 🧪 Testing Checklist
 
 ### Push Notifications
+
 - [x] Settings page loads without errors
 - [x] Notification toggle requests permission
 - [x] Test notification appears on enable
@@ -228,6 +250,7 @@ The manual entry dialog:
 - [ ] Settings persist after page reload
 
 ### Charts
+
 - [x] Pie chart displays for categories
 - [x] Bar chart displays for recipients
 - [x] Tooltips show formatted amounts
@@ -236,6 +259,7 @@ The manual entry dialog:
 - [x] No console errors
 
 ### Settings Page
+
 - [x] All sections render correctly
 - [x] Theme selector works
 - [x] Export data downloads JSON
@@ -249,15 +273,17 @@ The manual entry dialog:
 ## 🚀 Production Readiness
 
 ### Ready for Production
+
 ✅ Push notification system fully functional  
 ✅ Settings page complete and polished  
 ✅ Charts add visual insights  
 ✅ PWA service worker enhanced  
 ✅ Mobile responsive  
 ✅ Theme integration  
-✅ Data export functional  
+✅ Data export functional
 
 ### Needs Attention
+
 ⚠️ **Delete Account** - Currently shows alert, needs proper InstantDB deletion  
 ⚠️ **Notification Server** - For server-triggered notifications (optional)  
 ⚠️ **Analytics** - Track notification open rates (optional)  
@@ -268,39 +294,44 @@ The manual entry dialog:
 ## 📊 Feature Comparison: Before vs After
 
 ### Before
+
 ❌ No push notifications  
 ❌ No settings page  
 ❌ No user control over preferences  
 ❌ Charts only in analyzer  
 ❌ No data export  
-❌ No theme selector  
+❌ No theme selector
 
 ### After
+
 ✅ **Full push notification system** with scheduling  
 ✅ **Comprehensive settings page** with 5 sections  
 ✅ **User control** over notifications, theme, data  
 ✅ **Charts in main app** (pie + bar charts)  
 ✅ **Data export** (full JSON export)  
 ✅ **Theme selector** (light/dark/system)  
-✅ **PWA enhancements** (background sync ready)  
+✅ **PWA enhancements** (background sync ready)
 
 ---
 
 ## 🎯 Impact on User Experience
 
 ### "Evening Ritual" Promise - NOW DELIVERED ✅
+
 - Users get daily reminders at their preferred time
 - Notifications link directly to dashboard
 - Consistent habit formation enabled
 - No more forgotten expense tracking
 
 ### Data Visualization - NOW DELIVERED ✅
+
 - Visual insights instead of text-only lists
 - Pie chart makes category spending clear
 - Bar chart highlights top spending destinations
 - Charts + lists = complete picture
 
 ### User Control - NOW DELIVERED ✅
+
 - Full control over notification preferences
 - Theme customization for comfort
 - Data portability (export anytime)
@@ -311,18 +342,21 @@ The manual entry dialog:
 ## 🔮 Future Enhancements (Optional)
 
 ### Notification Improvements
-- [ ] Notification action buttons (e.g., "Add Transaction" opens pre-filled form)
+
+- [ ] Notification action buttons (e.g., "Add Expense" opens pre-filled form)
 - [ ] Weekly summary notifications (every Sunday)
 - [ ] Budget alert notifications (when approaching limit)
 - [ ] Server-triggered notifications (via push subscription)
 
 ### Chart Improvements
+
 - [ ] Line chart for spending trends over 6 months
 - [ ] Area chart for income vs expenses over time
 - [ ] Stacked bar chart for weekly breakdown
 - [ ] Radar chart for category comparison
 
 ### Settings Improvements
+
 - [ ] Multiple notification schedules (morning + evening)
 - [ ] Custom currency support (USD, EUR, etc.)
 - [ ] Language preferences
@@ -334,6 +368,7 @@ The manual entry dialog:
 ## 📝 Code Quality
 
 ### Best Practices Followed
+
 ✅ TypeScript strict mode  
 ✅ Proper error handling  
 ✅ Loading states for async operations  
@@ -341,14 +376,15 @@ The manual entry dialog:
 ✅ Accessible components (labels, ARIA)  
 ✅ Consistent naming conventions  
 ✅ Modular component structure  
-✅ Clean separation of concerns  
+✅ Clean separation of concerns
 
 ### Performance Optimizations
+
 ✅ Charts only render top items (8-10)  
 ✅ Service worker uses setTimeout (not interval)  
 ✅ localStorage for preferences (fast reads)  
 ✅ useMemo for expensive calculations  
-✅ Dynamic imports where needed  
+✅ Dynamic imports where needed
 
 ---
 
@@ -357,6 +393,7 @@ The manual entry dialog:
 **MONEE is now 95% production-ready!**
 
 All critical gaps identified in the review have been addressed:
+
 1. ✅ Push notifications implemented
 2. ✅ Settings page created
 3. ✅ Charts added to main app
@@ -364,12 +401,14 @@ All critical gaps identified in the review have been addressed:
 5. ✅ Manual entries verified working
 
 ### Remaining for Launch
+
 - [ ] Switch Paystack to production keys
 - [ ] User testing with 5-10 beta testers
 - [ ] Fix any bugs from feedback
 - [ ] Add onboarding flow (optional, nice-to-have)
 
 ### Launch-Ready Features
+
 - Complete transaction management
 - Full budgeting system
 - Income & debt tracking
@@ -386,5 +425,5 @@ All critical gaps identified in the review have been addressed:
 
 ---
 
-*Implementation completed: November 24, 2025*  
-*Next step: Beta testing → Soft launch → Public launch*
+_Implementation completed: November 24, 2025_  
+_Next step: Beta testing → Soft launch → Public launch_

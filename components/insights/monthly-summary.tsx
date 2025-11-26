@@ -2,16 +2,37 @@
 
 import db from "@/lib/db";
 import { Card, CardContent } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 // Removed duplicate recharts import
 import { useState, useMemo } from "react";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Pie, PieChart, Cell, Legend } from "recharts";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+  Pie,
+  PieChart,
+  Cell,
+  Legend,
+} from "recharts";
 import CategoryBadge from "../categories/category-badge";
 import { RecipientManager } from "@/components/recipients/recipient-manager";
-import type { Transaction, Category, Budget } from "@/types";
+import type { Expense, Category, Budget } from "@/types";
 
 // Normalize recipient for grouping
 function normalizeRecipient(name: string): string {
@@ -52,9 +73,9 @@ export default function MonthlySummary() {
   const profile = profileData?.profiles?.[0];
   const monthlyBudget = profile?.monthlyBudget || 0;
 
-  // Get this month's transactions, income sources, and debt payments
+  // Get this month's expenses, income sources, and debt payments
   const { isLoading, error, data } = db.useQuery({
-    transactions: {
+    expenses: {
       $: {
         where: {
           "user.id": user.id,
@@ -102,62 +123,58 @@ export default function MonthlySummary() {
     },
   });
 
-  const transactions = useMemo(() => data?.transactions || [], [data?.transactions]);
+  const expenses = useMemo(() => data?.expenses || [], [data?.expenses]);
   const recipients = data?.recipients || [];
   const categories = data?.categories || [];
   const budgets = data?.budgets || [];
-  const incomeSources = useMemo(() => data?.income_sources || [], [data?.income_sources]);
-  const debtPayments = useMemo(() => data?.debt_payments || [], [data?.debt_payments]);
-
-  if (isLoading) {
-    return (
-      <Card>
-        <CardContent className="p-6">
-          <div className="text-center text-muted-foreground">Loading...</div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (error) {
-    return (
-      <Card>
-        <CardContent className="p-6">
-          <div className="text-center text-red-500">Error: {error.message}</div>
-        </CardContent>
-      </Card>
-    );
-  }
+  const incomeSources = useMemo(
+    () => data?.income_sources || [],
+    [data?.income_sources]
+  );
+  const debtPayments = useMemo(
+    () => data?.debt_payments || [],
+    [data?.debt_payments]
+  );
 
   // --- Month/Year Dropdown Logic ---
   // Get all months with data
   const allMonths = useMemo(() => {
     const monthSet = new Set<string>();
-    transactions.forEach((tx: Transaction) => {
+    expenses.forEach((tx: Expense) => {
       const d = new Date(tx.date);
-      monthSet.add(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`);
+      monthSet.add(
+        `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`
+      );
     });
     return Array.from(monthSet).sort().reverse();
-  }, [transactions]);
+  }, [expenses]);
 
-  const [selectedMonth, setSelectedMonth] = useState<string>(allMonths[0] || "");
+  const [selectedMonth, setSelectedMonth] = useState<string>(
+    allMonths[0] || ""
+  );
   const isYearly = selectedMonth === "yearly";
 
-  // Filter transactions/income/debt by selected month or all for yearly
+  // Filter expenses/income/debt by selected month or all for yearly
   const filteredTransactions = useMemo(() => {
-    if (isYearly) return transactions;
-    return transactions.filter((tx: Transaction) => {
+    if (isYearly) return expenses;
+    return expenses.filter((tx: Expense) => {
       const d = new Date(tx.date);
-      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(
+        2,
+        "0"
+      )}`;
       return key === selectedMonth;
     });
-  }, [transactions, selectedMonth, isYearly]);
+  }, [expenses, selectedMonth, isYearly]);
 
   const filteredDebtPayments = useMemo(() => {
     if (isYearly) return debtPayments;
     return debtPayments.filter((payment) => {
       const d = new Date(payment.paymentDate);
-      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(
+        2,
+        "0"
+      )}`;
       return key === selectedMonth;
     });
   }, [debtPayments, selectedMonth, isYearly]);
@@ -192,7 +209,7 @@ export default function MonthlySummary() {
 
   // Calculate totals
   const totalSpent = filteredTransactions.reduce(
-    (sum: number, tx: Transaction) => sum + tx.amount,
+    (sum: number, tx: Expense) => sum + tx.amount,
     0
   );
 
@@ -212,7 +229,7 @@ export default function MonthlySummary() {
 
   // Group by category
   const categoryTotals: Record<string, { amount: number; count: number }> = {};
-  filteredTransactions.forEach((tx: Transaction) => {
+  filteredTransactions.forEach((tx: Expense) => {
     const cat = tx.category || "Uncategorized";
     if (!categoryTotals[cat]) {
       categoryTotals[cat] = { amount: 0, count: 0 };
@@ -222,18 +239,21 @@ export default function MonthlySummary() {
   });
 
   // Group by recipient (normalized)
-  const recipientTotals: Record<string, { amount: number; count: number; displayName: string; originalName: string }> = {};
-  filteredTransactions.forEach((tx: Transaction) => {
+  const recipientTotals: Record<
+    string,
+    { amount: number; count: number; displayName: string; originalName: string }
+  > = {};
+  filteredTransactions.forEach((tx: Expense) => {
     if (!tx.recipient) return;
     const normalized = normalizeRecipient(tx.recipient);
     if (!normalized) return;
-    
+
     if (!recipientTotals[normalized]) {
-      recipientTotals[normalized] = { 
-        amount: 0, 
+      recipientTotals[normalized] = {
+        amount: 0,
         count: 0,
         displayName: getDisplayName(tx.recipient), // Use nickname if available
-        originalName: tx.recipient
+        originalName: tx.recipient,
       };
     }
     recipientTotals[normalized].amount += tx.amount;
@@ -271,9 +291,12 @@ export default function MonthlySummary() {
     if (!isYearly) return [];
     // Get all months in the year
     const months = Array.from({ length: 12 }, (_, i) => i);
-    const year = allMonths.length > 0 ? Number(allMonths[0].split("-")[0]) : now.getFullYear();
+    const year =
+      allMonths.length > 0
+        ? Number(allMonths[0].split("-")[0])
+        : now.getFullYear();
     return months.map((month) => {
-      const monthTxs = transactions.filter((tx: Transaction) => {
+      const monthTxs = expenses.filter((tx: Expense) => {
         const d = new Date(tx.date);
         return d.getFullYear() === year && d.getMonth() === month;
       });
@@ -283,13 +306,34 @@ export default function MonthlySummary() {
         .filter((src) => !src.paydayMonth || src.paydayMonth === month + 1)
         .reduce((sum, src) => sum + src.amount, 0);
       return {
-        month: new Date(year, month).toLocaleString("en-KE", { month: "short" }),
+        month: new Date(year, month).toLocaleString("en-KE", {
+          month: "short",
+        }),
         spent,
         income,
       };
     });
-  }, [isYearly, transactions, incomeSources, allMonths, now]);
+  }, [isYearly, expenses, incomeSources, allMonths, now]);
 
+  if (isLoading) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="text-center text-muted-foreground">Loading...</div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="text-center text-red-500">Error: {error.message}</div>
+        </CardContent>
+      </Card>
+    );
+  }
   return (
     <div className="space-y-6">
       {/* Month/Year Dropdown */}
@@ -302,7 +346,10 @@ export default function MonthlySummary() {
             <SelectContent>
               {allMonths.map((monthKey) => (
                 <SelectItem key={monthKey} value={monthKey}>
-                  {new Date(monthKey + "-01").toLocaleString("en-KE", { month: "long", year: "numeric" })}
+                  {new Date(monthKey + "-01").toLocaleString("en-KE", {
+                    month: "long",
+                    year: "numeric",
+                  })}
                 </SelectItem>
               ))}
               <SelectItem value="yearly">Yearly Overview</SelectItem>
@@ -316,10 +363,24 @@ export default function MonthlySummary() {
         <Card>
           <CardContent className="p-6">
             <h3 className="text-sm font-medium mb-2">Yearly Overview</h3>
-            <ChartContainer config={{ spent: { label: "Spent", color: "var(--color-expense)" }, income: { label: "Income", color: "var(--color-income)" } }}>
-              <BarChart data={yearlyBarData} height={300} margin={{ left: 40, right: 20, top: 10, bottom: 10 }}>
+            <ChartContainer
+              config={{
+                spent: { label: "Spent", color: "var(--color-expense)" },
+                income: { label: "Income", color: "var(--color-income)" },
+              }}
+            >
+              <BarChart
+                data={yearlyBarData}
+                height={300}
+                margin={{ left: 40, right: 20, top: 10, bottom: 10 }}
+              >
                 <CartesianGrid vertical={false} />
-                <XAxis dataKey="month" tickLine={false} tickMargin={10} axisLine={false} />
+                <XAxis
+                  dataKey="month"
+                  tickLine={false}
+                  tickMargin={10}
+                  axisLine={false}
+                />
                 <YAxis />
                 <Legend />
                 <Bar dataKey="spent" fill="var(--color-expense)" radius={4} />
@@ -329,6 +390,16 @@ export default function MonthlySummary() {
           </CardContent>
         </Card>
       )}
+
+      <Tabs defaultValue="overview" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="categories">By Category</TabsTrigger>
+          <TabsTrigger value="recipients">Top Recipients</TabsTrigger>
+        </TabsList>
+
+        {/* Overview Tab */}
+        <TabsContent value="overview" className="space-y-6 mt-6">
           {/* Income vs Expenses */}
           <div className="grid grid-cols-2 gap-4 p-4 bg-muted rounded-lg">
             <div>
@@ -396,10 +467,20 @@ export default function MonthlySummary() {
             )}
           </div>
 
-          {Object.keys(categoryTotals).length > 0 && (
-            <div className="space-y-3">
-              <h3 className="text-sm font-medium">By Category</h3>
-              
+          {expenses.length === 0 && (
+            <div className="text-center text-muted-foreground py-8">
+              <p>No expenses this month yet.</p>
+              <p className="text-sm mt-2">
+                Start tracking your spending to see insights here!
+              </p>
+            </div>
+          )}
+        </TabsContent>
+
+        {/* By Category Tab */}
+        <TabsContent value="categories" className="space-y-6 mt-6">
+          {Object.keys(categoryTotals).length > 0 ? (
+            <>
               {/* Pie Chart */}
               <ChartContainer
                 config={Object.fromEntries(
@@ -420,7 +501,10 @@ export default function MonthlySummary() {
                       .map(([name, totals]) => ({
                         name,
                         value: totals.amount,
-                        percentage: ((totals.amount / totalSpent) * 100).toFixed(1),
+                        percentage: (
+                          (totals.amount / totalSpent) *
+                          100
+                        ).toFixed(1),
                       }))}
                     dataKey="value"
                     nameKey="name"
@@ -446,9 +530,9 @@ export default function MonthlySummary() {
                   <Legend />
                 </PieChart>
               </ChartContainer>
-              
+
               {/* List View */}
-              <div className="space-y-2 mt-4">
+              <div className="space-y-2">
                 {Object.entries(categoryTotals)
                   .sort((a, b) => b[1].amount - a[1].amount)
                   .map(([categoryName, totals]) => {
@@ -487,13 +571,18 @@ export default function MonthlySummary() {
                     );
                   })}
               </div>
+            </>
+          ) : (
+            <div className="text-center text-muted-foreground py-8">
+              <p>No category data available.</p>
             </div>
           )}
+        </TabsContent>
 
-          {Object.keys(recipientTotals).length > 0 && (
-            <div className="space-y-3">
-              <h3 className="text-sm font-medium">Top Recipients</h3>
-              
+        {/* Top Recipients Tab */}
+        <TabsContent value="recipients" className="space-y-6 mt-6">
+          {Object.keys(recipientTotals).length > 0 ? (
+            <>
               {/* Bar Chart */}
               <ChartContainer
                 config={{
@@ -509,18 +598,28 @@ export default function MonthlySummary() {
                     .sort((a, b) => b[1].amount - a[1].amount)
                     .slice(0, 8)
                     .map(([, totals]) => ({
-                      name: totals.displayName.length > 15 
-                        ? totals.displayName.slice(0, 15) + "..." 
-                        : totals.displayName,
+                      name:
+                        totals.displayName.length > 15
+                          ? totals.displayName.slice(0, 15) + "..."
+                          : totals.displayName,
                       amount: totals.amount,
                       count: totals.count,
                     }))}
                   layout="vertical"
                   margin={{ left: 80, right: 20, top: 10, bottom: 10 }}
                 >
-                  <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    horizontal={true}
+                    vertical={false}
+                  />
                   <XAxis type="number" />
-                  <YAxis dataKey="name" type="category" width={75} tick={{ fontSize: 12 }} />
+                  <YAxis
+                    dataKey="name"
+                    type="category"
+                    width={75}
+                    tick={{ fontSize: 12 }}
+                  />
                   <ChartTooltip
                     content={
                       <ChartTooltipContent
@@ -528,19 +627,28 @@ export default function MonthlySummary() {
                       />
                     }
                   />
-                  <Bar dataKey="amount" fill="var(--color-amount)" radius={[0, 4, 4, 0]} />
+                  <Bar
+                    dataKey="amount"
+                    fill="var(--color-amount)"
+                    radius={[0, 4, 4, 0]}
+                  />
                 </BarChart>
               </ChartContainer>
-              
+
               {/* List View */}
-              <div className="space-y-2 mt-4">
+              <div className="space-y-2">
                 {Object.entries(recipientTotals)
                   .sort((a, b) => b[1].amount - a[1].amount)
                   .slice(0, 10) // Show top 10
                   .map(([normalized, totals]) => (
-                    <div key={normalized} className="flex items-center justify-between gap-2">
+                    <div
+                      key={normalized}
+                      className="flex items-center justify-between gap-2"
+                    >
                       <div className="flex items-center gap-2 flex-1 min-w-0">
-                        <span className="text-sm truncate">{totals.displayName}</span>
+                        <span className="text-sm truncate">
+                          {totals.displayName}
+                        </span>
                         <span className="text-xs text-muted-foreground shrink-0">
                           ({totals.count}×)
                         </span>
@@ -555,17 +663,14 @@ export default function MonthlySummary() {
                     </div>
                   ))}
               </div>
-            </div>
-          )}
-
-          {transactions.length === 0 && (
+            </>
+          ) : (
             <div className="text-center text-muted-foreground py-8">
-              <p>No transactions this month yet.</p>
-              <p className="text-sm mt-2">
-                Start tracking your spending to see insights here!
-              </p>
+              <p>No recipient data available.</p>
             </div>
           )}
-        </div>
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 }

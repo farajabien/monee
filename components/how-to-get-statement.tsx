@@ -9,7 +9,8 @@ export function HowToGetStatement() {
           📱 How to Get Your M-Pesa Statement
         </h3>
         <p className="text-sm text-muted-foreground">
-          No password required! Get your statement directly from the M-Pesa app in seconds.
+          No password required! Get your statement directly from the M-Pesa app
+          in seconds.
         </p>
 
         <div className="grid md:grid-cols-2 gap-4">
@@ -36,7 +37,8 @@ export function HowToGetStatement() {
                   3
                 </span>
                 <span>
-                  Click <strong>&quot;Export Statements&quot;</strong> button (bottom right)
+                  Click <strong>&quot;Export Statements&quot;</strong> button
+                  (bottom right)
                 </span>
               </li>
               <li className="flex gap-3">
@@ -44,7 +46,7 @@ export function HowToGetStatement() {
                   4
                 </span>
                 <span>
-                  Leave it on <strong>&quot;All Transactions&quot;</strong>
+                  Leave it on <strong>&quot;All Expenses&quot;</strong>
                 </span>
               </li>
               <li className="flex gap-3">
@@ -100,8 +102,8 @@ export function HowToGetStatement() {
             <li className="flex gap-2">
               <span className="text-primary">•</span>
               <span>
-                <strong className="text-foreground">Full year?</strong> Generate 2
-                statements (Jan-Jun, Jul-Dec)
+                <strong className="text-foreground">Full year?</strong> Generate
+                2 statements (Jan-Jun, Jul-Dec)
               </span>
             </li>
             <li className="flex gap-2">
@@ -121,8 +123,8 @@ export function HowToGetStatement() {
             <li className="flex gap-2">
               <span className="text-primary">•</span>
               <span>
-                <strong className="text-foreground">No password!</strong> New app
-                export doesn&apos;t require password ✅
+                <strong className="text-foreground">No password!</strong> New
+                app export doesn&apos;t require password ✅
               </span>
             </li>
           </ul>

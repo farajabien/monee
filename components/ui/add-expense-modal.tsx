@@ -1,11 +1,22 @@
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import AddTransactionForm from "@/components/transactions/add-transaction-form";
+import AddTransactionForm from "@/components/expenses/add-expense-form";
 import { IncomeSourceForm } from "@/components/income/income-source-form";
 import { DebtForm } from "@/components/debts/debt-form";
 
-export function AddTransactionModal({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
+export function AddExpenseModal({
+  open,
+  onOpenChange,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
   const [tab, setTab] = useState("expense");
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

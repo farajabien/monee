@@ -89,7 +89,7 @@ export function DebtPaymentForm({ debt, onSuccess }: DebtPaymentFormProps) {
       // Create payment record and expense transaction
       const paymentId = id();
       const transactionId = id();
-      
+
       await db.transact([
         db.tx.debt_payments[paymentId]
           .update({
@@ -102,13 +102,15 @@ export function DebtPaymentForm({ debt, onSuccess }: DebtPaymentFormProps) {
           })
           .link({ debt: debt.id }),
         // Create expense transaction for the debt payment
-        db.tx.transactions[transactionId]
+        db.tx.expenses[transactionId]
           .update({
             amount: paymentAmount,
             recipient: `Debt Payment - ${debt.name}`,
             date: paymentTimestamp,
             category: "Debt Payment",
-            rawMessage: `Debt payment of Ksh ${paymentAmount.toLocaleString()} for ${debt.name} (${paymentType})`,
+            rawMessage: `Debt payment of Ksh ${paymentAmount.toLocaleString()} for ${
+              debt.name
+            } (${paymentType})`,
             parsedData: {
               type: "debt_payment",
               debtId: debt.id,

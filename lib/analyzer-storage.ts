@@ -1,6 +1,6 @@
 /**
  * Analyzer Storage - IndexedDB wrapper for offline M-Pesa transaction analysis
- * Stores transactions locally in the browser for privacy and offline access
+ * Stores expenses locally in the browser for privacy and offline access
  */
 
 export interface AnalyzerTransaction {
@@ -17,14 +17,20 @@ export interface AnalyzerTransaction {
 export interface AnalyzerStats {
   totalTransactions: number;
   totalAmount: number;
-  byRecipient: Record<string, { count: number; amount: number; displayName: string }>;
-  byDate: Record<string, { count: number; amount: number; transactions: AnalyzerTransaction[] }>;
+  byRecipient: Record<
+    string,
+    { count: number; amount: number; displayName: string }
+  >;
+  byDate: Record<
+    string,
+    { count: number; amount: number; expenses: AnalyzerTransaction[] }
+  >;
   byCategory: Record<string, { count: number; amount: number }>;
 }
 
 const DB_NAME = "MoneeAnalyzer";
 const DB_VERSION = 1;
-const STORE_NAME = "transactions";
+const STORE_NAME = "expenses";
 
 /**
  * Open IndexedDB connection
@@ -51,16 +57,16 @@ function openDB(): Promise<IDBDatabase> {
 }
 
 /**
- * Save transactions to IndexedDB
+ * Save expenses to IndexedDB
  */
 export async function saveTransactions(
-  transactions: AnalyzerTransaction[]
+  expenses: AnalyzerTransaction[]
 ): Promise<void> {
   const db = await openDB();
   const transaction = db.transaction(STORE_NAME, "readwrite");
   const store = transaction.objectStore(STORE_NAME);
 
-  for (const tx of transactions) {
+  for (const tx of expenses) {
     store.put(tx);
   }
 
@@ -77,7 +83,7 @@ export async function saveTransactions(
 }
 
 /**
- * Get all transactions from IndexedDB
+ * Get all expenses from IndexedDB
  */
 export async function getAllTransactions(): Promise<AnalyzerTransaction[]> {
   const db = await openDB();
@@ -119,7 +125,7 @@ export async function deleteTransaction(id: string): Promise<void> {
 }
 
 /**
- * Clear all transactions
+ * Clear all expenses
  */
 export async function clearAllTransactions(): Promise<void> {
   const db = await openDB();
@@ -152,20 +158,18 @@ function normalizeRecipient(name: string): string {
 }
 
 /**
- * Calculate statistics from transactions
+ * Calculate statistics from expenses
  */
-export function calculateStats(
-  transactions: AnalyzerTransaction[]
-): AnalyzerStats {
+export function calculateStats(expenses: AnalyzerTransaction[]): AnalyzerStats {
   const stats: AnalyzerStats = {
-    totalTransactions: transactions.length,
+    totalTransactions: expenses.length,
     totalAmount: 0,
     byRecipient: {},
     byDate: {},
     byCategory: {},
   };
 
-  transactions.forEach((tx) => {
+  expenses.forEach((tx) => {
     // Total amount
     stats.totalAmount += tx.amount;
 
@@ -195,12 +199,12 @@ export function calculateStats(
       stats.byDate[dateKey] = {
         count: 0,
         amount: 0,
-        transactions: [],
+        expenses: [],
       };
     }
     stats.byDate[dateKey].count++;
     stats.byDate[dateKey].amount += tx.amount;
-    stats.byDate[dateKey].transactions.push(tx);
+    stats.byDate[dateKey].expenses.push(tx);
 
     // By category
     const category = tx.category || "Uncategorized";
@@ -215,18 +219,25 @@ export function calculateStats(
 }
 
 /**
- * Export transactions to JSON
+ * Export expenses to JSON
  */
-export function exportToJSON(transactions: AnalyzerTransaction[]): string {
-  return JSON.stringify(transactions, null, 2);
+export function exportToJSON(expenses: AnalyzerTransaction[]): string {
+  return JSON.stringify(expenses, null, 2);
 }
 
 /**
- * Export transactions to CSV
+ * Export expenses to CSV
  */
-export function exportToCSV(transactions: AnalyzerTransaction[]): string {
-  const headers = ["Date", "Amount", "Recipient", "Category", "Type", "Raw Message"];
-  const rows = transactions.map((tx) => [
+export function exportToCSV(expenses: AnalyzerTransaction[]): string {
+  const headers = [
+    "Date",
+    "Amount",
+    "Recipient",
+    "Category",
+    "Type",
+    "Raw Message",
+  ];
+  const rows = expenses.map((tx) => [
     new Date(tx.date).toLocaleString("en-KE"),
     tx.amount.toString(),
     tx.recipient || "",
@@ -241,7 +252,11 @@ export function exportToCSV(transactions: AnalyzerTransaction[]): string {
 /**
  * Download data as file
  */
-export function downloadFile(content: string, filename: string, type: string): void {
+export function downloadFile(
+  content: string,
+  filename: string,
+  type: string
+): void {
   const blob = new Blob([content], { type });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");

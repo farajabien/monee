@@ -29,6 +29,17 @@ import { DebtFormDialog } from "./debt-form-dialog";
 import { DebtPaymentForm } from "./debt-payment-form";
 import type { DebtWithUser } from "@/types";
 
+const isDueToday = (debt: DebtWithUser) => {
+  const today = new Date();
+  return today.getDate() === debt.paymentDueDay;
+};
+
+const calculateProgress = (debt: DebtWithUser) => {
+  if (debt.totalAmount === 0) return 100;
+  const paid = debt.totalAmount - debt.currentBalance;
+  return (paid / debt.totalAmount) * 100;
+};
+
 export function DebtList() {
   const user = db.useUser();
   const [editingDebt, setEditingDebt] = useState<DebtWithUser | null>(null);
@@ -64,7 +75,7 @@ export function DebtList() {
     let result = [...debts];
 
     if (searchQuery) {
-      result = result.filter((d) => 
+      result = result.filter((d) =>
         d.name.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
@@ -73,7 +84,10 @@ export function DebtList() {
       result = result.filter((d) => {
         if (statusFilter === "active") return d.currentBalance > 0;
         if (statusFilter === "paid") return d.currentBalance === 0;
-        if (statusFilter === "due-today") return isDueToday(d);
+        if (statusFilter === "due-today") {
+          const today = new Date();
+          return today.getDate() === d.paymentDueDay;
+        }
         return true;
       });
     }
@@ -84,8 +98,17 @@ export function DebtList() {
           return b.currentBalance - a.currentBalance;
         case "balance-low":
           return a.currentBalance - b.currentBalance;
-        case "progress":
-          return calculateProgress(b) - calculateProgress(a);
+        case "progress": {
+          const progressA =
+            a.totalAmount === 0
+              ? 100
+              : ((a.totalAmount - a.currentBalance) / a.totalAmount) * 100;
+          const progressB =
+            b.totalAmount === 0
+              ? 100
+              : ((b.totalAmount - b.currentBalance) / b.totalAmount) * 100;
+          return progressB - progressA;
+        }
         case "due-day":
           return a.paymentDueDay - b.paymentDueDay;
         case "deadline":
@@ -115,33 +138,37 @@ export function DebtList() {
     return num.toString();
   };
 
-  const calculateProgress = (debt: DebtWithUser) => {
-    if (debt.totalAmount === 0) return 100;
-    const paid = debt.totalAmount - debt.currentBalance;
-    return (paid / debt.totalAmount) * 100;
-  };
-
   const calculatePayoffMonths = (debt: DebtWithUser) => {
     if (debt.monthlyPaymentAmount === 0) return null;
     return Math.ceil(debt.currentBalance / debt.monthlyPaymentAmount);
   };
 
   const metrics = useMemo(() => {
-    const activeDebts = filteredAndSortedDebts.filter(d => d.currentBalance > 0);
-    const totalDebt = activeDebts.reduce((sum, debt) => sum + debt.currentBalance, 0);
-    const totalOriginal = activeDebts.reduce((sum, debt) => sum + debt.totalAmount, 0);
+    const activeDebts = filteredAndSortedDebts.filter(
+      (d) => d.currentBalance > 0
+    );
+    const totalDebt = activeDebts.reduce(
+      (sum, debt) => sum + debt.currentBalance,
+      0
+    );
+    const totalOriginal = activeDebts.reduce(
+      (sum, debt) => sum + debt.totalAmount,
+      0
+    );
     const totalPaid = totalOriginal - totalDebt;
-    const avgProgress = activeDebts.length > 0 
-      ? activeDebts.reduce((sum, d) => sum + calculateProgress(d), 0) / activeDebts.length 
-      : 0;
-    
-    return { totalDebt, totalPaid, activeCount: activeDebts.length, avgProgress };
-  }, [filteredAndSortedDebts]);
+    const avgProgress =
+      activeDebts.length > 0
+        ? activeDebts.reduce((sum, d) => sum + calculateProgress(d), 0) /
+          activeDebts.length
+        : 0;
 
-  const isDueToday = (debt: DebtWithUser) => {
-    const today = new Date();
-    return today.getDate() === debt.paymentDueDay;
-  };
+    return {
+      totalDebt,
+      totalPaid,
+      activeCount: activeDebts.length,
+      avgProgress,
+    };
+  }, [filteredAndSortedDebts]);
 
   const handleQuickPush = async (debt: DebtWithUser) => {
     if (!debt.interestRate || debt.currentBalance === 0) {
@@ -156,7 +183,7 @@ export function DebtList() {
 
       const paymentId = id();
       const transactionId = id();
-      
+
       await db.transact([
         db.tx.debt_payments[paymentId]
           .update({
@@ -168,13 +195,15 @@ export function DebtList() {
             createdAt: Date.now(),
           })
           .link({ debt: debt.id }),
-        db.tx.transactions[transactionId]
+        db.tx.expenses[transactionId]
           .update({
             amount: monthlyInterest,
             recipient: `Debt Payment - ${debt.name}`,
             date: paymentTimestamp,
             category: "Debt Payment",
-            rawMessage: `Interest payment of Ksh ${monthlyInterest.toLocaleString()} for ${debt.name} (Quick Push)`,
+            rawMessage: `Interest payment of Ksh ${monthlyInterest.toLocaleString()} for ${
+              debt.name
+            } (Quick Push)`,
             parsedData: {
               type: "debt_payment",
               debtId: debt.id,
@@ -209,28 +238,50 @@ export function DebtList() {
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between pb-3">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
           <CardTitle>Debts</CardTitle>
           <DebtFormDialog />
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="space-y-4">
           {/* Metrics */}
           {metrics.activeCount > 0 && (
-            <div className="flex flex-wrap gap-1.5">
-              <Badge variant="secondary" className="text-xs px-2 py-0.5">
-                <DollarSign className="h-3 w-3 mr-1" />
-                Ksh {formatCompact(metrics.totalDebt)}
-              </Badge>
-              <Badge variant="secondary" className="text-xs px-2 py-0.5">
-                <TrendingDown className="h-3 w-3 mr-1" />
-                {metrics.activeCount} Active
-              </Badge>
-              <Badge variant="outline" className="text-xs px-2 py-0.5">
-                <Clock className="h-3 w-3 mr-1" />
-                {metrics.avgProgress.toFixed(0)}% Avg Progress
-              </Badge>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+              <div className="flex flex-col gap-1 p-3 rounded-lg border bg-card">
+                <div className="flex items-center gap-1.5 text-muted-foreground">
+                  <DollarSign className="h-3.5 w-3.5" />
+                  <span className="text-xs font-medium">Total Debt</span>
+                </div>
+                <span className="text-lg font-bold">
+                  Ksh {formatCompact(metrics.totalDebt)}
+                </span>
+              </div>
+              <div className="flex flex-col gap-1 p-3 rounded-lg border bg-card">
+                <div className="flex items-center gap-1.5 text-muted-foreground">
+                  <TrendingDown className="h-3.5 w-3.5" />
+                  <span className="text-xs font-medium">Active</span>
+                </div>
+                <span className="text-lg font-bold">{metrics.activeCount}</span>
+              </div>
+              <div className="flex flex-col gap-1 p-3 rounded-lg border bg-card">
+                <div className="flex items-center gap-1.5 text-muted-foreground">
+                  <CheckCircle className="h-3.5 w-3.5" />
+                  <span className="text-xs font-medium">Total Paid</span>
+                </div>
+                <span className="text-lg font-bold">
+                  Ksh {formatCompact(metrics.totalPaid)}
+                </span>
+              </div>
+              <div className="flex flex-col gap-1 p-3 rounded-lg border bg-card">
+                <div className="flex items-center gap-1.5 text-muted-foreground">
+                  <Clock className="h-3.5 w-3.5" />
+                  <span className="text-xs font-medium">Avg Progress</span>
+                </div>
+                <span className="text-lg font-bold">
+                  {metrics.avgProgress.toFixed(0)}%
+                </span>
+              </div>
             </div>
           )}
 
@@ -279,7 +330,8 @@ export function DebtList() {
                 <DialogTitle>Delete Debt</DialogTitle>
               </DialogHeader>
               <p className="text-sm text-muted-foreground">
-                Delete &quot;{deletingDebt?.name}&quot;? This will remove all payment records.
+                Delete &quot;{deletingDebt?.name}&quot;? This will remove all
+                payment records.
               </p>
               <div className="flex justify-end gap-2 mt-4">
                 <Button
@@ -323,112 +375,148 @@ export function DebtList() {
           )}
 
           {filteredAndSortedDebts.length > 0 && viewMode === "list" && (
-            <div className="space-y-2">
+            <div className="space-y-3">
               {filteredAndSortedDebts.map((debt, index) => {
                 const progress = calculateProgress(debt);
                 const payoffMonths = calculatePayoffMonths(debt);
+                const isPaidOff = debt.currentBalance === 0;
                 return (
-                  <Item key={debt.id} variant="outline" className="flex-col items-stretch p-3">
-                    <div className="flex items-start justify-between gap-3 mb-2">
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                  <Item
+                    key={debt.id}
+                    variant="outline"
+                    className="flex-col items-stretch p-4"
+                  >
+                    <div className="flex items-start justify-between gap-3 mb-3">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Badge
+                          variant="outline"
+                          className="text-xs px-2 py-0.5"
+                        >
                           #{index + 1}
                         </Badge>
-                        <span className="font-semibold text-sm">{debt.name}</span>
+                        <span className="font-semibold text-base">
+                          {debt.name}
+                        </span>
+                        {isPaidOff && (
+                          <Badge
+                            variant="default"
+                            className="text-xs px-2 py-0.5 bg-green-500"
+                          >
+                            <CheckCircle className="h-3 w-3 mr-1" />
+                            Paid Off
+                          </Badge>
+                        )}
                         {debt.interestRate && (
-                          <Badge variant="outline" className="text-[10px] px-1.5 py-0">
-                            {debt.interestRate}%
+                          <Badge
+                            variant="secondary"
+                            className="text-xs px-2 py-0.5"
+                          >
+                            {debt.interestRate}% APR
                           </Badge>
                         )}
                         {debt.pushMonthsPlan && (
-                          <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
-                            {debt.pushMonthsCompleted || 0}/{debt.pushMonthsPlan}
+                          <Badge
+                            variant="outline"
+                            className="text-xs px-2 py-0.5"
+                          >
+                            Push: {debt.pushMonthsCompleted || 0}/
+                            {debt.pushMonthsPlan}
                           </Badge>
                         )}
                       </div>
-                      <div className="flex gap-0.5">
+                      <div className="flex gap-1">
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-6 w-6"
+                          className="h-8 w-8"
                           onClick={() => {
                             setEditingDebt(debt);
                             setShowEditDialog(true);
                           }}
                         >
-                          <Edit className="h-3 w-3" />
+                          <Edit className="h-4 w-4" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-6 w-6 text-destructive"
+                          className="h-8 w-8 text-destructive hover:text-destructive"
                           onClick={() => {
                             setDeletingDebt(debt);
                             setShowDeleteDialog(true);
                           }}
                         >
-                          <Trash2 className="h-3 w-3" />
+                          <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
                     </div>
 
-                    <div className="space-y-1.5">
-                      <div className="flex items-center justify-between text-xs">
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between text-sm">
                         <span className="text-muted-foreground">
-                          {formatAmount(debt.currentBalance)} / {formatAmount(debt.totalAmount)}
+                          {formatAmount(debt.currentBalance)} of{" "}
+                          {formatAmount(debt.totalAmount)}
                         </span>
-                        <span className="font-medium">
-                          {formatAmount(debt.monthlyPaymentAmount)}/mo
+                        <span className="font-semibold">
+                          {formatAmount(debt.monthlyPaymentAmount)}/month
                         </span>
                       </div>
 
-                      <Progress value={progress} className="h-1.5" />
-
-                      <div className="flex items-center justify-between text-xs text-muted-foreground">
-                        <span>{progress.toFixed(1)}% paid</span>
-                        {payoffMonths && <span>{payoffMonths}mo left</span>}
+                      <div className="space-y-1.5">
+                        <Progress value={progress} className="h-2" />
+                        <div className="flex items-center justify-between text-xs text-muted-foreground">
+                          <span>{progress.toFixed(1)}% paid off</span>
+                          {payoffMonths && !isPaidOff && (
+                            <span>{payoffMonths} months remaining</span>
+                          )}
+                        </div>
                       </div>
 
-                      <div className="flex items-center gap-3 flex-wrap text-xs text-muted-foreground">
-                        <div className="flex items-center gap-1">
-                          <Calendar className="h-2.5 w-2.5" />
-                          Day {debt.paymentDueDay}
+                      <div className="flex items-center gap-4 flex-wrap text-sm text-muted-foreground">
+                        <div className="flex items-center gap-1.5">
+                          <Calendar className="h-4 w-4" />
+                          <span>Due day {debt.paymentDueDay}</span>
                         </div>
                         {debt.deadline && (
                           <span>
-                            Due: {new Date(debt.deadline).toLocaleDateString("en-KE", {
-                              month: "short",
-                              day: "numeric",
-                            })}
+                            Deadline:{" "}
+                            {new Date(debt.deadline).toLocaleDateString(
+                              "en-KE",
+                              {
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric",
+                              }
+                            )}
                           </span>
                         )}
                         {debt.interestAccrued && debt.interestAccrued > 0 && (
-                          <span className="text-amber-600">
-                            Interest: {formatAmount(debt.interestAccrued)}
+                          <span className="text-amber-600 font-medium">
+                            Interest accrued:{" "}
+                            {formatAmount(debt.interestAccrued)}
                           </span>
                         )}
                       </div>
 
-                      {isDueToday(debt) && debt.currentBalance > 0 && (
-                        <div className="flex gap-2 pt-2">
+                      {isDueToday(debt) && !isPaidOff && (
+                        <div className="flex gap-2 pt-2 border-t">
                           <Button
                             variant="default"
                             size="sm"
                             onClick={() => handlePaid(debt)}
-                            className="flex-1 h-7 text-xs"
+                            className="flex-1"
                           >
-                            <CheckCircle className="h-3 w-3 mr-1" />
-                            Paid
+                            <CheckCircle className="h-4 w-4 mr-2" />
+                            Record Payment
                           </Button>
                           {debt.interestRate && debt.interestRate > 0 && (
                             <Button
                               variant="outline"
                               size="sm"
                               onClick={() => handleQuickPush(debt)}
-                              className="flex-1 h-7 text-xs"
+                              className="flex-1"
                             >
-                              <ArrowRight className="h-3 w-3 mr-1" />
-                              Push
+                              <ArrowRight className="h-4 w-4 mr-2" />
+                              Push to Next Month
                             </Button>
                           )}
                         </div>
@@ -441,73 +529,100 @@ export function DebtList() {
           )}
 
           {filteredAndSortedDebts.length > 0 && viewMode === "grid" && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
               {filteredAndSortedDebts.map((debt, index) => {
                 const progress = calculateProgress(debt);
                 const payoffMonths = calculatePayoffMonths(debt);
+                const isPaidOff = debt.currentBalance === 0;
                 return (
-                  <Card key={debt.id}>
-                    <CardContent className="p-3 space-y-2">
+                  <Card
+                    key={debt.id}
+                    className="hover:shadow-md transition-shadow"
+                  >
+                    <CardContent className="p-4 space-y-3">
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex items-center gap-1.5 flex-wrap">
-                          <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                          <Badge
+                            variant="outline"
+                            className="text-xs px-2 py-0.5"
+                          >
                             #{index + 1}
                           </Badge>
+                          {isPaidOff && (
+                            <Badge
+                              variant="default"
+                              className="text-xs px-2 py-0.5 bg-green-500"
+                            >
+                              <CheckCircle className="h-3 w-3" />
+                            </Badge>
+                          )}
                           {debt.interestRate && (
-                            <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                            <Badge
+                              variant="secondary"
+                              className="text-xs px-2 py-0.5"
+                            >
                               {debt.interestRate}%
                             </Badge>
                           )}
                         </div>
-                        <div className="flex gap-0.5">
+                        <div className="flex gap-1">
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-6 w-6"
+                            className="h-7 w-7"
                             onClick={() => {
                               setEditingDebt(debt);
                               setShowEditDialog(true);
                             }}
                           >
-                            <Edit className="h-3 w-3" />
+                            <Edit className="h-3.5 w-3.5" />
                           </Button>
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-6 w-6 text-destructive"
+                            className="h-7 w-7 text-destructive hover:text-destructive"
                             onClick={() => {
                               setDeletingDebt(debt);
                               setShowDeleteDialog(true);
                             }}
                           >
-                            <Trash2 className="h-3 w-3" />
+                            <Trash2 className="h-3.5 w-3.5" />
                           </Button>
                         </div>
                       </div>
 
-                      <h4 className="font-semibold text-sm line-clamp-1">{debt.name}</h4>
+                      <h4 className="font-semibold text-base line-clamp-1">
+                        {debt.name}
+                      </h4>
 
-                      <div className="space-y-1.5">
-                        <div className="flex items-center justify-between text-xs">
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between text-sm">
                           <span className="text-muted-foreground">Balance</span>
-                          <span className="font-bold">{formatAmount(debt.currentBalance)}</span>
-                        </div>
-                        
-                        <Progress value={progress} className="h-1.5" />
-                        
-                        <div className="text-xs text-muted-foreground text-center">
-                          {progress.toFixed(0)}% paid
+                          <span className="font-bold">
+                            {formatAmount(debt.currentBalance)}
+                          </span>
                         </div>
 
-                        <div className="flex items-center justify-between text-xs pt-1">
-                          <div className="flex items-center gap-1 text-muted-foreground">
-                            <Calendar className="h-2.5 w-2.5" />
-                            Day {debt.paymentDueDay}
+                        <div className="space-y-1">
+                          <Progress value={progress} className="h-2" />
+                          <div className="text-xs text-muted-foreground text-center">
+                            {progress.toFixed(0)}% paid off
                           </div>
-                          <span className="font-medium">{formatAmount(debt.monthlyPaymentAmount)}</span>
                         </div>
 
-                        {payoffMonths && (
+                        <div className="flex items-center justify-between text-sm pt-1 border-t">
+                          <div className="flex items-center gap-1.5 text-muted-foreground">
+                            <Calendar className="h-3.5 w-3.5" />
+                            <span className="text-xs">
+                              Day {debt.paymentDueDay}
+                            </span>
+                          </div>
+                          <span className="font-semibold">
+                            {formatAmount(debt.monthlyPaymentAmount)}
+                          </span>
+                        </div>
+
+                        {payoffMonths && !isPaidOff && (
                           <div className="text-xs text-muted-foreground">
                             {payoffMonths} months to pay off
                           </div>
@@ -515,22 +630,27 @@ export function DebtList() {
 
                         {debt.deadline && (
                           <div className="text-xs text-muted-foreground">
-                            Due: {new Date(debt.deadline).toLocaleDateString("en-KE", {
-                              month: "short",
-                              day: "numeric",
-                            })}
+                            Deadline:{" "}
+                            {new Date(debt.deadline).toLocaleDateString(
+                              "en-KE",
+                              {
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric",
+                              }
+                            )}
                           </div>
                         )}
 
-                        {isDueToday(debt) && debt.currentBalance > 0 && (
-                          <div className="flex gap-1.5 pt-1">
+                        {isDueToday(debt) && !isPaidOff && (
+                          <div className="flex gap-1.5 pt-2 border-t">
                             <Button
                               variant="default"
                               size="sm"
                               onClick={() => handlePaid(debt)}
-                              className="flex-1 h-7 text-xs"
+                              className="flex-1 h-8 text-xs"
                             >
-                              <CheckCircle className="h-2.5 w-2.5 mr-1" />
+                              <CheckCircle className="h-3 w-3 mr-1" />
                               Paid
                             </Button>
                             {debt.interestRate && debt.interestRate > 0 && (
@@ -538,9 +658,9 @@ export function DebtList() {
                                 variant="outline"
                                 size="sm"
                                 onClick={() => handleQuickPush(debt)}
-                                className="flex-1 h-7 text-xs"
+                                className="flex-1 h-8 text-xs"
                               >
-                                <ArrowRight className="h-2.5 w-2.5 mr-1" />
+                                <ArrowRight className="h-3 w-3 mr-1" />
                                 Push
                               </Button>
                             )}

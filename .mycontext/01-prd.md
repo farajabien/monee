@@ -25,7 +25,7 @@ Every transaction tells a story — rent, food, house help, little treats, and a
 ### **1. Start by Uploading Your Mpesa Statement**
 
 You can upload your Mpesa statement or paste your recent messages.
-MONEE automatically reads and groups your transactions — showing where your money actually goes.
+MONEE automatically reads and groups your expenses — showing where your money actually goes.
 
 You can then label them easily — rent, transport, food, or personal care — and MONEE will remember those labels for next time.
 
@@ -121,7 +121,7 @@ Debts don't have to be stressful — they just need to be organized.
 - 📂 **Labels & Categories** – easily group expenses by purpose or person.
 - 📊 **Monthly Insights** – see where your money truly goes.
 - 🔔 **Daily Check-In Reminders** – gentle push to stay consistent.
-- 🌙 **Evening Routine Mode** – quick checklist for all your daily transactions.
+- 🌙 **Evening Routine Mode** – quick checklist for all your daily expenses.
 - 💖 **ELTIW (Every Little Thing I Want)** – track what you want and celebrate your wins.
 - 💰 **Income Tracking** – track multiple income sources and payday dates.
 - 📈 **Income vs Expenses** – see your financial balance at a glance.
@@ -135,7 +135,7 @@ Debts don't have to be stressful — they just need to be organized.
 ## **The MONEE Flow**
 
 1. **Add your income sources** → set up all your income streams and payday dates.
-2. **Upload your Mpesa statement** → MONEE groups and labels your transactions.
+2. **Upload your Mpesa statement** → MONEE groups and labels your expenses.
 3. **Set your monthly budget** → per category (Food, Rent, Self-care, etc.).
 4. **Add your debts** → track all your debts and set up monthly payment rules.
 5. **Paste new Mpesa messages as you spend** → MONEE tracks them for you.

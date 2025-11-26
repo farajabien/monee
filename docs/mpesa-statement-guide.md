@@ -5,18 +5,22 @@
 ### Step-by-Step Instructions
 
 1. **Open M-Pesa App**
+
    - Launch your M-Pesa app (Safaricom app)
    - Go to home dashboard
 
 2. **Access Statements**
+
    - Next to "M-PESA STATEMENTS", click on **"SEE ALL"**
    - This opens your recent M-Pesa statements
 
 3. **Export Statements**
+
    - Click the **"Export Statements"** button (bottom right)
-   - Leave it on **"All Transactions"** for transaction type
+   - Leave it on **"All Expenses"** for transaction type
 
 4. **Select Date Range**
+
    - Choose your desired date range
    - **Note**: Maximum range is 6 months per statement
    - For a full year, you'll need to generate 2 statements:
@@ -29,6 +33,7 @@
    - **No password required!** ✅
 
 ### Screenshots Locations
+
 - `docs/images/mpesa-see-all-button.jpg` - Shows the "SEE ALL" button location
 - `docs/images/mpesa-generate-statements.jpg` - Shows the generate statements interface
 
@@ -37,62 +42,72 @@
 ## Use Cases We Support
 
 ### 1. **Year-End Review**
+
 - User generates 2 statements (Jan-Jun, Jul-Dec)
 - Uploads both PDFs to analyzer
 - Gets complete year analysis
 
-### 2. **Daily Transaction Routine**
+### 2. **Daily Expense Routine**
+
 - User generates statement for last 1-7 days
 - Uploads small PDF instead of copying SMS messages
 - Faster than manual SMS copy-paste
 
 ### 3. **Catch-Up Mode**
+
 - User went days/weeks without recording
 - Generates statement for missing period
 - Uploads to catch up quickly
 
 ### 4. **Multiple Statement Upload**
+
 - User has multiple PDFs (different date ranges)
 - Can string them together or upload sequentially
-- Analyzer merges and deduplicates transactions
+- Analyzer merges and deduplicates expenses
 
 ---
 
 ## Technical Implementation Plan
 
 ### Phase 1: Multi-PDF Upload Support
+
 - [ ] Add support for multiple file selection
 - [ ] Merge text from multiple PDFs before parsing
 - [ ] Handle duplicate detection across files
 - [ ] Show progress: "Processing 2 of 3 statements..."
 
 ### Phase 2: Date Range Detection
+
 - [ ] Auto-detect date ranges from each PDF
 - [ ] Show user what periods are covered
-- [ ] Warn about gaps: "Missing transactions between Jun 30 - Jul 1"
+- [ ] Warn about gaps: "Missing expenses between Jun 30 - Jul 1"
 - [ ] Suggest ranges to fill gaps
 
 ### Phase 3: Smart Recommendations
+
 - [ ] "For full year analysis, upload Jan-Jun and Jul-Dec statements"
 - [ ] "This covers [X days]. Need more? Generate another statement"
 - [ ] "Last statement: May 15. Generate one from May 16 - today"
 
 ### Phase 4: Incremental Updates
+
 - [ ] Allow users to add new statements to existing analysis
 - [ ] Merge with previously uploaded data
-- [ ] Only process new transactions (skip duplicates)
+- [ ] Only process new expenses (skip duplicates)
 
 ---
 
 ## UI/UX Improvements Needed
 
 ### Color Scheme Update
+
 - **Primary Green**: Safaricom green (#00A65E or similar)
 - **Accent Red**: Touch of red for important CTAs
 - Update `globals.css` with new brand colors
 - Maintain dark mode support
 
 ### Upload Experience
+
 ```
 ┌─────────────────────────────────────────────┐
 │  📄 Upload M-Pesa Statement(s)              │
@@ -105,10 +120,10 @@
 │                                             │
 │  📊 Uploaded Statements:                    │
 │  • Statement_Jan-Jun_2025.pdf (185 KB)     │
-│    Jan 1 - Jun 30, 2025 (362 transactions) │
+│    Jan 1 - Jun 30, 2025 (362 expenses) │
 │                                             │
 │  • Statement_Jul-Dec_2025.pdf (203 KB)     │
-│    Jul 1 - Dec 31, 2025 (418 transactions) │
+│    Jul 1 - Dec 31, 2025 (418 expenses) │
 │                                             │
 │  [+ Add Another Statement]                  │
 │                                             │
@@ -117,12 +132,13 @@
 ```
 
 ### Progress Feedback
+
 ```
 Analyzing your statements...
-✓ Statement 1: Extracted 362 transactions
-✓ Statement 2: Extracted 418 transactions
+✓ Statement 1: Extracted 362 expenses
+✓ Statement 2: Extracted 418 expenses
 ⚙️ Merging and removing duplicates...
-✓ Found 780 unique transactions
+✓ Found 780 unique expenses
 ✓ Date range: Jan 1 - Dec 31, 2025
 ```
 
@@ -145,6 +161,7 @@ Add to the analyzer page:
 6. Upload the PDF here!
 
 **💡 Pro Tip**: For full year analysis, generate 2 statements:
+
 - Jan 1 - Jun 30
 - Jul 1 - Dec 31
 
@@ -156,29 +173,33 @@ Add to the analyzer page:
 ## Parser Enhancements Needed
 
 ### Handle Multiple Statements
+
 ```typescript
-async function analyzeMultipleStatements(files: File[]): Promise<Transaction[]> {
-  const allTransactions: Transaction[] = [];
-  
+async function analyzeMultipleStatements(files: File[]): Promise<Expense[]> {
+  const allTransactions: Expense[] = [];
+
   for (const file of files) {
     const text = await extractTextFromPDF(file);
-    const transactions = parseStatementText(text);
-    allTransactions.push(...transactions);
+    const expenses = parseStatementText(text);
+    allTransactions.push(...expenses);
   }
-  
+
   // Remove duplicates by receipt number
   const uniqueTransactions = deduplicateByReceipt(allTransactions);
-  
+
   // Sort by date
-  return uniqueTransactions.sort((a, b) => 
-    new Date(a.completionTime).getTime() - new Date(b.completionTime).getTime()
+  return uniqueTransactions.sort(
+    (a, b) =>
+      new Date(a.completionTime).getTime() -
+      new Date(b.completionTime).getTime()
   );
 }
 ```
 
 ### Date Range Analysis
+
 ```typescript
-function analyzeStatementCoverage(transactions: Transaction[]): {
+function analyzeStatementCoverage(expenses: Expense[]): {
   startDate: Date;
   endDate: Date;
   totalDays: number;
@@ -194,6 +215,7 @@ function analyzeStatementCoverage(transactions: Transaction[]): {
 ## Marketing Copy Updates
 
 ### Hero Section
+
 ```
 "Upload Your M-Pesa Statement in Seconds 🚀"
 
@@ -207,6 +229,7 @@ Works with multiple statements for full year analysis.
 ```
 
 ### Benefits
+
 - ⚡ **Faster**: Upload PDF vs copying 100+ messages
 - 🔒 **No Password**: New M-Pesa export has no password
 - 📊 **Complete**: Get up to 6 months per statement
@@ -234,10 +257,10 @@ Works with multiple statements for full year analysis.
   /* Safaricom Green */
   --safaricom-green: oklch(0.65 0.15 155); /* Bright green */
   --safaricom-green-dark: oklch(0.45 0.12 155); /* Darker shade */
-  
+
   /* Accent Red */
   --accent-red: oklch(0.577 0.245 27.325); /* Keep existing destructive */
-  
+
   /* Update primary to use Safaricom green */
   --primary: var(--safaricom-green);
   --primary-foreground: oklch(1 0 0); /* White text on green */

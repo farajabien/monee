@@ -88,15 +88,15 @@ self.addEventListener("notificationclick", function (event) {
   );
 });
 
-// Background sync for offline transactions
+// Background sync for offline expenses
 self.addEventListener("sync", (event) => {
-  if (event.tag === "sync-transactions") {
+  if (event.tag === "sync-expenses") {
     event.waitUntil(syncTransactions());
   }
 });
 
 async function syncTransactions() {
-  // This would sync any pending transactions when back online
-  console.log("Syncing transactions...");
+  // This would sync any pending expenses when back online
+  console.log("Syncing expenses...");
 }
 

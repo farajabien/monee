@@ -41,7 +41,8 @@ export function ManualTransactionDialog({
   const [isOpen, setIsOpen] = useState(false);
   const [amount, setAmount] = useState<string>("");
   const [recipient, setRecipient] = useState<string>("");
-  const [selectedCategory, setSelectedCategory] = useState<string>("Uncategorized");
+  const [selectedCategory, setSelectedCategory] =
+    useState<string>("Uncategorized");
   const [transactionDate, setTransactionDate] = useState<string>(
     new Date().toISOString().split("T")[0]
   );
@@ -94,9 +95,7 @@ export function ManualTransactionDialog({
       };
 
       await db.transact(
-        db.tx.transactions[id()]
-          .update(transactionData)
-          .link({ user: user.id })
+        db.tx.expenses[id()].update(transactionData).link({ user: user.id })
       );
 
       // Reset form
@@ -134,7 +133,7 @@ export function ManualTransactionDialog({
         )}
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Add Manual Transaction</DialogTitle>
+            <DialogTitle>Add Manual Expense</DialogTitle>
             <DialogDescription>
               Manually enter a transaction that wasn&apos;t captured from M-Pesa
             </DialogDescription>
@@ -220,7 +219,9 @@ export function ManualTransactionDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="mpesa-reference">Mpesa Reference (Optional)</Label>
+              <Label htmlFor="mpesa-reference">
+                Mpesa Reference (Optional)
+              </Label>
               <Input
                 id="mpesa-reference"
                 type="text"
@@ -241,7 +242,7 @@ export function ManualTransactionDialog({
                 Cancel
               </Button>
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Adding..." : "Add Transaction"}
+                {isSubmitting ? "Adding..." : "Add Expense"}
               </Button>
             </DialogFooter>
           </form>

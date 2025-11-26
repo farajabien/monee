@@ -26,7 +26,7 @@ export function RecipientList() {
         order: { updatedAt: "desc" },
       },
     },
-    transactions: {
+    expenses: {
       $: {
         where: { "user.id": user.id },
       },
@@ -34,21 +34,27 @@ export function RecipientList() {
   });
 
   const savedRecipients = data?.recipients || [];
-  const transactions = data?.transactions || [];
+  const expenses = data?.expenses || [];
 
-  // Get all unique recipients from transactions
+  // Get all unique recipients from expenses
   const uniqueRecipientNames = new Set<string>();
-  transactions.forEach((tx) => {
+  expenses.forEach((tx) => {
     if (tx.recipient) {
       uniqueRecipientNames.add(tx.recipient);
     }
   });
 
   // Calculate total amount spent per recipient
-  const recipientTotals = new Map<string, { totalAmount: number; count: number }>();
-  transactions.forEach((tx) => {
+  const recipientTotals = new Map<
+    string,
+    { totalAmount: number; count: number }
+  >();
+  expenses.forEach((tx) => {
     if (tx.recipient) {
-      const existing = recipientTotals.get(tx.recipient) || { totalAmount: 0, count: 0 };
+      const existing = recipientTotals.get(tx.recipient) || {
+        totalAmount: 0,
+        count: 0,
+      };
       recipientTotals.set(tx.recipient, {
         totalAmount: existing.totalAmount + tx.amount,
         count: existing.count + 1,
@@ -59,7 +65,10 @@ export function RecipientList() {
   // Merge saved recipients with transaction recipients
   const allRecipients = Array.from(uniqueRecipientNames).map((originalName) => {
     const saved = savedRecipients.find((r) => r.originalName === originalName);
-    const totals = recipientTotals.get(originalName) || { totalAmount: 0, count: 0 };
+    const totals = recipientTotals.get(originalName) || {
+      totalAmount: 0,
+      count: 0,
+    };
     return {
       id: saved?.id || originalName,
       originalName,
@@ -83,7 +92,9 @@ export function RecipientList() {
         return (
           displayName.toLowerCase().includes(searchQuery.toLowerCase()) ||
           r.originalName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          r.defaultCategory?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          r.defaultCategory
+            ?.toLowerCase()
+            .includes(searchQuery.toLowerCase()) ||
           r.notes?.toLowerCase().includes(searchQuery.toLowerCase())
         );
       });
@@ -96,7 +107,7 @@ export function RecipientList() {
           return b.totalAmount - a.totalAmount;
         case "amount-low":
           return a.totalAmount - b.totalAmount;
-        case "transactions":
+        case "expenses":
           return b.transactionCount - a.transactionCount;
         case "name":
           const aName = a.nickname || a.originalName;
@@ -138,7 +149,7 @@ export function RecipientList() {
           sortOptions={[
             { value: "amount-high", label: "Amount: High to Low" },
             { value: "amount-low", label: "Amount: Low to High" },
-            { value: "transactions", label: "Most Transactions" },
+            { value: "expenses", label: "Most Expenses" },
             { value: "name", label: "Name (A-Z)" },
           ]}
           totalCount={allRecipients.length}
@@ -167,7 +178,9 @@ export function RecipientList() {
               <Card key={recipient.id}>
                 <CardContent className="p-4 space-y-3">
                   <div className="flex items-start justify-between gap-2">
-                    <Badge variant="outline" className="text-xs">#{index + 1}</Badge>
+                    <Badge variant="outline" className="text-xs">
+                      #{index + 1}
+                    </Badge>
                     <RecipientManager
                       recipientName={recipient.originalName}
                       currentCategory={recipient.defaultCategory}
@@ -185,7 +198,8 @@ export function RecipientList() {
                     )}
                     <div className="flex items-center justify-between gap-2">
                       <p className="text-xs text-muted-foreground">
-                        {recipient.transactionCount} transaction{recipient.transactionCount !== 1 ? "s" : ""}
+                        {recipient.transactionCount} transaction
+                        {recipient.transactionCount !== 1 ? "s" : ""}
                       </p>
                       <p className="text-lg font-bold text-primary">
                         {formatAmount(recipient.totalAmount)}
@@ -194,7 +208,9 @@ export function RecipientList() {
                   </div>
 
                   {recipient.defaultCategory && (
-                    <Badge variant="secondary">{recipient.defaultCategory}</Badge>
+                    <Badge variant="secondary">
+                      {recipient.defaultCategory}
+                    </Badge>
                   )}
 
                   {recipient.notes && (
@@ -212,7 +228,9 @@ export function RecipientList() {
           <div className="space-y-2">
             {filteredAndSortedRecipients.map((recipient, index) => (
               <Item key={recipient.id} variant="outline">
-                <Badge variant="outline" className="text-xs shrink-0">#{index + 1}</Badge>
+                <Badge variant="outline" className="text-xs shrink-0">
+                  #{index + 1}
+                </Badge>
                 <div className="flex-1 space-y-1">
                   <div className="flex items-center justify-between gap-2 flex-wrap">
                     <p className="font-semibold">
@@ -229,10 +247,13 @@ export function RecipientList() {
                   )}
                   <div className="flex items-center gap-2 flex-wrap">
                     <p className="text-xs text-muted-foreground">
-                      {recipient.transactionCount} transaction{recipient.transactionCount !== 1 ? "s" : ""}
+                      {recipient.transactionCount} transaction
+                      {recipient.transactionCount !== 1 ? "s" : ""}
                     </p>
                     {recipient.defaultCategory && (
-                      <Badge variant="secondary">{recipient.defaultCategory}</Badge>
+                      <Badge variant="secondary">
+                        {recipient.defaultCategory}
+                      </Badge>
                     )}
                   </div>
                   {recipient.notes && (

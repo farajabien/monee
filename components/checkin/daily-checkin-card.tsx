@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { parseMpesaMessage } from "@/lib/mpesa-parser";
 import { findMostCommonCategoryForRecipient } from "@/lib/recipient-matcher";
-import type { Transaction } from "@/types";
+import type { Expense } from "@/types";
 
 export default function DailyCheckinCard() {
   const user = db.useUser();
@@ -35,9 +35,9 @@ export default function DailyCheckinCard() {
 
   const todayCheckin = checkinData?.daily_checkins?.[0];
 
-  // Get today's transactions
+  // Get today's expenses
   const { data: transactionsData } = db.useQuery({
-    transactions: {
+    expenses: {
       $: {
         where: {
           "user.id": user.id,
@@ -48,20 +48,20 @@ export default function DailyCheckinCard() {
     },
   });
 
-  const todayTransactions = transactionsData?.transactions || [];
+  const todayTransactions = transactionsData?.expenses || [];
 
-  // Fetch existing transactions for recipient matching
+  // Fetch existing expenses for recipient matching
   const { data: allTransactionsData } = db.useQuery({
-    transactions: {
+    expenses: {
       $: {
         where: { "user.id": user.id },
-        limit: 1000, // Get enough transactions for matching
+        limit: 1000, // Get enough expenses for matching
       },
     },
   });
 
-  const existingTransactions: Transaction[] = useMemo(
-    () => allTransactionsData?.transactions || [],
+  const existingTransactions: Expense[] = useMemo(
+    () => allTransactionsData?.expenses || [],
     [allTransactionsData]
   );
 
@@ -76,7 +76,7 @@ export default function DailyCheckinCard() {
         .map((line) => line.trim())
         .filter((line) => line.length > 0);
 
-      const transactions = [];
+      const expenses = [];
       for (const message of messageLines) {
         try {
           const parsed = parseMpesaMessage(message);
@@ -88,7 +88,7 @@ export default function DailyCheckinCard() {
               ) || "Uncategorized"
             : "Uncategorized";
 
-          transactions.push({
+          expenses.push({
             amount: parsed.amount,
             recipient: parsed.recipient || "",
             date: parsed.timestamp || Date.now(),
@@ -102,10 +102,10 @@ export default function DailyCheckinCard() {
         }
       }
 
-      // Create all transactions first
-      for (const t of transactions) {
+      // Create all expenses first
+      for (const t of expenses) {
         await db.transact(
-          db.tx.transactions[id()].update(t).link({ user: user.id })
+          db.tx.expenses[id()].update(t).link({ user: user.id })
         );
       }
 
@@ -114,8 +114,7 @@ export default function DailyCheckinCard() {
         await db.transact(
           db.tx.daily_checkins[todayCheckin.id].update({
             completed: true,
-            transactionsCount:
-              todayCheckin.transactionsCount + transactions.length,
+            transactionsCount: todayCheckin.transactionsCount + expenses.length,
           })
         );
       } else {
@@ -124,7 +123,7 @@ export default function DailyCheckinCard() {
             .update({
               date: todayTimestamp,
               completed: true,
-              transactionsCount: transactions.length,
+              transactionsCount: expenses.length,
             })
             .link({ user: user.id })
         );
@@ -202,9 +201,7 @@ export default function DailyCheckinCard() {
 
           {todayTransactions.length > 0 && (
             <div className="mt-4 pt-4 border-t">
-              <p className="text-sm font-medium mb-2">
-                Today&apos;s Transactions
-              </p>
+              <p className="text-sm font-medium mb-2">Today&apos;s Expenses</p>
               <div className="space-y-1">
                 {todayTransactions.slice(0, 5).map((tx) => (
                   <div
@@ -212,7 +209,7 @@ export default function DailyCheckinCard() {
                     className="text-sm flex justify-between items-center"
                   >
                     <span className="text-muted-foreground">
-                      {tx.recipient || "Transaction"}
+                      {tx.recipient || "Expense"}
                     </span>
                     <span className="font-medium">
                       Ksh {tx.amount.toLocaleString()}

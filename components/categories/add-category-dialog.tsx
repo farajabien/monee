@@ -81,7 +81,7 @@ export function AddCategoryDialog({
         <DialogHeader>
           <DialogTitle>Add New Category</DialogTitle>
           <DialogDescription>
-            Create a new category to organize your transactions.
+            Create a new category to organize your expenses.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -141,4 +141,3 @@ export function AddCategoryDialog({
     </Dialog>
   );
 }
-

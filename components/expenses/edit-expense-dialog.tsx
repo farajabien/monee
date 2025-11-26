@@ -20,18 +20,18 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { AddCategoryDialog } from "@/components/categories/add-category-dialog";
-import type { Transaction, Category } from "@/types";
+import type { Expense, Category } from "@/types";
 
 interface EditTransactionDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  transaction: Transaction | null;
+  expense: Expense | null;
 }
 
-export function EditTransactionDialog({
+export function EditExpenseDialog({
   open,
   onOpenChange,
-  transaction,
+  expense,
 }: EditTransactionDialogProps) {
   const user = db.useUser();
   const [selectedCategory, setSelectedCategory] = useState<string>("");
@@ -55,26 +55,26 @@ export function EditTransactionDialog({
 
   // Initialize selected category when transaction changes
   useEffect(() => {
-    if (transaction) {
-      setSelectedCategory(transaction.category || "Uncategorized");
+    if (expense) {
+      setSelectedCategory(expense.category || "Uncategorized");
     }
-  }, [transaction]);
+  }, [expense]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!transaction) return;
+    if (!expense) return;
 
     setIsSubmitting(true);
     try {
       await db.transact(
-        db.tx.transactions[transaction.id].update({
+        db.tx.expenses[expense.id].update({
           category: selectedCategory || "Uncategorized",
         })
       );
       onOpenChange(false);
     } catch (error) {
-      console.error("Error updating transaction:", error);
-      alert("Failed to update transaction. Please try again.");
+      console.error("Error updating expense:", error);
+      alert("Failed to update expense. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -87,14 +87,14 @@ export function EditTransactionDialog({
     setShowAddCategoryDialog(false);
   };
 
-  if (!transaction) return null;
+  if (!expense) return null;
 
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit Transaction Category</DialogTitle>
+            <DialogTitle>Edit Expense Category</DialogTitle>
             <DialogDescription>
               Update the category for this transaction.
             </DialogDescription>

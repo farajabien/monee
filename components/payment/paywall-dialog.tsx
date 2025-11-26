@@ -31,7 +31,7 @@ export function PaywallDialog({ open, onOpenChange }: PaywallDialogProps) {
 
   const features = [
     "M-Pesa Smart Parsing (6+ formats)",
-    "Unlimited Transactions",
+    "Unlimited Expenses",
     "Income & Expense Tracking",
     "Budget Management",
     "Debt Tracking & Payments",
@@ -101,7 +101,9 @@ export function PaywallDialog({ open, onOpenChange }: PaywallDialogProps) {
             })
             .catch((err) => {
               console.error("Failed to update payment status:", err);
-              alert("Payment received but failed to update status. Please contact support.");
+              alert(
+                "Payment received but failed to update status. Please contact support."
+              );
             });
         },
         onCancel: () => {
@@ -119,19 +121,27 @@ export function PaywallDialog({ open, onOpenChange }: PaywallDialogProps) {
   };
 
   return (
-    <Dialog open={open && !hideDialog} onOpenChange={(newOpen) => {
-      // Prevent closing the dialog - user must pay
-      if (!newOpen) return;
-      onOpenChange(newOpen);
-    }}>
-      <DialogContent 
+    <Dialog
+      open={open && !hideDialog}
+      onOpenChange={(newOpen) => {
+        // Prevent closing the dialog - user must pay
+        if (!newOpen) return;
+        onOpenChange(newOpen);
+      }}
+    >
+      <DialogContent
         className="max-w-2xl"
         onEscapeKeyDown={(e) => e.preventDefault()}
         onPointerDownOutside={(e) => e.preventDefault()}
       >
         <DialogHeader>
           <DialogTitle className="text-2xl flex items-center gap-2">
-            <Image src="/AppImages/money-bag.png" alt="Money Bag" width={24} height={24} />
+            <Image
+              src="/AppImages/money-bag.png"
+              alt="Money Bag"
+              width={24}
+              height={24}
+            />
             Unlock Full Access to MONEE
           </DialogTitle>
           <DialogDescription>
@@ -172,7 +182,8 @@ export function PaywallDialog({ open, onOpenChange }: PaywallDialogProps) {
               ))}
             </div>
             <p className="text-xs text-muted-foreground mt-3 text-center">
-              + {features.length - 8} more features • Lifetime access • Free updates forever
+              + {features.length - 8} more features • Lifetime access • Free
+              updates forever
             </p>
           </div>
         </div>
@@ -187,9 +198,9 @@ export function PaywallDialog({ open, onOpenChange }: PaywallDialogProps) {
             {isProcessing ? "Processing..." : "Pay Ksh 999 & Get Started"}
           </Button>
         </DialogFooter>
-          <p className="text-xs text-center text-muted-foreground">
-            💳 Payment required to access all features
-          </p>
+        <p className="text-xs text-center text-muted-foreground">
+          💳 Payment required to access all features
+        </p>
       </DialogContent>
     </Dialog>
   );

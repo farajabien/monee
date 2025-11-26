@@ -14,13 +14,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { Textarea } from "@/components/ui/textarea";
 import { Tag, Trash2, User, Plus } from "lucide-react";
 import { AddCategoryDialog } from "@/components/categories/add-category-dialog";
@@ -39,9 +39,11 @@ export function RecipientManager({
   compact = false,
 }: RecipientManagerProps) {
   const user = db.useUser();
-  const [showDialog, setShowDialog] = useState(false);
+  const [showSheet, setShowSheet] = useState(false);
   const [nickname, setNickname] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState(currentCategory || "");
+  const [selectedCategory, setSelectedCategory] = useState(
+    currentCategory || ""
+  );
   const [notes, setNotes] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [showAddCategoryDialog, setShowAddCategoryDialog] = useState(false);
@@ -70,15 +72,16 @@ export function RecipientManager({
     },
   });
 
-  const categories = categoriesData?.categories?.filter(
-    (cat) => cat.isActive !== false
-  ) || [];
+  const categories =
+    categoriesData?.categories?.filter((cat) => cat.isActive !== false) || [];
 
-  const handleOpenDialog = () => {
+  const handleOpenSheet = () => {
     setNickname(existingRecipient?.nickname || "");
-    setSelectedCategory(existingRecipient?.defaultCategory || currentCategory || "");
+    setSelectedCategory(
+      existingRecipient?.defaultCategory || currentCategory || ""
+    );
     setNotes(existingRecipient?.notes || "");
-    setShowDialog(true);
+    setShowSheet(true);
   };
 
   const handleSave = async () => {
@@ -90,7 +93,7 @@ export function RecipientManager({
     setIsSaving(true);
     try {
       const now = Date.now();
-      
+
       if (existingRecipient) {
         // Update existing
         await db.transact([
@@ -121,7 +124,7 @@ export function RecipientManager({
         onCategoryAssigned(selectedCategory);
       }
 
-      setShowDialog(false);
+      setShowSheet(false);
     } catch (error) {
       console.error("Failed to save recipient:", error);
       alert("Failed to save. Please try again.");
@@ -136,7 +139,7 @@ export function RecipientManager({
 
     try {
       await db.transact([db.tx.recipients[existingRecipient.id].delete()]);
-      setShowDialog(false);
+      setShowSheet(false);
     } catch (error) {
       console.error("Failed to delete recipient:", error);
       alert("Failed to delete. Please try again.");
@@ -154,45 +157,75 @@ export function RecipientManager({
         <Button
           variant="ghost"
           size="sm"
-          onClick={handleOpenDialog}
-          className="h-6 px-2"
+          onClick={handleOpenSheet}
+          className="h-6 px-2 hover:bg-accent/50 transition-colors"
+          aria-label={`Manage recipient ${recipientName}`}
         >
           <Tag className="h-3 w-3" />
         </Button>
 
-        <Dialog open={showDialog} onOpenChange={setShowDialog}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <User className="h-5 w-5" />
+        <Sheet open={showSheet} onOpenChange={setShowSheet}>
+          <SheetContent
+            side="bottom"
+            className="pb-safe flex flex-col max-h-[85vh]"
+          >
+            <SheetHeader className="shrink-0">
+              <SheetTitle className="flex items-center gap-2 text-lg">
+                <User className="h-5 w-5 text-primary" />
                 Manage Recipient
-              </DialogTitle>
-              <DialogDescription>
+              </SheetTitle>
+              <SheetDescription className="text-sm">
                 Add a nickname and default category for {recipientName}
-              </DialogDescription>
-            </DialogHeader>
+              </SheetDescription>
+            </SheetHeader>
 
-            <div className="space-y-4">
+            <div className="flex-1 overflow-y-auto space-y-4 py-4">
               <div className="space-y-2">
-                <Label>Original Name</Label>
-                <Input value={recipientName} disabled />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="nickname">Nickname (e.g., &quot;Eggs Guy&quot;, &quot;Weed Plug&quot;)</Label>
+                <Label className="text-sm font-medium">Original Name</Label>
                 <Input
-                  id="nickname"
-                  placeholder="Enter nickname..."
-                  value={nickname}
-                  onChange={(e) => setNickname(e.target.value)}
+                  value={recipientName}
+                  disabled
+                  className="bg-muted/50 cursor-not-allowed"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="category">Default Category</Label>
+                <Label htmlFor="nickname" className="text-sm font-medium">
+                  Nickname{" "}
+                  <span className="text-muted-foreground text-xs">
+                    (optional)
+                  </span>
+                </Label>
+                <Input
+                  id="nickname"
+                  placeholder="e.g., Eggs Guy, Rice Plug"
+                  value={nickname}
+                  onChange={(e) => setNickname(e.target.value)}
+                  className="transition-all focus:ring-2 focus:ring-primary/20"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Give this recipient a memorable name
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="category" className="text-sm font-medium">
+                  Default Category{" "}
+                  <span className="text-muted-foreground text-xs">
+                    (optional)
+                  </span>
+                </Label>
                 <div className="flex gap-2">
-                  <Select value={selectedCategory || "none"} onValueChange={(val) => setSelectedCategory(val === "none" ? "" : val)}>
-                    <SelectTrigger id="category" className="flex-1">
+                  <Select
+                    value={selectedCategory || "none"}
+                    onValueChange={(val) =>
+                      setSelectedCategory(val === "none" ? "" : val)
+                    }
+                  >
+                    <SelectTrigger
+                      id="category"
+                      className="flex-1 transition-all focus:ring-2 focus:ring-primary/20"
+                    >
                       <SelectValue placeholder="Select default category" />
                     </SelectTrigger>
                     <SelectContent>
@@ -209,46 +242,66 @@ export function RecipientManager({
                     variant="outline"
                     size="icon"
                     onClick={() => setShowAddCategoryDialog(true)}
+                    className="shrink-0 hover:bg-primary/10 hover:text-primary hover:border-primary transition-colors"
+                    aria-label="Add new category"
                   >
                     <Plus className="h-4 w-4" />
                   </Button>
                 </div>
+                <p className="text-xs text-muted-foreground">
+                  Auto-assign expenses from this recipient to a category
+                </p>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="notes">Notes (optional)</Label>
+                <Label htmlFor="notes" className="text-sm font-medium">
+                  Notes{" "}
+                  <span className="text-muted-foreground text-xs">
+                    (optional)
+                  </span>
+                </Label>
                 <Textarea
                   id="notes"
                   placeholder="Add notes about this recipient..."
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   rows={3}
+                  className="resize-none transition-all focus:ring-2 focus:ring-primary/20"
                 />
               </div>
             </div>
 
-            <DialogFooter className="flex justify-between">
+            <SheetFooter className="shrink-0 flex flex-col sm:flex-row gap-2 pt-4 border-t">
               {existingRecipient && (
                 <Button
                   variant="destructive"
                   size="sm"
                   onClick={handleDelete}
+                  className="sm:mr-auto hover:bg-destructive/90 transition-colors"
                 >
                   <Trash2 className="h-4 w-4 mr-2" />
                   Delete
                 </Button>
               )}
-              <div className="flex gap-2 ml-auto">
-                <Button variant="outline" onClick={() => setShowDialog(false)}>
+              <div className="flex gap-2 w-full sm:w-auto sm:ml-auto">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowSheet(false)}
+                  className="flex-1 sm:flex-none hover:bg-accent transition-colors"
+                >
                   Cancel
                 </Button>
-                <Button onClick={handleSave} disabled={isSaving}>
+                <Button
+                  onClick={handleSave}
+                  disabled={isSaving}
+                  className="flex-1 sm:flex-none bg-primary hover:bg-primary/90 transition-colors disabled:opacity-50"
+                >
                   {isSaving ? "Saving..." : "Save"}
                 </Button>
               </div>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+            </SheetFooter>
+          </SheetContent>
+        </Sheet>
 
         <AddCategoryDialog
           open={showAddCategoryDialog}

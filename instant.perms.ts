@@ -6,7 +6,7 @@ export default {
       delete: "auth.id != null",
     },
   },
-  transactions: {
+  expenses: {
     allow: {
       create: "auth.id != null",
       update: "auth.id != null",

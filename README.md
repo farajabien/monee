@@ -25,7 +25,7 @@ Every transaction tells a story — rent, food, house help, little treats, and a
 ### **1. Start by Uploading Your Mpesa Statement**
 
 You can upload your Mpesa statement or paste your recent messages.
-MONEE automatically reads and groups your transactions — showing where your money actually goes.
+MONEE automatically reads and groups your expenses — showing where your money actually goes.
 
 You can then label them easily — rent, transport, food, or personal care — and MONEE will remember those labels for next time.
 
@@ -125,7 +125,7 @@ Debts don't have to be stressful — they just need to be organized.
 - 🤖 **Smart Auto-Categorization** – fuzzy recipient matching remembers categories for known recipients
 - 📊 **Monthly Insights** – see where your money truly goes with top recipients list
 - 🔔 **Daily Check-In Reminders** – gentle push to stay consistent (coming soon)
-- 🌙 **Evening Routine Mode** – quick checklist for all your daily transactions
+- 🌙 **Evening Routine Mode** – quick checklist for all your daily expenses
 - 💖 **ELTIW (Every Little Thing I Want)** – track what you want and celebrate your wins
 - 💰 **Income Tracking** – track multiple income sources and payday dates
 - 📈 **Income vs Expenses** – see your financial balance at a glance
@@ -147,7 +147,7 @@ Debts don't have to be stressful — they just need to be organized.
 ## **The MONEE Flow**
 
 1. **Add your income sources** → set up all your income streams and payday dates.
-2. **Upload your Mpesa statement** → MONEE groups and labels your transactions.
+2. **Upload your Mpesa statement** → MONEE groups and labels your expenses.
 3. **Set your monthly budget** → per category (Food, Rent, Self-care, etc.).
 4. **Add your debts** → track all your debts and set up monthly payment rules.
 5. **Paste new Mpesa messages as you spend** → MONEE tracks them for you.
@@ -170,6 +170,7 @@ This simple model keeps MONEE sustainable while staying affordable for everyone.
 ### **Why Ksh 999?**
 
 Compared to Excel templates (Ksh 500-1,000) that require manual work:
+
 - ✅ Auto-parses M-Pesa messages (6+ formats)
 - ✅ Smart categorization with recipient matching
 - ✅ Real-time sync across devices
@@ -192,6 +193,7 @@ You don’t need a financial degree to manage your money — you just need MONEE
 ## **Launch Plan**
 
 ✅ **COMPLETED:**
+
 - Built as a **Progressive Web App (PWA)** using Next.js 16 and shadcn
 - Using **InstantDB** for realtime sync, authentication (magic links)
 - Landing page live at `/landing` with full feature showcase
@@ -203,6 +205,7 @@ You don’t need a financial degree to manage your money — you just need MONEE
 - **Automatic expense tracking** – debt payments auto-record as expenses
 
 🚀 **NEXT STEPS:**
+
 - TikTok content & UGC focused on:
   - "Stop using Excel for your budget — try this Kenya-built app 🇰🇪"
   - "The 2-minute evening money check ritual"
@@ -257,11 +260,12 @@ Before committing to the full app, try our **free analyzer** at `/free-mpesa-ana
 ✅ **PDF Upload Support** — upload your M-Pesa Full Statement PDF for automatic extraction
 ✅ **All Statement Fields** — extracts Receipt No, Completion Time, Details, Status, Paid in, Withdrawn, Balance
 ✅ **Multiple Input Methods** — PDF upload, paste statement text, or paste SMS messages
-✅ **Year-by-Year Analysis** — automatically detects and groups transactions by year
+✅ **Year-by-Year Analysis** — automatically detects and groups expenses by year
 ✅ **Auto-categorization** — groups spending by transaction type
 ✅ **Smart insights** — see top recipients, monthly trends, and spending patterns
 
 **Perfect for:**
+
 - Getting your year-in-review from M-Pesa statements
 - Trying MONEE without commitment
 - One-time spending analysis from any date range

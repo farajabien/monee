@@ -18,7 +18,7 @@ const _schema = i.schema({
       monthlyBudget: i.number(),
       createdAt: i.number().indexed(),
     }),
-    transactions: i.entity({
+    expenses: i.entity({
       amount: i.number().indexed(),
       recipient: i.string(),
       date: i.number().indexed(),
@@ -102,8 +102,8 @@ const _schema = i.schema({
       reverse: { on: "$users", has: "one", label: "profile" },
     },
     profileTransactions: {
-      forward: { on: "transactions", has: "one", label: "user" },
-      reverse: { on: "profiles", has: "many", label: "transactions" },
+      forward: { on: "expenses", has: "one", label: "user" },
+      reverse: { on: "profiles", has: "many", label: "expenses" },
     },
     profileCategories: {
       forward: { on: "categories", has: "one", label: "user" },
