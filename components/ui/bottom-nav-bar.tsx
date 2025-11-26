@@ -6,7 +6,7 @@ const bottomTabs = [
   { label: "Today", icon: List, href: "/dashboard?tab=daily" },
   { label: "Stats", icon: BarChart3, href: "/dashboard?tab=stats" },
   { label: "Wishlist", icon: Heart, href: "/dashboard?tab=wishlist" },
-  { label: "Debt", icon: TrendingUp, href: "/dashboard?tab=debt" },
+  { label: "Debts", icon: TrendingUp, href: "/dashboard?tab=debts" },
   { label: "More", icon: MoreHorizontal, href: "/dashboard?tab=more" },
 ];
 

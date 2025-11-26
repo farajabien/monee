@@ -182,6 +182,7 @@ export function DashboardHeader() {
     { href: "/dashboard?tab=overview", label: "Overview", icon: Home },
     { href: "/dashboard?tab=transactions", label: "Money", icon: ArrowLeftRight },
     { href: "/dashboard?tab=eltiw", label: "Wishlist", icon: Heart },
+    { href: "/dashboard?tab=debts", label: "Debts", icon: TrendingUp },
     { href: "/dashboard?tab=income", label: "Income", icon: TrendingUp },
     { href: "/dashboard?tab=categories", label: "Categories", icon: Tag },
     { href: "/dashboard?tab=year-review", label: "Year", icon: User },

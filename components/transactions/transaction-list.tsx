@@ -2,7 +2,6 @@
 
 import { useState, useMemo } from "react";
 import db from "@/lib/db";
-// import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Item } from "@/components/ui/item";
@@ -26,7 +25,7 @@ export default function TransactionList() {
 
   const handleViewModeChange = (mode: "grid" | "list" | "table") => {
     if (mode !== "table") setViewMode(mode);
-  };;
+  };
   
   const { data } = db.useQuery({
     transactions: {
@@ -46,13 +45,11 @@ export default function TransactionList() {
   const transactions = useMemo(() => data?.transactions || [], [data?.transactions]);
   const recipients = useMemo(() => data?.recipients || [], [data?.recipients]);
   
-  // Get unique categories for filter
   const categories = useMemo(() => {
     const cats = new Set(transactions.map((t: Transaction) => t.category).filter(Boolean));
     return Array.from(cats);
   }, [transactions]);
 
-  // Get available months from transactions
   const availableMonths = useMemo(() => {
     const months = new Set<string>();
     transactions.forEach((t: Transaction) => {
@@ -60,14 +57,12 @@ export default function TransactionList() {
       const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
       months.add(monthKey);
     });
-    return Array.from(months).sort().reverse(); // Most recent first
+    return Array.from(months).sort().reverse();
   }, [transactions]);
 
-  // Calculate metrics for filtered transactions
   const metrics = useMemo(() => {
     let filtered = [...transactions];
 
-    // Apply month filter first
     if (monthFilter !== "all") {
       filtered = filtered.filter((t: Transaction) => {
         const date = new Date(t.date || t.createdAt);
@@ -76,12 +71,10 @@ export default function TransactionList() {
       });
     }
 
-    // Apply category filter
     if (categoryFilter !== "all") {
       filtered = filtered.filter((t: Transaction) => t.category === categoryFilter);
     }
 
-    // Apply search filter
     if (searchQuery) {
       filtered = filtered.filter((t: Transaction) => {
         const displayName = getDisplayName(t.recipient || "");
@@ -104,11 +97,9 @@ export default function TransactionList() {
     };
   }, [transactions, monthFilter, categoryFilter, searchQuery]);
 
-  // Filter and sort transactions
   const filteredAndSortedTransactions = useMemo(() => {
     let result = [...transactions];
 
-    // Month filter
     if (monthFilter !== "all") {
       result = result.filter((t: Transaction) => {
         const date = new Date(t.date || t.createdAt);
@@ -117,7 +108,6 @@ export default function TransactionList() {
       });
     }
 
-    // Search filter
     if (searchQuery) {
       result = result.filter((t: Transaction) => {
         const displayName = getDisplayName(t.recipient || "");
@@ -129,12 +119,10 @@ export default function TransactionList() {
       });
     }
 
-    // Category filter
     if (categoryFilter !== "all") {
       result = result.filter((t: Transaction) => t.category === categoryFilter);
     }
 
-    // Sort
     result.sort((a: Transaction, b: Transaction) => {
       switch (sortBy) {
         case "newest":
@@ -151,9 +139,8 @@ export default function TransactionList() {
     });
 
     return result;
-  }, [transactions, searchQuery, categoryFilter, sortBy]);
+  }, [transactions, searchQuery, categoryFilter, sortBy, monthFilter]);
 
-  // Helper to get display name (nickname or original)
   const getDisplayName = (originalName: string) => {
     const recipient = recipients.find((r) => r.originalName === originalName);
     return recipient?.nickname || originalName;
@@ -187,101 +174,69 @@ export default function TransactionList() {
     return date.toLocaleDateString("en-KE", { month: "long", year: "numeric" });
   };
 
-  // Format number to compact form (1000 -> 1K, 1000000 -> 1M)
   const formatCompact = (num: number) => {
     if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
     if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
     return num.toString();
   };
 
-  // Filter state for new filter row
-  const [period, setPeriod] = useState("all");
-  const [month, setMonth] = useState("all");
-  // TODO: Add date range picker state if needed
-
   return (
-    <>
-      {/* Metrics Badges */}
-      <div className="flex flex-wrap gap-1 mb-4">
-        <Badge variant="secondary" className="text-sm px-3 py-1">
-          <DollarSign className="h-3.5 w-3.5 mr-1" />
-          Ksh {formatCompact(metrics.totalSpent)} Spent
+    <div className="space-y-3">
+      {/* Metrics */}
+      <div className="flex flex-wrap gap-1.5">
+        <Badge variant="secondary" className="text-xs px-2 py-0.5">
+          <DollarSign className="h-3 w-3 mr-1" />
+          Ksh {formatCompact(metrics.totalSpent)}
         </Badge>
-        <Badge variant="secondary" className="text-sm px-3 py-1">
-          <Calendar className="h-3.5 w-3.5 mr-1" />
-          {metrics.transactionCount} Trans.
+        <Badge variant="secondary" className="text-xs px-2 py-0.5">
+          <Calendar className="h-3 w-3 mr-1" />
+          {metrics.transactionCount} Trans
         </Badge>
-        <Badge variant="outline" className="text-sm px-3 py-1">
-          <TrendingUp className="h-3.5 w-3.5 mr-1" />
+        <Badge variant="outline" className="text-xs px-2 py-0.5">
+          <TrendingUp className="h-3 w-3 mr-1" />
           Avg: Ksh {formatCompact(metrics.avgTransaction)}
         </Badge>
       </div>
 
-      {/* New Filter Row */}
-      <div className="flex flex-wrap gap-2 mb-4 items-center">
-        <Select value={period} onValueChange={setPeriod}>
-          <SelectTrigger className="w-[120px]">
-            <SelectValue placeholder="Period" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Time</SelectItem>
-            <SelectItem value="today">Today</SelectItem>
-            <SelectItem value="yesterday">Yesterday</SelectItem>
-            <SelectItem value="this-week">This Week</SelectItem>
-            <SelectItem value="last-week">Last Week</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={month} onValueChange={setMonth}>
-          <SelectTrigger className="w-[120px]">
-            <SelectValue placeholder="Month" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Months</SelectItem>
-            {availableMonths.map((m) => (
-              <SelectItem key={m} value={m}>{formatMonthLabel(m)}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        {/* Date range picker and more filters can go here */}
-      </div>
-
-      <div className="border rounded-lg bg-background p-0 mb-4">
-        <div className="flex flex-row items-center justify-between px-4 pt-4">
-          <div className="font-semibold text-lg">Transactions</div>
-          {/* Month Filter */}
-          <Select value={monthFilter} onValueChange={setMonthFilter}>
-            <SelectTrigger className="w-[200px]">
-              <SelectValue placeholder="Select month" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Time</SelectItem>
-              {availableMonths.map((month) => (
-                <SelectItem key={month} value={month}>
-                  {formatMonthLabel(month)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+      <div className="border rounded-lg bg-background p-3">
+        <div className="flex items-center justify-between mb-3">
+          <div className="font-semibold text-base">Transactions</div>
+          {availableMonths.length > 0 && (
+            <Select value={monthFilter} onValueChange={setMonthFilter}>
+              <SelectTrigger className="w-[160px] h-8 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Time</SelectItem>
+                {availableMonths.map((month) => (
+                  <SelectItem key={month} value={month} className="text-xs">
+                    {formatMonthLabel(month)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         </div>
-        <div className="space-y-4 px-4 pb-4">
+
+        <div className="space-y-3">
           <DataViewControls
             viewMode={viewMode}
             onViewModeChange={handleViewModeChange}
             searchValue={searchQuery}
             onSearchChange={setSearchQuery}
-            searchPlaceholder="Search transactions..."
+            searchPlaceholder="Search..."
             sortValue={sortBy}
             onSortChange={setSortBy}
             sortOptions={[
-              { value: "newest", label: "Newest First" },
-              { value: "oldest", label: "Oldest First" },
-              { value: "amount-high", label: "Amount: High to Low" },
-              { value: "amount-low", label: "Amount: Low to High" },
+              { value: "newest", label: "Newest" },
+              { value: "oldest", label: "Oldest" },
+              { value: "amount-high", label: "Amount ↓" },
+              { value: "amount-low", label: "Amount ↑" },
             ]}
             filterValue={categoryFilter}
             onFilterChange={setCategoryFilter}
             filterOptions={[
-              { value: "all", label: "All Categories" },
+              { value: "all", label: "All" },
               ...categories.map(cat => ({ value: cat, label: cat })),
             ]}
             filterLabel="Category"
@@ -290,11 +245,14 @@ export default function TransactionList() {
           />
 
           {filteredAndSortedTransactions.length === 0 && (
-            <div className="text-center text-muted-foreground py-8">
-              {searchQuery || categoryFilter !== "all" ? (
-                <p>No transactions found matching your filters.</p>
+            <div className="text-center text-muted-foreground py-12">
+              {searchQuery || categoryFilter !== "all" || monthFilter !== "all" ? (
+                <p className="text-sm">No transactions found matching your filters</p>
               ) : (
-                <p>No transactions yet. Add your first Mpesa message above!</p>
+                <>
+                  <p className="text-sm mb-1">No transactions yet</p>
+                  <p className="text-xs">Add your first Mpesa message above</p>
+                </>
               )}
             </div>
           )}
@@ -314,14 +272,16 @@ export default function TransactionList() {
           {filteredAndSortedTransactions.length > 0 && viewMode === "grid" && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
               {filteredAndSortedTransactions.map((transaction: Transaction, index: number) => (
-                <Item key={transaction.id} className="flex flex-col gap-2" variant="outline" size="sm">
+                <Item key={transaction.id} className="flex flex-col gap-2 p-3" variant="outline" size="sm">
                   <div className="flex items-start justify-between gap-2">
-                    <Badge variant="outline" className="text-xs">#{index + 1}</Badge>
-                    <div className="flex gap-1">
+                    <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                      #{index + 1}
+                    </Badge>
+                    <div className="flex gap-0.5">
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-7 w-7"
+                        className="h-6 w-6"
                         onClick={() => {
                           setEditingTransaction(transaction);
                           setIsEditDialogOpen(true);
@@ -332,29 +292,36 @@ export default function TransactionList() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-7 w-7 text-destructive"
+                        className="h-6 w-6 text-destructive"
                         onClick={() => deleteTransaction(transaction.id)}
                       >
                         <Trash2 className="h-3 w-3" />
                       </Button>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-semibold text-lg">
-                      {formatAmount(transaction.amount)}
-                    </span>
-                    {transaction.category && (
-                      <Badge variant="secondary">{transaction.category}</Badge>
+
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="font-semibold text-base">
+                        {formatAmount(transaction.amount)}
+                      </span>
+                      {transaction.category && (
+                        <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                          {transaction.category}
+                        </Badge>
+                      )}
+                    </div>
+
+                    {transaction.recipient && (
+                      <p className="text-xs text-muted-foreground line-clamp-1">
+                        To: {getDisplayName(transaction.recipient)}
+                      </p>
                     )}
-                  </div>
-                  {transaction.recipient && (
-                    <p className="text-xs text-muted-foreground">
-                      To: {getDisplayName(transaction.recipient)}
+
+                    <p className="text-[10px] text-muted-foreground">
+                      {formatDate(transaction.date || transaction.createdAt)}
                     </p>
-                  )}
-                  <p className="text-xs text-muted-foreground">
-                    {formatDate(transaction.date || transaction.createdAt)}
-                  </p>
+                  </div>
                 </Item>
               ))}
             </div>
@@ -367,7 +334,6 @@ export default function TransactionList() {
         onOpenChange={setIsEditDialogOpen}
         transaction={editingTransaction}
       />
-    </>
+    </div>
   );
 }
-

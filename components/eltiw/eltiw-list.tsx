@@ -5,7 +5,6 @@ import { eltiwColumns } from "@/components/eltiw/eltiw-columns";
 import { useState, useMemo, useCallback } from "react";
 import { id } from "@instantdb/react";
 import db from "@/lib/db";
-// import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -156,7 +155,6 @@ export default function EltiwList() {
     try {
       setIsSubmitting(true);
       if (editingItem) {
-        // Update existing item
         await db.transact(
           db.tx.eltiw_items[editingItem.id].update({
             name: name.trim(),
@@ -170,7 +168,6 @@ export default function EltiwList() {
           })
         );
       } else {
-        // Create new item
         await db.transact(
           db.tx.eltiw_items[id()]
             .update({
@@ -204,7 +201,6 @@ export default function EltiwList() {
       item.deadline ? new Date(item.deadline).toISOString().split("T")[0] : ""
     );
     setCategory(item.category || "");
-    // Set source if exists
     const sourceOption = SOURCE_OPTIONS.find((s) => s.name === item.source);
     setSelectedSource(sourceOption?.value || "");
     setShowAddDialog(true);
@@ -225,16 +221,13 @@ export default function EltiwList() {
 
   const items = useMemo(() => data?.eltiw_items || [], [data?.eltiw_items]);
   
-  // Format number to compact form (1000 -> 1K, 1000000 -> 1M)
   const formatCompact = (num: number) => {
     if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
     if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
     return num.toString();
   };
 
-  // Calculate metrics
   const metrics = useMemo(() => {
-    // If a category filter is active, show metrics for that category only
     const filterCat = categoryFilter !== "all" ? categoryFilter : null;
     const filtered = filterCat ? items.filter((item) => item.category === filterCat) : items;
     const activeItems = filtered.filter((item) => !item.gotIt);
@@ -249,7 +242,6 @@ export default function EltiwList() {
     };
   }, [items, categoryFilter]);
   
-  // Get unique sources for filter
   const uniqueSources = useMemo(() => {
     const sources = new Set<string>();
     items.forEach((item) => {
@@ -258,7 +250,6 @@ export default function EltiwList() {
     return Array.from(sources);
   }, [items]);
 
-  // Get unique categories for filter
   const uniqueCategories = useMemo(() => {
     const cats = new Set<string>();
     items.forEach((item) => {
@@ -267,11 +258,9 @@ export default function EltiwList() {
     return Array.from(cats);
   }, [items]);
 
-  // Filter and sort items
   const filteredAndSortedItems = useMemo(() => {
     let result = [...items];
 
-    // Search filter
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       result = result.filter(
@@ -281,24 +270,20 @@ export default function EltiwList() {
       );
     }
 
-    // Status filter
     if (statusFilter === "active") {
       result = result.filter((item) => !item.gotIt);
     } else if (statusFilter === "completed") {
       result = result.filter((item) => item.gotIt);
     }
 
-    // Source filter
     if (sourceFilter !== "all") {
       result = result.filter((item) => item.source === sourceFilter);
     }
 
-    // Category filter
     if (categoryFilter !== "all") {
       result = result.filter((item) => item.category === categoryFilter);
     }
 
-    // Sort
     result.sort((a, b) => {
       switch (sortBy) {
         case "newest":
@@ -322,9 +307,6 @@ export default function EltiwList() {
     return result;
   }, [items, searchQuery, statusFilter, sortBy, sourceFilter, categoryFilter]);
 
-
-  const completedItems = filteredAndSortedItems.filter((item: EltiwItem) => item.gotIt);
-
   const formatAmount = (amount: number) => {
     return new Intl.NumberFormat("en-KE", {
       style: "currency",
@@ -340,15 +322,13 @@ export default function EltiwList() {
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
 
     if (days < 0) {
-      return `Overdue by ${Math.abs(days)} day${
-        Math.abs(days) !== 1 ? "s" : ""
-      }`;
+      return `Overdue by ${Math.abs(days)}d`;
     } else if (days === 0) {
-      return "Due today";
+      return "Today";
     } else if (days === 1) {
-      return "Due tomorrow";
+      return "Tomorrow";
     } else {
-      return `Due in ${days} days`;
+      return `${days}d`;
     }
   };
 
@@ -363,352 +343,285 @@ export default function EltiwList() {
   };
 
   return (
-    <div className="space-y-4 pb-[90px] sm:pb-0">
-      <div>
-        {/* Metrics Badges */}
-        <div className="flex flex-wrap gap-2 mb-1 items-center">
-          <Badge variant="secondary" className="text-sm px-3 py-1.5">
-            <Heart className="h-3.5 w-3.5 mr-1.5" />
-            {metrics.activeCount} Active
+    <div className="space-y-3 pb-[90px] sm:pb-0">
+      {/* Compact Header with Metrics */}
+      <div className="space-y-2">
+        {/* Metrics Row */}
+        <div className="flex flex-wrap gap-1.5">
+          <Badge variant="secondary" className="text-xs px-2 py-0.5">
+            <Heart className="h-3 w-3 mr-1" />
+            {metrics.activeCount}
           </Badge>
-          <Badge variant="secondary" className="text-sm px-3 py-1.5">
-            💰 Ksh {formatCompact(metrics.totalValue)}
+          <Badge variant="secondary" className="text-xs px-2 py-0.5">
+            💰 {formatCompact(metrics.totalValue)}
           </Badge>
-          <Badge variant="default" className="text-sm px-3 py-1.5">
-            ✓ {metrics.completedCount} Done
+          <Badge variant="default" className="text-xs px-2 py-0.5">
+            ✓ {metrics.completedCount}
           </Badge>
           {metrics.completedValue > 0 && (
-            <Badge variant="outline" className="text-sm px-3 py-1.5">
-              🎉 Ksh {formatCompact(metrics.completedValue)}
+            <Badge variant="outline" className="text-xs px-2 py-0.5">
+              🎉 {formatCompact(metrics.completedValue)}
             </Badge>
           )}
         </div>
-        <div className="space-y-4">
-          {/* Category Filter Dropdown (always visible) */}
-          {uniqueCategories.length > 0 && (
-            <div className="flex items-center gap-2 mb-2">
-              <Label className="text-xs text-muted-foreground">Filter by Category:</Label>
-              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                <SelectTrigger className="w-[180px] h-8 text-xs">
-                  <SelectValue placeholder="All Categories" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
-                  {uniqueCategories.map((cat) => (
-                    <SelectItem key={cat} value={cat} className="capitalize">
-                      {cat.charAt(0).toUpperCase() + cat.slice(1)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-          {/* Compact controls row */}
-          <div className="flex flex-col gap-3">
-            {/* Search + View Toggle */}
-            <div className="flex gap-2">
-              <div className="relative flex-1">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search items..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-8"
-                />
-              </div>
-              
-              {/* View Mode Toggle */}
-              <div className="flex gap-1 border rounded-md p-1">
-                <Button
-                  variant={viewMode === "list" ? "secondary" : "ghost"}
-                  size="sm"
-                  onClick={() => setViewMode("list")}
-                  className="h-9 px-2"
-                >
-                  <List className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant={viewMode === "grid" ? "secondary" : "ghost"}
-                  size="sm"
-                  onClick={() => setViewMode("grid")}
-                  className="h-9 px-2"
-                >
-                  <Grid3x3 className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
 
-            {/* Sort + Status Filter + Source/Category Filters in one row */}
-            <div className="flex flex-wrap gap-2 items-center">
-              <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-[140px] h-9">
-                  <SelectValue placeholder="Sort by..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="newest">Newest</SelectItem>
-                  <SelectItem value="oldest">Oldest</SelectItem>
-                  <SelectItem value="amount-high">Price ↓</SelectItem>
-                  <SelectItem value="amount-low">Price ↑</SelectItem>
-                  <SelectItem value="deadline">Deadline</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-[120px] h-9">
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Items</SelectItem>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="completed">Done</SelectItem>
-                </SelectContent>
-              </Select>
-
-              {/* Category Filter */}
-              {uniqueCategories.length > 0 && (
-                <>
-                  <div className="h-4 w-px bg-border" />
-                  <Button
-                    variant={categoryFilter === "all" ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setCategoryFilter("all")}
-                    className="h-9"
-                  >
-                    All Categories
-                  </Button>
-                  {uniqueCategories.map((cat) => (
-                    <Button
-                      key={cat}
-                      variant={categoryFilter === cat ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setCategoryFilter(cat)}
-                      className="h-9"
-                      title={cat}
-                    >
-                      {cat.charAt(0).toUpperCase() + cat.slice(1)}
-                    </Button>
-                  ))}
-                </>
-              )}
-
-              {/* Source Filter */}
-              {uniqueSources.length > 0 && (
-                <>
-                  <div className="h-4 w-px bg-border" />
-                  <Button
-                    variant={sourceFilter === "all" ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setSourceFilter("all")}
-                    className="h-9"
-                  >
-                    All Sources
-                  </Button>
-                  {uniqueSources.map((source) => {
-                    const sourceEmoji = items.find((i) => i.source === source)?.sourceEmoji;
-                    return (
-                      <Button
-                        key={source}
-                        variant={sourceFilter === source ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => setSourceFilter(source)}
-                        className="h-9"
-                        title={source}
-                      >
-                        {sourceEmoji && <span className="text-base">{sourceEmoji}</span>}
-                        <span className="ml-1.5 hidden sm:inline">{source}</span>
-                      </Button>
-                    );
-                  })}
-                </>
-              )}
-            </div>
-
-            {/* Count */}
-            <div className="text-sm text-muted-foreground">
-              {filteredAndSortedItems.length === items.length ? (
-                <span>{items.length} items</span>
-              ) : (
-                <span>
-                  {filteredAndSortedItems.length} of {items.length} items
-                </span>
-              )}
-            </div>
+        {/* Unified Filter Bar */}
+        <div className="flex gap-2 items-center flex-wrap">
+          {/* Search */}
+          <div className="relative flex-1 min-w-[160px]">
+            <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+            <Input
+              placeholder="Search..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-7 h-8 text-sm"
+            />
+          </div>
+          
+          {/* View Toggle */}
+          <div className="flex gap-0.5 border rounded-md p-0.5">
+            <Button
+              variant={viewMode === "list" ? "secondary" : "ghost"}
+              size="sm"
+              onClick={() => setViewMode("list")}
+              className="h-7 w-7 p-0"
+            >
+              <List className="h-3.5 w-3.5" />
+            </Button>
+            <Button
+              variant={viewMode === "grid" ? "secondary" : "ghost"}
+              size="sm"
+              onClick={() => setViewMode("grid")}
+              className="h-7 w-7 p-0"
+            >
+              <Grid3x3 className="h-3.5 w-3.5" />
+            </Button>
           </div>
 
-          {filteredAndSortedItems.length === 0 && (
-            <div className="text-center text-muted-foreground py-8">
-              {searchQuery ? (
-                <p className="mb-2">No items found matching &quot;{searchQuery}&quot;</p>
-              ) : (
-                <>
-                  <p className="mb-2">Your wishlist is empty.</p>
-                  <p className="text-sm">Add something you want for yourself!</p>
-                </>
-              )}
-            </div>
+          {/* Sort */}
+          <Select value={sortBy} onValueChange={setSortBy}>
+            <SelectTrigger className="w-[110px] h-8 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="newest">Newest</SelectItem>
+              <SelectItem value="oldest">Oldest</SelectItem>
+              <SelectItem value="amount-high">Price ↓</SelectItem>
+              <SelectItem value="amount-low">Price ↑</SelectItem>
+              <SelectItem value="deadline">Deadline</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {/* Status */}
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-[100px] h-8 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All</SelectItem>
+              <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="completed">Done</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {/* Category */}
+          {uniqueCategories.length > 0 && (
+            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+              <SelectTrigger className="w-[120px] h-8 text-xs">
+                <SelectValue placeholder="Category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Categories</SelectItem>
+                {uniqueCategories.map((cat) => (
+                  <SelectItem key={cat} value={cat} className="capitalize text-xs">
+                    {cat}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           )}
 
-          {filteredAndSortedItems.length > 0 && viewMode === "grid" && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-              {filteredAndSortedItems.map((item: EltiwItem, index: number) => (
-                <Item key={item.id} className={`flex flex-col gap-2 ${item.gotIt ? "opacity-60" : ""}`} variant="outline" size="sm">
-                  <div className="flex items-start justify-between gap-2">
-                    <Badge variant="outline" className="text-xs">#{index + 1}</Badge>
-                    <div className="flex gap-1">
-                      {!item.gotIt && (
-                        <>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7"
-                            onClick={() => handleEdit(item)}
-                          >
-                            <Edit className="h-3 w-3" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7"
-                            onClick={() => handleGotIt(item)}
-                          >
-                            <CheckCircle2 className="h-3 w-3" />
-                          </Button>
-                        </>
-                      )}
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7 text-destructive"
-                        onClick={() => handleDelete(item.id)}
-                      >
-                        <X className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    {item.sourceEmoji && <span className="text-lg">{item.sourceEmoji}</span>}
-                    <span className={`font-semibold ${item.gotIt ? "line-through" : ""}`}>{item.name}</span>
-                    <Badge variant={item.gotIt ? "default" : "secondary"}>
-                      {formatAmount(item.amount)}
-                    </Badge>
-                    {item.deadline && !item.gotIt && (
-                      <Badge
-                        variant={getDeadlineBadgeVariant(item.deadline)}
-                        className="flex items-center gap-1"
-                      >
-                        <Calendar className="h-3 w-3" />
-                        {formatDeadline(item.deadline)}
-                      </Badge>
-                    )}
-                  </div>
-                  {item.reason && (
-                    <p className="text-xs text-muted-foreground line-clamp-2">
-                      {item.reason}
-                    </p>
-                  )}
-                  {item.link && (
-                    <a
-                      href={item.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1 w-fit"
-                    >
-                      <ExternalLink className="h-3 w-3" />
-                      View link
-                    </a>
-                  )}
-                  {item.gotItDate && (
-                    <p className="text-xs text-muted-foreground">
-                      Got it on {new Date(item.gotItDate).toLocaleDateString("en-KE")}
-                    </p>
-                  )}
-                </Item>
-              ))}
-            </div>
+          {/* Source */}
+          {uniqueSources.length > 0 && (
+            <Select value={sourceFilter} onValueChange={setSourceFilter}>
+              <SelectTrigger className="w-[110px] h-8 text-xs">
+                <SelectValue placeholder="Source" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Sources</SelectItem>
+                {uniqueSources.map((source) => {
+                  const sourceEmoji = items.find((i) => i.source === source)?.sourceEmoji;
+                  return (
+                    <SelectItem key={source} value={source} className="text-xs">
+                      {sourceEmoji} {source}
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
           )}
+        </div>
 
-          {filteredAndSortedItems.length > 0 && viewMode === "list" && (
-            <DataTable
-              columns={eltiwColumns}
-              data={filteredAndSortedItems}
-              onEdit={handleEdit}
-              onGotIt={handleGotIt}
-              onDelete={handleDelete}
-            />
-          )}
-
-          {completedItems.length > 0 && (
-            <div className="space-y-2">
-              <h3 className="text-sm font-medium text-muted-foreground">
-                Completed 🎉
-              </h3>
-              {completedItems.map((item: EltiwItem) => (
-                <Item key={item.id} className="opacity-60 flex items-start justify-between gap-4">
-                  <div className="flex-1 space-y-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-semibold line-through">
-                        {item.name}
-                      </span>
-                      <Badge variant="default">
-                        {formatAmount(item.amount)}
-                      </Badge>
-                    </div>
-                    {item.reason && (
-                      <p className="text-sm text-muted-foreground">
-                        {item.reason}
-                      </p>
-                    )}
-                    {item.link && (
-                      <a
-                        href={item.link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1 w-fit opacity-60"
-                      >
-                        <ExternalLink className="h-3 w-3" />
-                        View link
-                      </a>
-                    )}
-                    {item.gotItDate && (
-                      <p className="text-xs text-muted-foreground">
-                        Got it on{" "}
-                        {new Date(item.gotItDate).toLocaleDateString(
-                          "en-KE"
-                        )}
-                      </p>
-                    )}
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleDelete(item.id)}
-                    className="text-destructive"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </Item>
-              ))}
-            </div>
+        {/* Results Count */}
+        <div className="text-xs text-muted-foreground">
+          {filteredAndSortedItems.length === items.length ? (
+            <span>{items.length} items</span>
+          ) : (
+            <span>{filteredAndSortedItems.length} of {items.length}</span>
           )}
         </div>
       </div>
 
-      {/* Floating Action Button (FAB) for Add */}
+      {/* Empty State */}
+      {filteredAndSortedItems.length === 0 && (
+        <div className="text-center text-muted-foreground py-12">
+          {searchQuery ? (
+            <p className="text-sm">No items found matching &quot;{searchQuery}&quot;</p>
+          ) : (
+            <>
+              <p className="text-sm mb-1">Your wishlist is empty</p>
+              <p className="text-xs">Add something you want!</p>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* Grid View */}
+      {filteredAndSortedItems.length > 0 && viewMode === "grid" && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+          {filteredAndSortedItems.map((item: EltiwItem, index: number) => (
+            <Item 
+              key={item.id} 
+              className={`flex flex-col gap-2 p-3 ${item.gotIt ? "opacity-50" : ""}`} 
+              variant="outline" 
+              size="sm"
+            >
+              {/* Header Row */}
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-1.5">
+                  <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                    #{index + 1}
+                  </Badge>
+                  {item.category && (
+                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0 capitalize">
+                      {item.category}
+                    </Badge>
+                  )}
+                </div>
+                <div className="flex gap-0.5">
+                  {!item.gotIt && (
+                    <>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6"
+                        onClick={() => handleEdit(item)}
+                      >
+                        <Edit className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 text-green-600"
+                        onClick={() => handleGotIt(item)}
+                      >
+                        <CheckCircle2 className="h-3 w-3" />
+                      </Button>
+                    </>
+                  )}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6 text-destructive"
+                    onClick={() => handleDelete(item.id)}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </div>
+              </div>
+
+              {/* Item Info */}
+              <div className="space-y-1.5">
+                <div className="flex items-start gap-1.5">
+                  {item.sourceEmoji && <span className="text-base mt-0.5">{item.sourceEmoji}</span>}
+                  <div className="flex-1 min-w-0">
+                    <p className={`font-medium text-sm leading-tight ${item.gotIt ? "line-through" : ""}`}>
+                      {item.name}
+                    </p>
+                    <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                      <Badge variant={item.gotIt ? "default" : "secondary"} className="text-xs">
+                        {formatAmount(item.amount)}
+                      </Badge>
+                      {item.deadline && !item.gotIt && (
+                        <Badge
+                          variant={getDeadlineBadgeVariant(item.deadline)}
+                          className="flex items-center gap-1 text-xs"
+                        >
+                          <Calendar className="h-2.5 w-2.5" />
+                          {formatDeadline(item.deadline)}
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {item.reason && (
+                  <p className="text-xs text-muted-foreground line-clamp-2">
+                    {item.reason}
+                  </p>
+                )}
+
+                {item.link && (
+                  <a
+                    href={item.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1 w-fit"
+                  >
+                    <ExternalLink className="h-2.5 w-2.5" />
+                    View
+                  </a>
+                )}
+
+                {item.gotItDate && (
+                  <p className="text-[10px] text-muted-foreground">
+                    ✓ {new Date(item.gotItDate).toLocaleDateString("en-KE", { month: 'short', day: 'numeric' })}
+                  </p>
+                )}
+              </div>
+            </Item>
+          ))}
+        </div>
+      )}
+
+      {/* List View */}
+      {filteredAndSortedItems.length > 0 && viewMode === "list" && (
+        <DataTable
+          columns={eltiwColumns}
+          data={filteredAndSortedItems}
+          onEdit={handleEdit}
+          onGotIt={handleGotIt}
+          onDelete={handleDelete}
+        />
+      )}
+
+      {/* FAB */}
       <button
         type="button"
         onClick={() => setShowAddDialog(true)}
-        className="fixed z-30 bottom-[calc(env(safe-area-inset-bottom,0px)+72px)] right-4 sm:right-8 bg-primary text-primary-foreground rounded-full shadow-lg p-4 flex items-center justify-center transition hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-        aria-label="Add Wishlist Item"
+        className="fixed z-30 bottom-[calc(env(safe-area-inset-bottom,0px)+72px)] right-4 sm:right-8 bg-primary text-primary-foreground rounded-full shadow-lg p-3.5 flex items-center justify-center transition hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+        aria-label="Add Item"
         style={{ boxShadow: "0 4px 24px 0 rgba(0,0,0,0.10)" }}
       >
-        <Plus className="h-6 w-6" />
+        <Plus className="h-5 w-5" />
       </button>
 
+      {/* Modal */}
       <SteppedFormModal
         open={showAddDialog}
         onOpenChange={handleModalChange}
-        title={editingItem ? "Edit Wishlist Item" : "Add Wishlist Item"}
-        description="Track the little things you're saving for."
+        title={editingItem ? "Edit Item" : "Add Item"}
+        description="Track what you're saving for"
         steps={steps}
         currentStep={currentStep}
         onStepChange={setCurrentStep}
@@ -716,41 +629,39 @@ export default function EltiwList() {
         renderStep={(step) => {
           if (step.id === "basics") {
             return (
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="eltiw-name">What do you want?</Label>
+              <div className="space-y-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="eltiw-name" className="text-sm">What do you want?</Label>
                   <Input
                     id="eltiw-name"
                     placeholder="New shoes"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
+                    className="h-9"
                   />
                   {fieldErrors.name && (
-                    <p className="text-sm text-destructive">
-                      {fieldErrors.name}
-                    </p>
+                    <p className="text-xs text-destructive">{fieldErrors.name}</p>
                   )}
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="eltiw-amount">Amount (Ksh)</Label>
+                <div className="space-y-1.5">
+                  <Label htmlFor="eltiw-amount" className="text-sm">Amount (Ksh)</Label>
                   <Input
                     id="eltiw-amount"
                     type="number"
                     placeholder="3000"
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
+                    className="h-9"
                   />
                   {fieldErrors.amount && (
-                    <p className="text-sm text-destructive">
-                      {fieldErrors.amount}
-                    </p>
+                    <p className="text-xs text-destructive">{fieldErrors.amount}</p>
                   )}
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="eltiw-category">Category (optional)</Label>
+                <div className="space-y-1.5">
+                  <Label htmlFor="eltiw-category" className="text-sm">Category (optional)</Label>
                   <Select value={category} onValueChange={setCategory}>
-                    <SelectTrigger id="eltiw-category" className="w-full">
-                      <SelectValue placeholder="Select category..." />
+                    <SelectTrigger id="eltiw-category" className="h-9">
+                      <SelectValue placeholder="Select..." />
                     </SelectTrigger>
                     <SelectContent>
                       {CATEGORY_OPTIONS.map((cat) => (
@@ -766,19 +677,20 @@ export default function EltiwList() {
           }
 
           return (
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="eltiw-reason">Reason (optional)</Label>
+            <div className="space-y-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="eltiw-reason" className="text-sm">Reason (optional)</Label>
                 <Textarea
                   id="eltiw-reason"
                   placeholder="Because I deserve it!"
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
                   rows={2}
+                  className="text-sm"
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="eltiw-link">Link (optional)</Label>
+              <div className="space-y-1.5">
+                <Label htmlFor="eltiw-link" className="text-sm">Link (optional)</Label>
                 <Input
                   id="eltiw-link"
                   type="url"
@@ -786,7 +698,6 @@ export default function EltiwList() {
                   value={link}
                   onChange={(e) => {
                     setLink(e.target.value);
-                    // Auto-detect source from link
                     if (!selectedSource && e.target.value) {
                       const url = e.target.value.toLowerCase();
                       if (url.includes("tiktok.com")) setSelectedSource("tiktok");
@@ -798,35 +709,37 @@ export default function EltiwList() {
                       else if (url.includes("facebook.com")) setSelectedSource("facebook");
                     }
                   }}
+                  className="h-9"
                 />
               </div>
               {link && (
-                <div className="space-y-2">
-                  <Label>Source (optional)</Label>
-                  <div className="grid grid-cols-5 gap-2">
+                <div className="space-y-1.5">
+                  <Label className="text-sm">Source (optional)</Label>
+                  <div className="grid grid-cols-5 gap-1.5">
                     {SOURCE_OPTIONS.map((source) => (
                       <Button
                         key={source.value}
                         type="button"
                         variant={selectedSource === source.value ? "default" : "outline"}
                         size="sm"
-                        className="flex flex-col h-auto py-2 px-1"
+                        className="flex flex-col h-auto py-1.5 px-1"
                         onClick={() => setSelectedSource(source.value)}
                       >
-                        <span className="text-2xl mb-1">{source.emoji}</span>
-                        <span className="text-[10px] leading-tight">{source.name}</span>
+                        <span className="text-xl mb-0.5">{source.emoji}</span>
+                        <span className="text-[9px] leading-tight">{source.name}</span>
                       </Button>
                     ))}
                   </div>
                 </div>
               )}
-              <div className="space-y-2">
-                <Label htmlFor="eltiw-deadline">Deadline (optional)</Label>
+              <div className="space-y-1.5">
+                <Label htmlFor="eltiw-deadline" className="text-sm">Deadline (optional)</Label>
                 <Input
                   id="eltiw-deadline"
                   type="date"
                   value={deadline}
                   onChange={(e) => setDeadline(e.target.value)}
+                  className="h-9"
                 />
               </div>
             </div>
