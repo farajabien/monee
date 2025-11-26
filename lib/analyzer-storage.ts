@@ -61,7 +61,7 @@ function openDB(): Promise<IDBDatabase> {
  */
 export async function saveExpenses(expenses: AnalyzerExpense[]): Promise<void> {
   const db = await openDB();
-  const expense = db.expense(STORE_NAME, "readwrite");
+  const expense = db.transaction(STORE_NAME, "readwrite");
   const store = expense.objectStore(STORE_NAME);
 
   for (const tx of expenses) {
@@ -85,7 +85,7 @@ export async function saveExpenses(expenses: AnalyzerExpense[]): Promise<void> {
  */
 export async function getAllExpenses(): Promise<AnalyzerExpense[]> {
   const db = await openDB();
-  const expense = db.expense(STORE_NAME, "readonly");
+  const expense = db.transaction(STORE_NAME, "readonly");
   const store = expense.objectStore(STORE_NAME);
   const request = store.getAll();
 
@@ -106,7 +106,7 @@ export async function getAllExpenses(): Promise<AnalyzerExpense[]> {
  */
 export async function deleteExpense(id: string): Promise<void> {
   const db = await openDB();
-  const expense = db.expense(STORE_NAME, "readwrite");
+  const expense = db.transaction(STORE_NAME, "readwrite");
   const store = expense.objectStore(STORE_NAME);
   store.delete(id);
 
@@ -127,7 +127,7 @@ export async function deleteExpense(id: string): Promise<void> {
  */
 export async function clearAllExpenses(): Promise<void> {
   const db = await openDB();
-  const expense = db.expense(STORE_NAME, "readwrite");
+  const expense = db.transaction(STORE_NAME, "readwrite");
   const store = expense.objectStore(STORE_NAME);
   store.clear();
 
