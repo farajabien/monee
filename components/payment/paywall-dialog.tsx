@@ -35,7 +35,6 @@ export function PaywallDialog({ open, onOpenChange }: PaywallDialogProps) {
     "Income & Expense Tracking",
     "Budget Management",
     "Debt Tracking & Payments",
-    "ELTIW Wishlist",
     "Daily Check-In Reminders",
     "Monthly Insights",
     "Auto-Categorization",

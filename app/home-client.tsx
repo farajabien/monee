@@ -5,7 +5,6 @@ import { useSearchParams } from "next/navigation";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import ExpenseList from "@/components/expenses/expense-list";
 import AddExpenseForm from "@/components/expenses/add-expense-form";
-import EltiwList from "@/components/eltiw/eltiw-list";
 import CategoryList from "@/components/categories/category-list";
 import MonthlySummary from "@/components/insights/monthly-summary";
 import { BudgetList } from "@/components/budgets/budget-list";
@@ -14,7 +13,6 @@ import { DebtList } from "@/components/debts/debt-list";
 import { DebtProgress } from "@/components/debts/debt-progress";
 import { RecipientList } from "@/components/recipients/recipient-list";
 import { YearInReview } from "@/components/insights/year-in-review";
-import { EltiwWidget } from "@/components/eltiw/eltiw-widget";
 import { PWABottomNav } from "@/components/pwa/pwa-bottom-nav";
 
 export default function HomeClient() {
@@ -36,16 +34,12 @@ export default function HomeClient() {
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="summary">Summary</TabsTrigger>
             <TabsTrigger value="budgets">Budgets</TabsTrigger>
-            <TabsTrigger value="wishlist">Wishlist</TabsTrigger>
           </TabsList>
           <TabsContent value="summary" className="mt-4">
             <MonthlySummary />
           </TabsContent>
           <TabsContent value="budgets" className="mt-4">
             <BudgetList />
-          </TabsContent>
-          <TabsContent value="wishlist" className="mt-4">
-            <EltiwWidget />
           </TabsContent>
         </Tabs>
       )}
@@ -69,7 +63,6 @@ export default function HomeClient() {
           </TabsContent>
         </Tabs>
       )}
-      {activeTab === "eltiw" && <EltiwList />}
       {activeTab === "debts" && (
         <>
           <DebtProgress />

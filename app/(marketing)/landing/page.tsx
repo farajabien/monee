@@ -423,7 +423,6 @@ export default function LandingPage() {
                     "Debt Management System (Ksh 300 value)",
                     "Budget Planner (Ksh 200 value)",
                     "Category Analytics (Ksh 200 value)",
-                    "ELTIW Wishlist Feature (Ksh 150 value)",
                     "Daily Check-In Reminders (Ksh 100 value)",
                   ].map((item, i) => (
                     <div key={i} className="flex items-start gap-2">

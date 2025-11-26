@@ -43,12 +43,6 @@ export function PWABottomNav() {
       href: "/dashboard?tab=expenses",
     },
     {
-      value: "eltiw",
-      label: "Wishlist",
-      icon: Heart,
-      href: "/dashboard?tab=eltiw",
-    },
-    {
       value: "income",
       label: "Income",
       icon: TrendingUp,
