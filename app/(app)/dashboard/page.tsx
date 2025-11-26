@@ -1,5 +1,6 @@
-import AuthShell from "@/app/(auth)/auth-shell";
+import TransactionList from "@/components/transactions/transaction-list";
 
 export default function DashboardPage() {
-  return <AuthShell />;
+  // The layout handles tabs and nav, so just render the default (Daily) view here
+  return <TransactionList />;
 }
