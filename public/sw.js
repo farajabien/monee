@@ -91,11 +91,11 @@ self.addEventListener("notificationclick", function (event) {
 // Background sync for offline expenses
 self.addEventListener("sync", (event) => {
   if (event.tag === "sync-expenses") {
-    event.waitUntil(syncTransactions());
+    event.waitUntil(syncExpenses());
   }
 });
 
-async function syncTransactions() {
+async function syncExpenses() {
   // This would sync any pending expenses when back online
   console.log("Syncing expenses...");
 }

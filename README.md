@@ -14,7 +14,7 @@ Budgeting tools often feel too complicated, too Western, or too disconnected fro
 
 But for most of us, our money flows through one place: **Mpesa**.
 
-Every transaction tells a story — rent, food, house help, little treats, and all the “I’ll just buy this quickly” moments that add up.
+Every expense tells a story — rent, food, house help, little treats, and all the “I’ll just buy this quickly” moments that add up.
 
 **MONEE** brings all that together and helps you finally _see_ your financial reality — clearly, gently, and honestly.
 
@@ -109,7 +109,7 @@ Debts don't have to be stressful — they just need to be organized.
 
 **Payment Tracking**: Mark payments as made when you pay them. MONEE keeps a history of all your payments, so you can see your progress over time.
 
-**Auto-Expense Recording**: Every debt payment (principal, interest, or both) automatically creates an expense transaction. This means your total spending picture includes debt obligations — no manual entry needed.
+**Auto-Expense Recording**: Every debt payment (principal, interest, or both) automatically creates an expense expense. This means your total spending picture includes debt obligations — no manual entry needed.
 
 **Debt Progress**: See how much you've paid off and how much remains. MONEE shows you a clear timeline of when you'll be debt-free, giving you motivation to keep going.
 
@@ -160,7 +160,7 @@ Debts don't have to be stressful — they just need to be organized.
 
 ## **Business Model**
 
-- **Free M-Pesa Analyzer** - No login required, 100% offline transaction analysis tool
+- **Free M-Pesa Analyzer** - No login required, 100% offline expense analysis tool
 - **Full App Access** - One-time payment of **Ksh 999** (valued at Ksh 1,500)
 - Lifetime access — no subscriptions, no surprises
 - All future updates included free
@@ -184,7 +184,7 @@ Compared to Excel templates (Ksh 500-1,000) that require manual work:
 ## **Our Promise**
 
 MONEE isn’t about making you feel guilty for spending.
-It’s about **helping you build awareness** — one transaction, one small decision, one self-care moment at a time.
+It’s about **helping you build awareness** — one expense, one small decision, one self-care moment at a time.
 
 You don’t need a financial degree to manage your money — you just need MONEE.
 
@@ -261,7 +261,7 @@ Before committing to the full app, try our **free analyzer** at `/free-mpesa-ana
 ✅ **All Statement Fields** — extracts Receipt No, Completion Time, Details, Status, Paid in, Withdrawn, Balance
 ✅ **Multiple Input Methods** — PDF upload, paste statement text, or paste SMS messages
 ✅ **Year-by-Year Analysis** — automatically detects and groups expenses by year
-✅ **Auto-categorization** — groups spending by transaction type
+✅ **Auto-categorization** — groups spending by expense type
 ✅ **Smart insights** — see top recipients, monthly trends, and spending patterns
 
 **Perfect for:**

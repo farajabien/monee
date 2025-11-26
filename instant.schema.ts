@@ -55,7 +55,7 @@ const _schema = i.schema({
     daily_checkins: i.entity({
       date: i.number().unique().indexed(),
       completed: i.boolean(),
-      transactionsCount: i.number(),
+      expensesCount: i.number(),
     }),
     income_sources: i.entity({
       name: i.string().indexed(),
@@ -101,7 +101,7 @@ const _schema = i.schema({
       forward: { on: "profiles", has: "one", label: "user" },
       reverse: { on: "$users", has: "one", label: "profile" },
     },
-    profileTransactions: {
+    profileExpenses: {
       forward: { on: "expenses", has: "one", label: "user" },
       reverse: { on: "profiles", has: "many", label: "expenses" },
     },

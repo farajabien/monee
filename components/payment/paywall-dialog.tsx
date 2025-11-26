@@ -62,7 +62,7 @@ export function PaywallDialog({ open, onOpenChange }: PaywallDialogProps) {
       // Dynamically import Paystack to avoid SSR issues
       const PaystackPop = (await import("@paystack/inline-js")).default;
       const paystack = new PaystackPop();
-      paystack.newTransaction({
+      paystack.newExpense({
         key: PAYSTACK_PUBLIC_KEY,
         email: user.email,
         amount: PRICE_KES,
@@ -79,14 +79,14 @@ export function PaywallDialog({ open, onOpenChange }: PaywallDialogProps) {
             },
           ],
         },
-        onSuccess: (transaction: { reference: string }) => {
-          console.log("Payment successful:", transaction);
+        onSuccess: (expense: { reference: string }) => {
+          console.log("Payment successful:", expense);
           // Update user payment status
           db.transact([
             db.tx.$users[user.id].update({
               hasPaid: true,
               paymentDate: Date.now(),
-              paystackReference: transaction.reference,
+              paystackReference: expense.reference,
             }),
           ])
             .then(() => {

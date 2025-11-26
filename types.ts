@@ -13,7 +13,7 @@ export type ProfileWithUser = InstaQLEntity<
 
 // Expense types
 export type Expense = InstaQLEntity<typeof schema, "expenses">;
-export type TransactionWithUser = InstaQLEntity<
+export type ExpenseWithUser = InstaQLEntity<
   typeof schema,
   "expenses",
   { user: {} }
@@ -78,11 +78,11 @@ export type DebtPaymentWithDebt = InstaQLEntity<
 // Payment type enum
 export type PaymentType = "interest_only" | "principal" | "both";
 
-// Parsed transaction data structure
-export interface ParsedTransactionData {
+// Parsed expense data structure
+export interface ParsedExpenseData {
   amount: number;
   recipient?: string;
-  transactionType?: "send" | "receive" | "buy" | "withdraw" | "deposit";
+  expenseType?: "send" | "receive" | "buy" | "withdraw" | "deposit";
   reference?: string;
   balance?: number;
   timestamp?: number;

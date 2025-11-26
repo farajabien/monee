@@ -6,7 +6,7 @@ export async function extractTextFromPDF(file: File): Promise<string> {
 
 // --- Placeholder: Convert statement expenses to messages (to be implemented) ---
 export function convertStatementToMessages(
-  expenses: StatementTransaction[]
+  expenses: StatementExpense[]
 ): string[] {
   // TODO: Implement conversion logic
   return expenses.map(
@@ -15,7 +15,7 @@ export function convertStatementToMessages(
   );
 }
 
-export interface StatementTransaction {
+export interface StatementExpense {
   receiptNo: string;
   completionTime: string;
   details: string;
@@ -28,8 +28,8 @@ export interface StatementTransaction {
  * Parse M-Pesa statement text (from PDF or copy-paste)
  * Handles the tabular format from M-Pesa Full Statement
  */
-export function parseStatementText(text: string): StatementTransaction[] {
-  const expenses: StatementTransaction[] = [];
+export function parseStatementText(text: string): StatementExpense[] {
+  const expenses: StatementExpense[] = [];
 
   console.log(`Parsing statement: ${text.length} chars`);
 
@@ -41,34 +41,34 @@ export function parseStatementText(text: string): StatementTransaction[] {
     ""
   );
 
-  // Split by receipt numbers to identify transaction boundaries
+  // Split by receipt numbers to identify expense boundaries
   const receiptPattern =
     /(RE[A-Z0-9]{8,12})\s+(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2})/g;
 
   let match;
-  const potentialTransactions: Array<{
+  const potentialExpenses: Array<{
     receipt: string;
     timestamp: string;
     startIndex: number;
   }> = [];
 
   while ((match = receiptPattern.exec(text)) !== null) {
-    potentialTransactions.push({
+    potentialExpenses.push({
       receipt: match[1],
       timestamp: match[2],
       startIndex: match.index,
     });
   }
 
-  console.log(`Found ${potentialTransactions.length} potential expenses`);
+  console.log(`Found ${potentialExpenses.length} potential expenses`);
 
   // Track charge rows to skip
   const chargeReceipts = new Set<string>();
 
   // First pass: identify charge-only rows
-  for (let i = 0; i < potentialTransactions.length; i++) {
-    const txInfo = potentialTransactions[i];
-    const nextTxInfo = potentialTransactions[i + 1];
+  for (let i = 0; i < potentialExpenses.length; i++) {
+    const txInfo = potentialExpenses[i];
+    const nextTxInfo = potentialExpenses[i + 1];
     const endIndex = nextTxInfo ? nextTxInfo.startIndex : text.length;
     const txText = text.substring(txInfo.startIndex, endIndex).trim();
 
@@ -85,15 +85,15 @@ export function parseStatementText(text: string): StatementTransaction[] {
   console.log(`Identified ${chargeReceipts.size} charge rows to skip`);
 
   // Second pass: parse actual expenses
-  for (let i = 0; i < potentialTransactions.length; i++) {
-    const txInfo = potentialTransactions[i];
+  for (let i = 0; i < potentialExpenses.length; i++) {
+    const txInfo = potentialExpenses[i];
 
     // Skip charge rows
     if (chargeReceipts.has(txInfo.receipt)) {
       continue;
     }
 
-    const nextTxInfo = potentialTransactions[i + 1];
+    const nextTxInfo = potentialExpenses[i + 1];
     const endIndex = nextTxInfo ? nextTxInfo.startIndex : text.length;
     const txText = text.substring(txInfo.startIndex, endIndex).trim();
 
@@ -159,7 +159,7 @@ export function parseStatementText(text: string): StatementTransaction[] {
 
   console.log(`Parsed ${expenses.length} valid expenses`);
   if (expenses.length > 0) {
-    console.log("Sample transaction:", expenses[0]);
+    console.log("Sample expense:", expenses[0]);
   }
 
   return expenses;

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import ExpenseList from "@/components/expenses/expense-list";
-import AddTransactionForm from "@/components/expenses/add-expense-form";
+import AddExpenseForm from "@/components/expenses/add-expense-form";
 import EltiwList from "@/components/eltiw/eltiw-list";
 import CategoryList from "@/components/categories/category-list";
 import MonthlySummary from "@/components/insights/monthly-summary";
@@ -65,7 +65,7 @@ export default function HomeClient() {
             <ExpenseList />
           </TabsContent>
           <TabsContent value="add">
-            <AddTransactionForm />
+            <AddExpenseForm />
           </TabsContent>
         </Tabs>
       )}

@@ -4,7 +4,7 @@
 
 ### Phase 1: Multi-PDF Upload Support
 
-#### Expense Input Component (`components/expenses/add-transaction-form.tsx`)
+#### Expense Input Component (`components/expenses/add-expense-form.tsx`)
 
 **New Features:**
 
@@ -52,7 +52,7 @@ const processPDFs = async () => {
 - ✅ Shows uploaded file list with individual remove buttons
 - ✅ Updated button text to "Choose PDF File(s)"
 - ✅ Console logging for each file: "Processing file X/Y"
-- ✅ Total transaction count across all files
+- ✅ Total expense count across all files
 
 **Before:** `const [uploadedFile, setUploadedFile] = useState<File | null>(null);`  
 **After:** `const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);`
@@ -65,8 +65,8 @@ for (let i = 0; i < uploadedFiles.length; i++) {
   console.log(`Processing file ${i + 1}/${uploadedFiles.length}: ${file.name}`);
 
   const pdfText = await extractTextFromPDF(file);
-  const statementTransactions = parseStatementText(pdfText);
-  const fileMessages = convertStatementToMessages(statementTransactions);
+  const statementExpenses = parseStatementText(pdfText);
+  const fileMessages = convertStatementToMessages(statementExpenses);
 
   messagesToParse = [...messagesToParse, ...fileMessages];
 }
@@ -169,6 +169,30 @@ New: "How to Get Your M-Pesa Statement (New Method - No Password!)"
 /* Light green background */
 /* Light green background */
 /* Light green background */
+/* Light green background */
+/* Light green background */
+/* Light green background */
+/* Light green background */
+/* Light green background */
+/* Light green background */
+/* Light green background */
+/* Light green background */
+/* Light green background */
+/* Light green background */
+/* Light green background */
+/* Light green background */
+/* Light green background */
+/* Light green background */
+/* Light green background */
+/* Light green background */
+/* Light green background */
+/* Light green background */
+/* Light green background */
+/* Light green background */
+/* Light green background */
+/* Light green background */
+/* Light green background */
+/* Light green background */
 .border-primary/20  /* Green border */
 .text-primary; /* Green text for header */
 ```
@@ -189,7 +213,7 @@ New: "How to Get Your M-Pesa Statement (New Method - No Password!)"
 
 ```typescript
 // Deduplication by receipt number
-const uniqueTransactions = allTransactions.reduce((acc, tx) => {
+const uniqueExpenses = allExpenses.reduce((acc, tx) => {
   if (!acc.find((t) => t.receiptNo === tx.receiptNo)) {
     acc.push(tx);
   }
@@ -220,7 +244,7 @@ function analyzeStatementCoverage(expenses: Expense[]): {
 
 ## Files Modified
 
-1. **`components/expenses/add-transaction-form.tsx`**
+1. **`components/expenses/add-expense-form.tsx`**
 
    - Added PDF upload tabs
    - Multi-file support
@@ -309,7 +333,7 @@ function analyzeStatementCoverage(expenses: Expense[]): {
 ### Future Enhancements:
 
 - [ ] Show date range coverage after upload
-- [ ] Warn about transaction gaps
+- [ ] Warn about expense gaps
 - [ ] Suggest missing date ranges
 - [ ] Add "merge statements" preview mode
 - [ ] Export combined data

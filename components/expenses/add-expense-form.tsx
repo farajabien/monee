@@ -15,7 +15,7 @@ type ManualTx = Expense & { mpesaReference?: string };
 type FlaggedDuplicate = { parsed: ParsedTx; matches: ManualTx[] };
 type FlaggedAction = "add" | "merge" | "ignore";
 
-function fuzzyMatchManualTransaction(
+function fuzzyMatchManualExpense(
   parsed: ParsedTx,
   manualTx: ManualTx
 ): boolean {
@@ -58,10 +58,10 @@ import { parseMpesaMessage } from "@/lib/mpesa-parser";
 import { findMostCommonCategoryForRecipient } from "@/lib/recipient-matcher";
 import { parseStatementText } from "@/lib/statement-parser";
 import { AddCategoryDialog } from "@/components/categories/add-category-dialog";
-import { ManualTransactionDialog } from "@/components/expenses/manual-transaction-dialog";
+import { ManualExpenseDialog } from "@/components/expenses/manual-expense-dialog";
 import type { Expense, Category } from "@/types";
 
-export default function AddTransactionForm() {
+export default function AddExpenseForm() {
   // Track user actions for flagged duplicates
   const user = db.useUser();
   const [messages, setMessages] = useState("");
@@ -72,12 +72,10 @@ export default function AddTransactionForm() {
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [inputMethod, setInputMethod] = useState<"sms" | "pdf">("pdf");
-  const [previewTransactions, setPreviewTransactions] = useState<ParsedTx[]>(
-    []
-  );
+  const [previewExpenses, setPreviewExpenses] = useState<ParsedTx[]>([]);
 
   // Fetch existing expenses for recipient matching
-  const { data: transactionsData } = db.useQuery({
+  const { data: expensesData } = db.useQuery({
     expenses: {
       $: {
         where: { "user.id": user.id },
@@ -91,12 +89,12 @@ export default function AddTransactionForm() {
     },
   });
 
-  const existingTransactions: Expense[] = useMemo(
-    () => transactionsData?.expenses || [],
-    [transactionsData]
+  const existingExpenses: Expense[] = useMemo(
+    () => expensesData?.expenses || [],
+    [expensesData]
   );
 
-  const recipients = transactionsData?.recipients || [];
+  const recipients = expensesData?.recipients || [];
 
   // Helper to get display name (nickname or original)
   const getDisplayName = (originalName: string) => {
@@ -134,8 +132,8 @@ export default function AddTransactionForm() {
 
         // PDF import temporarily disabled: extractTextFromPDF and convertStatementToMessages are missing
         // const pdfText = await extractTextFromPDF(file);
-        // const statementTransactions = parseStatementText(pdfText);
-        // const messagesFromPDF = convertStatementToMessages(statementTransactions);
+        // const statementExpenses = parseStatementText(pdfText);
+        // const messagesFromPDF = convertStatementToMessages(statementExpenses);
         // allMessages = [...allMessages, ...messagesFromPDF];
         // console.log(`File ${i + 1}: Extracted ${messagesFromPDF.length} expenses`);
       }
@@ -173,7 +171,7 @@ export default function AddTransactionForm() {
   >({});
   useMemo(() => {
     if (!messages.trim()) {
-      setPreviewTransactions([]);
+      setPreviewExpenses([]);
       setFlaggedDuplicates([]);
       setFlaggedActions({});
       return;
@@ -191,10 +189,7 @@ export default function AddTransactionForm() {
         const data = parseMpesaMessage(message);
         // Auto-match category based on recipient
         const autoCategory = data.recipient
-          ? findMostCommonCategoryForRecipient(
-              data.recipient,
-              existingTransactions
-            )
+          ? findMostCommonCategoryForRecipient(data.recipient, existingExpenses)
           : null;
         const previewTx = {
           amount: data.amount,
@@ -205,10 +200,10 @@ export default function AddTransactionForm() {
           reference: data.reference,
         };
         // Check for possible duplicate with manual expenses
-        const manualMatches = existingTransactions.filter(
+        const manualMatches = existingExpenses.filter(
           (tx) =>
             tx.rawMessage?.startsWith("Manual entry") &&
-            fuzzyMatchManualTransaction(previewTx, tx)
+            fuzzyMatchManualExpense(previewTx, tx)
         );
         if (manualMatches.length > 0) {
           flagged.push({ parsed: previewTx, matches: manualMatches });
@@ -218,7 +213,7 @@ export default function AddTransactionForm() {
         console.error("Failed to parse message:", message, error);
       }
     }
-    setPreviewTransactions(parsed);
+    setPreviewExpenses(parsed);
     setFlaggedDuplicates(flagged);
     // Default all flagged to 'add' (user can change)
     setFlaggedActions(
@@ -227,11 +222,11 @@ export default function AddTransactionForm() {
         return acc;
       }, {})
     );
-  }, [messages, existingTransactions, selectedCategory]);
+  }, [messages, existingExpenses, selectedCategory]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!messages.trim() || previewTransactions.length === 0) return;
+    if (!messages.trim() || previewExpenses.length === 0) return;
 
     setIsSubmitting(true);
     try {
@@ -256,7 +251,7 @@ export default function AddTransactionForm() {
 
         try {
           const parsed = parseMpesaMessage(message);
-          // If flagged as merge, update the first matching manual transaction
+          // If flagged as merge, update the first matching manual expense
           const mergeIdx = flaggedToMerge.findIndex(
             (f) => f.parsed.rawMessage === message
           );
@@ -285,7 +280,7 @@ export default function AddTransactionForm() {
           if (parsed.recipient) {
             const autoCategory = findMostCommonCategoryForRecipient(
               parsed.recipient,
-              existingTransactions
+              existingExpenses
             );
             if (autoCategory) {
               category = autoCategory;
@@ -312,7 +307,7 @@ export default function AddTransactionForm() {
 
       setMessages("");
       setSelectedCategory("auto-match");
-      setPreviewTransactions([]);
+      setPreviewExpenses([]);
     } catch (error) {
       console.error("Error adding expenses:", error);
       alert("Failed to add expenses. Please try again.");
@@ -335,7 +330,7 @@ export default function AddTransactionForm() {
             Paste M-Pesa messages or add manually
           </p>
         </div>
-        <ManualTransactionDialog />
+        <ManualExpenseDialog />
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -476,11 +471,11 @@ export default function AddTransactionForm() {
           </div>
         </div>
 
-        {previewTransactions.length > 0 && (
+        {previewExpenses.length > 0 && (
           <div className="rounded-lg border p-4 space-y-2">
             <p className="text-sm font-medium">
-              Preview ({previewTransactions.length} transaction
-              {previewTransactions.length !== 1 ? "s" : ""})
+              Preview ({previewExpenses.length} expense
+              {previewExpenses.length !== 1 ? "s" : ""})
             </p>
             {flaggedDuplicates.length > 0 && (
               <div className="bg-yellow-100 border border-yellow-300 rounded p-2 mb-2 text-yellow-900 text-xs">
@@ -561,7 +556,7 @@ export default function AddTransactionForm() {
             <div className="space-y-3 max-h-60 overflow-y-auto">
               {(() => {
                 // Group by date
-                const grouped = previewTransactions.reduce((acc, tx) => {
+                const grouped = previewExpenses.reduce((acc, tx) => {
                   const dateKey = new Date(tx.date).toLocaleDateString(
                     "en-KE",
                     {
@@ -573,7 +568,7 @@ export default function AddTransactionForm() {
                   if (!acc[dateKey]) acc[dateKey] = [];
                   acc[dateKey].push(tx);
                   return acc;
-                }, {} as Record<string, typeof previewTransactions>);
+                }, {} as Record<string, typeof previewExpenses>);
 
                 return Object.entries(grouped).map(([date, txs]) => (
                   <div key={date} className="space-y-1">
@@ -608,13 +603,13 @@ export default function AddTransactionForm() {
         <Button
           type="submit"
           disabled={
-            isSubmitting || !messages.trim() || previewTransactions.length === 0
+            isSubmitting || !messages.trim() || previewExpenses.length === 0
           }
         >
           {isSubmitting
             ? "Adding..."
-            : `Add ${previewTransactions.length} Expense${
-                previewTransactions.length !== 1 ? "s" : ""
+            : `Add ${previewExpenses.length} Expense${
+                previewExpenses.length !== 1 ? "s" : ""
               }`}
         </Button>
       </form>

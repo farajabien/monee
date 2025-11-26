@@ -49,19 +49,19 @@ export function findMostCommonCategoryForRecipient(
   }
 
   // Find all expenses with matching recipient (fuzzy match)
-  const matchingTransactions = expenses.filter((tx) => {
+  const matchingExpenses = expenses.filter((tx) => {
     const txRecipient = tx.recipient || "";
     if (!txRecipient) return false;
     return recipientsMatch(recipient, txRecipient);
   });
 
-  if (matchingTransactions.length === 0) {
+  if (matchingExpenses.length === 0) {
     return null;
   }
 
   // Count category occurrences
   const categoryCounts: Record<string, number> = {};
-  matchingTransactions.forEach((tx) => {
+  matchingExpenses.forEach((tx) => {
     const category = tx.category || "Uncategorized";
     categoryCounts[category] = (categoryCounts[category] || 0) + 1;
   });

@@ -1,14 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { Sparkles } from "lucide-react";
 import db from "@/lib/db";
 import EnsureProfile from "@/components/ensure-profile";
-import HomeClient from "@/app/home-client";
 import { PaywallDialog } from "@/components/payment/paywall-dialog";
 
-export default function AuthShell() {
+interface AuthShellProps {
+  children?: ReactNode;
+  className?: string;
+}
+
+export default function AuthShell({ children, className }: AuthShellProps) {
   const router = useRouter();
   const { isLoading, user } = db.useAuth();
   const [showPaywall, setShowPaywall] = useState(false);
@@ -58,7 +62,7 @@ export default function AuthShell() {
       <PaywallDialog open={showPaywall} onOpenChange={setShowPaywall} />
       {hasPaid ? (
         <EnsureProfile>
-          <HomeClient />
+          <div className={className}>{children}</div>
         </EnsureProfile>
       ) : (
         <div className="flex min-h-screen items-center justify-center p-4">
@@ -68,7 +72,8 @@ export default function AuthShell() {
             </div>
             <h2 className="text-2xl font-bold">Welcome to MONEE!</h2>
             <p className="text-muted-foreground">
-              To access all features, please complete your one-time payment of Ksh 999.
+              To access all features, please complete your one-time payment of
+              Ksh 999.
             </p>
           </div>
         </div>
@@ -76,4 +81,3 @@ export default function AuthShell() {
     </>
   );
 }
-

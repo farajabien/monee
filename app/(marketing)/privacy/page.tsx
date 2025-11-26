@@ -133,7 +133,7 @@ export default function PrivacyPage() {
                 The free M-Pesa analyzer processes all data locally in your
                 browser using IndexedDB.{" "}
                 <strong>
-                  No transaction data from the analyzer is sent to our servers.
+                  No expense data from the analyzer is sent to our servers.
                 </strong>{" "}
                 The analyzer works 100% offline and your data remains on your
                 device.
@@ -317,9 +317,9 @@ export default function PrivacyPage() {
                 MONEE is not affiliated with Safaricom or M-Pesa. We do not have
                 direct access to your M-Pesa account. You manually paste M-Pesa
                 SMS messages into the app. When using the full MONEE app, parsed
-                transaction data is stored securely in your encrypted account.
-                When using the free analyzer, all data processing happens
-                locally in your browser and is never transmitted to our servers.
+                expense data is stored securely in your encrypted account. When
+                using the free analyzer, all data processing happens locally in
+                your browser and is never transmitted to our servers.
               </p>
             </section>
 

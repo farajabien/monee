@@ -12,7 +12,7 @@
 ### Marketing & Landing (NEW)
 
 - ✅ **Landing Page** - Full feature showcase at `/landing`
-- ✅ **Free Analyzer Tool** - No-login transaction analyzer at `/analyzer`
+- ✅ **Free Analyzer Tool** - No-login expense analyzer at `/analyzer`
 - ✅ **Terms of Service** - Comprehensive legal page at `/terms`
 - ✅ **Privacy Policy** - Detailed privacy page at `/privacy`
 - ✅ **Professional Branding** - Money-bag logo across all pages
@@ -119,10 +119,10 @@
 - ✅ **Bulk Analysis** - Paste 100+ messages at once
 - ✅ **Category Assignment** - 11 categories to choose from
 - ✅ **Smart Grouping** - By recipient with amount badges
-- ✅ **Date Grouping** - Organized by transaction date
+- ✅ **Date Grouping** - Organized by expense date
 - ✅ **Export Features** - JSON and CSV export
 - ✅ **Clear All Data** - Delete all stored expenses
-- ✅ **Statistics Summary** - Total spent, transaction count, recipient count
+- ✅ **Statistics Summary** - Total spent, expense count, recipient count
 - ✅ **Progress Bars** - Visual spending breakdown
 - ✅ **ScrollArea Input** - Handles very long message lists
 
@@ -260,7 +260,7 @@
   1. Set monthly budget
   2. Activate default categories
   3. Add first income source
-  4. Try pasting first transaction
+  4. Try pasting first expense
   5. Set notification preferences
 - [ ] Skip/complete tracking
 - [ ] "Getting Started" tips
@@ -319,7 +319,7 @@
 
 - [ ] Mark expenses as recurring (rent, subscriptions)
 - [ ] Auto-categorize recurring expenses
-- [ ] Recurring transaction reminders
+- [ ] Recurring expense reminders
 
 #### 9. **Export & Sharing** 🟢 LOW PRIORITY
 
@@ -361,7 +361,7 @@
 
 ### Performance
 
-- [ ] Implement pagination for transaction list (currently limited to 50)
+- [ ] Implement pagination for expense list (currently limited to 50)
 - [ ] Add infinite scroll or "Load More" button
 - [ ] Optimize queries with indexes
 - [ ] Add loading skeletons instead of "Loading..."
@@ -384,7 +384,7 @@
 ### Security & Data
 
 - [ ] Add data backup/restore functionality
-- [ ] Add transaction edit history/audit log
+- [ ] Add expense edit history/audit log
 - [ ] Add profile picture upload
 - [ ] Add two-factor authentication option
 
@@ -414,7 +414,7 @@
 
 ### Phase 3: Polish & Performance (1 week)
 
-8. **Expense Search & Filters** - As transaction list grows
+8. **Expense Search & Filters** - As expense list grows
 9. **Loading States & Optimistic Updates** - Better perceived performance
 10. **Error Handling Improvements** - Professional feel
 
@@ -531,9 +531,9 @@
 4. **Profile Handle Edit** - Add edit button in dashboard header
 5. **Expense Count** - Show total expenses in header
 6. **Empty States** - Better empty state messages with CTAs
-7. **Keyboard Shortcuts** - Add Cmd/Ctrl + K for quick add transaction
+7. **Keyboard Shortcuts** - Add Cmd/Ctrl + K for quick add expense
 8. **Auto-focus** - Auto-focus text inputs when opening dialogs
-9. **Clear Button** - Add clear button to transaction textarea
+9. **Clear Button** - Add clear button to expense textarea
 10. **Expense Stats** - Show total spent today/week/month in header
 
 ---

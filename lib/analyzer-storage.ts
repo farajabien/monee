@@ -1,21 +1,21 @@
 /**
- * Analyzer Storage - IndexedDB wrapper for offline M-Pesa transaction analysis
+ * Analyzer Storage - IndexedDB wrapper for offline M-Pesa expense analysis
  * Stores expenses locally in the browser for privacy and offline access
  */
 
-export interface AnalyzerTransaction {
+export interface AnalyzerExpense {
   id: string;
   amount: number;
   recipient: string;
   date: number;
   category?: string;
   rawMessage: string;
-  transactionType?: string;
+  expenseType?: string;
   parsedAt: number;
 }
 
 export interface AnalyzerStats {
-  totalTransactions: number;
+  totalExpenses: number;
   totalAmount: number;
   byRecipient: Record<
     string,
@@ -23,7 +23,7 @@ export interface AnalyzerStats {
   >;
   byDate: Record<
     string,
-    { count: number; amount: number; expenses: AnalyzerTransaction[] }
+    { count: number; amount: number; expenses: AnalyzerExpense[] }
   >;
   byCategory: Record<string, { count: number; amount: number }>;
 }
@@ -59,25 +59,23 @@ function openDB(): Promise<IDBDatabase> {
 /**
  * Save expenses to IndexedDB
  */
-export async function saveTransactions(
-  expenses: AnalyzerTransaction[]
-): Promise<void> {
+export async function saveExpenses(expenses: AnalyzerExpense[]): Promise<void> {
   const db = await openDB();
-  const transaction = db.transaction(STORE_NAME, "readwrite");
-  const store = transaction.objectStore(STORE_NAME);
+  const expense = db.expense(STORE_NAME, "readwrite");
+  const store = expense.objectStore(STORE_NAME);
 
   for (const tx of expenses) {
     store.put(tx);
   }
 
   return new Promise((resolve, reject) => {
-    transaction.oncomplete = () => {
+    expense.oncomplete = () => {
       db.close();
       resolve();
     };
-    transaction.onerror = () => {
+    expense.onerror = () => {
       db.close();
-      reject(transaction.error);
+      reject(expense.error);
     };
   });
 }
@@ -85,10 +83,10 @@ export async function saveTransactions(
 /**
  * Get all expenses from IndexedDB
  */
-export async function getAllTransactions(): Promise<AnalyzerTransaction[]> {
+export async function getAllExpenses(): Promise<AnalyzerExpense[]> {
   const db = await openDB();
-  const transaction = db.transaction(STORE_NAME, "readonly");
-  const store = transaction.objectStore(STORE_NAME);
+  const expense = db.expense(STORE_NAME, "readonly");
+  const store = expense.objectStore(STORE_NAME);
   const request = store.getAll();
 
   return new Promise((resolve, reject) => {
@@ -104,22 +102,22 @@ export async function getAllTransactions(): Promise<AnalyzerTransaction[]> {
 }
 
 /**
- * Delete a transaction by ID
+ * Delete a expense by ID
  */
-export async function deleteTransaction(id: string): Promise<void> {
+export async function deleteExpense(id: string): Promise<void> {
   const db = await openDB();
-  const transaction = db.transaction(STORE_NAME, "readwrite");
-  const store = transaction.objectStore(STORE_NAME);
+  const expense = db.expense(STORE_NAME, "readwrite");
+  const store = expense.objectStore(STORE_NAME);
   store.delete(id);
 
   return new Promise((resolve, reject) => {
-    transaction.oncomplete = () => {
+    expense.oncomplete = () => {
       db.close();
       resolve();
     };
-    transaction.onerror = () => {
+    expense.onerror = () => {
       db.close();
-      reject(transaction.error);
+      reject(expense.error);
     };
   });
 }
@@ -127,20 +125,20 @@ export async function deleteTransaction(id: string): Promise<void> {
 /**
  * Clear all expenses
  */
-export async function clearAllTransactions(): Promise<void> {
+export async function clearAllExpenses(): Promise<void> {
   const db = await openDB();
-  const transaction = db.transaction(STORE_NAME, "readwrite");
-  const store = transaction.objectStore(STORE_NAME);
+  const expense = db.expense(STORE_NAME, "readwrite");
+  const store = expense.objectStore(STORE_NAME);
   store.clear();
 
   return new Promise((resolve, reject) => {
-    transaction.oncomplete = () => {
+    expense.oncomplete = () => {
       db.close();
       resolve();
     };
-    transaction.onerror = () => {
+    expense.onerror = () => {
       db.close();
-      reject(transaction.error);
+      reject(expense.error);
     };
   });
 }
@@ -160,9 +158,9 @@ function normalizeRecipient(name: string): string {
 /**
  * Calculate statistics from expenses
  */
-export function calculateStats(expenses: AnalyzerTransaction[]): AnalyzerStats {
+export function calculateStats(expenses: AnalyzerExpense[]): AnalyzerStats {
   const stats: AnalyzerStats = {
-    totalTransactions: expenses.length,
+    totalExpenses: expenses.length,
     totalAmount: 0,
     byRecipient: {},
     byDate: {},
@@ -221,14 +219,14 @@ export function calculateStats(expenses: AnalyzerTransaction[]): AnalyzerStats {
 /**
  * Export expenses to JSON
  */
-export function exportToJSON(expenses: AnalyzerTransaction[]): string {
+export function exportToJSON(expenses: AnalyzerExpense[]): string {
   return JSON.stringify(expenses, null, 2);
 }
 
 /**
  * Export expenses to CSV
  */
-export function exportToCSV(expenses: AnalyzerTransaction[]): string {
+export function exportToCSV(expenses: AnalyzerExpense[]): string {
   const headers = [
     "Date",
     "Amount",
@@ -242,7 +240,7 @@ export function exportToCSV(expenses: AnalyzerTransaction[]): string {
     tx.amount.toString(),
     tx.recipient || "",
     tx.category || "Uncategorized",
-    tx.transactionType || "",
+    tx.expenseType || "",
     `"${tx.rawMessage.replace(/"/g, '""')}"`,
   ]);
 

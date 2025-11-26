@@ -62,7 +62,7 @@ export function RecipientList() {
     }
   });
 
-  // Merge saved recipients with transaction recipients
+  // Merge saved recipients with expense recipients
   const allRecipients = Array.from(uniqueRecipientNames).map((originalName) => {
     const saved = savedRecipients.find((r) => r.originalName === originalName);
     const totals = recipientTotals.get(originalName) || {
@@ -77,7 +77,7 @@ export function RecipientList() {
       notes: saved?.notes,
       updatedAt: saved?.updatedAt || 0,
       totalAmount: totals.totalAmount,
-      transactionCount: totals.count,
+      expenseCount: totals.count,
     };
   });
 
@@ -108,7 +108,7 @@ export function RecipientList() {
         case "amount-low":
           return a.totalAmount - b.totalAmount;
         case "expenses":
-          return b.transactionCount - a.transactionCount;
+          return b.expenseCount - a.expenseCount;
         case "name":
           const aName = a.nickname || a.originalName;
           const bName = b.nickname || b.originalName;
@@ -198,8 +198,8 @@ export function RecipientList() {
                     )}
                     <div className="flex items-center justify-between gap-2">
                       <p className="text-xs text-muted-foreground">
-                        {recipient.transactionCount} transaction
-                        {recipient.transactionCount !== 1 ? "s" : ""}
+                        {recipient.expenseCount} expense
+                        {recipient.expenseCount !== 1 ? "s" : ""}
                       </p>
                       <p className="text-lg font-bold text-primary">
                         {formatAmount(recipient.totalAmount)}
@@ -247,8 +247,8 @@ export function RecipientList() {
                   )}
                   <div className="flex items-center gap-2 flex-wrap">
                     <p className="text-xs text-muted-foreground">
-                      {recipient.transactionCount} transaction
-                      {recipient.transactionCount !== 1 ? "s" : ""}
+                      {recipient.expenseCount} expense
+                      {recipient.expenseCount !== 1 ? "s" : ""}
                     </p>
                     {recipient.defaultCategory && (
                       <Badge variant="secondary">

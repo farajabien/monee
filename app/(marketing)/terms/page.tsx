@@ -155,8 +155,8 @@ export default function TermsPage() {
                 MONEE is provided &quot;as is&quot; without warranties of any
                 kind. We do not guarantee that the Service will be
                 uninterrupted, secure, or error-free. While we strive for
-                accuracy in transaction parsing and financial calculations, we
-                are not responsible for any financial decisions made based on
+                accuracy in expense parsing and financial calculations, we are
+                not responsible for any financial decisions made based on
                 information provided by the Service.
               </p>
             </section>

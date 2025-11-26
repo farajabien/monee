@@ -36,7 +36,7 @@ export default function DailyCheckinCard() {
   const todayCheckin = checkinData?.daily_checkins?.[0];
 
   // Get today's expenses
-  const { data: transactionsData } = db.useQuery({
+  const { data: expensesData } = db.useQuery({
     expenses: {
       $: {
         where: {
@@ -48,10 +48,10 @@ export default function DailyCheckinCard() {
     },
   });
 
-  const todayTransactions = transactionsData?.expenses || [];
+  const todayExpenses = expensesData?.expenses || [];
 
   // Fetch existing expenses for recipient matching
-  const { data: allTransactionsData } = db.useQuery({
+  const { data: allExpensesData } = db.useQuery({
     expenses: {
       $: {
         where: { "user.id": user.id },
@@ -60,9 +60,9 @@ export default function DailyCheckinCard() {
     },
   });
 
-  const existingTransactions: Expense[] = useMemo(
-    () => allTransactionsData?.expenses || [],
-    [allTransactionsData]
+  const existingExpenses: Expense[] = useMemo(
+    () => allExpensesData?.expenses || [],
+    [allExpensesData]
   );
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -84,7 +84,7 @@ export default function DailyCheckinCard() {
           const category = parsed.recipient
             ? findMostCommonCategoryForRecipient(
                 parsed.recipient,
-                existingTransactions
+                existingExpenses
               ) || "Uncategorized"
             : "Uncategorized";
 
@@ -114,7 +114,7 @@ export default function DailyCheckinCard() {
         await db.transact(
           db.tx.daily_checkins[todayCheckin.id].update({
             completed: true,
-            transactionsCount: todayCheckin.transactionsCount + expenses.length,
+            expensesCount: todayCheckin.expensesCount + expenses.length,
           })
         );
       } else {
@@ -123,7 +123,7 @@ export default function DailyCheckinCard() {
             .update({
               date: todayTimestamp,
               completed: true,
-              transactionsCount: expenses.length,
+              expensesCount: expenses.length,
             })
             .link({ user: user.id })
         );
@@ -162,9 +162,8 @@ export default function DailyCheckinCard() {
                 ✓ Completed
               </Badge>
               <p className="text-sm text-muted-foreground">
-                You&apos;ve recorded {todayCheckin.transactionsCount}{" "}
-                transaction
-                {todayCheckin.transactionsCount !== 1 ? "s" : ""} today.
+                You&apos;ve recorded {todayCheckin.expensesCount} expense
+                {todayCheckin.expensesCount !== 1 ? "s" : ""} today.
               </p>
             </div>
           ) : (
@@ -199,11 +198,11 @@ export default function DailyCheckinCard() {
             )}
           </form>
 
-          {todayTransactions.length > 0 && (
+          {todayExpenses.length > 0 && (
             <div className="mt-4 pt-4 border-t">
               <p className="text-sm font-medium mb-2">Today&apos;s Expenses</p>
               <div className="space-y-1">
-                {todayTransactions.slice(0, 5).map((tx) => (
+                {todayExpenses.slice(0, 5).map((tx) => (
                   <div
                     key={tx.id}
                     className="text-sm flex justify-between items-center"
@@ -216,9 +215,9 @@ export default function DailyCheckinCard() {
                     </span>
                   </div>
                 ))}
-                {todayTransactions.length > 5 && (
+                {todayExpenses.length > 5 && (
                   <p className="text-xs text-muted-foreground">
-                    +{todayTransactions.length - 5} more
+                    +{todayExpenses.length - 5} more
                   </p>
                 )}
               </div>

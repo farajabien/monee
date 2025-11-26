@@ -70,7 +70,7 @@ MONEE is a comprehensive personal finance management app built specifically for 
 - Auto-categorization based on recipient history
 - Manual category override
 - Expense list with edit/delete
-- **NEW:** Manual transaction entry dialog
+- **NEW:** Manual expense entry dialog
 
 **Supported M-Pesa Formats:**
 
@@ -83,16 +83,16 @@ MONEE is a comprehensive personal finance management app built specifically for 
 
 **Files:**
 
-- `/components/expenses/add-transaction-form.tsx` - Main form with M-Pesa paste
-- `/components/expenses/manual-transaction-dialog.tsx` - NEW manual entry
+- `/components/expenses/add-expense-form.tsx` - Main form with M-Pesa paste
+- `/components/expenses/manual-expense-dialog.tsx` - NEW manual entry
 - `/components/expenses/expense-list.tsx` - List with edit/delete
-- `/components/expenses/edit-transaction-dialog.tsx` - Edit category
+- `/components/expenses/edit-expense-dialog.tsx` - Edit category
 - `/lib/mpesa-parser.ts` - Parser logic
 - `/lib/recipient-matcher.ts` - Fuzzy matching for auto-categorization
 
 **Recent Improvements:**
 
-- ✅ Added "Manual Entry" button in transaction form header
+- ✅ Added "Manual Entry" button in expense form header
 - ✅ Dialog includes: amount, recipient, date, category, notes
 - ✅ Integrates with existing category system
 - ✅ Auto-creates expense with manual flag in parsedData
@@ -106,16 +106,16 @@ MONEE is a comprehensive personal finance management app built specifically for 
 - [x] Preview shows grouped by date
 - [x] Expense list displays correctly
 - [x] Edit category works
-- [x] Delete transaction works
+- [x] Delete expense works
 - [x] Manual entry dialog functional
-- [ ] Manual entries show up in transaction list
+- [ ] Manual entries show up in expense list
 - [ ] Manual entries included in monthly summary
 
 **Known Issues:**
 
 - ❌ No CSV/Excel file upload for M-Pesa statements
 - ❌ No bulk edit/delete functionality
-- ❌ No transaction search/filter
+- ❌ No expense search/filter
 
 ---
 
@@ -205,7 +205,7 @@ MONEE is a comprehensive personal finance management app built specifically for 
 
 **Known Issues:**
 
-- ❌ No income transaction tracking (only planned/expected income)
+- ❌ No income expense tracking (only planned/expected income)
 - ❌ No income history/trends
 - ❌ No late income warnings
 
@@ -240,7 +240,7 @@ MONEE is a comprehensive personal finance management app built specifically for 
 - [x] Record payment (interest only)
 - [x] Record payment (both)
 - [x] Progress bar updates
-- [x] Debt payment creates expense transaction
+- [x] Debt payment creates expense expense
 - [x] Quick push also creates expense
 
 **Known Issues:**
@@ -289,7 +289,7 @@ MONEE is a comprehensive personal finance management app built specifically for 
 **Implementation:**
 
 - Daily check-in card showing status
-- Batch transaction entry for the day
+- Batch expense entry for the day
 - Shows today's expenses
 - Completion status tracking
 
@@ -711,7 +711,7 @@ None identified - app is stable
 - **Analyzer → Signup conversion** - How many analyzer users sign up?
 - **Signup → Payment conversion** - How many signups pay?
 - **Payment success rate** - Webhook success vs failures
-- **Time to first transaction** - How fast do users start using?
+- **Time to first expense** - How fast do users start using?
 - **30-day retention** - Do users come back?
 
 ### Recommended Improvements
@@ -869,7 +869,7 @@ None identified - app is stable
 - Privacy policy comprehensive
 - Terms of service clear
 - Analyzer data stays local (IndexedDB)
-- No transaction data sent to servers in free tool
+- No expense data sent to servers in free tool
 - InstantDB handles encryption at rest
 
 ### Payment Security ✅ GOOD
@@ -943,8 +943,8 @@ None identified - app is stable
 
 1. **Add "Upgrade" CTA in analyzer** after results
 2. **Add tooltips** to complex features
-3. **Show example transaction** in empty states
-4. **Add keyboard shortcuts** (e.g., Cmd+N for new transaction)
+3. **Show example expense** in empty states
+4. **Add keyboard shortcuts** (e.g., Cmd+N for new expense)
 5. **Improve error messages** with clear next steps
 
 ---

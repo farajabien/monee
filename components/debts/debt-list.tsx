@@ -74,12 +74,7 @@ export function DebtList() {
   const filteredAndSortedDebts = useMemo(() => {
     let result = [...debts];
 
-    if (searchQuery) {
-      result = result.filter((d) =>
-        d.name.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-
+    // Apply status filter first
     if (statusFilter !== "all") {
       result = result.filter((d) => {
         if (statusFilter === "active") return d.currentBalance > 0;
@@ -92,6 +87,14 @@ export function DebtList() {
       });
     }
 
+    // Apply search filter
+    if (searchQuery) {
+      result = result.filter((d) =>
+        d.name.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    // Apply sorting
     result.sort((a, b) => {
       switch (sortBy) {
         case "balance-high":
@@ -182,7 +185,7 @@ export function DebtList() {
       const paymentTimestamp = Date.now();
 
       const paymentId = id();
-      const transactionId = id();
+      const expenseId = id();
 
       await db.transact([
         db.tx.debt_payments[paymentId]
@@ -195,7 +198,7 @@ export function DebtList() {
             createdAt: Date.now(),
           })
           .link({ debt: debt.id }),
-        db.tx.expenses[transactionId]
+        db.tx.expenses[expenseId]
           .update({
             amount: monthlyInterest,
             recipient: `Debt Payment - ${debt.name}`,
@@ -294,8 +297,8 @@ export function DebtList() {
             sortValue={sortBy}
             onSortChange={setSortBy}
             sortOptions={[
-              { value: "balance-high", label: "Balance ↓" },
-              { value: "balance-low", label: "Balance ↑" },
+              { value: "balance-high", label: "Balance (High to Low)" },
+              { value: "balance-low", label: "Balance (Low to High)" },
               { value: "progress", label: "Progress" },
               { value: "due-day", label: "Due Day" },
               { value: "deadline", label: "Deadline" },
@@ -303,7 +306,7 @@ export function DebtList() {
             filterValue={statusFilter}
             onFilterChange={setStatusFilter}
             filterOptions={[
-              { value: "all", label: "All" },
+              { value: "all", label: "All Debts" },
               { value: "active", label: "Active" },
               { value: "paid", label: "Paid Off" },
               { value: "due-today", label: "Due Today" },

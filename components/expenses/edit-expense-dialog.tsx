@@ -22,7 +22,7 @@ import { Label } from "@/components/ui/label";
 import { AddCategoryDialog } from "@/components/categories/add-category-dialog";
 import type { Expense, Category } from "@/types";
 
-interface EditTransactionDialogProps {
+interface EditExpenseDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   expense: Expense | null;
@@ -32,7 +32,7 @@ export function EditExpenseDialog({
   open,
   onOpenChange,
   expense,
-}: EditTransactionDialogProps) {
+}: EditExpenseDialogProps) {
   const user = db.useUser();
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [showAddCategoryDialog, setShowAddCategoryDialog] = useState(false);
@@ -53,7 +53,7 @@ export function EditExpenseDialog({
       category.isActive !== false || category.name === selectedCategory
   );
 
-  // Initialize selected category when transaction changes
+  // Initialize selected category when expense changes
   useEffect(() => {
     if (expense) {
       setSelectedCategory(expense.category || "Uncategorized");
@@ -96,7 +96,7 @@ export function EditExpenseDialog({
           <DialogHeader>
             <DialogTitle>Edit Expense Category</DialogTitle>
             <DialogDescription>
-              Update the category for this transaction.
+              Update the category for this expense.
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">

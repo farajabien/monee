@@ -1,10 +1,10 @@
-import type { ParsedTransactionData } from "@/types";
+import type { ParsedExpenseData } from "@/types";
 
 /**
- * Parse Mpesa message to extract transaction details
+ * Parse Mpesa message to extract expense details
  * Supports common Mpesa message formats with robust error handling
  */
-export function parseMpesaMessage(message: string): ParsedTransactionData {
+export function parseMpesaMessage(message: string): ParsedExpenseData {
   if (!message || typeof message !== "string") {
     throw new Error("Invalid message: message must be a non-empty string");
   }
@@ -44,44 +44,44 @@ export function parseMpesaMessage(message: string): ParsedTransactionData {
     /You deposited Ksh\s+([\d,]+\.?\d*)\s+at\s+(.+?)\s+on\s+(\d{2}\/\d{2}\/\d{2,4})\s+at\s+(\d{1,2}:\d{2}\s+(?:AM|PM))/i;
 
   let match: RegExpMatchArray | null = null;
-  let transactionType: ParsedTransactionData["transactionType"] = "send";
+  let expenseType: ParsedExpenseData["expenseType"] = "send";
   let recipient: string | undefined;
   let dateStr: string | undefined;
   let timeStr: string | undefined;
 
   if ((match = trimmed.match(mshwariTransferPattern))) {
-    transactionType = "receive";
+    expenseType = "receive";
     recipient = "M-Shwari Transfer";
     dateStr = match[2];
     timeStr = match[3];
     // Balance is at match[4] if present
   } else if ((match = trimmed.match(confirmedSentPattern))) {
-    transactionType = "send";
+    expenseType = "send";
     recipient = match[2]?.trim();
     dateStr = match[3];
     timeStr = match[4];
   } else if ((match = trimmed.match(sentPattern))) {
-    transactionType = "send";
+    expenseType = "send";
     recipient = match[2]?.trim();
     dateStr = match[3];
     timeStr = match[4];
   } else if ((match = trimmed.match(receivedPattern))) {
-    transactionType = "receive";
+    expenseType = "receive";
     recipient = match[2]?.trim();
     dateStr = match[3];
     timeStr = match[4];
   } else if ((match = trimmed.match(buyPattern))) {
-    transactionType = "buy";
+    expenseType = "buy";
     recipient = match[2]?.trim();
     dateStr = match[3];
     timeStr = match[4];
   } else if ((match = trimmed.match(withdrawPattern))) {
-    transactionType = "withdraw";
+    expenseType = "withdraw";
     recipient = match[2]?.trim();
     dateStr = match[3];
     timeStr = match[4];
   } else if ((match = trimmed.match(depositPattern))) {
-    transactionType = "deposit";
+    expenseType = "deposit";
     recipient = match[2]?.trim();
     dateStr = match[3];
     timeStr = match[4];
@@ -100,7 +100,7 @@ export function parseMpesaMessage(message: string): ParsedTransactionData {
 
       return {
         amount,
-        transactionType: "send",
+        expenseType: "send",
         reference: trimmed.substring(0, 100),
         timestamp: Date.now(),
       };
@@ -227,7 +227,7 @@ export function parseMpesaMessage(message: string): ParsedTransactionData {
   return {
     amount,
     recipient,
-    transactionType,
+    expenseType,
     balance,
     timestamp,
     reference: trimmed.substring(0, 100),

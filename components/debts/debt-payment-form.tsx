@@ -86,9 +86,9 @@ export function DebtPaymentForm({ debt, onSuccess }: DebtPaymentFormProps) {
       const principalPaid = parseFloat(principalAmount || "0");
       const paymentTimestamp = new Date(paymentDate).getTime();
 
-      // Create payment record and expense transaction
+      // Create payment record and expense expense
       const paymentId = id();
-      const transactionId = id();
+      const expenseId = id();
 
       await db.transact([
         db.tx.debt_payments[paymentId]
@@ -101,8 +101,8 @@ export function DebtPaymentForm({ debt, onSuccess }: DebtPaymentFormProps) {
             createdAt: Date.now(),
           })
           .link({ debt: debt.id }),
-        // Create expense transaction for the debt payment
-        db.tx.expenses[transactionId]
+        // Create expense expense for the debt payment
+        db.tx.expenses[expenseId]
           .update({
             amount: paymentAmount,
             recipient: `Debt Payment - ${debt.name}`,

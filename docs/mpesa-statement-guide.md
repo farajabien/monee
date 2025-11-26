@@ -17,7 +17,7 @@
 3. **Export Statements**
 
    - Click the **"Export Statements"** button (bottom right)
-   - Leave it on **"All Expenses"** for transaction type
+   - Leave it on **"All Expenses"** for expense type
 
 4. **Select Date Range**
 
@@ -176,19 +176,19 @@ Add to the analyzer page:
 
 ```typescript
 async function analyzeMultipleStatements(files: File[]): Promise<Expense[]> {
-  const allTransactions: Expense[] = [];
+  const allExpenses: Expense[] = [];
 
   for (const file of files) {
     const text = await extractTextFromPDF(file);
     const expenses = parseStatementText(text);
-    allTransactions.push(...expenses);
+    allExpenses.push(...expenses);
   }
 
   // Remove duplicates by receipt number
-  const uniqueTransactions = deduplicateByReceipt(allTransactions);
+  const uniqueExpenses = deduplicateByReceipt(allExpenses);
 
   // Sort by date
-  return uniqueTransactions.sort(
+  return uniqueExpenses.sort(
     (a, b) =>
       new Date(a.completionTime).getTime() -
       new Date(b.completionTime).getTime()
@@ -205,7 +205,7 @@ function analyzeStatementCoverage(expenses: Expense[]): {
   totalDays: number;
   gaps: Array<{ start: Date; end: Date; days: number }>;
 } {
-  // Detect gaps in transaction dates
+  // Detect gaps in expense dates
   // Warn user about missing periods
 }
 ```

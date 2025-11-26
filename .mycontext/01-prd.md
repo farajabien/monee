@@ -14,7 +14,7 @@ Budgeting tools often feel too complicated, too Western, or too disconnected fro
 
 But for most of us, our money flows through one place: **Mpesa**.
 
-Every transaction tells a story — rent, food, house help, little treats, and all the “I’ll just buy this quickly” moments that add up.
+Every expense tells a story — rent, food, house help, little treats, and all the “I’ll just buy this quickly” moments that add up.
 
 **MONEE** brings all that together and helps you finally _see_ your financial reality — clearly, gently, and honestly.
 
@@ -159,7 +159,7 @@ This simple model keeps MONEE sustainable while staying affordable for everyone.
 ## **Our Promise**
 
 MONEE isn’t about making you feel guilty for spending.
-It’s about **helping you build awareness** — one transaction, one small decision, one self-care moment at a time.
+It’s about **helping you build awareness** — one expense, one small decision, one self-care moment at a time.
 
 You don’t need a financial degree to manage your money — you just need MONEE.
 

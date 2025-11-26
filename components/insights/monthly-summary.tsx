@@ -155,7 +155,7 @@ export default function MonthlySummary() {
   const isYearly = selectedMonth === "yearly";
 
   // Filter expenses/income/debt by selected month or all for yearly
-  const filteredTransactions = useMemo(() => {
+  const filteredExpenses = useMemo(() => {
     if (isYearly) return expenses;
     return expenses.filter((tx: Expense) => {
       const d = new Date(tx.date);
@@ -208,7 +208,7 @@ export default function MonthlySummary() {
   }, [incomeSources, selectedMonth, isYearly]);
 
   // Calculate totals
-  const totalSpent = filteredTransactions.reduce(
+  const totalSpent = filteredExpenses.reduce(
     (sum: number, tx: Expense) => sum + tx.amount,
     0
   );
@@ -229,7 +229,7 @@ export default function MonthlySummary() {
 
   // Group by category
   const categoryTotals: Record<string, { amount: number; count: number }> = {};
-  filteredTransactions.forEach((tx: Expense) => {
+  filteredExpenses.forEach((tx: Expense) => {
     const cat = tx.category || "Uncategorized";
     if (!categoryTotals[cat]) {
       categoryTotals[cat] = { amount: 0, count: 0 };
@@ -243,7 +243,7 @@ export default function MonthlySummary() {
     string,
     { amount: number; count: number; displayName: string; originalName: string }
   > = {};
-  filteredTransactions.forEach((tx: Expense) => {
+  filteredExpenses.forEach((tx: Expense) => {
     if (!tx.recipient) return;
     const normalized = normalizeRecipient(tx.recipient);
     if (!normalized) return;
@@ -553,7 +553,7 @@ export default function MonthlySummary() {
                               <Badge variant="secondary">{categoryName}</Badge>
                             )}
                             <span className="text-xs text-muted-foreground">
-                              ({totals.count} transaction
+                              ({totals.count} expense
                               {totals.count !== 1 ? "s" : ""})
                             </span>
                           </div>

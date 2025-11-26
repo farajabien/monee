@@ -58,7 +58,7 @@ export function YearInReview() {
   const debts = data?.debts || [];
 
   // Filter for 2025 expenses
-  const year2025Transactions = useMemo(() => {
+  const year2025Expenses = useMemo(() => {
     return expenses.filter((t: Expense) => {
       const date = new Date(t.date || t.createdAt);
       return date.getFullYear() === 2025;
@@ -67,16 +67,13 @@ export function YearInReview() {
 
   // Calculate year stats
   const yearStats = useMemo(() => {
-    if (year2025Transactions.length === 0) return null;
+    if (year2025Expenses.length === 0) return null;
 
-    const totalSpent = year2025Transactions.reduce(
-      (sum, t) => sum + t.amount,
-      0
-    );
+    const totalSpent = year2025Expenses.reduce((sum, t) => sum + t.amount, 0);
 
     // Top recipient
     const recipientMap = new Map<string, { amount: number; count: number }>();
-    year2025Transactions.forEach((t: Expense) => {
+    year2025Expenses.forEach((t: Expense) => {
       if (t.recipient) {
         const current = recipientMap.get(t.recipient) || {
           amount: 0,
@@ -102,7 +99,7 @@ export function YearInReview() {
 
     // Monthly spending
     const monthlyMap = new Map<string, number>();
-    year2025Transactions.forEach((t: Expense) => {
+    year2025Expenses.forEach((t: Expense) => {
       const date = new Date(t.date || t.createdAt);
       const monthKey = date.toLocaleDateString("en-US", { month: "long" });
       monthlyMap.set(monthKey, (monthlyMap.get(monthKey) || 0) + t.amount);
@@ -135,7 +132,7 @@ export function YearInReview() {
 
     // Category breakdown
     const categoryMap = new Map<string, { amount: number; count: number }>();
-    year2025Transactions.forEach((t: Expense) => {
+    year2025Expenses.forEach((t: Expense) => {
       const category = t.category || "Uncategorized";
       const current = categoryMap.get(category) || { amount: 0, count: 0 };
       categoryMap.set(category, {
@@ -149,28 +146,24 @@ export function YearInReview() {
       .sort((a, b) => b.amount - a.amount)
       .slice(0, 6);
 
-    const avgTransaction = totalSpent / year2025Transactions.length;
-    const firstTransaction = new Date(
-      Math.min(
-        ...year2025Transactions.map((t: Expense) => t.date || t.createdAt)
-      )
+    const avgExpense = totalSpent / year2025Expenses.length;
+    const firstExpense = new Date(
+      Math.min(...year2025Expenses.map((t: Expense) => t.date || t.createdAt))
     );
-    const lastTransaction = new Date(
-      Math.max(
-        ...year2025Transactions.map((t: Expense) => t.date || t.createdAt)
-      )
+    const lastExpense = new Date(
+      Math.max(...year2025Expenses.map((t: Expense) => t.date || t.createdAt))
     );
 
     return {
       totalSpent,
-      totalTransactions: year2025Transactions.length,
+      totalExpenses: year2025Expenses.length,
       topRecipient,
       monthlySpending,
       mostExpensiveMonth,
       topCategories,
-      avgTransaction,
-      firstTransaction,
-      lastTransaction,
+      avgExpense,
+      firstExpense,
+      lastExpense,
       totalRecipients: recipientMap.size,
       totalCategories: categories.length,
       totalBudgets: budgets.filter((b: { month: number }) => {
@@ -181,7 +174,7 @@ export function YearInReview() {
         (d: { currentBalance: number }) => d.currentBalance === 0
       ).length,
     };
-  }, [year2025Transactions, recipients, categories, budgets, debts]);
+  }, [year2025Expenses, recipients, categories, budgets, debts]);
 
   const formatAmount = (amount: number) => {
     return new Intl.NumberFormat("en-KE", {
@@ -191,7 +184,7 @@ export function YearInReview() {
     }).format(amount);
   };
 
-  if (!yearStats || yearStats.totalTransactions === 0) {
+  if (!yearStats || yearStats.totalExpenses === 0) {
     return (
       <Card>
         <CardContent className="p-12 text-center">
@@ -228,14 +221,12 @@ export function YearInReview() {
             </div>
             <div className="text-center p-4 bg-background rounded-lg">
               <p className="text-sm text-muted-foreground mb-1">Expenses</p>
-              <p className="text-2xl font-bold">
-                {yearStats.totalTransactions}
-              </p>
+              <p className="text-2xl font-bold">{yearStats.totalExpenses}</p>
             </div>
             <div className="text-center p-4 bg-background rounded-lg">
               <p className="text-sm text-muted-foreground mb-1">Avg Expense</p>
               <p className="text-2xl font-bold text-green-500">
-                {formatAmount(yearStats.avgTransaction)}
+                {formatAmount(yearStats.avgExpense)}
               </p>
             </div>
             <div className="text-center p-4 bg-background rounded-lg">
@@ -402,7 +393,7 @@ export function YearInReview() {
             <div>
               <p className="text-sm text-muted-foreground">First Expense</p>
               <p className="font-medium">
-                {yearStats.firstTransaction.toLocaleDateString("en-KE", {
+                {yearStats.firstExpense.toLocaleDateString("en-KE", {
                   day: "numeric",
                   month: "long",
                   year: "numeric",
@@ -413,7 +404,7 @@ export function YearInReview() {
             <div>
               <p className="text-sm text-muted-foreground">Last Expense</p>
               <p className="font-medium">
-                {yearStats.lastTransaction.toLocaleDateString("en-KE", {
+                {yearStats.lastExpense.toLocaleDateString("en-KE", {
                   day: "numeric",
                   month: "long",
                   year: "numeric",

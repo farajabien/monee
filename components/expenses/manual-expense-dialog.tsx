@@ -26,24 +26,24 @@ import { AddCategoryDialog } from "@/components/categories/add-category-dialog";
 import { Plus } from "lucide-react";
 import type { Category } from "@/types";
 
-interface ManualTransactionDialogProps {
+interface ManualExpenseDialogProps {
   trigger?: React.ReactNode;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
 }
 
-export function ManualTransactionDialog({
+export function ManualExpenseDialog({
   trigger,
   open,
   onOpenChange,
-}: ManualTransactionDialogProps) {
+}: ManualExpenseDialogProps) {
   const user = db.useUser();
   const [isOpen, setIsOpen] = useState(false);
   const [amount, setAmount] = useState<string>("");
   const [recipient, setRecipient] = useState<string>("");
   const [selectedCategory, setSelectedCategory] =
     useState<string>("Uncategorized");
-  const [transactionDate, setTransactionDate] = useState<string>(
+  const [expenseDate, setExpenseDate] = useState<string>(
     new Date().toISOString().split("T")[0]
   );
   const [notes, setNotes] = useState<string>("");
@@ -77,16 +77,16 @@ export function ManualTransactionDialog({
 
     setIsSubmitting(true);
     try {
-      const transactionData = {
+      const expenseData = {
         amount: parseFloat(amount),
         recipient: recipient.trim(),
-        date: new Date(transactionDate).getTime(),
+        date: new Date(expenseDate).getTime(),
         category: selectedCategory || "Uncategorized",
         rawMessage: `Manual entry: Ksh${amount} to ${recipient}`,
         parsedData: {
           amount: parseFloat(amount),
           recipient: recipient.trim(),
-          timestamp: new Date(transactionDate).getTime(),
+          timestamp: new Date(expenseDate).getTime(),
           type: "manual",
         },
         notes: notes.trim() || undefined,
@@ -95,20 +95,20 @@ export function ManualTransactionDialog({
       };
 
       await db.transact(
-        db.tx.expenses[id()].update(transactionData).link({ user: user.id })
+        db.tx.expenses[id()].update(expenseData).link({ user: user.id })
       );
 
       // Reset form
       setAmount("");
       setRecipient("");
       setSelectedCategory("Uncategorized");
-      setTransactionDate(new Date().toISOString().split("T")[0]);
+      setExpenseDate(new Date().toISOString().split("T")[0]);
       setNotes("");
       setDialogOpen(false);
       setMpesaReference("");
     } catch (error) {
-      console.error("Error adding manual transaction:", error);
-      alert("Failed to add transaction. Please try again.");
+      console.error("Error adding manual expense:", error);
+      alert("Failed to add expense. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -135,7 +135,7 @@ export function ManualTransactionDialog({
           <DialogHeader>
             <DialogTitle>Add Manual Expense</DialogTitle>
             <DialogDescription>
-              Manually enter a transaction that wasn&apos;t captured from M-Pesa
+              Manually enter a expense that wasn&apos;t captured from M-Pesa
             </DialogDescription>
           </DialogHeader>
 
@@ -168,12 +168,12 @@ export function ManualTransactionDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="transaction-date">Date</Label>
+              <Label htmlFor="expense-date">Date</Label>
               <Input
-                id="transaction-date"
+                id="expense-date"
                 type="date"
-                value={transactionDate}
-                onChange={(e) => setTransactionDate(e.target.value)}
+                value={expenseDate}
+                onChange={(e) => setExpenseDate(e.target.value)}
                 required
               />
             </div>

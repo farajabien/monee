@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Item } from "@/components/ui/item";
 import { DataTable } from "@/components/ui/data-table";
-import { transactionColumns } from "./transaction-columns";
+import { expenseColumns } from "@/components/expenses/expense-columns";
 import { Trash2, Edit, TrendingUp, Calendar, DollarSign } from "lucide-react";
 import { EditExpenseDialog } from "./edit-expense-dialog";
 import { DataViewControls } from "@/components/ui/data-view-controls";
@@ -101,18 +101,17 @@ export default function ExpenseList() {
     }
 
     const totalSpent = filtered.reduce((sum, t) => sum + t.amount, 0);
-    const transactionCount = filtered.length;
-    const avgTransaction =
-      transactionCount > 0 ? totalSpent / transactionCount : 0;
+    const expenseCount = filtered.length;
+    const avgExpense = expenseCount > 0 ? totalSpent / expenseCount : 0;
 
     return {
       totalSpent,
-      transactionCount,
-      avgTransaction,
+      expenseCount,
+      avgExpense,
     };
   }, [expenses, monthFilter, categoryFilter, searchQuery]);
 
-  const filteredAndSortedTransactions = useMemo(() => {
+  const filteredAndSortedExpenses = useMemo(() => {
     let result = [...expenses];
 
     if (monthFilter !== "all") {
@@ -209,11 +208,11 @@ export default function ExpenseList() {
         </Badge>
         <Badge variant="secondary" className="text-xs px-2 py-0.5">
           <Calendar className="h-3 w-3 mr-1" />
-          {metrics.transactionCount} Trans
+          {metrics.expenseCount} Trans
         </Badge>
         <Badge variant="outline" className="text-xs px-2 py-0.5">
           <TrendingUp className="h-3 w-3 mr-1" />
-          Avg: Ksh {formatCompact(metrics.avgTransaction)}
+          Avg: Ksh {formatCompact(metrics.avgExpense)}
         </Badge>
       </div>
 
@@ -260,10 +259,10 @@ export default function ExpenseList() {
             ]}
             filterLabel="Category"
             totalCount={expenses.length}
-            filteredCount={filteredAndSortedTransactions.length}
+            filteredCount={filteredAndSortedExpenses.length}
           />
 
-          {filteredAndSortedTransactions.length === 0 && (
+          {filteredAndSortedExpenses.length === 0 && (
             <div className="text-center text-muted-foreground py-12">
               {searchQuery ||
               categoryFilter !== "all" ||
@@ -280,10 +279,10 @@ export default function ExpenseList() {
             </div>
           )}
 
-          {filteredAndSortedTransactions.length > 0 && viewMode === "list" && (
+          {filteredAndSortedExpenses.length > 0 && viewMode === "list" && (
             <DataTable
-              columns={transactionColumns}
-              data={filteredAndSortedTransactions}
+              columns={expenseColumns}
+              data={filteredAndSortedExpenses}
               onEdit={(expense) => {
                 setEditingExpense(expense);
                 setIsEditDialogOpen(true);
@@ -292,9 +291,9 @@ export default function ExpenseList() {
             />
           )}
 
-          {filteredAndSortedTransactions.length > 0 && viewMode === "grid" && (
+          {filteredAndSortedExpenses.length > 0 && viewMode === "grid" && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-              {filteredAndSortedTransactions.map(
+              {filteredAndSortedExpenses.map(
                 (expense: Expense, index: number) => (
                   <Item
                     key={expense.id}

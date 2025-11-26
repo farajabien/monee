@@ -84,7 +84,7 @@ CANCEL_NOTIFICATION - Cancels scheduled reminder
 - Smart window management
 
 // Background sync
-- Ready for offline transaction syncing
+- Ready for offline expense syncing
 ```
 
 #### Notification Content
@@ -221,14 +221,14 @@ User lands on dashboard ready to add expenses
 ## ✅ Manual Expenses Verification
 
 **Status:** Already Working  
-**Location:** `/components/expenses/manual-transaction-dialog.tsx`
+**Location:** `/components/expenses/manual-expense-dialog.tsx`
 
 The manual entry dialog:
 
-- ✅ Appears in transaction list (same query, same structure)
+- ✅ Appears in expense list (same query, same structure)
 - ✅ Included in monthly summary (no category filtering)
 - ✅ Has `type: "manual"` flag in parsedData
-- ✅ Creates proper transaction with user link
+- ✅ Creates proper expense with user link
 - ✅ Works with category system
 - ✅ Supports notes field
 
@@ -409,7 +409,7 @@ All critical gaps identified in the review have been addressed:
 
 ### Launch-Ready Features
 
-- Complete transaction management
+- Complete expense management
 - Full budgeting system
 - Income & debt tracking
 - ELTIW wishlist

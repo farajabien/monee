@@ -1,12 +1,12 @@
 import { useState } from "react";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import AddTransactionForm from "@/components/expenses/add-expense-form";
+import AddExpenseForm from "@/components/expenses/add-expense-form";
 import { IncomeSourceForm } from "@/components/income/income-source-form";
 import { DebtForm } from "@/components/debts/debt-form";
 
@@ -19,11 +19,14 @@ export function AddExpenseModal({
 }) {
   const [tab, setTab] = useState("expense");
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md w-full">
-        <DialogHeader>
-          <DialogTitle>Add Entry</DialogTitle>
-        </DialogHeader>
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent
+        side="bottom"
+        className="h-[90vh] overflow-y-auto pb-safe p-2"
+      >
+        <SheetHeader className="sr-only">
+          <SheetTitle>Add Entry</SheetTitle>
+        </SheetHeader>
         <Tabs value={tab} onValueChange={setTab} className="w-full">
           <TabsList className="grid grid-cols-3 mb-4">
             <TabsTrigger value="income">Income</TabsTrigger>
@@ -34,13 +37,13 @@ export function AddExpenseModal({
             <IncomeSourceForm onSuccess={() => onOpenChange(false)} />
           </TabsContent>
           <TabsContent value="expense">
-            <AddTransactionForm />
+            <AddExpenseForm />
           </TabsContent>
           <TabsContent value="debt">
             <DebtForm onSuccess={() => onOpenChange(false)} />
           </TabsContent>
         </Tabs>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }

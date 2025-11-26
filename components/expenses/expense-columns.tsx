@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Edit, Trash2 } from "lucide-react";
 import type { Expense } from "@/types";
 
-export const transactionColumns: ColumnDef<Expense, unknown>[] = [
+export const expenseColumns: ColumnDef<Expense, unknown>[] = [
   {
     accessorKey: "index",
     header: "#",
@@ -57,7 +57,7 @@ export const transactionColumns: ColumnDef<Expense, unknown>[] = [
     id: "actions",
     header: "Actions",
     cell: ({ row, table }) => {
-      const transaction = row.original as Expense;
+      const expense = row.original as Expense;
       const meta = table.options.meta as {
         onEdit?: (t: Expense) => void;
         onDelete?: (id: string) => void;
@@ -67,14 +67,14 @@ export const transactionColumns: ColumnDef<Expense, unknown>[] = [
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => meta?.onEdit && meta.onEdit(transaction)}
+            onClick={() => meta?.onEdit && meta.onEdit(expense)}
           >
             <Edit className="h-4 w-4" />
           </Button>
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => meta?.onDelete && meta.onDelete(transaction.id)}
+            onClick={() => meta?.onDelete && meta.onDelete(expense.id)}
             className="text-destructive hover:text-destructive"
           >
             <Trash2 className="h-4 w-4" />

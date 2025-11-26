@@ -31,7 +31,7 @@ import {
   convertStatementToMessages,
   extractTextFromPDF,
 } from "@/lib/statement-parser";
-import type { ParsedTransactionData } from "@/types";
+import type { ParsedExpenseData } from "@/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select,
@@ -44,17 +44,17 @@ import { Label } from "@/components/ui/label";
 
 interface YearStats {
   totalSpent: number;
-  totalTransactions: number;
+  totalExpenses: number;
   topRecipient: { name: string; amount: number; count: number };
   monthlySpending: { month: string; amount: number }[];
   mostExpensiveMonth: { month: string; amount: number };
   categories: { category: string; amount: number; count: number }[];
-  avgTransaction: number;
-  firstTransaction: Date;
-  lastTransaction: Date;
+  avgExpense: number;
+  firstExpense: Date;
+  lastExpense: Date;
   availableYears: number[];
   selectedYear: number;
-  allTransactions: ParsedTransactionData[];
+  allExpenses: ParsedExpenseData[];
 }
 
 export default function FreeMpesaAnalyzerPage() {
@@ -68,28 +68,28 @@ export default function FreeMpesaAnalyzerPage() {
   );
 
   const calculateAndSetStats = (
-    allTransactions: ParsedTransactionData[],
+    allExpenses: ParsedExpenseData[],
     year: number,
     availableYears: number[]
   ) => {
     // Filter for selected year
-    const yearTransactions = allTransactions.filter((t) => {
+    const yearExpenses = allExpenses.filter((t) => {
       if (!t.timestamp) return false;
       const date = new Date(t.timestamp);
       return date.getFullYear() === year;
     });
 
-    if (yearTransactions.length === 0) {
+    if (yearExpenses.length === 0) {
       alert(`No expenses found for ${year}`);
       return;
     }
 
     // Calculate total spent
-    const totalSpent = yearTransactions.reduce((sum, t) => sum + t.amount, 0);
+    const totalSpent = yearExpenses.reduce((sum, t) => sum + t.amount, 0);
 
     // Find top recipient
     const recipientMap = new Map<string, { amount: number; count: number }>();
-    yearTransactions.forEach((t) => {
+    yearExpenses.forEach((t) => {
       if (t.recipient) {
         const current = recipientMap.get(t.recipient) || {
           amount: 0,
@@ -111,7 +111,7 @@ export default function FreeMpesaAnalyzerPage() {
 
     // Monthly spending
     const monthlyMap = new Map<string, number>();
-    yearTransactions.forEach((t) => {
+    yearExpenses.forEach((t) => {
       if (!t.timestamp) return;
       const date = new Date(t.timestamp);
       const monthKey = date.toLocaleDateString("en-US", { month: "long" });
@@ -145,8 +145,8 @@ export default function FreeMpesaAnalyzerPage() {
 
     // Expense type breakdown
     const typeMap = new Map<string, { amount: number; count: number }>();
-    yearTransactions.forEach((t) => {
-      const type = t.transactionType || "Other";
+    yearExpenses.forEach((t) => {
+      const type = t.expenseType || "Other";
       const current = typeMap.get(type) || { amount: 0, count: 0 };
       typeMap.set(type, {
         amount: current.amount + t.amount,
@@ -159,26 +159,26 @@ export default function FreeMpesaAnalyzerPage() {
       .sort((a, b) => b.amount - a.amount);
 
     // Calculate stats
-    const avgTransaction = totalSpent / yearTransactions.length;
-    const timestamps = yearTransactions
+    const avgExpense = totalSpent / yearExpenses.length;
+    const timestamps = yearExpenses
       .map((t) => t.timestamp || 0)
       .filter((ts) => ts > 0);
-    const firstTransaction = new Date(Math.min(...timestamps));
-    const lastTransaction = new Date(Math.max(...timestamps));
+    const firstExpense = new Date(Math.min(...timestamps));
+    const lastExpense = new Date(Math.max(...timestamps));
 
     setYearStats({
       totalSpent,
-      totalTransactions: yearTransactions.length,
+      totalExpenses: yearExpenses.length,
       topRecipient,
       monthlySpending,
       mostExpensiveMonth,
       categories,
-      avgTransaction,
-      firstTransaction,
-      lastTransaction,
+      avgExpense,
+      firstExpense,
+      lastExpense,
       availableYears,
       selectedYear: year,
-      allTransactions,
+      allExpenses,
     });
   };
 
@@ -206,15 +206,13 @@ export default function FreeMpesaAnalyzerPage() {
           const pdfText = await extractTextFromPDF(file);
           console.log(`File ${i + 1} - PDF Text length:`, pdfText.length);
 
-          const statementTransactions = parseStatementText(pdfText);
+          const statementExpenses = parseStatementText(pdfText);
           console.log(
             `File ${i + 1} - Parsed expenses:`,
-            statementTransactions.length
+            statementExpenses.length
           );
 
-          const fileMessages = convertStatementToMessages(
-            statementTransactions
-          );
+          const fileMessages = convertStatementToMessages(statementExpenses);
           messagesToParse = [...messagesToParse, ...fileMessages];
           console.log(
             `File ${i + 1} - Converted to messages:`,
@@ -233,9 +231,9 @@ export default function FreeMpesaAnalyzerPage() {
       // Handle pasted statement text
       else if (inputMethod === "statement" && statementText.trim()) {
         console.log("Parsing statement text, length:", statementText.length);
-        const statementTransactions = parseStatementText(statementText);
-        console.log("Parsed statement expenses:", statementTransactions.length);
-        messagesToParse = convertStatementToMessages(statementTransactions);
+        const statementExpenses = parseStatementText(statementText);
+        console.log("Parsed statement expenses:", statementExpenses.length);
+        messagesToParse = convertStatementToMessages(statementExpenses);
         console.log("Converted to messages:", messagesToParse.length);
       }
       // Handle SMS messages
@@ -470,7 +468,7 @@ REO5B2H9CJ 2023-05-24 12:15:00 Airtime Purchase COMPLETED 0.00 50.00 408.69
                     </p>
                     <ol className="text-sm text-muted-foreground space-y-1 list-decimal list-inside">
                       <li>Download your M-Pesa Full Statement PDF</li>
-                      <li>Open the PDF and select all transaction rows</li>
+                      <li>Open the PDF and select all expense rows</li>
                       <li>Copy (Cmd+C / Ctrl+C) and paste here</li>
                       <li>Include the header row for best results</li>
                     </ol>
@@ -502,7 +500,7 @@ RCH4J8K9L1 Confirmed. Ksh1,200.00 sent to UBER KENYA on 20/2/25 at 8:15 PM..."
                       <li>Paste them here</li>
                     </ol>
                     <p className="text-xs text-muted-foreground mt-2">
-                      ⚠️ Note: SMS messages don&apos;t include all transaction
+                      ⚠️ Note: SMS messages don&apos;t include all expense
                       fields. For complete analysis with Receipt No, Completion
                       Time, Status, and exact amounts, use the Full Statement
                       PDF.
@@ -566,7 +564,7 @@ RCH4J8K9L1 Confirmed. Ksh1,200.00 sent to UBER KENYA on 20/2/25 at 8:15 PM..."
                       Expenses
                     </p>
                     <p className="text-3xl font-bold">
-                      {yearStats.totalTransactions}
+                      {yearStats.totalExpenses}
                     </p>
                   </div>
                   <div>
@@ -574,7 +572,7 @@ RCH4J8K9L1 Confirmed. Ksh1,200.00 sent to UBER KENYA on 20/2/25 at 8:15 PM..."
                       Avg Expense
                     </p>
                     <p className="text-3xl font-bold text-green-500">
-                      {formatAmount(yearStats.avgTransaction)}
+                      {formatAmount(yearStats.avgExpense)}
                     </p>
                   </div>
                 </div>
@@ -597,7 +595,7 @@ RCH4J8K9L1 Confirmed. Ksh1,200.00 sent to UBER KENYA on 20/2/25 at 8:15 PM..."
                       value={yearStats.selectedYear.toString()}
                       onValueChange={(y) =>
                         calculateAndSetStats(
-                          yearStats.allTransactions,
+                          yearStats.allExpenses,
                           parseInt(y),
                           yearStats.availableYears
                         )
@@ -740,7 +738,7 @@ RCH4J8K9L1 Confirmed. Ksh1,200.00 sent to UBER KENYA on 20/2/25 at 8:15 PM..."
                       First Expense
                     </p>
                     <p className="font-medium">
-                      {yearStats.firstTransaction.toLocaleDateString("en-KE", {
+                      {yearStats.firstExpense.toLocaleDateString("en-KE", {
                         day: "numeric",
                         month: "long",
                         year: "numeric",
@@ -753,7 +751,7 @@ RCH4J8K9L1 Confirmed. Ksh1,200.00 sent to UBER KENYA on 20/2/25 at 8:15 PM..."
                       Last Expense
                     </p>
                     <p className="font-medium">
-                      {yearStats.lastTransaction.toLocaleDateString("en-KE", {
+                      {yearStats.lastExpense.toLocaleDateString("en-KE", {
                         day: "numeric",
                         month: "long",
                         year: "numeric",
