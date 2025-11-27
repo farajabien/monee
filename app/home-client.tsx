@@ -69,6 +69,14 @@ export default function HomeClient() {
           <DebtList />
         </>
       )}
+      {activeTab === "savings" && (
+        <div>
+          <h2 className="text-2xl font-bold mb-4">Savings</h2>
+          <p className="text-muted-foreground">
+            Savings tracking coming soon...
+          </p>
+        </div>
+      )}
       {activeTab === "recipients" && <RecipientList />}
       {activeTab === "categories" && <CategoryList />}
       <PWABottomNav />
