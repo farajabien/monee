@@ -82,7 +82,7 @@ export function PWABottomNav() {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t pb-safe">
-      <div className="flex items-center justify-around h-16 relative">
+      <div className="max-w-xl mx-auto flex items-center justify-around h-16 relative">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.value;

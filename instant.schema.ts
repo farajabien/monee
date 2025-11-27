@@ -25,6 +25,7 @@ const _schema = i.schema({
       category: i.string(),
       rawMessage: i.string(),
       parsedData: i.json(),
+      notes: i.string().optional(),
       createdAt: i.number().indexed(),
     }),
     categories: i.entity({
