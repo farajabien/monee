@@ -34,7 +34,7 @@ export function SavingsProgressCard({
 
   if (isLoading) {
     return (
-      <Item variant="outline" className="h-full">
+      <Item variant="outline" className="h-full border-0">
         <ItemHeader className="sr-only">
           <ItemTitle>
             <Wallet className="h-4 w-4" />
@@ -55,7 +55,7 @@ export function SavingsProgressCard({
   // No savings goals case
   if (goalsCount === 0) {
     return (
-      <Item variant="muted" className="h-full">
+      <Item variant="muted" className="h-full border-0">
         <ItemContent>
           <div className="text-center py-4 w-full">
             <p className="text-sm text-muted-foreground">
@@ -65,7 +65,7 @@ export function SavingsProgressCard({
               Start saving for your dreams!
             </p>
             <Link href="/dashboard?tab=savings" className="block mt-4">
-              <Button variant="outline" size="sm" className="w-full">
+              <Button variant="outline" size="sm" className="w-full border-0">
                 Create Savings Goal
                 <ArrowRight className="h-3 w-3 ml-2" />
               </Button>
@@ -79,10 +79,10 @@ export function SavingsProgressCard({
   // Determine item styling based on progress
   const itemClass =
     progressPercentage >= 75
-      ? " bg-green-50/50 dark:bg-green-950/20"
+      ? "border-0 bg-green-50/50 dark:bg-green-950/20"
       : progressPercentage >= 50
-      ? " bg-blue-50/50 dark:bg-blue-950/20"
-      : " bg-yellow-50/50 dark:bg-yellow-950/20";
+      ? "border-0 bg-blue-50/50 dark:bg-blue-950/20"
+      : "border-0 bg-yellow-50/50 dark:bg-yellow-950/20";
 
   const progressColorClass =
     progressPercentage >= 75
@@ -171,7 +171,7 @@ export function SavingsProgressCard({
 
         {/* Action Button */}
         <Link href="/dashboard?tab=savings" className="block">
-          <Button variant="outline" size="sm" className="w-full">
+          <Button variant="outline" size="sm" className="w-full border-0">
             Add to Savings
             <ArrowRight className="h-3 w-3 ml-2" />
           </Button>

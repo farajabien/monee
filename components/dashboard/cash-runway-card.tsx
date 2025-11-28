@@ -29,7 +29,7 @@ export function CashRunwayCard({
 }: CashRunwayCardProps) {
   if (isLoading) {
     return (
-      <Item variant="outline" className="h-full">
+      <Item variant="outline" className="h-full border-0">
         <ItemHeader className="sr-only">
           <ItemTitle>
             <Rocket className="h-4 w-4" />
@@ -50,7 +50,7 @@ export function CashRunwayCard({
   // No runway data case (no income sources set up)
   if (!runwayData || !runwayData.nextPaydayDate) {
     return (
-      <Item variant="muted" className="h-full">
+      <Item variant="muted" className="h-full border-0">
         <ItemContent>
           <div className="text-center py-4 w-full">
             <p className="text-sm text-muted-foreground">
@@ -112,7 +112,8 @@ export function CashRunwayCard({
   const isPositiveFlow = netFlow >= 0;
 
   // Calculate savings rate
-  const savingsRate = totalIncome > 0 ? (monthlySavings / totalIncome) * 100 : 0;
+  const savingsRate =
+    totalIncome > 0 ? (monthlySavings / totalIncome) * 100 : 0;
   const savingsRateColor =
     savingsRate >= 20
       ? "text-green-600 dark:text-green-400"
@@ -121,7 +122,7 @@ export function CashRunwayCard({
       : "text-muted-foreground";
 
   return (
-    <Item variant="outline" className={`h-full ${itemClass}`}>
+    <Item variant="outline" className={`h-full border-0 ${itemClass}`}>
       <ItemContent className="space-y-4 w-full">
         {/* Current Cash Left */}
         <div className="space-y-1">
@@ -170,7 +171,9 @@ export function CashRunwayCard({
           </div>
           {totalIncome > 0 && (
             <div className="space-y-1">
-              <span className="text-xs text-muted-foreground">Savings Rate</span>
+              <span className="text-xs text-muted-foreground">
+                Savings Rate
+              </span>
               <div className="flex items-center gap-1">
                 <span className={`text-sm font-semibold ${savingsRateColor}`}>
                   {savingsRate.toFixed(1)}%
@@ -213,19 +216,39 @@ export function CashRunwayCard({
 
         {/* Projection */}
         <div className="pt-3">
-          <div className={`text-sm font-medium ${
-            !willMakeIt
-              ? "text-red-600 dark:text-red-400"
-              : projectedBalance < dailyAverageSpend * 5
-              ? "text-yellow-600 dark:text-yellow-400"
-              : "text-green-600 dark:text-green-400"
-          }`}>
+          <div
+            className={`text-sm font-medium ${
+              !willMakeIt
+                ? "text-red-600 dark:text-red-400"
+                : projectedBalance < dailyAverageSpend * 5
+                ? "text-yellow-600 dark:text-yellow-400"
+                : "text-green-600 dark:text-green-400"
+            }`}
+          >
             {!willMakeIt ? (
-              <>⚠ Short by payday. Max {formatCurrency(projectedDailyBudget)}/day to make it!</>
+              <>
+                ⚠ Short by payday. Max{" "}
+                <span className="font-bold text-base">
+                  {formatCurrency(projectedDailyBudget)}
+                </span>
+                /day to make it!
+              </>
             ) : projectedBalance < dailyAverageSpend * 5 ? (
-              <>⚡ On track! Max {formatCurrency(projectedDailyBudget)}/day to maintain buffer.</>
+              <>
+                ⚡ On track! Max{" "}
+                <span className="font-bold text-base">
+                  {formatCurrency(projectedDailyBudget)}
+                </span>
+                /day to maintain buffer.
+              </>
             ) : (
-              <>✓ On track! Max {formatCurrency(projectedDailyBudget)}/day to payday.</>
+              <>
+                ✓ On track! Max{" "}
+                <span className="font-bold text-base">
+                  {formatCurrency(projectedDailyBudget)}
+                </span>
+                /day to payday.
+              </>
             )}
           </div>
         </div>

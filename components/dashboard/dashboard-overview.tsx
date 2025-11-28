@@ -1,15 +1,38 @@
 "use client";
 
 import { useMemo } from "react";
+import dynamic from "next/dynamic";
 import db from "@/lib/db";
-import { DebtsAlertCard } from "./debts-alert-card";
-import { SavingsProgressCard } from "./savings-progress-card";
-import { CashRunwayCard } from "./cash-runway-card";
 import { calculateCashRunway } from "@/lib/cash-runway-calculator";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+// Dynamically import heavy components to avoid chunk loading issues
+const DebtsAlertCard = dynamic(
+  () =>
+    import("./debts-alert-card").then((mod) => ({
+      default: mod.DebtsAlertCard,
+    })),
+  { ssr: false }
+);
+
+const SavingsProgressCard = dynamic(
+  () =>
+    import("./savings-progress-card").then((mod) => ({
+      default: mod.SavingsProgressCard,
+    })),
+  { ssr: false }
+);
+
+const CashRunwayCard = dynamic(
+  () =>
+    import("./cash-runway-card").then((mod) => ({
+      default: mod.CashRunwayCard,
+    })),
+  { ssr: false }
+);
 
 export function DashboardOverview() {
   const user = db.useUser();
@@ -195,12 +218,18 @@ export function DashboardOverview() {
     <div className="space-y-6">
       {/* Dashboard Cards as Tabs */}
       <Tabs defaultValue="runway" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 mb-4">
-          <TabsTrigger value="runway">Cash Runway</TabsTrigger>
-          <TabsTrigger value="debts">Debts</TabsTrigger>
-          <TabsTrigger value="savings">Savings</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3 mb-4 border-0">
+          <TabsTrigger value="runway" className="border-0">
+            Cash Runway
+          </TabsTrigger>
+          <TabsTrigger value="debts" className="border-0">
+            Debts
+          </TabsTrigger>
+          <TabsTrigger value="savings" className="border-0">
+            Savings
+          </TabsTrigger>
         </TabsList>
-        <TabsContent value="runway">
+        <TabsContent value="runway" className="border-0">
           <CashRunwayCard
             runwayData={cashRunwayData}
             isLoading={isLoading}
@@ -209,10 +238,10 @@ export function DashboardOverview() {
             monthlySavings={savingsData.monthlySavings}
           />
         </TabsContent>
-        <TabsContent value="debts">
+        <TabsContent value="debts" className="border-0">
           <DebtsAlertCard debts={debtsData} isLoading={isLoading} />
         </TabsContent>
-        <TabsContent value="savings">
+        <TabsContent value="savings" className="border-0">
           <SavingsProgressCard
             monthlySavings={savingsData.monthlySavings}
             totalSaved={savingsData.totalSaved}
@@ -226,7 +255,7 @@ export function DashboardOverview() {
       {/* Link to Detailed Summary */}
       <div className="flex justify-center pt-4">
         <Link href="/dashboard?tab=overview&view=detailed">
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" className="border-0">
             View Detailed Summary
             <ArrowRight className="h-3 w-3 ml-2" />
           </Button>

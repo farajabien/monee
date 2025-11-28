@@ -58,7 +58,7 @@ export function DebtsAlertCard({
 
   if (isLoading) {
     return (
-      <Item variant="outline" className="h-full">
+      <Item variant="outline" className="h-full border-0">
         <ItemContent>
           <div className="animate-pulse space-y-3 w-full">
             <div className="h-6 bg-muted rounded w-3/4"></div>
@@ -72,7 +72,7 @@ export function DebtsAlertCard({
   // No debts case
   if (debts.length === 0) {
     return (
-      <Item variant="muted" className="h-full">
+      <Item variant="muted" className="h-full border-0">
         <ItemContent>
           <div className="text-center py-4 w-full">
             <p className="text-sm text-muted-foreground">
@@ -93,8 +93,8 @@ export function DebtsAlertCard({
   const isUrgent = daysUntilPayment !== null && daysUntilPayment <= 7;
 
   const itemClass = isUrgent
-    ? "border-orange-500 bg-orange-50/50 dark:bg-orange-950/20"
-    : "";
+    ? "border-0 bg-orange-50/50 dark:bg-orange-950/20"
+    : "border-0";
 
   return (
     <Item variant="outline" className={`h-full ${itemClass}`}>
@@ -137,7 +137,7 @@ export function DebtsAlertCard({
 
         {/* Action Button */}
         <Link href="/dashboard?tab=debts" className="block">
-          <Button variant="outline" size="sm" className="w-full">
+          <Button variant="outline" size="sm" className="w-full border-0">
             View All Debts
             <ArrowRight className="h-3 w-3 ml-2" />
           </Button>
