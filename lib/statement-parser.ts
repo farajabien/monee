@@ -1,4 +1,3 @@
-
 export interface StatementExpense {
   receiptNo: string;
   completionTime: string;
@@ -87,4 +86,42 @@ export function parseStatementText(text: string): StatementExpense[] {
   }
 
   return expenses;
+}
+
+/**
+ * Converts an array of parsed StatementExpense objects into M-Pesa message format strings.
+ * This allows statement transactions to be processed by the same parser as SMS messages.
+ *
+ * @param expenses Array of parsed statement expenses.
+ * @returns Array of M-Pesa formatted message strings.
+ */
+export function convertStatementToMessages(expenses: StatementExpense[]): string[] {
+  return expenses
+    .filter(exp => exp.status === 'COMPLETED')
+    .map(exp => {
+      // Determine if this is a withdrawal (paid out) or deposit (paid in)
+      const isWithdrawal = exp.withdrawn > 0;
+      const amount = isWithdrawal ? exp.withdrawn : exp.paidIn;
+
+      // Parse the completion time to extract date and time components
+      // Format: "2022-11-24 14:30:15" → "24/11/22" and "02:30 PM"
+      const [datePart, timePart] = exp.completionTime.split(' ');
+      const [year, month, day] = datePart.split('-');
+      const shortYear = year.slice(-2);
+      const dateStr = `${day}/${month}/${shortYear}`;
+
+      // Convert 24-hour time to 12-hour with AM/PM
+      const [hours, minutes] = timePart.split(':');
+      const hour = parseInt(hours, 10);
+      const isPM = hour >= 12;
+      const hour12 = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+      const timeStr = `${hour12}:${minutes} ${isPM ? 'PM' : 'AM'}`;
+
+      // Format the message to match M-Pesa SMS format
+      // Example: "TKJPNAJ1D1 Confirmed. Ksh200.00 sent to John Doe on 19/11/25 at 02:30 PM. New M-PESA balance is Ksh5,000.00."
+      const action = isWithdrawal ? 'sent to' : 'received from';
+      const message = `${exp.receiptNo} Confirmed. Ksh${amount.toFixed(2)} ${action} ${exp.details} on ${dateStr} at ${timeStr}. New M-PESA balance is Ksh${exp.balance.toFixed(2)}.`;
+
+      return message;
+    });
 }

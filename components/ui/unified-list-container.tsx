@@ -220,7 +220,7 @@ export function UnifiedListContainer<T>({
               }
               onDelete={
                 config.actions?.delete
-                  ? (item: T) => handleDelete(config.getItemId(item))
+                  ? (id: string) => handleDelete(id)
                   : undefined
               }
             />

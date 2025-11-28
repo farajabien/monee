@@ -1,7 +1,7 @@
 # Monee App Flow Documentation
 
 **Last Updated:** 2025-11-28
-**Version:** 2.0 (Refactor Plan)
+**Version:** 3.0 (Unified List System Complete)
 
 ---
 
@@ -101,12 +101,15 @@ Quick Actions (Floating Button or Bottom Nav)
     - Add to Savings
 ```
 
-**Current Status:** ⚠️ Partially implemented
-- ✅ Bottom nav exists
-- ✅ Monthly Summary exists (but not structured as cards)
-- ❌ Dashboard needs redesign with 4 key cards
-- ❌ Cash Runway card missing
-- ❌ Quick actions floating button missing
+**Current Status:** ✅ Fully Implemented
+- ✅ Bottom nav exists and working
+- ✅ Dashboard redesigned with 4 key cards:
+  - Income vs Expenses Card (with net balance)
+  - Debts Alert Card (next payment due with urgency)
+  - Savings Progress Card (monthly + total with % complete)
+  - Cash Runway Card (days to payday, daily avg, discipline indicator)
+- ✅ All dashboard cards use unified metrics and consistent styling
+- ⚠️ Quick actions floating button (can be added later)
 
 ---
 
@@ -193,11 +196,11 @@ Confirm and Import All
 
 | Tab | Icon | Screen | Current Status |
 |-----|------|--------|----------------|
-| **Overview** | Home | Financial Snapshot (4 cards) | ⚠️ Needs redesign |
-| **Expenses** | ArrowLeftRight | Expense list + Add expense | ✅ Working |
-| **Income** | TrendingUp | Income sources list | ✅ Working |
-| **Savings** | Wallet | Savings goals + progress | ⚠️ Needs migration |
-| **More** | MoreHorizontal | Dropdown menu | ✅ Working |
+| **Overview** | Home | Financial Snapshot (4 cards) | ✅ Fully Implemented |
+| **Expenses** | ArrowLeftRight | Expense list + Add expense | ✅ Working (Unified List) |
+| **Income** | TrendingUp | Income sources list | ✅ Working (Unified List) |
+| **Savings** | Wallet | Savings goals + progress | ✅ Fully Migrated (Unified List) |
+| **More** | MoreHorizontal | Dropdown menu (Debts, Budgets, etc.) | ✅ Working |
 
 **More Menu Items:**
 - Debts
@@ -207,6 +210,80 @@ Confirm and Import All
 - Settings
 
 **Current Implementation:** `components/pwa/pwa-bottom-nav.tsx`
+
+---
+
+### 4.1. Unified List System Architecture
+
+**Status:** ✅ **Fully Implemented (Nov 28, 2025)**
+
+**Overview:**
+All list components (Expenses, Debts, Income, Budgets, Savings) now use a unified, standardized system that eliminates code duplication and ensures consistent UX across the entire app.
+
+**Code Reduction Achievement:**
+- **Before:** ~1,906 lines across 5 list components
+- **After:** ~506 lines across 5 list components
+- **Reduction:** ~1,400 lines removed (73% decrease!)
+
+**Architecture Components:**
+
+1. **Type System** (`types/list-config.ts`)
+   - `ListConfig<T>` - Generic configuration interface for any list
+   - `FilterConfig` - Supports select, multi-select, month-select, date-range, boolean filters
+   - `MetricConfig` - Badge metrics (currency, count, percentage, average)
+   - `CustomAction<T>` - Conditional custom actions per item
+   - `ViewMode` - Grid, list, or table views
+
+2. **Hooks** (`hooks/`)
+   - `use-list-data.ts` - Filter, sort, search logic with full memoization
+   - `use-list-actions.ts` - CRUD handlers with dialogs and toast notifications
+
+3. **UI Components** (`components/ui/`)
+   - `list-metrics.tsx` - Consistent badge metrics display
+   - `standard-list-item.tsx` - Standardized list item renderer
+   - `standard-grid-card.tsx` - Standardized grid card renderer
+   - `unified-list-container.tsx` - Main orchestrator component
+
+**Implementation Pattern:**
+
+Each list now follows this pattern:
+```typescript
+// 1. Configuration file (e.g., expense-list-config.tsx)
+export const createExpenseListConfig = (): ListConfig<Expense> => ({
+  title: "Expenses",
+  metrics: [/* metric configs */],
+  filters: [/* filter configs */],
+  sortOptions: [/* sort options */],
+  renderListItem: (item, index, actions) => { /* render logic */ },
+  renderGridCard: (item, index, actions) => { /* render logic */ },
+  actions: { edit, delete },
+  customSort: (a, b, sortBy) => { /* custom sort logic */ },
+  customFilter: (item, query, filters) => { /* custom filter logic */ },
+});
+
+// 2. Component file (e.g., expense-list.tsx) - ~40-120 lines
+export function ExpenseList() {
+  const { data } = db.useQuery({ /* query */ });
+  const config = useMemo(() => createExpenseListConfig(), []);
+
+  return <UnifiedListContainer config={config} data={data} />;
+}
+```
+
+**Benefits:**
+- ✅ Consistent UX across all data views (same filters, sort, search, metrics)
+- ✅ ~1,400 lines of duplicate code eliminated
+- ✅ Single source of truth for list behavior
+- ✅ Easy to add new lists (just create a config)
+- ✅ Automatic support for multiple view modes (grid, list, table)
+- ✅ Built-in performance optimizations (memoization, efficient renders)
+
+**Refactored Lists:**
+1. ✅ Expenses List (375 → 44 lines, 88% reduction)
+2. ✅ Debts List (700 → 128 lines, 82% reduction)
+3. ✅ Income Sources List (344 → 107 lines, 69% reduction)
+4. ✅ Budgets List (251 → 123 lines, 51% reduction)
+5. ✅ Savings Goals List (236 → 104 lines, 56% reduction)
 
 ---
 

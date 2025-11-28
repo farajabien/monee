@@ -54,7 +54,7 @@ export function useListData<T>({
       }
 
       // Fallback: search all string fields
-      return Object.values(item).some((value) => {
+      return Object.values(item as Record<string, any>).some((value) => {
         if (typeof value === "string") {
           return value.toLowerCase().includes(searchQuery.toLowerCase());
         }

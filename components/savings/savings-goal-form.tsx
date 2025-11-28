@@ -16,7 +16,8 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { i } from "@instantdb/react";
+import { tx } from "@instantdb/react";
+import db from "@/lib/db";
 
 const savingsGoalSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -24,9 +25,15 @@ const savingsGoalSchema = z.object({
   emoji: z.string().optional(),
 });
 
+type SavingsGoalFormData = {
+  name: string;
+  targetAmount: number;
+  emoji?: string;
+};
+
 export function SavingsGoalForm({ profileId }: { profileId: string }) {
-  const form = useForm<z.infer<typeof savingsGoalSchema>>({
-    resolver: zodResolver(savingsGoalSchema),
+  const form = useForm<SavingsGoalFormData>({
+    resolver: zodResolver(savingsGoalSchema) as any,
     defaultValues: {
       name: "",
       targetAmount: 0,
@@ -34,26 +41,24 @@ export function SavingsGoalForm({ profileId }: { profileId: string }) {
     },
   });
 
-  function onSubmit(values: z.infer<typeof savingsGoalSchema>) {
-    const db = i.db();
-    db.transact(
-      i.insert("savings_goals", {
-        name: values.name,
-        targetAmount: values.targetAmount,
-        currentAmount: 0,
-        emoji: values.emoji || "💰",
-        isCompleted: false,
-        createdAt: Date.now(),
-        user: { id: profileId },
-      })
-    )
-      .then(() => {
-        toast.success("Savings goal created!");
-        form.reset();
-      })
-      .catch((err) => {
-        toast.error("Failed to create savings goal: " + err.message);
-      });
+  async function onSubmit(values: SavingsGoalFormData) {
+    try {
+      await db.transact(
+        tx.savings_goals[crypto.randomUUID()].update({
+          name: values.name,
+          targetAmount: values.targetAmount,
+          currentAmount: 0,
+          emoji: values.emoji || "💰",
+          isCompleted: false,
+          createdAt: Date.now(),
+        }).link({ user: profileId })
+      );
+
+      toast.success("Savings goal created!");
+      form.reset();
+    } catch (err: any) {
+      toast.error("Failed to create savings goal: " + err.message);
+    }
   }
 
   return (

@@ -2,12 +2,22 @@
 
 **Last Updated:** 2025-11-28
 **Market:** Kenya (primary), East Africa (secondary)
+**Domain:** monee.co.ke
+**TikTok:** @monee.co.ke
 
 ---
 
 ## Executive Summary
 
-Monee replaces **5-6 disconnected spreadsheets/templates** that people buy separately for KSh 3,500+ total. Instead of juggling multiple files that don't sync or talk to each other, users get everything in one lightweight app for **KSh 999, one-time**.
+Monee replaces **5-6 disconnected spreadsheets/templates** that people buy separately for **KSh 3,395+ total**. Instead of juggling multiple files that don't sync or talk to each other, users get everything in one lightweight app for **KSh 999, one-time**.
+
+**The Value Proposition:**
+- **Save KSh 2,396+** compared to buying templates separately
+- **All-in-one:** Budget tracking, debt management, savings goals, business expenses, student tracking
+- **Smart features:** Mpesa auto-import, recipient matching, cash runway predictions
+- **Cloud sync:** Access across all devices (spreadsheets don't sync)
+- **Offline-first:** Works without internet
+- **Lifetime access:** No subscriptions, all future updates included
 
 **Target Market:**
 - Young professionals (25-40 years old)
@@ -384,12 +394,32 @@ Target keywords:
 
 Strategy: Rank for template searches, offer Monee as the better solution
 
-#### 2. **Social Media (Instagram, TikTok, X)**
+#### 2. **TikTok (@monee.co.ke) - Primary Launch Channel**
+**Priority:** Build audience BEFORE launch
+
+**Content Strategy:**
+- **Finance Tips**: "You buying 6 different Excel templates to track your money? 🤦‍♂️" (Shows calculator adding up costs)
+- **Problem/Solution**: "Stop wondering where your money went" → Demo of pasting Mpesa message → auto-categorized
+- **Cash Runway Feature**: "Will you make it to payday? Monee tells you."
+- **Debt Freedom**: "Debt stressing you? Track it properly." → Show progress bars
+- **Value Comparison**: "Budget + Debts + Savings + Mpesa tracking... All in one app. KSh 999. Not KSh 3,500 in separate sheets."
+
+**Bio (160 chars):**
+"Track your money, plan your life, crush your goals — simple, all-in-one personal finance app. monee.co.ke"
+
+**Launch Strategy:**
+1. Post 3-5 teaser videos showing finance tips and app features
+2. Build audience and validate interest
+3. Use TikTok to funnel to monee.co.ke waitlist
+4. Launch announcement video when app goes live
+
+#### 3. **Instagram, X (Twitter)**
 Content types:
 - Before/After: "I used to buy 5 templates... now I use Monee"
 - Tips: "3 ways to make it to payday" (showcasing cash runway)
 - Comparisons: Side-by-side with spreadsheets
 - Wins: "I paid off KSh 50K in debt using Monee"
+- Infographics: KSh 3,395 vs KSh 999 comparison
 
 #### 3. **Facebook Groups**
 Target groups:

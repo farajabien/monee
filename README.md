@@ -16,6 +16,7 @@ Most people buy 5–6 different spreadsheets or templates just to manage differe
 **MONEE replaces them all — for just KSh 999, one time.**
 
 Instead of juggling multiple spreadsheets, you get one app that does everything:
+
 - Zero-sum budgeting
 - Debt tracking with interest calculations
 - Savings goals with progress tracking
@@ -32,16 +33,17 @@ Instead of juggling multiple spreadsheets, you get one app that does everything:
 
 Here's what you'd pay for separate tools vs. getting everything in Monee:
 
-| Tool / Spreadsheet | Competitor Price | Monee |
-|-------------------|------------------|-------|
-| **Budget Tracker** | KSh 799 | ✅ Included |
-| **Debt Tracker** | KSh 799 | ✅ Included |
-| **Business/Inventory** | KSh 799 | ✅ Included |
-| **Student Planner** | KSh 399 | ✅ Included |
-| **Savings Goal Tracker** | KSh 599 | ✅ Included |
-| **Total** | **KSh 3,395+** | **KSh 999** |
+| Tool / Spreadsheet       | Competitor Price | Monee       |
+| ------------------------ | ---------------- | ----------- |
+| **Budget Tracker**       | KSh 799          | ✅ Included |
+| **Debt Tracker**         | KSh 799          | ✅ Included |
+| **Business/Inventory**   | KSh 799          | ✅ Included |
+| **Student Planner**      | KSh 399          | ✅ Included |
+| **Savings Goal Tracker** | KSh 599          | ✅ Included |
+| **Total**                | **KSh 3,395+**   | **KSh 999** |
 
 **Plus with Monee you get:**
+
 - Cloud sync across devices (spreadsheets don't sync)
 - Mpesa auto-import (no copy-pasting)
 - Smart recipient matching (see where money _really_ goes)
@@ -67,6 +69,7 @@ Instead of seeing "KPLC TOKENS" or "NAIVAS SUPERMARKET LTD", you nickname them "
 ### **1. Dashboard Overview – Your Financial Snapshot**
 
 Every time you open Monee, you see:
+
 - **Income vs Expenses** this month
 - **Debt payments due** (next payment + total balance)
 - **Savings progress** (this month + total saved, with % complete)
@@ -116,21 +119,27 @@ Every time you open Monee, you see:
 ## **What Makes Monee Different**
 
 ### **1. Recipient Nicknames = Real Insight**
+
 Stop seeing "MERCHANT CODE 12345" and start seeing "Coffee Shop" or "Uber". You'll finally understand where your money _actually_ goes.
 
 ### **2. Cash Runway Prediction**
+
 Other apps show you budgets. Monee tells you: "At your current rate, you'll run out on Nov 25 (3 days before payday)". Adjust before it's too late.
 
 ### **3. Set Once, Use Daily**
+
 No complex setup every month. Set your recurring income and budgets once, then just record daily expenses. That's it.
 
 ### **4. Mpesa-Native**
+
 Paste Mpesa messages or upload statements. Monee auto-imports, auto-categorizes, and learns your spending patterns.
 
 ### **5. Offline-First, Cloud-Synced**
+
 Record expenses on your phone without internet. Syncs automatically when you're back online. Works across all your devices.
 
 ### **6. All-In-One**
+
 Budget, debts, savings, business expenses, student costs — one app, one price, one habit.
 
 ---
@@ -138,6 +147,7 @@ Budget, debts, savings, business expenses, student costs — one app, one price,
 ## **Getting Started Flow**
 
 **First-Time Setup (10 minutes):**
+
 1. Create account and profile
 2. Add income sources (salary, side-hustle, etc.) with payday dates
 3. Set up recurring monthly budgets by category
@@ -146,12 +156,14 @@ Budget, debts, savings, business expenses, student costs — one app, one price,
 6. Done! Start recording expenses.
 
 **Daily Use (< 2 minutes):**
+
 1. Open app → See dashboard (income vs expenses, cash runway, debt alerts, savings progress)
 2. Tap "Add Expense" or paste Mpesa message
 3. Auto-categorized based on recipient
 4. Done! Check in daily or weekly to stay on track.
 
 **Weekly Check-In:**
+
 - Review spending by category
 - Check if you're on track to next payday
 - Adjust habits if needed
@@ -159,7 +171,43 @@ Budget, debts, savings, business expenses, student costs — one app, one price,
 
 ---
 
-## **Business Model**
+## **Branding & Contact**
 
-- Free basic offline tracker
-- One-time payment (Ksh 999) for full app access — lifetime, no subscriptions
+**Domain:** [monee.co.ke](https://monee.co.ke)
+
+**Email:**
+- General inquiries, partnerships, social media: **hello@monee.co.ke**
+- Customer support, user questions: **support@monee.co.ke**
+
+**Social Media:**
+- TikTok: **@monee.co.ke**
+
+**Development:**
+- All developer accounts (InstantDB, Vercel, APIs, analytics) use: hello@monee.co.ke
+- Support queries use: support@monee.co.ke
+
+---
+
+## **Business Model & Pricing**
+
+**Monee Personal:** **KSh 999** (one-time payment, lifetime access)
+
+**Why KSh 999?**
+- Replaces 5-6 separate spreadsheets worth **KSh 3,395+** if bought individually
+- All-in-one solution with cloud sync, Mpesa integration, and offline support
+- No monthly fees, ever. Pay once, use forever.
+- All future updates and features included
+
+**What you get:**
+- Complete financial tracking (income, expenses, debts, savings, budgets)
+- Mpesa auto-import and smart categorization
+- Cash runway predictions with discipline tracking
+- Offline-first with cloud sync across all devices
+- Business and student expense tagging
+- Lifetime updates and new features
+
+**Launch Strategy:**
+- Secure domain and social media handles
+- Build TikTok presence with finance-focused content
+- Early access beta testing through TikTok and landing page funnel
+- Launch with full-featured app at KSh 999

@@ -7,6 +7,21 @@ import { EditExpenseDialog } from "./edit-expense-dialog";
 import { createExpenseListConfig } from "./expense-list-config";
 import type { Expense } from "@/types";
 
+// Wrapper component to adapt props
+const EditExpenseDialogAdapter = ({
+  open,
+  onOpenChange,
+  item,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  item: Expense | null;
+}) => {
+  return (
+    <EditExpenseDialog open={open} onOpenChange={onOpenChange} expense={item} />
+  );
+};
+
 export default function ExpenseList() {
   const user = db.useUser();
 
@@ -38,7 +53,7 @@ export default function ExpenseList() {
     <UnifiedListContainer<Expense>
       config={config}
       data={expenses}
-      editDialog={EditExpenseDialog}
+      editDialog={EditExpenseDialogAdapter}
     />
   );
 }

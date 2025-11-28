@@ -9,7 +9,6 @@ import {
   Smartphone,
   TrendingUp,
   Calendar,
-  Heart,
   Wallet,
   CreditCard,
   BarChart3,
@@ -17,6 +16,7 @@ import {
   Zap,
   CheckCircle2,
   X,
+  Clock,
 } from "lucide-react";
 
 export default function LandingPage() {
@@ -38,12 +38,6 @@ export default function LandingPage() {
       title: "Daily Check-In Ritual",
       description:
         "A gentle 2-minute evening routine to paste your day's expenses. Build awareness, not guilt.",
-    },
-    {
-      icon: Heart,
-      title: "Every Little Thing I Want",
-      description:
-        "Track your wishes and celebrate when you get them. Because your money should make you happy.",
     },
     {
       icon: Wallet,
@@ -103,11 +97,6 @@ export default function LandingPage() {
       competitors: "Manual",
     },
     {
-      feature: "Personal Wishlist (ELTIW)",
-      monee: true,
-      competitors: false,
-    },
-    {
       feature: "Daily Check-In Ritual",
       monee: true,
       competitors: false,
@@ -164,14 +153,24 @@ export default function LandingPage() {
             </Link>
             <Link href="/login">
               <Button variant="default" size="sm" className="sm:size-default">
-                <span className="hidden sm:inline">Get Started</span>
-                <span className="sm:hidden">Start</span>
+                <span className="hidden sm:inline">Join Waitlist</span>
+                <span className="sm:hidden">Join</span>
                 <ArrowRight className="ml-1 sm:ml-2 h-3 w-3 sm:h-4 sm:w-4" />
               </Button>
             </Link>
           </div>
         </div>
       </nav>
+
+      {/* Coming Soon Banner */}
+      <section className="bg-primary text-primary-foreground py-3">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-center gap-2 text-sm md:text-base font-medium">
+            <Clock className="h-4 w-4 md:h-5 md:w-5" />
+            <span>Coming Soon - Launching Dec 2025</span>
+          </div>
+        </div>
+      </section>
 
       {/* Hero Section */}
       <section className="container mx-auto px-4 py-20 md:py-32">
@@ -216,13 +215,13 @@ export default function LandingPage() {
             </Link>
             <Link href="/login">
               <Button size="lg" className="w-full sm:w-auto">
-                Get Full Access - Ksh 499
+                Join Waitlist - Early Access
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>
           </div>
           <p className="text-sm text-muted-foreground">
-            ✨ One-time payment. No subscriptions. Free updates forever.
+            ✨ Coming soon. One-time payment of Ksh 999. No subscriptions. Replaces KSh 3,395+ in separate templates.
           </p>
         </div>
       </section>
@@ -250,7 +249,7 @@ export default function LandingPage() {
       <section className="container mx-auto px-4 py-16">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Everything You Need
+            Everything You Need for Personal Finance
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             No spreadsheets. No complicated formulas. Just simple, powerful
@@ -400,30 +399,30 @@ export default function LandingPage() {
         <div className="max-w-lg mx-auto">
           <Card className="border-4 border-primary relative overflow-hidden">
             <div className="absolute top-0 right-0 bg-primary text-primary-foreground px-4 py-1 text-sm font-semibold">
-              Best Value
+              Coming Soon
             </div>
             <CardContent className="p-8 space-y-6">
               <div className="text-center space-y-2">
                 <h3 className="text-2xl font-bold">MONEE Lifetime</h3>
                 <div className="flex items-center justify-center gap-3">
-                  <span className="text-4xl font-bold">Ksh 499</span>
-                  <span className="text-2xl text-muted-foreground line-through">
-                    Ksh 999
-                  </span>
+                  <span className="text-4xl font-bold">Ksh 999</span>
                 </div>
-                <Badge variant="secondary">Save Ksh 500 (50% OFF)</Badge>
+                <Badge variant="secondary">One-time payment • Lifetime access</Badge>
+                <p className="text-sm text-muted-foreground">
+                  Save KSh 2,396+ vs buying templates separately
+                </p>
               </div>
 
               <div className="space-y-3">
                 <p className="text-sm font-semibold">What&apos;s Included:</p>
                 <div className="space-y-2">
                   {[
-                    "M-Pesa Smart Parser (Ksh 300 value)",
-                    "Income & Expense Tracking (Ksh 250 value)",
-                    "Debt Management System (Ksh 300 value)",
-                    "Budget Planner (Ksh 200 value)",
-                    "Category Analytics (Ksh 200 value)",
-                    "Daily Check-In Reminders (Ksh 100 value)",
+                    "M-Pesa Smart Parser",
+                    "Income & Expense Tracking",
+                    "Debt Management System",
+                    "Budget Planner",
+                    "Category Analytics",
+                    "Daily Check-In Reminders",
                   ].map((item, i) => (
                     <div key={i} className="flex items-start gap-2">
                       <CheckCircle2 className="h-5 w-5 text-primary shrink-0 mt-0.5" />
@@ -450,14 +449,14 @@ export default function LandingPage() {
 
               <Link href="/login" className="block">
                 <Button size="lg" className="w-full">
-                  Get Lifetime Access
+                  Join Waitlist for Early Access
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
 
               <p className="text-xs text-center text-muted-foreground">
-                Compare: Excel templates sell for Ksh 999 but offer basic
-                features only
+                Launching soon. One payment of Ksh 999 gets you lifetime access —
+                replacing KSh 3,395+ worth of separate spreadsheets.
               </p>
             </CardContent>
           </Card>
@@ -488,8 +487,8 @@ export default function LandingPage() {
               Ready to Take Control of Your Money?
             </h2>
             <p className="text-lg opacity-90 max-w-2xl mx-auto">
-              Join Kenyans 🇰🇪 who are finally understanding their spending and
-              building better money habits — one M-Pesa message at a time.
+              Join the waitlist and be among the first Kenyans 🇰🇪 to get
+              MONEE at launch. One payment of Ksh 999 replaces KSh 3,395+ worth of separate spreadsheets.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
               <Link href="/free-mpesa-analyzer-year-review">
@@ -507,7 +506,7 @@ export default function LandingPage() {
                   variant="outline"
                   className="w-full sm:w-auto bg-transparent border-2 border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary"
                 >
-                  Get Full Access - Ksh 499
+                  Join Waitlist - Early Access
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>

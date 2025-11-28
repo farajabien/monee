@@ -29,8 +29,8 @@ import { parseMpesaMessage } from "@/lib/mpesa-parser";
 import {
   parseStatementText,
   convertStatementToMessages,
-  extractTextFromPDF,
 } from "@/lib/statement-parser";
+import { extractTextFromPDFAction } from "./actions";
 import type { ParsedExpenseData } from "@/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -203,7 +203,23 @@ export default function FreeMpesaAnalyzerPage() {
             `Processing file ${i + 1}/${uploadedFiles.length}: ${file.name}`
           );
 
-          const pdfText = await extractTextFromPDF(file);
+          // Create FormData for server action
+          const formData = new FormData();
+          formData.append("file", file);
+
+          // Extract text using server action
+          const result = await extractTextFromPDFAction(formData);
+
+          if (!result.success || !result.text) {
+            console.error(`File ${i + 1} - Error:`, result.error);
+            alert(
+              result.error || `Failed to process PDF file: ${file.name}`
+            );
+            setIsAnalyzing(false);
+            return;
+          }
+
+          const pdfText = result.text;
           console.log(`File ${i + 1} - PDF Text length:`, pdfText.length);
 
           const statementExpenses = parseStatementText(pdfText);

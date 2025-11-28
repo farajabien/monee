@@ -1,5 +1,5 @@
 
-import { i } from "@instantdb/react";
+import { tx } from "@instantdb/react";
 
 export const DEFAULT_CATEGORIES = [
   {
@@ -50,7 +50,7 @@ export async function ensureDefaultCategories(db: any, userId: string) {
 
     if (missingCategories.length > 0) {
       const transactions = missingCategories.map((category) =>
-        i.insert("categories", { ...category, user: { id: userId } })
+        tx.categories[crypto.randomUUID()].update({ ...category }).link({ user: userId })
       );
       await db.transact(transactions);
       console.log("Created missing default categories:", missingCategories);
