@@ -47,7 +47,7 @@ export default function HomeClient() {
   if (!profile) return <div>No profile found</div>;
 
   return (
-    <div className="mx-auto max-w-7xl p-3 sm:p-4 md:p-6 pb-20 md:pb-0">
+    <div className="mx-auto max-w-md p-3 sm:p-4 md:p-6 pb-20 md:pb-0">
       {activeTab === "overview" && (
         <div className="space-y-6">
           <DashboardOverview />

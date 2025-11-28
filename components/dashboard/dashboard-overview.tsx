@@ -206,6 +206,7 @@ export function DashboardOverview() {
             isLoading={isLoading}
             totalIncome={totalIncome}
             totalExpenses={totalExpenses}
+            monthlySavings={savingsData.monthlySavings}
           />
         </TabsContent>
         <TabsContent value="debts">

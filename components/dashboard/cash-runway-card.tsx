@@ -10,17 +10,14 @@ import {
   ArrowDownCircle,
 } from "lucide-react";
 import type { CashRunwayData } from "@/lib/cash-runway-calculator";
-import {
-  formatCurrency,
-  getCashRunwayMessage,
-  getDisciplineMessage,
-} from "@/lib/cash-runway-calculator";
+import { formatCurrency } from "@/lib/cash-runway-calculator";
 
 interface CashRunwayCardProps {
   runwayData: CashRunwayData | null;
   isLoading?: boolean;
   totalIncome?: number;
   totalExpenses?: number;
+  monthlySavings?: number;
 }
 
 export function CashRunwayCard({
@@ -28,6 +25,7 @@ export function CashRunwayCard({
   isLoading = false,
   totalIncome = 0,
   totalExpenses = 0,
+  monthlySavings = 0,
 }: CashRunwayCardProps) {
   if (isLoading) {
     return (
@@ -74,7 +72,6 @@ export function CashRunwayCard({
     projectedBalance,
     willMakeIt,
     disciplineIndicator,
-    statusEmoji,
     statusColor,
     nextPaydayDate,
     projectedDailyBudget,
@@ -114,6 +111,15 @@ export function CashRunwayCard({
   const netFlow = totalIncome - totalExpenses;
   const isPositiveFlow = netFlow >= 0;
 
+  // Calculate savings rate
+  const savingsRate = totalIncome > 0 ? (monthlySavings / totalIncome) * 100 : 0;
+  const savingsRateColor =
+    savingsRate >= 20
+      ? "text-green-600 dark:text-green-400"
+      : savingsRate >= 10
+      ? "text-yellow-600 dark:text-yellow-400"
+      : "text-muted-foreground";
+
   return (
     <Item variant="outline" className={`h-full ${itemClass}`}>
       <ItemContent className="space-y-4 w-full">
@@ -147,77 +153,81 @@ export function CashRunwayCard({
           </div>
         </div>
 
-        {/* Net Flow */}
-        <div className="flex items-center justify-between py-2 px-3 rounded-md bg-muted/50">
-          <span className="text-xs text-muted-foreground">Net Flow</span>
-          <span
-            className={`text-sm font-semibold ${
-              isPositiveFlow
-                ? "text-green-600 dark:text-green-400"
-                : "text-red-600 dark:text-red-400"
-            }`}
-          >
-            {isPositiveFlow ? "+" : ""}
-            {formatCurrency(netFlow)}
-          </span>
+        {/* Net Flow + Savings Rate Combined */}
+        <div className="grid grid-cols-2 gap-3 py-2 px-3 rounded-md bg-muted/50">
+          <div className="space-y-1">
+            <span className="text-xs text-muted-foreground">Net Flow</span>
+            <div
+              className={`text-sm font-semibold ${
+                isPositiveFlow
+                  ? "text-green-600 dark:text-green-400"
+                  : "text-red-600 dark:text-red-400"
+              }`}
+            >
+              {isPositiveFlow ? "+" : ""}
+              {formatCurrency(netFlow)}
+            </div>
+          </div>
+          {totalIncome > 0 && (
+            <div className="space-y-1">
+              <span className="text-xs text-muted-foreground">Savings Rate</span>
+              <div className="flex items-center gap-1">
+                <span className={`text-sm font-semibold ${savingsRateColor}`}>
+                  {savingsRate.toFixed(1)}%
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  • {formatCurrency(monthlySavings)}
+                </span>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Days to Payday */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Until Payday</span>
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-muted-foreground">Until Payday</span>
+          <div className="text-right">
             <span className="text-xl font-bold">
               {daysToPayday} day{daysToPayday !== 1 ? "s" : ""}
             </span>
-          </div>
-          <div className="text-xs text-muted-foreground">
-            {nextPaydayDate.toLocaleDateString("en-KE", {
-              month: "long",
-              day: "numeric",
-              year: "numeric",
-            })}
+            <span className="text-xs text-muted-foreground ml-1.5">
+              •{" "}
+              {nextPaydayDate.toLocaleDateString("en-KE", {
+                month: "short",
+                day: "numeric",
+              })}
+            </span>
           </div>
         </div>
 
-        <div className="h-px bg-border" />
-
         {/* Daily Average Spend with Discipline Indicator */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Daily Average</span>
-            <div className="flex items-center gap-2">
-              <span className="text-lg font-semibold">
-                {formatCurrency(dailyAverageSpend)}
-              </span>
-              <DisciplineIcon className={`h-4 w-4 ${disciplineColorClass}`} />
-            </div>
-          </div>
-          <div
-            className={`text-xs ${disciplineColorClass} flex items-center gap-1`}
-          >
-            {getDisciplineMessage(disciplineIndicator)}
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-muted-foreground">Daily Average</span>
+          <div className="flex items-center gap-2">
+            <span className="text-lg font-semibold">
+              {formatCurrency(dailyAverageSpend)}
+            </span>
+            <DisciplineIcon className={`h-4 w-4 ${disciplineColorClass}`} />
           </div>
         </div>
 
         {/* Projection */}
-        <div className="space-y-2 pt-2 border-t">
-          <div className="text-sm font-medium">
-            {getCashRunwayMessage(runwayData)}
+        <div className="pt-3">
+          <div className={`text-sm font-medium ${
+            !willMakeIt
+              ? "text-red-600 dark:text-red-400"
+              : projectedBalance < dailyAverageSpend * 5
+              ? "text-yellow-600 dark:text-yellow-400"
+              : "text-green-600 dark:text-green-400"
+          }`}>
+            {!willMakeIt ? (
+              <>⚠ Short by payday. Max {formatCurrency(projectedDailyBudget)}/day to make it!</>
+            ) : projectedBalance < dailyAverageSpend * 5 ? (
+              <>⚡ On track! Max {formatCurrency(projectedDailyBudget)}/day to maintain buffer.</>
+            ) : (
+              <>✓ On track! Max {formatCurrency(projectedDailyBudget)}/day to payday.</>
+            )}
           </div>
-          {!willMakeIt ? (
-            <div className="text-xs text-red-600 dark:text-red-400">
-              Try to spend max {formatCurrency(projectedDailyBudget)}/day to
-              make it!
-            </div>
-          ) : projectedBalance < dailyAverageSpend * 5 ? (
-            <div className="text-xs text-yellow-600 dark:text-yellow-400">
-              Spend carefully to maintain your buffer.
-            </div>
-          ) : (
-            <div className="text-xs text-green-600 dark:text-green-400">
-              You can spend up to {formatCurrency(projectedDailyBudget)}/day.
-            </div>
-          )}
         </div>
       </ItemContent>
     </Item>

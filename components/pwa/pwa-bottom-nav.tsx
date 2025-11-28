@@ -29,7 +29,7 @@ export function PWABottomNav() {
   };
   const activeTab = getTabFromPath();
 
-  // Main nav items (always visible) - 6 core features for 1-tap access
+  // Main nav items (always visible) - 4 most frequent features for 1-tap access
   const navItems = [
     {
       value: "overview",
@@ -55,16 +55,16 @@ export function PWABottomNav() {
       icon: CreditCard,
       href: "/dashboard?tab=debts",
     },
+  ];
+
+  // Extra nav items (in More dropdown) - less frequently used features
+  const moreItems = [
     {
       value: "savings",
       label: "Savings",
       icon: Wallet,
       href: "/dashboard?tab=savings",
     },
-  ];
-
-  // Extra nav items (in More dropdown) - less frequently used features
-  const moreItems = [
     {
       value: "income",
       label: "Income",
