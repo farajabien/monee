@@ -92,12 +92,12 @@ export default function HomeClient() {
         <Tabs defaultValue="list" className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-2">
             <TabsTrigger value="list">All Expenses</TabsTrigger>
-            <TabsTrigger value="add">Add Expense</TabsTrigger>
+            <TabsTrigger value="import">Import SMS/PDF</TabsTrigger>
           </TabsList>
           <TabsContent value="list">
             <ExpenseList />
           </TabsContent>
-          <TabsContent value="add">
+          <TabsContent value="import">
             <AddExpenseForm />
           </TabsContent>
         </Tabs>
