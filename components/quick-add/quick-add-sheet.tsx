@@ -85,7 +85,13 @@ export function QuickAddSheet({
           </TabsContent>
 
           <TabsContent value="savings" className="mt-0">
-            {profile && <SavingsGoalForm profileId={profile.id} />}
+            {profile && (
+              <SavingsGoalForm
+                profileId={profile.id}
+                onSuccess={handleSuccess}
+                asDialog={false}
+              />
+            )}
           </TabsContent>
 
           <TabsContent value="budget" className="mt-0">

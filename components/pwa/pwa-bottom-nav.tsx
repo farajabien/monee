@@ -5,14 +5,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Home,
-  ArrowLeftRight,
-  Heart,
+  CreditCard,
+  Users,
   TrendingUp,
-  User,
   MoreHorizontal,
   Settings,
   Tag,
   Wallet,
+  Calendar,
 } from "lucide-react";
 
 export function PWABottomNav() {
@@ -29,7 +29,7 @@ export function PWABottomNav() {
   };
   const activeTab = getTabFromPath();
 
-  // Main nav items (always visible) - aligned with MONEE core features
+  // Main nav items (always visible) - 6 core features for 1-tap access
   const navItems = [
     {
       value: "overview",
@@ -40,14 +40,20 @@ export function PWABottomNav() {
     {
       value: "expenses",
       label: "Expenses",
-      icon: ArrowLeftRight,
+      icon: CreditCard,
       href: "/dashboard?tab=expenses",
     },
     {
-      value: "income",
-      label: "Income",
-      icon: TrendingUp,
-      href: "/dashboard?tab=income",
+      value: "recipients",
+      label: "Recipients",
+      icon: Users,
+      href: "/dashboard?tab=recipients",
+    },
+    {
+      value: "debts",
+      label: "Debts",
+      icon: CreditCard,
+      href: "/dashboard?tab=debts",
     },
     {
       value: "savings",
@@ -57,13 +63,13 @@ export function PWABottomNav() {
     },
   ];
 
-  // Extra nav items (in More dropdown)
+  // Extra nav items (in More dropdown) - less frequently used features
   const moreItems = [
     {
-      value: "debts",
-      label: "Debts",
-      icon: Heart,
-      href: "/dashboard?tab=debts",
+      value: "income",
+      label: "Income",
+      icon: TrendingUp,
+      href: "/dashboard?tab=income",
     },
     {
       value: "categories",
@@ -74,7 +80,7 @@ export function PWABottomNav() {
     {
       value: "year-review",
       label: "Year Review",
-      icon: User,
+      icon: Calendar,
       href: "/dashboard?tab=year-review",
     },
     { value: "settings", label: "Settings", icon: Settings, href: "/settings" },

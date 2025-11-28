@@ -1,4 +1,3 @@
-
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -7,7 +6,11 @@ import * as z from "zod";
 
 import { Button } from "@/components/ui/button";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   Form,
@@ -21,33 +24,35 @@ import { Input } from "@/components/ui/input";
 import { tx } from "@instantdb/react";
 import db from "@/lib/db";
 import { toast } from "sonner";
+import type { SavingsGoalWithUser } from "@/types";
 
 const addToSavingsSchema = z.object({
-  amount: z.coerce.number().positive("Amount must be positive"),
+  amount: z.number().positive("Amount must be a positive number"),
 });
 
-type AddToSavingsFormData = {
-  amount: number;
-};
+type AddToSavingsFormData = z.infer<typeof addToSavingsSchema>;
+
+interface AddToSavingsDialogProps {
+  goal: SavingsGoalWithUser;
+  children: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}
 
 export function AddToSavingsDialog({
   goal,
   children,
   open,
-  onOpenChange
-}: {
-  goal: any;
-  children: React.ReactNode;
-  open?: boolean;
-  onOpenChange?: (open: boolean) => void;
-}) {
+  onOpenChange,
+}: AddToSavingsDialogProps) {
   const form = useForm<AddToSavingsFormData>({
-    resolver: zodResolver(addToSavingsSchema) as any,
+    resolver: zodResolver(addToSavingsSchema),
     defaultValues: { amount: 0 },
   });
 
   async function onSubmit(values: AddToSavingsFormData) {
     const { amount } = values;
+    const now = new Date().getTime();
 
     try {
       await db.transact([
@@ -56,29 +61,36 @@ export function AddToSavingsDialog({
           currentAmount: goal.currentAmount + amount,
         }),
         // Create contribution record
-        tx.savings_contributions[crypto.randomUUID()].update({
-          amount,
-          contributionDate: Date.now(),
-          notes: `Contribution to ${goal.name}`,
-          createdAt: Date.now(),
-        }).link({ goal: goal.id }),
+        tx.savings_contributions[crypto.randomUUID()]
+          .update({
+            amount,
+            contributionDate: now,
+            notes: `Contribution to ${goal.name}`,
+            createdAt: now,
+          })
+          .link({ goal: goal.id }),
         // Record as expense for cash flow tracking
-        tx.expenses[crypto.randomUUID()].update({
-          amount,
-          recipient: `Savings: ${goal.name}`,
-          date: Date.now(),
-          category: "Savings",
-          rawMessage: "",
-          parsedData: {},
-          notes: `Contribution to ${goal.name}`,
-          createdAt: Date.now(),
-        }).link({ user: goal.user.id }),
+        tx.expenses[crypto.randomUUID()]
+          .update({
+            amount,
+            recipient: `Savings: ${goal.name}`,
+            date: now,
+            category: "Savings",
+            rawMessage: "",
+            parsedData: {},
+            notes: `Contribution to ${goal.name}`,
+            createdAt: now,
+          })
+          .link({ user: goal.user?.id }),
       ]);
 
       toast.success(`Added KES ${amount.toLocaleString()} to ${goal.name}`);
       form.reset();
-    } catch (err: any) {
-      toast.error("Failed to add funds: " + err.message);
+      onOpenChange?.(false);
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Unknown error occurred";
+      toast.error("Failed to add funds: " + errorMessage);
     }
   }
 
@@ -98,7 +110,12 @@ export function AddToSavingsDialog({
                 <FormItem>
                   <FormLabel>Amount to Add (KES)</FormLabel>
                   <FormControl>
-                    <Input type="number" placeholder="1000" {...field} />
+                    <Input
+                      type="number"
+                      placeholder="1000"
+                      {...field}
+                      onChange={(e) => field.onChange(Number(e.target.value))}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

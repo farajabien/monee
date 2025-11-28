@@ -1,7 +1,6 @@
 "use client";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ensureDefaultCategories } from "@/lib/bootstrap";
 import db from "@/lib/db";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -42,12 +41,6 @@ export default function HomeClient() {
   const { isLoading, error, data } = db.useQuery({ profiles: {} });
 
   const profile = data?.profiles?.[0];
-
-  useEffect(() => {
-    if (profile && profile.id) {
-      ensureDefaultCategories(db, profile.id);
-    }
-  }, [profile]);
 
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>Error: {error.message}</div>;

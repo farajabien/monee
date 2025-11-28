@@ -37,16 +37,17 @@ const calculateProgress = (currentAmount: number, targetAmount: number) => {
 };
 
 export const createSavingsGoalListConfig = (
-  onAddMoney: (goal: any) => void,
+  onAddMoney: (goal: SavingsGoalWithContributions) => void,
   onMarkComplete: (goalId: string) => void
-): ListConfig<any> => ({
+): ListConfig<SavingsGoalWithContributions> => ({
   // Identity
   queryKey: "savings_goals",
 
   // Display
   title: "Savings Goals",
   description: "Track and manage your savings goals",
-  emptyMessage: "No savings goals yet. Create your first savings goal above to start tracking your progress!",
+  emptyMessage:
+    "No savings goals yet. Create your first savings goal above to start tracking your progress!",
   emptyMessageFiltered: "No savings goals found",
   searchPlaceholder: "Search savings goals...",
 
@@ -71,10 +72,15 @@ export const createSavingsGoalListConfig = (
   // Rendering Functions
   renderListItem: () => null, // Not used for savings goals
 
-  renderGridCard: (item: any, index: number, actions) => {
+  renderGridCard: (
+    item: SavingsGoalWithContributions,
+    index: number,
+    actions
+  ) => {
     const progress = calculateProgress(item.currentAmount, item.targetAmount);
     const remaining = item.targetAmount - item.currentAmount;
-    const isCompleted = item.isCompleted || item.currentAmount >= item.targetAmount;
+    const isCompleted =
+      item.isCompleted || item.currentAmount >= item.targetAmount;
 
     const footerContent = isCompleted ? (
       <Badge variant="outline" className="text-green-600 w-full justify-center">
@@ -110,12 +116,18 @@ export const createSavingsGoalListConfig = (
         emoji={item.emoji || "💰"}
         statusBadge={
           isCompleted
-            ? { label: "Completed!", variant: "default", className: "bg-green-600" }
+            ? {
+                label: "Completed!",
+                variant: "default",
+                className: "bg-green-600",
+              }
             : undefined
         }
         mainValue={formatCurrency(item.currentAmount)}
         subtitle={`${Math.round(progress)}% complete`}
-        description={!isCompleted ? `${formatCurrency(remaining)} to go` : undefined}
+        description={
+          !isCompleted ? `${formatCurrency(remaining)} to go` : undefined
+        }
         progress={{
           value: progress,
           showPercentage: false,
@@ -139,7 +151,9 @@ export const createSavingsGoalListConfig = (
             ? [
                 {
                   label: "Contributions",
-                  value: `${item.contributions.length} contribution${item.contributions.length !== 1 ? "s" : ""}`,
+                  value: `${item.contributions.length} contribution${
+                    item.contributions.length !== 1 ? "s" : ""
+                  }`,
                   icon: TrendingUp,
                 },
               ]
@@ -165,10 +179,10 @@ export const createSavingsGoalListConfig = (
   },
 
   // Data transformation
-  getItemId: (item: any) => item.id,
+  getItemId: (item: SavingsGoalWithContributions) => item.id,
 
   // Custom filter
-  customFilter: (item: any, searchQuery: string) => {
+  customFilter: (item: SavingsGoalWithContributions, searchQuery: string) => {
     if (searchQuery) {
       return item.name.toLowerCase().includes(searchQuery.toLowerCase());
     }
@@ -176,7 +190,11 @@ export const createSavingsGoalListConfig = (
   },
 
   // Custom sort
-  customSort: (a: any, b: any, sortBy: string) => {
+  customSort: (
+    a: SavingsGoalWithContributions,
+    b: SavingsGoalWithContributions,
+    sortBy: string
+  ) => {
     switch (sortBy) {
       case "progress-desc": {
         const progressA = calculateProgress(a.currentAmount, a.targetAmount);

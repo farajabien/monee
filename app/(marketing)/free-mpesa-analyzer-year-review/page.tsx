@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -12,18 +12,21 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Sparkles,
-  TrendingUp,
-  TrendingDown,
-  Calendar,
-  DollarSign,
-  Users,
-  Award,
   ArrowRight,
   Upload,
   FileText,
+  Users,
+  TrendingUp,
 } from "lucide-react";
 import { parseMpesaMessage } from "@/lib/mpesa-parser";
 import {
@@ -32,6 +35,7 @@ import {
 } from "@/lib/statement-parser";
 import { extractTextFromPDFAction } from "./actions";
 import type { ParsedExpenseData } from "@/types";
+import type { SavedAnalysis } from "@/types/year-analysis";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select,
@@ -41,145 +45,60 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-
-interface YearStats {
-  totalSpent: number;
-  totalExpenses: number;
-  topRecipient: { name: string; amount: number; count: number };
-  monthlySpending: { month: string; amount: number }[];
-  mostExpensiveMonth: { month: string; amount: number };
-  categories: { category: string; amount: number; count: number }[];
-  avgExpense: number;
-  firstExpense: Date;
-  lastExpense: Date;
-  availableYears: number[];
-  selectedYear: number;
-  allExpenses: ParsedExpenseData[];
-}
+import { useYearAnalysis, useAvailableYears } from "@/hooks/use-year-analysis";
+import { YearStatsDisplay } from "@/components/insights/year-stats-display";
+import { ExportMenu } from "@/components/insights/export-menu";
+import { SavedAnalysesList } from "@/components/insights/saved-analyses-list";
+import { RecipientComparison } from "@/components/insights/recipient-comparison";
+import { YearComparison } from "@/components/insights/year-comparison";
 
 export default function FreeMpesaAnalyzerPage() {
   const [messages, setMessages] = useState("");
   const [statementText, setStatementText] = useState("");
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [yearStats, setYearStats] = useState<YearStats | null>(null);
+  const [allExpenses, setAllExpenses] = useState<ParsedExpenseData[]>([]);
   const [inputMethod, setInputMethod] = useState<"sms" | "statement" | "pdf">(
     "pdf"
   );
+  const [fileName, setFileName] = useState<string>();
 
-  const calculateAndSetStats = (
-    allExpenses: ParsedExpenseData[],
-    year: number,
-    availableYears: number[]
-  ) => {
-    // Filter for selected year
-    const yearExpenses = allExpenses.filter((t) => {
-      if (!t.timestamp) return false;
-      const date = new Date(t.timestamp);
-      return date.getFullYear() === year;
-    });
+  // Comparison view states
+  const [showRecipientComparison, setShowRecipientComparison] = useState(false);
+  const [showYearComparison, setShowYearComparison] = useState(false);
+  const [comparisonYears, setComparisonYears] = useState<[number, number] | null>(null);
 
-    if (yearExpenses.length === 0) {
-      alert(`No expenses found for ${year}`);
-      return;
-    }
+  // Get available years from expenses
+  const availableYears = useAvailableYears(allExpenses);
+  const defaultYear = availableYears.includes(2025)
+    ? 2025
+    : availableYears[0] || new Date().getFullYear();
+  const [selectedYear, setSelectedYear] = useState<number>(defaultYear);
 
-    // Calculate total spent
-    const totalSpent = yearExpenses.reduce((sum, t) => sum + t.amount, 0);
+  // Use shared year analysis hook
+  const yearStats = useYearAnalysis(allExpenses, selectedYear, {
+    groupBy: "expenseType",
+  });
 
-    // Find top recipient
-    const recipientMap = new Map<string, { amount: number; count: number }>();
-    yearExpenses.forEach((t) => {
-      if (t.recipient) {
-        const current = recipientMap.get(t.recipient) || {
-          amount: 0,
-          count: 0,
-        };
-        recipientMap.set(t.recipient, {
-          amount: current.amount + t.amount,
-          count: current.count + 1,
-        });
-      }
-    });
+  // Get stats for year comparison (if 2 years selected)
+  const year1Stats = useYearAnalysis(
+    allExpenses,
+    comparisonYears?.[0] || availableYears[0],
+    { groupBy: "expenseType" }
+  );
+  const year2Stats = useYearAnalysis(
+    allExpenses,
+    comparisonYears?.[1] || availableYears[1],
+    { groupBy: "expenseType" }
+  );
 
-    let topRecipient = { name: "Unknown", amount: 0, count: 0 };
-    recipientMap.forEach((data, name) => {
-      if (data.amount > topRecipient.amount) {
-        topRecipient = { name, ...data };
-      }
-    });
-
-    // Monthly spending
-    const monthlyMap = new Map<string, number>();
-    yearExpenses.forEach((t) => {
-      if (!t.timestamp) return;
-      const date = new Date(t.timestamp);
-      const monthKey = date.toLocaleDateString("en-US", { month: "long" });
-      monthlyMap.set(monthKey, (monthlyMap.get(monthKey) || 0) + t.amount);
-    });
-
-    const monthlySpending = Array.from(monthlyMap.entries())
-      .map(([month, amount]) => ({ month, amount }))
-      .sort((a, b) => {
-        const months = [
-          "January",
-          "February",
-          "March",
-          "April",
-          "May",
-          "June",
-          "July",
-          "August",
-          "September",
-          "October",
-          "November",
-          "December",
-        ];
-        return months.indexOf(a.month) - months.indexOf(b.month);
-      });
-
-    const mostExpensiveMonth = monthlySpending.reduce(
-      (max, curr) => (curr.amount > max.amount ? curr : max),
-      { month: "", amount: 0 }
-    );
-
-    // Expense type breakdown
-    const typeMap = new Map<string, { amount: number; count: number }>();
-    yearExpenses.forEach((t) => {
-      const type = t.expenseType || "Other";
-      const current = typeMap.get(type) || { amount: 0, count: 0 };
-      typeMap.set(type, {
-        amount: current.amount + t.amount,
-        count: current.count + 1,
-      });
-    });
-
-    const categories = Array.from(typeMap.entries())
-      .map(([category, data]) => ({ category, ...data }))
-      .sort((a, b) => b.amount - a.amount);
-
-    // Calculate stats
-    const avgExpense = totalSpent / yearExpenses.length;
-    const timestamps = yearExpenses
-      .map((t) => t.timestamp || 0)
-      .filter((ts) => ts > 0);
-    const firstExpense = new Date(Math.min(...timestamps));
-    const lastExpense = new Date(Math.max(...timestamps));
-
-    setYearStats({
-      totalSpent,
-      totalExpenses: yearExpenses.length,
-      topRecipient,
-      monthlySpending,
-      mostExpensiveMonth,
-      categories,
-      avgExpense,
-      firstExpense,
-      lastExpense,
-      availableYears,
-      selectedYear: year,
-      allExpenses,
-    });
+  const handleLoadSavedAnalysis = (analysis: SavedAnalysis) => {
+    setAllExpenses(analysis.yearStats.categories.flatMap(() => [])); // This would need the actual expenses
+    setSelectedYear(analysis.yearStats.year);
+    setInputMethod(analysis.inputMethod);
+    setFileName(analysis.fileName);
+    // Scroll to results
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const analyzeYear = async () => {
@@ -196,6 +115,13 @@ export default function FreeMpesaAnalyzerPage() {
         console.log(
           `Starting PDF extraction for ${uploadedFiles.length} file(s)...`
         );
+
+        // Capture file name(s) for saving
+        if (uploadedFiles.length === 1) {
+          setFileName(uploadedFiles[0].name);
+        } else {
+          setFileName(`${uploadedFiles.length} PDF files`);
+        }
 
         for (let i = 0; i < uploadedFiles.length; i++) {
           const file = uploadedFiles[i];
@@ -279,7 +205,10 @@ export default function FreeMpesaAnalyzerPage() {
         return;
       }
 
-      // Get all unique years from expenses
+      // Set expenses to trigger analysis
+      setAllExpenses(expenses);
+
+      // Set selected year to default (2025 or most recent)
       const yearsSet = new Set<number>();
       expenses.forEach((t) => {
         if (t.timestamp) {
@@ -287,20 +216,9 @@ export default function FreeMpesaAnalyzerPage() {
           yearsSet.add(year);
         }
       });
-      const availableYears = Array.from(yearsSet).sort((a, b) => b - a);
-
-      if (availableYears.length === 0) {
-        alert("No valid dates found in expenses.");
-        setIsAnalyzing(false);
-        return;
-      }
-
-      // Default to most recent year (or 2025 if available)
-      const defaultYear = availableYears.includes(2025)
-        ? 2025
-        : availableYears[0];
-
-      calculateAndSetStats(expenses, defaultYear, availableYears);
+      const years = Array.from(yearsSet).sort((a, b) => b - a);
+      const defaultYear = years.includes(2025) ? 2025 : years[0];
+      setSelectedYear(defaultYear);
     } catch (error) {
       console.error("Analysis failed:", error);
       alert(
@@ -358,7 +276,12 @@ export default function FreeMpesaAnalyzerPage() {
           </div>
         </div>
 
-        {!yearStats ? (
+        {/* Saved Analyses List */}
+        <div className="mb-8">
+          <SavedAnalysesList onLoad={handleLoadSavedAnalysis} />
+        </div>
+
+        {allExpenses.length === 0 ? (
           /* Input Section */
           <Card className="max-w-3xl mx-auto">
             <CardHeader>
@@ -557,260 +480,159 @@ RCH4J8K9L1 Confirmed. Ksh1,200.00 sent to UBER KENYA on 20/2/25 at 8:15 PM..."
               </div>
             </CardContent>
           </Card>
-        ) : (
+        ) : yearStats ? (
           /* Results Section */
-          <div className="space-y-6">
-            {/* Hero Stats */}
-            <Card className="bg-gradient-to-br from-primary/10 to-secondary/10 border-2">
-              <CardContent className="p-8 text-center">
-                <h2 className="text-3xl font-bold mb-2">
-                  Your {yearStats.selectedYear} M-Pesa Summary
-                </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-6">
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-1">
-                      Total Spent
-                    </p>
-                    <p className="text-3xl font-bold text-primary">
-                      {formatAmount(yearStats.totalSpent)}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-1">
-                      Expenses
-                    </p>
-                    <p className="text-3xl font-bold">
-                      {yearStats.totalExpenses}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-1">
-                      Avg Expense
-                    </p>
-                    <p className="text-3xl font-bold text-green-500">
-                      {formatAmount(yearStats.avgExpense)}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Year Selector */}
-            {yearStats.availableYears.length > 1 && (
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label className="text-sm font-medium">Select Year</Label>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Switch between {yearStats.availableYears.join(", ")} to
-                        see different years
-                      </p>
-                    </div>
-                    <Select
-                      value={yearStats.selectedYear.toString()}
-                      onValueChange={(y) =>
-                        calculateAndSetStats(
-                          yearStats.allExpenses,
-                          parseInt(y),
-                          yearStats.availableYears
-                        )
-                      }
-                    >
-                      <SelectTrigger className="w-[150px]">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {yearStats.availableYears.map((year) => (
-                          <SelectItem key={year} value={year.toString()}>
-                            {year}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Top Recipient */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Award className="h-5 w-5 text-yellow-500" />
-                    Your #1 Recipient
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div className="text-center p-6 bg-yellow-500/10 rounded-lg">
-                      <p className="text-2xl font-bold mb-2">
-                        {yearStats.topRecipient.name}
-                      </p>
-                      <p className="text-3xl font-bold text-yellow-500">
-                        {formatAmount(yearStats.topRecipient.amount)}
-                      </p>
-                      <p className="text-sm text-muted-foreground mt-2">
-                        {yearStats.topRecipient.count} expenses
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Most Expensive Month */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <TrendingUp className="h-5 w-5 text-red-500" />
-                    Most Expensive Month
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center p-6 bg-red-500/10 rounded-lg">
-                    <p className="text-2xl font-bold mb-2">
-                      {yearStats.mostExpensiveMonth.month}
-                    </p>
-                    <p className="text-3xl font-bold text-red-500">
-                      {formatAmount(yearStats.mostExpensiveMonth.amount)}
-                    </p>
-                    <p className="text-sm text-muted-foreground mt-2">
-                      Your biggest spending month
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Monthly Trend */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Calendar className="h-5 w-5" />
-                  Monthly Spending Trend
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {yearStats.monthlySpending.map((month) => (
-                    <div key={month.month} className="space-y-1">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="font-medium">{month.month}</span>
-                        <span className="text-muted-foreground">
-                          {formatAmount(month.amount)}
-                        </span>
-                      </div>
-                      <div className="w-full bg-muted rounded-full h-2">
-                        <div
-                          className="bg-primary rounded-full h-2 transition-all"
-                          style={{
-                            width: `${
-                              (month.amount / yearStats.totalSpent) * 100
-                            }%`,
-                          }}
+          <>
+            <YearStatsDisplay
+              yearStats={yearStats}
+              formatAmount={formatAmount}
+              showAchievements={false}
+              headerAction={
+                <div className="space-y-4">
+                  {/* Export & Year Selector */}
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                        {availableYears.length > 1 && (
+                          <div className="flex items-center gap-4 flex-1">
+                            <div>
+                              <Label className="text-sm font-medium">
+                                Select Year
+                              </Label>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                Switch between {availableYears.join(", ")}
+                              </p>
+                            </div>
+                            <Select
+                              value={selectedYear.toString()}
+                              onValueChange={(y) => setSelectedYear(parseInt(y))}
+                            >
+                              <SelectTrigger className="w-[150px]">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {availableYears.map((year) => (
+                                  <SelectItem key={year} value={year.toString()}>
+                                    {year}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        )}
+                        <ExportMenu
+                          yearStats={yearStats}
+                          formatAmount={formatAmount}
+                          showSave={true}
+                          inputMethod={inputMethod}
+                          fileName={fileName}
                         />
                       </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+                    </CardContent>
+                  </Card>
 
-            {/* Category Breakdown */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <DollarSign className="h-5 w-5" />
-                  Where Your Money Went
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {yearStats.categories.slice(0, 6).map((cat) => (
-                    <div key={cat.category} className="p-4 bg-muted rounded-lg">
-                      <p className="text-sm font-medium mb-1">{cat.category}</p>
-                      <p className="text-2xl font-bold">
-                        {formatAmount(cat.amount)}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {cat.count} expenses
-                      </p>
-                    </div>
-                  ))}
+                  {/* Comparison Buttons */}
+                  {availableYears.length >= 2 && (
+                    <Card>
+                      <CardContent className="p-4">
+                        <div className="flex flex-col sm:flex-row gap-2">
+                          <Button
+                            variant="outline"
+                            className="flex-1 gap-2"
+                            onClick={() => setShowRecipientComparison(true)}
+                          >
+                            <Users className="h-4 w-4" />
+                            Compare Recipients Across Years
+                          </Button>
+                          <Button
+                            variant="outline"
+                            className="flex-1 gap-2"
+                            onClick={() => {
+                              setComparisonYears([availableYears[1], availableYears[0]]);
+                              setShowYearComparison(true);
+                            }}
+                          >
+                            <TrendingUp className="h-4 w-4" />
+                            Compare {availableYears[1]} vs {availableYears[0]}
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
                 </div>
-              </CardContent>
-            </Card>
-
-            {/* Journey */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Your M-Pesa Journey</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
-                  <div>
-                    <p className="text-sm text-muted-foreground">
-                      First Expense
-                    </p>
-                    <p className="font-medium">
-                      {yearStats.firstExpense.toLocaleDateString("en-KE", {
-                        day: "numeric",
-                        month: "long",
-                        year: "numeric",
-                      })}
-                    </p>
+              }
+            footerCTA={
+              <Card className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground">
+                <CardContent className="p-8 text-center">
+                  <h3 className="text-2xl font-bold mb-3">
+                    Ready for Real-Time Money Tracking?
+                  </h3>
+                  <p className="text-primary-foreground/90 mb-6 max-w-2xl mx-auto">
+                    This free analyzer shows you the past. MONEE shows you the
+                    present and helps you plan the future. Automatic tracking,
+                    smart budgets, debt management, daily check-ins, and
+                    AI-powered insights. Stop analyzing statements manually -
+                    start tracking automatically.
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                    <Button size="lg" variant="secondary" asChild>
+                      <Link href="/login">
+                        Try MONEE Free - Ksh 999 Lifetime Access
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                      </Link>
+                    </Button>
+                    <Button
+                      size="lg"
+                      variant="outline"
+                      className="border-primary-foreground text-primary-foreground hover:bg-primary-foreground/10"
+                      onClick={() => setAllExpenses([])}
+                    >
+                      Analyze Another Statement
+                    </Button>
                   </div>
-                  <ArrowRight className="h-5 w-5 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">
-                      Last Expense
-                    </p>
-                    <p className="font-medium">
-                      {yearStats.lastExpense.toLocaleDateString("en-KE", {
-                        day: "numeric",
-                        month: "long",
-                        year: "numeric",
-                      })}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            }
+          />
+            {/* Comparison Dialogs */}
+            <Dialog
+              open={showRecipientComparison}
+              onOpenChange={setShowRecipientComparison}
+            >
+              <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Recipient Spending Comparison</DialogTitle>
+                  <DialogDescription>
+                    Compare your spending across different recipients for all years
+                  </DialogDescription>
+                </DialogHeader>
+                <RecipientComparison
+                  expenses={allExpenses}
+                  years={availableYears}
+                  formatAmount={formatAmount}
+                />
+              </DialogContent>
+            </Dialog>
 
-            {/* CTA */}
-            <Card className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground">
-              <CardContent className="p-8 text-center">
-                <h3 className="text-2xl font-bold mb-3">
-                  Ready for Real-Time Money Tracking?
-                </h3>
-                <p className="text-primary-foreground/90 mb-6 max-w-2xl mx-auto">
-                  This free analyzer shows you the past. MONEE shows you the
-                  present and helps you plan the future. Automatic tracking,
-                  smart budgets, debt management, daily check-ins, and
-                  AI-powered insights. Stop analyzing statements manually -
-                  start tracking automatically.
-                </p>
-                <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                  <Button size="lg" variant="secondary" asChild>
-                    <Link href="/login">
-                      Try MONEE Free - Ksh 999 Lifetime Access
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </Link>
-                  </Button>
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    className="border-primary-foreground text-primary-foreground hover:bg-primary-foreground/10"
-                    onClick={() => setYearStats(null)}
-                  >
-                    Analyze Another Statement
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
+            <Dialog open={showYearComparison} onOpenChange={setShowYearComparison}>
+              <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Year-over-Year Comparison</DialogTitle>
+                  <DialogDescription>
+                    Detailed comparison of your spending patterns across years
+                  </DialogDescription>
+                </DialogHeader>
+                {year1Stats && year2Stats && (
+                  <YearComparison
+                    year1Stats={year1Stats}
+                    year2Stats={year2Stats}
+                    formatAmount={formatAmount}
+                  />
+                )}
+              </DialogContent>
+            </Dialog>
+          </>
+        ) : null}
 
         {/* Footer */}
         <div className="text-center mt-12 text-sm text-muted-foreground">
