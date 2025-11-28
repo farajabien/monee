@@ -1,24 +1,19 @@
 "use client";
 
-import { useMemo } from "react";
+import { useState, useMemo } from "react";
 import db from "@/lib/db";
+import { Card, CardContent } from "@/components/ui/card";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Sparkles,
-  TrendingUp,
-  Calendar,
-  DollarSign,
-  Award,
-  ArrowRight,
-  Users,
-} from "lucide-react";
-import type { Expense } from "@/types";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { Sparkles } from "lucide-react";
+import { useYearAnalysis, useAvailableYears } from "@/hooks/use-year-analysis";
+import { YearStatsDisplay } from "./year-stats-display";
 
 export function YearInReview() {
   const user = db.useUser();

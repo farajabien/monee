@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { id } from "@instantdb/react";
 import db from "@/lib/db";
 import { UnifiedListContainer } from "@/components/ui/unified-list-container";
@@ -14,6 +14,7 @@ import { DebtFormDialog } from "./debt-form-dialog";
 import { DebtPaymentForm } from "./debt-payment-form";
 import { createDebtListConfig } from "./debt-list-config";
 import type { DebtWithUser } from "@/types";
+import { toast } from "sonner";
 
 export function DebtList() {
   const user = db.useUser();
@@ -33,14 +34,17 @@ export function DebtList() {
 
   const debts: DebtWithUser[] = useMemo(() => data?.debts || [], [data?.debts]);
 
-  const handleRecordPayment = (debt: DebtWithUser) => {
+  const handleRecordPayment = useCallback((debt: DebtWithUser) => {
     setSelectedDebtForPayment(debt);
     setShowPaymentSheet(true);
-  };
+  }, []);
 
-  const handleQuickPush = async (debt: DebtWithUser) => {
+  const handleQuickPush = useCallback(async (debt: DebtWithUser) => {
     if (!debt.interestRate || debt.currentBalance === 0) {
-      alert("This debt doesn't have an interest rate or is already paid off.");
+      toast.error("Cannot push debt", {
+        description:
+          "This debt doesn't have an interest rate or is already paid off.",
+      });
       return;
     }
 
@@ -93,12 +97,16 @@ export function DebtList() {
         })
       );
 
-      alert("Payment recorded! Debt pushed to next month.");
+      toast.success("Payment recorded", {
+        description: `Interest payment of Ksh ${monthlyInterest.toLocaleString()} recorded. Debt pushed to next month.`,
+      });
     } catch (error) {
       console.error("Error recording quick push:", error);
-      alert("Failed to record payment. Please try again.");
+      toast.error("Failed to record payment", {
+        description: "Please try again.",
+      });
     }
-  };
+  }, []);
 
   // Create configuration with callbacks
   const config = useMemo(
@@ -115,12 +123,15 @@ export function DebtList() {
       />
 
       <Sheet open={showPaymentSheet} onOpenChange={setShowPaymentSheet}>
-        <SheetContent side="bottom" className="h-[90vh] overflow-y-auto">
+        <SheetContent
+          side="bottom"
+          className="h-[90vh] overflow-y-auto pb-safe"
+        >
           <SheetHeader>
             <SheetTitle>Record Payment</SheetTitle>
           </SheetHeader>
           {selectedDebtForPayment && (
-            <div className="mt-4">
+            <div className="mt-6">
               <DebtPaymentForm
                 debt={selectedDebtForPayment}
                 onSuccess={() => {

@@ -103,12 +103,18 @@ export default function HomeClient() {
         </Tabs>
       )}
       {activeTab === "debts" && (
-        <TabContentShell title="Debts">
-          <div className="space-y-4">
-            <DebtProgress />
+        <Tabs defaultValue="progress" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 mb-2">
+            <TabsTrigger value="list">All Debts</TabsTrigger>
+            <TabsTrigger value="progress">Debt Progress</TabsTrigger>
+          </TabsList>
+          <TabsContent value="list">
             <DebtList />
-          </div>
-        </TabContentShell>
+          </TabsContent>
+          <TabsContent value="progress">
+            <DebtProgress />
+          </TabsContent>
+        </Tabs>
       )}
       {activeTab === "savings" && (
         <TabContentShell title="Savings">

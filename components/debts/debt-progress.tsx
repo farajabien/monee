@@ -1,10 +1,11 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import db from "@/lib/db";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { DebtWithUser } from "@/types";
 
 export function DebtProgress() {
@@ -116,97 +117,149 @@ export function DebtProgress() {
           </div>
         </div>
 
-        <div className="space-y-3 pt-4 border-t">
-          <h3 className="text-sm font-medium">Debt Breakdown</h3>
-          {debts.map((debt) => {
-            const paid = calculateTotalPaid(debt);
-            const progress = (paid / debt.totalAmount) * 100;
-            const payoffMonths = calculatePayoffMonths(debt);
-            const monthlyInterest =
-              debt.interestRate && debt.currentBalance
-                ? debt.currentBalance * (debt.interestRate / 100)
-                : 0;
-            const remainingPushMonths = debt.pushMonthsPlan
-              ? Math.max(
-                  0,
-                  debt.pushMonthsPlan - (debt.pushMonthsCompleted || 0)
-                )
-              : null;
-            const projectedInterest =
-              debt.pushMonthsPlan && monthlyInterest > 0
-                ? monthlyInterest * debt.pushMonthsPlan
-                : null;
+        <div className="pt-4 border-t">
+          <Tabs defaultValue="overview" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="overview">Overview</TabsTrigger>
+              <TabsTrigger value="individual">Individual Debts</TabsTrigger>
+            </TabsList>
 
-            return (
-              <div key={debt.id} className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium">{debt.name}</span>
-                    {debt.pushMonthsPlan && (
-                      <Badge variant="outline" className="text-xs">
-                        Push Strategy
-                      </Badge>
-                    )}
+            <TabsContent value="overview" className="space-y-3 mt-4">
+              <h3 className="text-sm font-medium">Debt Breakdown</h3>
+              {debts.map((debt) => {
+                const paid = calculateTotalPaid(debt);
+                const progress = (paid / debt.totalAmount) * 100;
+                const payoffMonths = calculatePayoffMonths(debt);
+
+                return (
+                  <div key={debt.id} className="space-y-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">{debt.name}</span>
+                        {debt.pushMonthsPlan && (
+                          <Badge variant="outline" className="text-xs">
+                            Push Strategy
+                          </Badge>
+                        )}
+                      </div>
+                      <span>{formatAmount(debt.currentBalance)} remaining</span>
+                    </div>
+                    <Progress value={progress} className="h-2" />
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                      <span>{progress.toFixed(1)}% paid off</span>
+                      {payoffMonths && (
+                        <span>
+                          {payoffMonths} month{payoffMonths !== 1 ? "s" : ""} to
+                          go
+                        </span>
+                      )}
+                    </div>
                   </div>
-                  <span>{formatAmount(debt.currentBalance)} remaining</span>
-                </div>
-                <Progress value={progress} className="h-2" />
-                <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>{progress.toFixed(1)}% paid off</span>
-                  {payoffMonths && (
-                    <span>
-                      {payoffMonths} month{payoffMonths !== 1 ? "s" : ""} to go
-                    </span>
-                  )}
-                </div>
-                {debt.pushMonthsPlan && (
-                  <div className="pt-2 space-y-1 border-t">
-                    <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">
-                        Push Progress:
-                      </span>
-                      <span>
-                        {debt.pushMonthsCompleted || 0} / {debt.pushMonthsPlan}{" "}
-                        months
+                );
+              })}
+            </TabsContent>
+
+            <TabsContent value="individual" className="space-y-4 mt-4">
+              {debts.map((debt) => {
+                const paid = calculateTotalPaid(debt);
+                const progress = (paid / debt.totalAmount) * 100;
+                const payoffMonths = calculatePayoffMonths(debt);
+                const monthlyInterest =
+                  debt.interestRate && debt.currentBalance
+                    ? debt.currentBalance * (debt.interestRate / 100)
+                    : 0;
+                const remainingPushMonths = debt.pushMonthsPlan
+                  ? Math.max(
+                      0,
+                      debt.pushMonthsPlan - (debt.pushMonthsCompleted || 0)
+                    )
+                  : null;
+                const projectedInterest =
+                  debt.pushMonthsPlan && monthlyInterest > 0
+                    ? monthlyInterest * debt.pushMonthsPlan
+                    : null;
+
+                return (
+                  <div
+                    key={debt.id}
+                    className="p-4 border rounded-lg space-y-3"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-semibold">{debt.name}</h4>
+                        {debt.pushMonthsPlan && (
+                          <Badge variant="outline" className="text-xs">
+                            Push Strategy
+                          </Badge>
+                        )}
+                      </div>
+                      <span className="text-sm font-medium">
+                        {formatAmount(debt.currentBalance)} remaining
                       </span>
                     </div>
-                    {remainingPushMonths !== null &&
-                      remainingPushMonths > 0 && (
+
+                    <Progress value={progress} className="h-2" />
+
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                      <span>{progress.toFixed(1)}% paid off</span>
+                      {payoffMonths && (
+                        <span>
+                          {payoffMonths} month{payoffMonths !== 1 ? "s" : ""} to
+                          go
+                        </span>
+                      )}
+                    </div>
+
+                    {debt.pushMonthsPlan && (
+                      <div className="pt-2 space-y-1 border-t">
                         <div className="flex justify-between text-xs">
                           <span className="text-muted-foreground">
-                            Remaining:
+                            Push Progress:
                           </span>
                           <span>
-                            {remainingPushMonths} month
-                            {remainingPushMonths !== 1 ? "s" : ""}
+                            {debt.pushMonthsCompleted || 0} /{" "}
+                            {debt.pushMonthsPlan} months
                           </span>
                         </div>
-                      )}
-                    {debt.interestAccrued && debt.interestAccrued > 0 && (
-                      <div className="flex justify-between text-xs">
-                        <span className="text-muted-foreground">
-                          Interest Paid:
-                        </span>
-                        <span className="text-amber-600">
-                          {formatAmount(debt.interestAccrued)}
-                        </span>
-                      </div>
-                    )}
-                    {projectedInterest && (
-                      <div className="flex justify-between text-xs">
-                        <span className="text-muted-foreground">
-                          Projected Total Interest:
-                        </span>
-                        <span className="text-amber-600">
-                          {formatAmount(projectedInterest)}
-                        </span>
+                        {remainingPushMonths !== null &&
+                          remainingPushMonths > 0 && (
+                            <div className="flex justify-between text-xs">
+                              <span className="text-muted-foreground">
+                                Remaining:
+                              </span>
+                              <span>
+                                {remainingPushMonths} month
+                                {remainingPushMonths !== 1 ? "s" : ""}
+                              </span>
+                            </div>
+                          )}
+                        {debt.interestAccrued && debt.interestAccrued > 0 && (
+                          <div className="flex justify-between text-xs">
+                            <span className="text-muted-foreground">
+                              Interest Paid:
+                            </span>
+                            <span className="text-amber-600">
+                              {formatAmount(debt.interestAccrued)}
+                            </span>
+                          </div>
+                        )}
+                        {projectedInterest && (
+                          <div className="flex justify-between text-xs">
+                            <span className="text-muted-foreground">
+                              Projected Total Interest:
+                            </span>
+                            <span className="text-amber-600">
+                              {formatAmount(projectedInterest)}
+                            </span>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
-                )}
-              </div>
-            );
-          })}
+                );
+              })}
+            </TabsContent>
+          </Tabs>
         </div>
       </CardContent>
     </Card>

@@ -101,10 +101,13 @@ export function UnifiedListContainer<T>({
   };
 
   // Handle filter changes
-  const handleFilterChange = (key: string, value: any) => {
-    setFilters((prev) => ({
+  const handleFilterChange = (
+    key: string,
+    value: string | number | boolean
+  ) => {
+    setFilters((prev: FilterState) => ({
       ...prev,
-      [key]: value,
+      [key]: value as string | boolean | string[] | [Date, Date],
     }));
   };
 
@@ -122,101 +125,100 @@ export function UnifiedListContainer<T>({
       )}
 
       {/* Main container */}
-      <div className="border rounded-lg bg-background p-3">
+      <div className="space-y-3">
         {/* Header with title and additional filters */}
-        <div className="flex items-center justify-between mb-3">
-          <div className="font-semibold text-base">{config.title}</div>
+        <div className="flex items-center justify-between">
+          <div className="font-semibold text-lg">{config.title}</div>
           {additionalFilters}
         </div>
 
-        <div className="space-y-3">
-          {/* Controls */}
-          <DataViewControls
-            viewMode={viewMode}
-            onViewModeChange={handleViewModeChange}
-            searchValue={searchQuery}
-            onSearchChange={setSearchQuery}
-            searchPlaceholder={config.searchPlaceholder}
-            sortValue={sortBy}
-            onSortChange={setSortBy}
-            sortOptions={config.sortOptions}
-            filterValue={primaryFilterValue}
-            onFilterChange={
-              primaryFilter
-                ? (value) => handleFilterChange(primaryFilter.key, value)
-                : undefined
-            }
-            filterOptions={
-              primaryFilter?.options
-                ? [{ value: "all", label: "All" }, ...primaryFilter.options]
-                : undefined
-            }
-            filterLabel={primaryFilter?.label}
-            totalCount={data.length}
-            filteredCount={filteredData.length}
-            availableViews={config.availableViews}
-          />
+        {/* Controls */}
+        <DataViewControls
+          viewMode={viewMode}
+          onViewModeChange={handleViewModeChange}
+          searchValue={searchQuery}
+          onSearchChange={setSearchQuery}
+          searchPlaceholder={config.searchPlaceholder}
+          sortValue={sortBy}
+          onSortChange={setSortBy}
+          sortOptions={config.sortOptions}
+          filterValue={primaryFilterValue}
+          onFilterChange={
+            primaryFilter
+              ? (value) => handleFilterChange(primaryFilter.key, value)
+              : undefined
+          }
+          filterOptions={
+            primaryFilter?.options
+              ? [{ value: "all", label: "All" }, ...primaryFilter.options]
+              : undefined
+          }
+          filterLabel={primaryFilter?.label}
+          totalCount={data.length}
+          filteredCount={filteredData.length}
+          availableViews={config.availableViews}
+        />
 
-          {/* Additional filters (if any) */}
-          {config.filters && config.filters.length > 1 && (
-            <div className="flex flex-wrap gap-2">
-              {config.filters.slice(1).map((filter) => {
-                if (filter.type === "select" && filter.options) {
-                  return (
-                    <Select
-                      key={filter.key}
-                      value={(filters[filter.key] as string) || "all"}
-                      onValueChange={(value) =>
-                        handleFilterChange(filter.key, value)
-                      }
-                    >
-                      <SelectTrigger className="w-[160px] h-8 text-xs">
-                        <SelectValue placeholder={filter.label} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All {filter.label}</SelectItem>
-                        {filter.options.map((option) => (
-                          <SelectItem
-                            key={option.value}
-                            value={option.value}
-                            className="text-xs"
-                          >
-                            {option.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  );
-                }
-                // Add support for other filter types here (multi-select, date-range, etc.)
-                return null;
-              })}
-            </div>
-          )}
+        {/* Additional filters (if any) */}
+        {config.filters && config.filters.length > 1 && (
+          <div className="flex flex-wrap gap-2">
+            {config.filters.slice(1).map((filter) => {
+              if (filter.type === "select" && filter.options) {
+                return (
+                  <Select
+                    key={filter.key}
+                    value={(filters[filter.key] as string) || "all"}
+                    onValueChange={(value) =>
+                      handleFilterChange(filter.key, value)
+                    }
+                  >
+                    <SelectTrigger className="w-[160px] h-8 text-xs">
+                      <SelectValue placeholder={filter.label} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All {filter.label}</SelectItem>
+                      {filter.options.map((option) => (
+                        <SelectItem
+                          key={option.value}
+                          value={option.value}
+                          className="text-xs"
+                        >
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                );
+              }
+              // Add support for other filter types here (multi-select, date-range, etc.)
+              return null;
+            })}
+          </div>
+        )}
 
-          {/* Empty state */}
-          {filteredData.length === 0 && (
-            <div className="text-center text-muted-foreground py-12">
-              {hasActiveFilters ? (
-                <p className="text-sm">
-                  {config.emptyMessageFiltered ||
-                    "No items found matching your filters"}
-                </p>
-              ) : (
-                <p className="text-sm">{config.emptyMessage}</p>
-              )}
-            </div>
-          )}
+        {/* Empty state */}
+        {filteredData.length === 0 && (
+          <div className="text-center text-muted-foreground py-12">
+            {hasActiveFilters ? (
+              <p className="text-sm">
+                {config.emptyMessageFiltered ||
+                  "No items found matching your filters"}
+              </p>
+            ) : (
+              <p className="text-sm">{config.emptyMessage}</p>
+            )}
+          </div>
+        )}
 
-          {/* Table view */}
-          {filteredData.length > 0 && viewMode === "table" && config.tableColumns && (
+        {/* Table view */}
+        {filteredData.length > 0 &&
+          viewMode === "table" &&
+          config.tableColumns && (
             <DataTable
               columns={config.tableColumns}
               data={filteredData}
               onEdit={
-                config.actions?.edit
-                  ? (item: T) => handleEdit(item)
-                  : undefined
+                config.actions?.edit ? (item: T) => handleEdit(item) : undefined
               }
               onDelete={
                 config.actions?.delete
@@ -226,40 +228,39 @@ export function UnifiedListContainer<T>({
             />
           )}
 
-          {/* List view */}
-          {filteredData.length > 0 && viewMode === "list" && (
-            <div className="space-y-2">
-              {filteredData.map((item, index) =>
-                config.renderListItem(item, index, {
-                  onEdit: config.actions?.edit
-                    ? () => handleEdit(item)
-                    : undefined,
-                  onDelete: config.actions?.delete
-                    ? () => handleDelete(config.getItemId(item))
-                    : undefined,
-                  customActions: config.actions?.custom,
-                })
-              )}
-            </div>
-          )}
+        {/* List view */}
+        {filteredData.length > 0 && viewMode === "list" && (
+          <div className="space-y-2">
+            {filteredData.map((item, index) =>
+              config.renderListItem(item, index, {
+                onEdit: config.actions?.edit
+                  ? () => handleEdit(item)
+                  : undefined,
+                onDelete: config.actions?.delete
+                  ? () => handleDelete(config.getItemId(item))
+                  : undefined,
+                customActions: config.actions?.custom,
+              })
+            )}
+          </div>
+        )}
 
-          {/* Grid view */}
-          {filteredData.length > 0 && viewMode === "grid" && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {filteredData.map((item, index) =>
-                config.renderGridCard(item, index, {
-                  onEdit: config.actions?.edit
-                    ? () => handleEdit(item)
-                    : undefined,
-                  onDelete: config.actions?.delete
-                    ? () => handleDelete(config.getItemId(item))
-                    : undefined,
-                  customActions: config.actions?.custom,
-                })
-              )}
-            </div>
-          )}
-        </div>
+        {/* Grid view */}
+        {filteredData.length > 0 && viewMode === "grid" && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {filteredData.map((item, index) =>
+              config.renderGridCard(item, index, {
+                onEdit: config.actions?.edit
+                  ? () => handleEdit(item)
+                  : undefined,
+                onDelete: config.actions?.delete
+                  ? () => handleDelete(config.getItemId(item))
+                  : undefined,
+                customActions: config.actions?.custom,
+              })
+            )}
+          </div>
+        )}
       </div>
 
       {/* Edit Dialog */}
@@ -283,7 +284,9 @@ export function UnifiedListContainer<T>({
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete}>Delete</AlertDialogAction>
+            <AlertDialogAction onClick={confirmDelete}>
+              Delete
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
