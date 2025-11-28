@@ -9,6 +9,7 @@ import { calculateCashRunway } from "@/lib/cash-runway-calculator";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export function DashboardOverview() {
   const user = db.useUser();
@@ -192,23 +193,34 @@ export function DashboardOverview() {
 
   return (
     <div className="space-y-6">
-      {/* Dashboard Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <CashRunwayCard
-          runwayData={cashRunwayData}
-          isLoading={isLoading}
-          totalIncome={totalIncome}
-          totalExpenses={totalExpenses}
-        />
-        <DebtsAlertCard debts={debtsData} isLoading={isLoading} />
-        <SavingsProgressCard
-          monthlySavings={savingsData.monthlySavings}
-          totalSaved={savingsData.totalSaved}
-          totalTarget={savingsData.totalTarget}
-          goalsCount={savingsData.goalsCount}
-          isLoading={isLoading}
-        />
-      </div>
+      {/* Dashboard Cards as Tabs */}
+      <Tabs defaultValue="runway" className="w-full">
+        <TabsList className="grid w-full grid-cols-3 mb-4">
+          <TabsTrigger value="runway">Cash Runway</TabsTrigger>
+          <TabsTrigger value="debts">Debts</TabsTrigger>
+          <TabsTrigger value="savings">Savings</TabsTrigger>
+        </TabsList>
+        <TabsContent value="runway">
+          <CashRunwayCard
+            runwayData={cashRunwayData}
+            isLoading={isLoading}
+            totalIncome={totalIncome}
+            totalExpenses={totalExpenses}
+          />
+        </TabsContent>
+        <TabsContent value="debts">
+          <DebtsAlertCard debts={debtsData} isLoading={isLoading} />
+        </TabsContent>
+        <TabsContent value="savings">
+          <SavingsProgressCard
+            monthlySavings={savingsData.monthlySavings}
+            totalSaved={savingsData.totalSaved}
+            totalTarget={savingsData.totalTarget}
+            goalsCount={savingsData.goalsCount}
+            isLoading={isLoading}
+          />
+        </TabsContent>
+      </Tabs>
 
       {/* Link to Detailed Summary */}
       <div className="flex justify-center pt-4">

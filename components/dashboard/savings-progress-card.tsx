@@ -1,9 +1,9 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Item, ItemContent, ItemHeader, ItemTitle } from "@/components/ui/item";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { Wallet, ArrowRight } from "lucide-react";
+import { Wallet, ArrowRight, TrendingUp, Target } from "lucide-react";
 import Link from "next/link";
 
 interface SavingsProgressCardProps {
@@ -34,96 +34,138 @@ export function SavingsProgressCard({
 
   if (isLoading) {
     return (
-      <Card className="h-full">
-        <CardHeader>
-          <CardTitle className="text-base font-semibold flex items-center gap-2">
+      <Item variant="outline" className="h-full">
+        <ItemHeader className="sr-only">
+          <ItemTitle>
             <Wallet className="h-4 w-4" />
             Savings Progress
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="animate-pulse space-y-3">
-            <div className="h-6 bg-muted rounded w-3/4"></div>
-            <div className="h-2 bg-muted rounded w-full"></div>
+          </ItemTitle>
+        </ItemHeader>
+        <ItemContent>
+          <div className="animate-pulse space-y-3 w-full">
+            <div className="h-8 bg-muted rounded w-3/4"></div>
+            <div className="h-6 bg-muted rounded w-full"></div>
             <div className="h-4 bg-muted rounded w-1/2"></div>
           </div>
-        </CardContent>
-      </Card>
+        </ItemContent>
+      </Item>
     );
   }
 
   // No savings goals case
   if (goalsCount === 0) {
     return (
-      <Card className="h-full bg-muted/30">
-        <CardHeader>
-          <CardTitle className="text-base font-semibold flex items-center gap-2">
-            <Wallet className="h-4 w-4 text-muted-foreground" />
-            Savings Progress
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="text-center py-4">
+      <Item variant="muted" className="h-full">
+        <ItemContent>
+          <div className="text-center py-4 w-full">
             <p className="text-sm text-muted-foreground">
               No savings goals yet
             </p>
             <p className="text-xs text-muted-foreground mt-1">
               Start saving for your dreams!
             </p>
+            <Link href="/dashboard?tab=savings" className="block mt-4">
+              <Button variant="outline" size="sm" className="w-full">
+                Create Savings Goal
+                <ArrowRight className="h-3 w-3 ml-2" />
+              </Button>
+            </Link>
           </div>
-          <Link href="/dashboard?tab=savings" className="block">
-            <Button variant="outline" size="sm" className="w-full">
-              Create Savings Goal
-              <ArrowRight className="h-3 w-3 ml-2" />
-            </Button>
-          </Link>
-        </CardContent>
-      </Card>
+        </ItemContent>
+      </Item>
     );
   }
 
+  // Determine item styling based on progress
+  const itemClass =
+    progressPercentage >= 75
+      ? " bg-green-50/50 dark:bg-green-950/20"
+      : progressPercentage >= 50
+      ? " bg-blue-50/50 dark:bg-blue-950/20"
+      : " bg-yellow-50/50 dark:bg-yellow-950/20";
+
+  const progressColorClass =
+    progressPercentage >= 75
+      ? "text-green-600 dark:text-green-400"
+      : progressPercentage >= 50
+      ? "text-blue-600 dark:text-blue-400"
+      : "text-yellow-600 dark:text-yellow-400";
+
+  const remaining = totalTarget - totalSaved;
+
   return (
-    <Card className="h-full">
-      <CardHeader>
-        <CardTitle className="text-base font-semibold flex items-center gap-2">
-          <Wallet className="h-4 w-4" />
-          Savings Progress
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
+    <Item variant="outline" className={`h-full ${itemClass}`}>
+      <ItemContent className="space-y-4 w-full">
         {/* Monthly Savings */}
         <div className="space-y-1">
           <div className="text-xs text-muted-foreground">Saved This Month</div>
-          <div className="text-xl font-bold text-blue-600">
+          <div className={`text-3xl font-bold ${progressColorClass}`}>
             {formatAmount(monthlySavings)}
           </div>
         </div>
 
-        {/* Total Saved with Progress */}
-        <div className="space-y-2">
-          <div className="flex items-end justify-between">
-            <div className="space-y-1">
-              <div className="text-xs text-muted-foreground">Total Saved</div>
-              <div className="text-lg font-semibold">
-                {formatAmount(totalSaved)}
-              </div>
+        {/* Total Saved vs Target */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1">
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              <TrendingUp className="h-3 w-3 text-green-600 dark:text-green-400" />
+              Total Saved
             </div>
-            <div className="text-right">
-              <div className="text-2xl font-bold text-blue-600">
-                {Math.round(progressPercentage)}%
-              </div>
-              <div className="text-xs text-muted-foreground">
-                of {formatAmount(totalTarget)}
-              </div>
+            <div className="text-lg font-semibold text-green-600 dark:text-green-400">
+              {formatAmount(totalSaved)}
             </div>
           </div>
+          <div className="space-y-1">
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              <Target className="h-3 w-3 text-blue-600 dark:text-blue-400" />
+              Target
+            </div>
+            <div className="text-lg font-semibold text-blue-600 dark:text-blue-400">
+              {formatAmount(totalTarget)}
+            </div>
+          </div>
+        </div>
 
-          {/* Progress Bar */}
+        {/* Progress Percentage */}
+        <div className="flex items-center justify-between py-2 px-3 rounded-md bg-muted/50">
+          <span className="text-xs text-muted-foreground">Progress</span>
+          <span className={`text-2xl font-bold ${progressColorClass}`}>
+            {Math.round(progressPercentage)}%
+          </span>
+        </div>
+
+        {/* Progress Bar */}
+        <div className="space-y-2">
           <Progress value={progressPercentage} className="h-2" />
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
+            <span>
+              {goalsCount} active goal{goalsCount !== 1 ? "s" : ""}
+            </span>
+            <span>{formatAmount(remaining)} to go</span>
+          </div>
+        </div>
 
-          {/* Goals Count */}
-          <div className="text-xs text-muted-foreground">
-            {goalsCount} active goal{goalsCount !== 1 ? "s" : ""}
+        <div className="h-px bg-border" />
+
+        {/* Status Message */}
+        <div className="space-y-2 pt-2">
+          <div className="text-sm font-medium">
+            {progressPercentage >= 100
+              ? "🎉 Goals achieved! Time to celebrate!"
+              : progressPercentage >= 75
+              ? "💪 Almost there! Keep it up!"
+              : progressPercentage >= 50
+              ? "📈 Great progress! You're halfway there!"
+              : progressPercentage >= 25
+              ? "🌱 Good start! Keep saving consistently!"
+              : "🎯 Start strong! Every bit counts!"}
+          </div>
+          <div className={`text-xs ${progressColorClass}`}>
+            {progressPercentage >= 100
+              ? "Consider setting new savings goals!"
+              : remaining > 0
+              ? `${formatAmount(remaining)} remaining to reach your goals`
+              : "You're on track!"}
           </div>
         </div>
 
@@ -134,7 +176,7 @@ export function SavingsProgressCard({
             <ArrowRight className="h-3 w-3 ml-2" />
           </Button>
         </Link>
-      </CardContent>
-    </Card>
+      </ItemContent>
+    </Item>
   );
 }

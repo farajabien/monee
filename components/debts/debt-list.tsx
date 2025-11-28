@@ -10,8 +10,10 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DebtFormDialog } from "./debt-form-dialog";
 import { DebtPaymentForm } from "./debt-payment-form";
+import { DebtProgress } from "./debt-progress";
 import { createDebtListConfig } from "./debt-list-config";
 import type { DebtWithUser } from "@/types";
 import { toast } from "sonner";
@@ -116,11 +118,22 @@ export function DebtList() {
 
   return (
     <>
-      <UnifiedListContainer<DebtWithUser>
-        config={config}
-        data={debts}
-        editDialog={DebtFormDialog}
-      />
+      <Tabs defaultValue="list" className="w-full">
+        <TabsList className="grid w-full grid-cols-2 mb-4">
+          <TabsTrigger value="list">All Debts</TabsTrigger>
+          <TabsTrigger value="progress">Progress</TabsTrigger>
+        </TabsList>
+        <TabsContent value="list">
+          <UnifiedListContainer<DebtWithUser>
+            config={config}
+            data={debts}
+            editDialog={DebtFormDialog}
+          />
+        </TabsContent>
+        <TabsContent value="progress">
+          <DebtProgress />
+        </TabsContent>
+      </Tabs>
 
       <Sheet open={showPaymentSheet} onOpenChange={setShowPaymentSheet}>
         <SheetContent

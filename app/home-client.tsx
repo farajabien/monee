@@ -84,20 +84,7 @@ export default function HomeClient() {
           </TabsContent>
         </Tabs>
       )}
-      {activeTab === "debts" && (
-        <Tabs defaultValue="progress" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-2">
-            <TabsTrigger value="list">All Debts</TabsTrigger>
-            <TabsTrigger value="progress">Debt Progress</TabsTrigger>
-          </TabsList>
-          <TabsContent value="list">
-            <DebtList />
-          </TabsContent>
-          <TabsContent value="progress">
-            <DebtProgress />
-          </TabsContent>
-        </Tabs>
-      )}
+      {activeTab === "debts" && <DebtList />}
       {activeTab === "savings" && (
         <TabContentShell title="Savings">
           <SavingsPage profileId={profile.id} />

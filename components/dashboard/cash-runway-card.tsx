@@ -83,10 +83,10 @@ export function CashRunwayCard({
   // Determine item styling based on status
   const itemClass =
     statusColor === "success"
-      ? "border-green-500 bg-green-50/50 dark:bg-green-950/20"
+      ? " bg-green-50/50 dark:bg-green-950/20"
       : statusColor === "warning"
-      ? "border-yellow-500 bg-yellow-50/50 dark:bg-yellow-950/20"
-      : "border-red-500 bg-red-50/50 dark:bg-red-950/20";
+      ? " bg-yellow-50/50 dark:bg-yellow-950/20"
+      : " bg-red-50/50 dark:bg-red-950/20";
 
   const amountClass =
     statusColor === "success"
