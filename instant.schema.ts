@@ -101,6 +101,7 @@ const _schema = i.schema({
       name: i.string().indexed(),
       targetAmount: i.number().indexed(),
       currentAmount: i.number().indexed(),
+      emoji: i.string().optional(),
       deadline: i.number().optional().indexed(),
       category: i.string().optional().indexed(),
       isCompleted: i.boolean(),

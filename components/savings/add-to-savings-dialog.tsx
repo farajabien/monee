@@ -36,26 +36,37 @@ export function AddToSavingsDialog({ goal, children }: { goal: any; children: Re
     const { amount } = values;
 
     db.transact([
+      // Update goal current amount
       i.update("savings_goals", goal.id, {
         currentAmount: goal.currentAmount + amount,
       }),
+      // Create contribution record
+      i.insert("savings_contributions", {
+        amount,
+        contributionDate: Date.now(),
+        notes: `Contribution to ${goal.name}`,
+        createdAt: Date.now(),
+        goal: { id: goal.id },
+      }),
+      // Record as expense for cash flow tracking
       i.insert("expenses", {
         amount,
         recipient: `Savings: ${goal.name}`,
         date: Date.now(),
-        category: "Savings", // Make sure this category exists
+        category: "Savings",
+        rawMessage: "",
+        parsedData: {},
         notes: `Contribution to ${goal.name}`,
         createdAt: Date.now(),
         user: { id: goal.user.id },
       }),
     ])
       .then(() => {
-        toast.success(`Added KES ${amount} to ${goal.name}`);
+        toast.success(`Added KES ${amount.toLocaleString()} to ${goal.name}`);
         form.reset();
-        // TODO: Close dialog on success
       })
       .catch((err) => {
-        toast.error("Failed to add funds:", err.message);
+        toast.error("Failed to add funds: " + err.message);
       });
   }
 

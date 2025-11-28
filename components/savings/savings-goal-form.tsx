@@ -41,7 +41,8 @@ export function SavingsGoalForm({ profileId }: { profileId: string }) {
         name: values.name,
         targetAmount: values.targetAmount,
         currentAmount: 0,
-        emoji: values.emoji,
+        emoji: values.emoji || "💰",
+        isCompleted: false,
         createdAt: Date.now(),
         user: { id: profileId },
       })
@@ -51,7 +52,7 @@ export function SavingsGoalForm({ profileId }: { profileId: string }) {
         form.reset();
       })
       .catch((err) => {
-        toast.error("Failed to create savings goal:", err.message);
+        toast.error("Failed to create savings goal: " + err.message);
       });
   }
 
