@@ -14,7 +14,6 @@ import { DebtProgress } from "@/components/debts/debt-progress";
 import AddExpenseForm from "@/components/expenses/add-expense-form";
 import ExpenseList from "@/components/expenses/expense-list";
 import { IncomeSourceList } from "@/components/income/income-source-list";
-import MonthlySummary from "@/components/insights/monthly-summary";
 import { YearInReview } from "@/components/insights/year-in-review";
 import { PWABottomNav } from "@/components/pwa/pwa-bottom-nav";
 import { RecipientList } from "@/components/recipients/recipient-list";
@@ -59,23 +58,6 @@ export default function HomeClient() {
       {activeTab === "overview" && (
         <div className="space-y-6">
           <DashboardOverview />
-          {/* Optional: Show tabs for detailed views */}
-          <Tabs
-            value={overviewTab}
-            onValueChange={setOverviewTab}
-            className="w-full pt-6"
-          >
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="summary">Detailed Summary</TabsTrigger>
-              <TabsTrigger value="budgets">Budgets</TabsTrigger>
-            </TabsList>
-            <TabsContent value="summary" className="mt-4">
-              <MonthlySummary />
-            </TabsContent>
-            <TabsContent value="budgets" className="mt-4">
-              <BudgetList />
-            </TabsContent>
-          </Tabs>
         </div>
       )}
       {activeTab === "year-review" && (

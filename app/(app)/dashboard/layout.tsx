@@ -3,7 +3,10 @@ import AuthShell from "@/app/(auth)/auth-shell";
 import { ReactNode, useState, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import { FloatingAddButton } from "@/components/custom/floating-add-button";
-import { QuickAddSheet, type QuickAddTab } from "@/components/quick-add/quick-add-sheet";
+import {
+  QuickAddSheet,
+  type QuickAddTab,
+} from "@/components/quick-add/quick-add-sheet";
 import { PWABottomNav } from "@/components/pwa/pwa-bottom-nav";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
@@ -22,7 +25,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
   return (
     <AuthShell className="flex flex-col min-h-screen bg-background">
-      <main className="flex-1 w-full max-w-xl mx-auto px-2 pb-20 pt-2">
+      <main className="flex-1 w-full mx-auto px-2 pb-20 pt-2">
         {children}
         <FloatingAddButton onClick={() => setAddOpen(true)} />
         <QuickAddSheet

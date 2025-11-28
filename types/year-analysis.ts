@@ -1,4 +1,16 @@
-import type { Expense, ParsedExpenseData } from "./index";
+import type { Expense, Category, Budget, Debt } from "@/types";
+
+/**
+ * Parsed expense data structure from SMS/PDF
+ */
+export interface ParsedExpenseData {
+  amount: number;
+  recipient?: string;
+  expenseType?: "send" | "receive" | "buy" | "withdraw" | "deposit";
+  reference?: string;
+  balance?: number;
+  timestamp?: number;
+}
 
 /**
  * Unified expense data type that works with both database expenses and parsed expenses
@@ -94,9 +106,9 @@ export interface YearAnalysisOptions {
   recipientNicknames?: Map<string, string>;
   // Include achievements data (for app analyzer)
   includeAchievements?: {
-    categories: any[];
-    budgets: any[];
-    debts: any[];
+    categories: Category[];
+    budgets: Budget[];
+    debts: Debt[];
   };
   // Group by expense type or category
   groupBy?: "category" | "expenseType";

@@ -2,7 +2,6 @@
 
 import { useMemo } from "react";
 import db from "@/lib/db";
-import { IncomeExpensesCard } from "./income-expenses-card";
 import { DebtsAlertCard } from "./debts-alert-card";
 import { SavingsProgressCard } from "./savings-progress-card";
 import { CashRunwayCard } from "./cash-runway-card";
@@ -99,23 +98,32 @@ export function DashboardOverview() {
 
   // Debts data
   const debtsData = useMemo(() => {
+    const currentDateTs = now.getTime();
+
     return debts.map((debt) => {
       // Calculate next payment date from paymentDueDay
-      const currentDate = new Date();
-      const currentMonth = currentDate.getMonth();
-      const currentYear = currentDate.getFullYear();
-      const currentDay = currentDate.getDate();
+      const currentMonth = now.getMonth();
+      const currentYear = now.getFullYear();
+      const currentDay = now.getDate();
 
       let nextPaymentDate: number;
       if (debt.paymentDueDay && debt.paymentDueDay >= currentDay) {
         // Payment due this month
-        nextPaymentDate = new Date(currentYear, currentMonth, debt.paymentDueDay).getTime();
+        nextPaymentDate = new Date(
+          currentYear,
+          currentMonth,
+          debt.paymentDueDay
+        ).getTime();
       } else if (debt.paymentDueDay) {
         // Payment due next month
-        nextPaymentDate = new Date(currentYear, currentMonth + 1, debt.paymentDueDay).getTime();
+        nextPaymentDate = new Date(
+          currentYear,
+          currentMonth + 1,
+          debt.paymentDueDay
+        ).getTime();
       } else {
         // No payment day set, default to 30 days from now
-        nextPaymentDate = Date.now() + 30 * 24 * 60 * 60 * 1000;
+        nextPaymentDate = currentDateTs + 30 * 24 * 60 * 60 * 1000;
       }
 
       return {
@@ -126,15 +134,16 @@ export function DashboardOverview() {
         totalOwed: debt.currentBalance ?? debt.totalAmount ?? 0,
       };
     });
-  }, [debts]);
+  }, [debts, now]);
 
   // Savings data
   const savingsData = useMemo(() => {
     const monthlySavings = savingsGoals.reduce((sum, goal) => {
-      const monthlyContributions = goal.contributions?.reduce(
-        (contributionSum, contrib) => contributionSum + contrib.amount,
-        0
-      ) || 0;
+      const monthlyContributions =
+        goal.contributions?.reduce(
+          (contributionSum, contrib) => contributionSum + contrib.amount,
+          0
+        ) || 0;
       return sum + monthlyContributions;
     }, 0);
 
@@ -185,10 +194,11 @@ export function DashboardOverview() {
     <div className="space-y-6">
       {/* Dashboard Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <IncomeExpensesCard
+        <CashRunwayCard
+          runwayData={cashRunwayData}
+          isLoading={isLoading}
           totalIncome={totalIncome}
           totalExpenses={totalExpenses}
-          isLoading={isLoading}
         />
         <DebtsAlertCard debts={debtsData} isLoading={isLoading} />
         <SavingsProgressCard
@@ -198,7 +208,6 @@ export function DashboardOverview() {
           goalsCount={savingsData.goalsCount}
           isLoading={isLoading}
         />
-        <CashRunwayCard runwayData={cashRunwayData} isLoading={isLoading} />
       </div>
 
       {/* Link to Detailed Summary */}

@@ -1,7 +1,14 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Rocket, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { Item, ItemContent, ItemHeader, ItemTitle } from "@/components/ui/item";
+import {
+  Rocket,
+  TrendingUp,
+  TrendingDown,
+  Minus,
+  ArrowUpCircle,
+  ArrowDownCircle,
+} from "lucide-react";
 import type { CashRunwayData } from "@/lib/cash-runway-calculator";
 import {
   formatCurrency,
@@ -12,53 +19,51 @@ import {
 interface CashRunwayCardProps {
   runwayData: CashRunwayData | null;
   isLoading?: boolean;
+  totalIncome?: number;
+  totalExpenses?: number;
 }
 
 export function CashRunwayCard({
   runwayData,
   isLoading = false,
+  totalIncome = 0,
+  totalExpenses = 0,
 }: CashRunwayCardProps) {
   if (isLoading) {
     return (
-      <Card className="h-full">
-        <CardHeader>
-          <CardTitle className="text-base font-semibold flex items-center gap-2">
+      <Item variant="outline" className="h-full">
+        <ItemHeader className="sr-only">
+          <ItemTitle>
             <Rocket className="h-4 w-4" />
             Cash Runway
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="animate-pulse space-y-3">
+          </ItemTitle>
+        </ItemHeader>
+        <ItemContent>
+          <div className="animate-pulse space-y-3 w-full">
             <div className="h-8 bg-muted rounded w-3/4"></div>
             <div className="h-6 bg-muted rounded w-full"></div>
             <div className="h-4 bg-muted rounded w-1/2"></div>
           </div>
-        </CardContent>
-      </Card>
+        </ItemContent>
+      </Item>
     );
   }
 
   // No runway data case (no income sources set up)
   if (!runwayData || !runwayData.nextPaydayDate) {
     return (
-      <Card className="h-full bg-muted/30">
-        <CardHeader>
-          <CardTitle className="text-base font-semibold flex items-center gap-2">
-            <Rocket className="h-4 w-4 text-muted-foreground" />
-            Cash Runway
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="text-center py-4">
+      <Item variant="muted" className="h-full">
+        <ItemContent>
+          <div className="text-center py-4 w-full">
             <p className="text-sm text-muted-foreground">
               Set up your income sources to see predictions
             </p>
             <p className="text-xs text-muted-foreground mt-1">
-              We'll tell you if you'll make it to payday!
+              We&apos;ll tell you if you&apos;ll make it to payday!
             </p>
           </div>
-        </CardContent>
-      </Card>
+        </ItemContent>
+      </Item>
     );
   }
 
@@ -75,8 +80,8 @@ export function CashRunwayCard({
     projectedDailyBudget,
   } = runwayData;
 
-  // Determine card styling based on status
-  const cardClass =
+  // Determine item styling based on status
+  const itemClass =
     statusColor === "success"
       ? "border-green-500 bg-green-50/50 dark:bg-green-950/20"
       : statusColor === "warning"
@@ -85,10 +90,10 @@ export function CashRunwayCard({
 
   const amountClass =
     statusColor === "success"
-      ? "text-green-600"
+      ? "text-green-600 dark:text-green-400"
       : statusColor === "warning"
-      ? "text-yellow-600"
-      : "text-red-600";
+      ? "text-yellow-600 dark:text-yellow-400"
+      : "text-red-600 dark:text-red-400";
 
   // Get discipline icon
   const DisciplineIcon =
@@ -100,26 +105,61 @@ export function CashRunwayCard({
 
   const disciplineColorClass =
     disciplineIndicator === "up"
-      ? "text-green-600"
+      ? "text-green-600 dark:text-green-400"
       : disciplineIndicator === "down"
-      ? "text-red-600"
+      ? "text-red-600 dark:text-red-400"
       : "text-muted-foreground";
 
+  // Calculate net flow
+  const netFlow = totalIncome - totalExpenses;
+  const isPositiveFlow = netFlow >= 0;
+
   return (
-    <Card className={`h-full ${cardClass}`}>
-      <CardHeader>
-        <CardTitle className="text-base font-semibold flex items-center gap-2">
-          <Rocket className="h-4 w-4" />
-          Cash Runway {statusEmoji}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
+    <Item variant="outline" className={`h-full ${itemClass}`}>
+      <ItemContent className="space-y-4 w-full">
         {/* Current Cash Left */}
         <div className="space-y-1">
           <div className="text-xs text-muted-foreground">Cash Remaining</div>
           <div className={`text-3xl font-bold ${amountClass}`}>
             {formatCurrency(currentCash)}
           </div>
+        </div>
+
+        {/* Income vs Expenses */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1">
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              <ArrowUpCircle className="h-3 w-3 text-green-600 dark:text-green-400" />
+              Income
+            </div>
+            <div className="text-lg font-semibold text-green-600 dark:text-green-400">
+              {formatCurrency(totalIncome)}
+            </div>
+          </div>
+          <div className="space-y-1">
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              <ArrowDownCircle className="h-3 w-3 text-red-600 dark:text-red-400" />
+              Expenses
+            </div>
+            <div className="text-lg font-semibold text-red-600 dark:text-red-400">
+              {formatCurrency(totalExpenses)}
+            </div>
+          </div>
+        </div>
+
+        {/* Net Flow */}
+        <div className="flex items-center justify-between py-2 px-3 rounded-md bg-muted/50">
+          <span className="text-xs text-muted-foreground">Net Flow</span>
+          <span
+            className={`text-sm font-semibold ${
+              isPositiveFlow
+                ? "text-green-600 dark:text-green-400"
+                : "text-red-600 dark:text-red-400"
+            }`}
+          >
+            {isPositiveFlow ? "+" : ""}
+            {formatCurrency(netFlow)}
+          </span>
         </div>
 
         {/* Days to Payday */}
@@ -149,12 +189,12 @@ export function CashRunwayCard({
               <span className="text-lg font-semibold">
                 {formatCurrency(dailyAverageSpend)}
               </span>
-              <DisciplineIcon
-                className={`h-4 w-4 ${disciplineColorClass}`}
-              />
+              <DisciplineIcon className={`h-4 w-4 ${disciplineColorClass}`} />
             </div>
           </div>
-          <div className={`text-xs ${disciplineColorClass} flex items-center gap-1`}>
+          <div
+            className={`text-xs ${disciplineColorClass} flex items-center gap-1`}
+          >
             {getDisciplineMessage(disciplineIndicator)}
           </div>
         </div>
@@ -166,7 +206,8 @@ export function CashRunwayCard({
           </div>
           {!willMakeIt ? (
             <div className="text-xs text-red-600 dark:text-red-400">
-              Try to spend max {formatCurrency(projectedDailyBudget)}/day to make it!
+              Try to spend max {formatCurrency(projectedDailyBudget)}/day to
+              make it!
             </div>
           ) : projectedBalance < dailyAverageSpend * 5 ? (
             <div className="text-xs text-yellow-600 dark:text-yellow-400">
@@ -178,7 +219,7 @@ export function CashRunwayCard({
             </div>
           )}
         </div>
-      </CardContent>
-    </Card>
+      </ItemContent>
+    </Item>
   );
 }

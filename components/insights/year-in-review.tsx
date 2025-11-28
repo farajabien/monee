@@ -2,7 +2,13 @@
 
 import { useState, useMemo } from "react";
 import db from "@/lib/db";
-import { Card, CardContent } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -11,37 +17,47 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Sparkles } from "lucide-react";
-import { useYearAnalysis, useAvailableYears } from "@/hooks/use-year-analysis";
-import { YearStatsDisplay } from "./year-stats-display";
+import {
+  Sparkles,
+  Award,
+  TrendingUp,
+  Calendar,
+  DollarSign,
+  Users,
+  ArrowRight,
+} from "lucide-react";
+import type { Expense, Recipient, Budget, Debt } from "@/types";
 
 export function YearInReview() {
-  const user = db.useUser();
+  const user = db.useAuth();
+  const [selectedYear, setSelectedYear] = useState<number>(
+    new Date().getFullYear()
+  );
 
   const { data } = db.useQuery({
     expenses: {
       $: {
-        where: { "user.id": user.id },
+        where: { "user.id": user.user?.id },
       },
     },
     recipients: {
       $: {
-        where: { "user.id": user.id },
+        where: { "user.id": user.user?.id },
       },
     },
     categories: {
       $: {
-        where: { "user.id": user.id },
+        where: { "user.id": user.user?.id },
       },
     },
     budgets: {
       $: {
-        where: { "user.id": user.id },
+        where: { "user.id": user.user?.id },
       },
     },
     debts: {
       $: {
-        where: { "user.id": user.id },
+        where: { "user.id": user.user?.id },
       },
     },
   });
@@ -52,23 +68,33 @@ export function YearInReview() {
   const budgets = data?.budgets || [];
   const debts = data?.debts || [];
 
-  // Filter for 2025 expenses
-  const year2025Expenses = useMemo(() => {
+  // Get available years from expenses
+  const availableYears = useMemo(() => {
+    const years = new Set<number>();
+    expenses.forEach((t: Expense) => {
+      const date = new Date(t.date || t.createdAt);
+      years.add(date.getFullYear());
+    });
+    return Array.from(years).sort((a, b) => b - a);
+  }, [expenses]);
+
+  // Filter for selected year expenses
+  const yearExpenses = useMemo(() => {
     return expenses.filter((t: Expense) => {
       const date = new Date(t.date || t.createdAt);
-      return date.getFullYear() === 2025;
+      return date.getFullYear() === selectedYear;
     });
-  }, [expenses]);
+  }, [expenses, selectedYear]);
 
   // Calculate year stats
   const yearStats = useMemo(() => {
-    if (year2025Expenses.length === 0) return null;
+    if (yearExpenses.length === 0) return null;
 
-    const totalSpent = year2025Expenses.reduce((sum, t) => sum + t.amount, 0);
+    const totalSpent = yearExpenses.reduce((sum, t) => sum + t.amount, 0);
 
     // Top recipient
     const recipientMap = new Map<string, { amount: number; count: number }>();
-    year2025Expenses.forEach((t: Expense) => {
+    yearExpenses.forEach((t: Expense) => {
       if (t.recipient) {
         const current = recipientMap.get(t.recipient) || {
           amount: 0,
@@ -84,7 +110,9 @@ export function YearInReview() {
     let topRecipient = { name: "Unknown", amount: 0, count: 0 };
     recipientMap.forEach((data, name) => {
       if (data.amount > topRecipient.amount) {
-        const recipient = recipients.find((r) => r.originalName === name);
+        const recipient = recipients.find(
+          (r: Recipient) => r.originalName === name
+        );
         topRecipient = {
           name: recipient?.nickname || name,
           ...data,
@@ -94,7 +122,7 @@ export function YearInReview() {
 
     // Monthly spending
     const monthlyMap = new Map<string, number>();
-    year2025Expenses.forEach((t: Expense) => {
+    yearExpenses.forEach((t: Expense) => {
       const date = new Date(t.date || t.createdAt);
       const monthKey = date.toLocaleDateString("en-US", { month: "long" });
       monthlyMap.set(monthKey, (monthlyMap.get(monthKey) || 0) + t.amount);
@@ -127,7 +155,7 @@ export function YearInReview() {
 
     // Category breakdown
     const categoryMap = new Map<string, { amount: number; count: number }>();
-    year2025Expenses.forEach((t: Expense) => {
+    yearExpenses.forEach((t: Expense) => {
       const category = t.category || "Uncategorized";
       const current = categoryMap.get(category) || { amount: 0, count: 0 };
       categoryMap.set(category, {
@@ -141,17 +169,17 @@ export function YearInReview() {
       .sort((a, b) => b.amount - a.amount)
       .slice(0, 6);
 
-    const avgExpense = totalSpent / year2025Expenses.length;
+    const avgExpense = totalSpent / yearExpenses.length;
     const firstExpense = new Date(
-      Math.min(...year2025Expenses.map((t: Expense) => t.date || t.createdAt))
+      Math.min(...yearExpenses.map((t: Expense) => t.date || t.createdAt))
     );
     const lastExpense = new Date(
-      Math.max(...year2025Expenses.map((t: Expense) => t.date || t.createdAt))
+      Math.max(...yearExpenses.map((t: Expense) => t.date || t.createdAt))
     );
 
     return {
       totalSpent,
-      totalExpenses: year2025Expenses.length,
+      totalExpenses: yearExpenses.length,
       topRecipient,
       monthlySpending,
       mostExpensiveMonth,
@@ -161,15 +189,13 @@ export function YearInReview() {
       lastExpense,
       totalRecipients: recipientMap.size,
       totalCategories: categories.length,
-      totalBudgets: budgets.filter((b: { month: number }) => {
+      totalBudgets: budgets.filter((b) => {
         const date = new Date(b.month);
-        return date.getFullYear() === 2025;
+        return date.getFullYear() === selectedYear;
       }).length,
-      debtsCleared: debts.filter(
-        (d: { currentBalance: number }) => d.currentBalance === 0
-      ).length,
+      debtsCleared: debts.filter((d: Debt) => d.currentBalance === 0).length,
     };
-  }, [year2025Expenses, recipients, categories, budgets, debts]);
+  }, [yearExpenses, recipients, categories, budgets, debts, selectedYear]);
 
   const formatAmount = (amount: number) => {
     return new Intl.NumberFormat("en-KE", {
@@ -179,28 +205,91 @@ export function YearInReview() {
     }).format(amount);
   };
 
-  if (!yearStats || yearStats.totalExpenses === 0) {
+  if (!user.user) {
+    return null;
+  }
+
+  if (availableYears.length === 0) {
     return (
       <Card>
         <CardContent className="p-12 text-center">
           <Sparkles className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-          <h3 className="text-xl font-semibold mb-2">No 2025 Data Yet</h3>
+          <h3 className="text-xl font-semibold mb-2">No Data Yet</h3>
           <p className="text-muted-foreground">
-            Add expenses from 2025 to see your year-in-review insights.
+            Add expenses to see your year-in-review insights.
           </p>
         </CardContent>
       </Card>
     );
   }
 
+  if (!yearStats || yearStats.totalExpenses === 0) {
+    return (
+      <div className="space-y-6">
+        {/* Year Selector */}
+        <div className="flex items-center gap-4">
+          <Label htmlFor="year-select">Select Year</Label>
+          <Select
+            value={selectedYear.toString()}
+            onValueChange={(value) => setSelectedYear(parseInt(value))}
+          >
+            <SelectTrigger id="year-select" className="w-[180px]">
+              <SelectValue placeholder="Select year" />
+            </SelectTrigger>
+            <SelectContent>
+              {availableYears.map((year) => (
+                <SelectItem key={year} value={year.toString()}>
+                  {year}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <Card>
+          <CardContent className="p-12 text-center">
+            <Sparkles className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+            <h3 className="text-xl font-semibold mb-2">
+              No {selectedYear} Data Yet
+            </h3>
+            <p className="text-muted-foreground">
+              Add expenses from {selectedYear} to see your year-in-review
+              insights.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
+      {/* Year Selector */}
+      <div className="flex items-center gap-4">
+        <Label htmlFor="year-select">Select Year</Label>
+        <Select
+          value={selectedYear.toString()}
+          onValueChange={(value) => setSelectedYear(parseInt(value))}
+        >
+          <SelectTrigger id="year-select" className="w-[180px]">
+            <SelectValue placeholder="Select year" />
+          </SelectTrigger>
+          <SelectContent>
+            {availableYears.map((year) => (
+              <SelectItem key={year} value={year.toString()}>
+                {year}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
       {/* Hero Stats */}
       <Card className="bg-gradient-to-br from-primary/10 to-secondary/10 border-2">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Sparkles className="h-6 w-6" />
-            Your 2025 Financial Year in Review 🇰🇪
+            Your {selectedYear} Financial Year in Review 🇰🇪
           </CardTitle>
           <CardDescription>
             A comprehensive look at your money journey this year
@@ -343,7 +432,7 @@ export function YearInReview() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Users className="h-5 w-5" />
-            2025 Achievements
+            {selectedYear} Achievements
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -381,7 +470,7 @@ export function YearInReview() {
       {/* Journey Timeline */}
       <Card>
         <CardHeader>
-          <CardTitle>Your 2025 Money Journey</CardTitle>
+          <CardTitle>Your {selectedYear} Money Journey</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
