@@ -1,59 +1,68 @@
-
 "use client";
 
-import { i, useQuery } from "@instantdb/react";
+import { tx, id } from "@instantdb/react";
 import { AddToSavingsDialog } from "./add-to-savings-dialog";
-
+import db from "@/lib/db";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 
-function DeleteButton({ id }: { id: string }) {
+function DeleteButton({ id: goalId }: { id: string }) {
   const handleClick = () => {
-    const db = i.db();
-    db.transact(i.delete("savings_goals", id))
+    db.transact(tx.savings_goals[goalId].delete())
       .then(() => {
         toast.success("Goal deleted");
       })
-      .catch((err) => {
-        toast.error("Failed to delete goal:", err.message);
+      .catch((err: Error) => {
+        toast.error("Failed to delete goal: " + err.message);
       });
   };
-  return <Button variant="destructive" size="sm" onClick={handleClick}>Delete</Button>;
+  return (
+    <Button variant="destructive" size="sm" onClick={handleClick}>
+      Delete
+    </Button>
+  );
+}
+
+interface SavingsGoal {
+  id: string;
+  name: string;
+  emoji: string;
+  targetAmount: number;
+  currentAmount: number;
 }
 
 export function SavingsGoalList() {
-  const { isLoading, error, data } = useQuery(
-    i.query("savings_goals", { links: { user: {} } })
-  );
+  const { isLoading, error, data } = db.useQuery({
+    eltiw_items: {
+      $: {
+        where: {
+          source: "savings",
+        },
+      },
+    },
+  });
 
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>Error: {error.message}</div>;
-  if (!data || data.length === 0) {
-    return (
-      <div className="text-center py-8">
-        <p className="text-muted-foreground">
-          You haven't set any savings goals yet.
-        </p>
-      </div>
-    );
-  }
+
+  const savingsGoals = data?.eltiw_items || [];
 
   return (
     <div className="space-y-4">
-      {data.map((goal) => {
-        const progress = (goal.currentAmount / goal.targetAmount) * 100;
+      {savingsGoals.map((goal) => {
+        const progress = goal.gotIt ? 100 : 0;
         return (
           <Card key={goal.id}>
             <CardHeader>
               <div className="flex justify-between items-start">
                 <div>
                   <CardTitle className="text-xl">
-                    {goal.emoji} {goal.name}
+                    {goal.sourceEmoji || "💰"} {goal.name}
                   </CardTitle>
                   <p className="text-sm text-muted-foreground mt-1">
-                    Target: KES {goal.targetAmount.toLocaleString()}
+                    Target: KES {goal.amount.toLocaleString()}
                   </p>
                 </div>
                 <DeleteButton id={goal.id} />
@@ -64,8 +73,7 @@ export function SavingsGoalList() {
                 <Progress value={progress} />
                 <div className="flex items-center justify-between pt-2">
                   <p className="text-sm font-medium">
-                    KES {goal.currentAmount.toLocaleString()} / KES{" "}
-                    {goal.targetAmount.toLocaleString()}
+                    {goal.gotIt ? "Completed! 🎉" : "In Progress"}
                   </p>
                   <AddToSavingsDialog goal={goal}>
                     <Button variant="outline" size="sm">

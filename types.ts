@@ -75,6 +75,35 @@ export type DebtPaymentWithDebt = InstaQLEntity<
   { debt: {} }
 >;
 
+// Recipient types
+export type Recipient = InstaQLEntity<typeof schema, "recipients">;
+export type RecipientWithUser = InstaQLEntity<
+  typeof schema,
+  "recipients",
+  { user: {} }
+>;
+
+// Savings Goal types
+export type SavingsGoal = InstaQLEntity<typeof schema, "savings_goals">;
+export type SavingsGoalWithUser = InstaQLEntity<
+  typeof schema,
+  "savings_goals",
+  { user: {} }
+>;
+export type SavingsGoalWithContributions = InstaQLEntity<
+  typeof schema,
+  "savings_goals",
+  { contributions: {} }
+>;
+
+// Savings Contribution types
+export type SavingsContribution = InstaQLEntity<typeof schema, "savings_contributions">;
+export type SavingsContributionWithGoal = InstaQLEntity<
+  typeof schema,
+  "savings_contributions",
+  { goal: {} }
+>;
+
 // Payment type enum
 export type PaymentType = "interest_only" | "principal" | "both";
 

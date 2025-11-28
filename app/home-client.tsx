@@ -1,15 +1,14 @@
-
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ensureDefaultCategories } from "@/lib/bootstrap";
-import { i, useQuery } from "@instantdb/react";
+import db from "@/lib/db";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { BudgetList } from "@/components/budgets/budget-list";
 import CategoryList from "@/components/categories/category-list";
+import { DashboardOverview } from "@/components/dashboard/dashboard-overview";
 import { DebtList } from "@/components/debts/debt-list";
 import { DebtProgress } from "@/components/debts/debt-progress";
 import AddExpenseForm from "@/components/expenses/add-expense-form";
@@ -41,14 +40,15 @@ export default function HomeClient() {
   const [overviewTab, setOverviewTab] = useState("summary");
   const activeTab = tabFromUrl;
 
-  const { isLoading, error, data: profile } = useQuery(i.query("profiles").one());
-  const db = i.db();
+  const { isLoading, error, data } = db.useQuery({ profiles: {} });
+
+  const profile = data?.profiles?.[0];
 
   useEffect(() => {
     if (profile && profile.id) {
       ensureDefaultCategories(db, profile.id);
     }
-  }, [db, profile]);
+  }, [profile]);
 
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>Error: {error.message}</div>;
@@ -57,22 +57,26 @@ export default function HomeClient() {
   return (
     <div className="mx-auto max-w-7xl p-3 sm:p-4 md:p-6 pb-20 md:pb-0">
       {activeTab === "overview" && (
-        <Tabs
-          value={overviewTab}
-          onValueChange={setOverviewTab}
-          className="w-full"
-        >
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="summary">Summary</TabsTrigger>
-            <TabsTrigger value="budgets">Budgets</TabsTrigger>
-          </TabsList>
-          <TabsContent value="summary" className="mt-4">
-            <MonthlySummary />
-          </TabsContent>
-          <TabsContent value="budgets" className="mt-4">
-            <BudgetList />
-          </TabsContent>
-        </Tabs>
+        <div className="space-y-6">
+          <DashboardOverview />
+          {/* Optional: Show tabs for detailed views */}
+          <Tabs
+            value={overviewTab}
+            onValueChange={setOverviewTab}
+            className="w-full pt-6"
+          >
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="summary">Detailed Summary</TabsTrigger>
+              <TabsTrigger value="budgets">Budgets</TabsTrigger>
+            </TabsList>
+            <TabsContent value="summary" className="mt-4">
+              <MonthlySummary />
+            </TabsContent>
+            <TabsContent value="budgets" className="mt-4">
+              <BudgetList />
+            </TabsContent>
+          </Tabs>
+        </div>
       )}
       {activeTab === "year-review" && (
         <TabContentShell title="Year in Review">

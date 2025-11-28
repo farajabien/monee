@@ -62,4 +62,25 @@ export default {
       delete: "auth.id != null",
     },
   },
+  recipients: {
+    allow: {
+      create: "auth.id != null",
+      update: "auth.id != null",
+      delete: "auth.id != null",
+    },
+  },
+  savings_goals: {
+    allow: {
+      create: "auth.id != null",
+      update: "auth.id != null",
+      delete: "auth.id != null",
+    },
+  },
+  savings_contributions: {
+    allow: {
+      create: "auth.id != null",
+      update: "auth.id != null",
+      delete: "auth.id != null",
+    },
+  },
 };

@@ -23,6 +23,7 @@ const _schema = i.schema({
       recipient: i.string(),
       date: i.number().indexed(),
       category: i.string(),
+      expenseType: i.string().optional().indexed(),
       rawMessage: i.string(),
       parsedData: i.json(),
       notes: i.string().optional(),
@@ -96,6 +97,21 @@ const _schema = i.schema({
       createdAt: i.number().indexed(),
       updatedAt: i.number().indexed(),
     }),
+    savings_goals: i.entity({
+      name: i.string().indexed(),
+      targetAmount: i.number().indexed(),
+      currentAmount: i.number().indexed(),
+      deadline: i.number().optional().indexed(),
+      category: i.string().optional().indexed(),
+      isCompleted: i.boolean(),
+      createdAt: i.number().indexed(),
+    }),
+    savings_contributions: i.entity({
+      amount: i.number().indexed(),
+      contributionDate: i.number().indexed(),
+      notes: i.string().optional(),
+      createdAt: i.number().indexed(),
+    }),
   },
   links: {
     userProfiles: {
@@ -141,6 +157,14 @@ const _schema = i.schema({
     profileRecipients: {
       forward: { on: "recipients", has: "one", label: "user" },
       reverse: { on: "profiles", has: "many", label: "recipients" },
+    },
+    profileSavingsGoals: {
+      forward: { on: "savings_goals", has: "one", label: "user" },
+      reverse: { on: "profiles", has: "many", label: "savingsGoals" },
+    },
+    savingsGoalContributions: {
+      forward: { on: "savings_contributions", has: "one", label: "goal" },
+      reverse: { on: "savings_goals", has: "many", label: "contributions" },
     },
   },
   rooms: {},
