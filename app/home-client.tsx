@@ -12,7 +12,6 @@ import AddExpenseForm from "@/components/expenses/add-expense-form";
 import ExpenseList from "@/components/expenses/expense-list";
 import { IncomeSourceList } from "@/components/income/income-source-list";
 import { PWABottomNav } from "@/components/pwa/pwa-bottom-nav";
-import { RecipientList } from "@/components/recipients/recipient-list";
 import SavingsPage from "@/components/savings/savings-page";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UnifiedAddModal } from "@/components/quick-add/unified-add-modal";
@@ -57,7 +56,6 @@ export default function HomeClient() {
       )}
       {activeTab === "debts" && <DebtList />}
       {activeTab === "savings" && <SavingsPage />}
-      {activeTab === "recipients" && <RecipientList />}
       {activeTab === "categories" && <CategoryList />}
 
       {/* Floating Add Button - only show on list tabs */}

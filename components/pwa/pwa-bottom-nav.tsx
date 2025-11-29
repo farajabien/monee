@@ -38,12 +38,7 @@ export function PWABottomNav() {
       icon: CreditCard,
       href: "/dashboard?tab=expenses",
     },
-    {
-      value: "recipients",
-      label: "Recipients",
-      icon: Users,
-      href: "/dashboard?tab=recipients",
-    },
+
     {
       value: "debts",
       label: "Debts",
