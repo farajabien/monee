@@ -177,47 +177,51 @@ export default function ExpenseList() {
         {analytics ? (
           <div className="space-y-6">
             {/* Summary Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 gap-3">
               <Card>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium">
+                  <CardTitle className="text-xs font-medium text-muted-foreground">
                     Total Spent
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">
+                  <div className="text-xl font-bold">
                     KES {analytics.totalAmount.toLocaleString()}
                   </div>
                 </CardContent>
               </Card>
               <Card>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium">
+                  <CardTitle className="text-xs font-medium text-muted-foreground">
                     Avg Amount
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">
+                  <div className="text-xl font-bold">
                     KES {analytics.avgAmount.toFixed(0)}
                   </div>
                 </CardContent>
               </Card>
               <Card>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium">Highest</CardTitle>
+                  <CardTitle className="text-xs font-medium text-muted-foreground">
+                    Highest
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">
+                  <div className="text-xl font-bold">
                     KES {analytics.highestExpense.toLocaleString()}
                   </div>
                 </CardContent>
               </Card>
               <Card>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium">Lowest</CardTitle>
+                  <CardTitle className="text-xs font-medium text-muted-foreground">
+                    Lowest
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">
+                  <div className="text-xl font-bold">
                     KES {analytics.lowestExpense.toLocaleString()}
                   </div>
                 </CardContent>
@@ -227,9 +231,11 @@ export default function ExpenseList() {
             {/* Spending by Day */}
             <Card>
               <CardHeader>
-                <CardTitle>Spending by Day of Week</CardTitle>
+                <CardTitle className="text-base">
+                  Spending by Day of Week
+                </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="px-2">
                 <ChartContainer
                   config={{
                     amount: {
@@ -237,15 +243,20 @@ export default function ExpenseList() {
                       color: "hsl(var(--chart-1))",
                     },
                   }}
-                  className="h-[300px]"
+                  className="h-[250px] w-full"
                 >
-                  <BarChart data={analytics.dayChartData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="day" />
-                    <YAxis />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <Bar dataKey="amount" fill="hsl(var(--chart-1))" />
-                  </BarChart>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={analytics.dayChartData}
+                      margin={{ top: 5, right: 5, left: -20, bottom: 5 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="day" tick={{ fontSize: 12 }} />
+                      <YAxis tick={{ fontSize: 12 }} />
+                      <ChartTooltip content={<ChartTooltipContent />} />
+                      <Bar dataKey="amount" fill="hsl(var(--chart-1))" />
+                    </BarChart>
+                  </ResponsiveContainer>
                 </ChartContainer>
               </CardContent>
             </Card>
@@ -253,39 +264,43 @@ export default function ExpenseList() {
             {/* Spending by Category */}
             <Card>
               <CardHeader>
-                <CardTitle>Spending by Category</CardTitle>
+                <CardTitle className="text-base">
+                  Spending by Category
+                </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="px-2">
                 <ChartContainer
                   config={{
                     value: {
                       label: "Amount",
                     },
                   }}
-                  className="h-[300px]"
+                  className="h-[250px] w-full"
                 >
-                  <PieChart>
-                    <Pie
-                      data={analytics.categoryChartData}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ name, percent }) =>
-                        `${name} ${(percent * 100).toFixed(0)}%`
-                      }
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="value"
-                    >
-                      {analytics.categoryChartData.map((entry, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={COLORS[index % COLORS.length]}
-                        />
-                      ))}
-                    </Pie>
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                  </PieChart>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={analytics.categoryChartData}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ name, percent }) =>
+                          `${name} ${(percent * 100).toFixed(0)}%`
+                        }
+                        outerRadius={70}
+                        fill="#8884d8"
+                        dataKey="value"
+                      >
+                        {analytics.categoryChartData.map((entry, index) => (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={COLORS[index % COLORS.length]}
+                          />
+                        ))}
+                      </Pie>
+                      <ChartTooltip content={<ChartTooltipContent />} />
+                    </PieChart>
+                  </ResponsiveContainer>
                 </ChartContainer>
               </CardContent>
             </Card>
@@ -293,9 +308,9 @@ export default function ExpenseList() {
             {/* Top Recipients */}
             <Card>
               <CardHeader>
-                <CardTitle>Top 10 Recipients</CardTitle>
+                <CardTitle className="text-base">Top 10 Recipients</CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="px-2">
                 <ChartContainer
                   config={{
                     value: {
@@ -303,18 +318,26 @@ export default function ExpenseList() {
                       color: "hsl(var(--chart-2))",
                     },
                   }}
-                  className="h-[300px]"
+                  className="h-[300px] w-full"
                 >
-                  <BarChart
-                    data={analytics.recipientChartData}
-                    layout="vertical"
-                  >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis type="number" />
-                    <YAxis dataKey="name" type="category" width={100} />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <Bar dataKey="value" fill="hsl(var(--chart-2))" />
-                  </BarChart>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={analytics.recipientChartData}
+                      layout="vertical"
+                      margin={{ top: 5, right: 5, left: 0, bottom: 5 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis type="number" tick={{ fontSize: 12 }} />
+                      <YAxis
+                        dataKey="name"
+                        type="category"
+                        width={80}
+                        tick={{ fontSize: 11 }}
+                      />
+                      <ChartTooltip content={<ChartTooltipContent />} />
+                      <Bar dataKey="value" fill="hsl(var(--chart-2))" />
+                    </BarChart>
+                  </ResponsiveContainer>
                 </ChartContainer>
               </CardContent>
             </Card>

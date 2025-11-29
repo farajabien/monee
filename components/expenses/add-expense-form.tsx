@@ -74,6 +74,12 @@ export default function AddExpenseForm() {
   const [inputMethod, setInputMethod] = useState<"sms" | "pdf">("pdf");
   const [previewExpenses, setPreviewExpenses] = useState<ParsedTx[]>([]);
   const [analysisComplete, setAnalysisComplete] = useState(false);
+  const [flaggedDuplicates, setFlaggedDuplicates] = useState<
+    FlaggedDuplicate[]
+  >([]);
+  const [flaggedActions, setFlaggedActions] = useState<
+    Record<number, FlaggedAction>
+  >({});
 
   // Fetch existing expenses for recipient matching
   const { data: expensesData } = db.useQuery({
@@ -168,6 +174,7 @@ export default function AddExpenseForm() {
     setAnalysisComplete(true);
   };
 
+  // Parse and preview expenses when messages change, flag possible duplicates
   // Reset analysis state when files change or input method changes
   useMemo(() => {
     setAnalysisComplete(false);
@@ -176,13 +183,6 @@ export default function AddExpenseForm() {
     setFlaggedActions({});
   }, [uploadedFiles, inputMethod]);
 
-  // Parse and preview expenses when messages change, flag possible duplicates
-  const [flaggedDuplicates, setFlaggedDuplicates] = useState<
-    FlaggedDuplicate[]
-  >([]);
-  const [flaggedActions, setFlaggedActions] = useState<
-    Record<number, FlaggedAction>
-  >({});
   useMemo(() => {
     // For PDF mode, only parse after analysis is complete
     if (inputMethod === "pdf" && !analysisComplete) {
@@ -241,7 +241,13 @@ export default function AddExpenseForm() {
         return acc;
       }, {})
     );
-  }, [messages, existingExpenses, selectedCategory, inputMethod, analysisComplete]);
+  }, [
+    messages,
+    existingExpenses,
+    selectedCategory,
+    inputMethod,
+    analysisComplete,
+  ]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -449,7 +455,9 @@ export default function AddExpenseForm() {
                   className="w-full"
                   variant={analysisComplete ? "outline" : "default"}
                 >
-                  {analysisComplete ? "✓ Analysis Complete - Re-analyze?" : "📊 Analyze Statement"}
+                  {analysisComplete
+                    ? "✓ Analysis Complete - Re-analyze?"
+                    : "📊 Analyze Statement"}
                 </Button>
               )}
             </div>
@@ -502,134 +510,138 @@ export default function AddExpenseForm() {
           </div>
         </div>
 
-        {previewExpenses.length > 0 && (inputMethod === "sms" || analysisComplete) && (
-          <div className="rounded-lg border p-4 space-y-2">
-            <p className="text-sm font-medium">
-              Preview ({previewExpenses.length} expense
-              {previewExpenses.length !== 1 ? "s" : ""})
-            </p>
-            {flaggedDuplicates.length > 0 && (
-              <div className="bg-yellow-100 border border-yellow-300 rounded p-2 mb-2 text-yellow-900 text-xs">
-                <b>Possible duplicates detected:</b>
-                <ul className="list-disc ml-4">
-                  {flaggedDuplicates.map((dup, i) => (
-                    <li key={i} className="mb-2">
-                      <div>
-                        <span>
-                          Imported: <b>{dup.parsed.recipient}</b> Ksh{" "}
-                          {dup.parsed.amount} on{" "}
-                          {new Date(dup.parsed.date).toLocaleDateString(
-                            "en-KE"
-                          )}
-                          <br />
-                        </span>
-                        <span>
-                          Matches manual:{" "}
-                          {dup.matches
-                            .map(
-                              (m) =>
-                                `${m.recipient} Ksh ${m.amount} (${new Date(
-                                  m.date
-                                ).toLocaleDateString("en-KE")})`
-                            )
-                            .join(", ")}
-                        </span>
-                      </div>
-                      <div className="flex gap-2 mt-1">
-                        <label>
-                          <input
-                            type="radio"
-                            name={`flagged-action-${i}`}
-                            value="add"
-                            checked={flaggedActions[i] === "add"}
-                            onChange={() =>
-                              setFlaggedActions((a) => ({ ...a, [i]: "add" }))
-                            }
-                          />{" "}
-                          Add as new
-                        </label>
-                        <label>
-                          <input
-                            type="radio"
-                            name={`flagged-action-${i}`}
-                            value="merge"
-                            checked={flaggedActions[i] === "merge"}
-                            onChange={() =>
-                              setFlaggedActions((a) => ({ ...a, [i]: "merge" }))
-                            }
-                          />{" "}
-                          Merge with manual
-                        </label>
-                        <label>
-                          <input
-                            type="radio"
-                            name={`flagged-action-${i}`}
-                            value="ignore"
-                            checked={flaggedActions[i] === "ignore"}
-                            onChange={() =>
-                              setFlaggedActions((a) => ({
-                                ...a,
-                                [i]: "ignore",
-                              }))
-                            }
-                          />{" "}
-                          Ignore
-                        </label>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-                <span>
-                  Choose what to do with each duplicate before adding.
-                </span>
-              </div>
-            )}
-            <div className="space-y-3 max-h-60 overflow-y-auto">
-              {(() => {
-                // Group by date
-                const grouped = previewExpenses.reduce((acc, tx) => {
-                  const dateKey = new Date(tx.date).toLocaleDateString(
-                    "en-KE",
-                    {
-                      day: "numeric",
-                      month: "short",
-                      year: "numeric",
-                    }
-                  );
-                  if (!acc[dateKey]) acc[dateKey] = [];
-                  acc[dateKey].push(tx);
-                  return acc;
-                }, {} as Record<string, typeof previewExpenses>);
-
-                return Object.entries(grouped).map(([date, txs]) => (
-                  <div key={date} className="space-y-1">
-                    <p className="text-xs font-medium text-muted-foreground px-2">
-                      {date} ({txs.length})
-                    </p>
-                    {txs.map((tx, idx) => (
-                      <div
-                        key={idx}
-                        className="flex items-start justify-between text-sm p-2 rounded bg-muted/50"
-                      >
-                        <div className="flex-1">
-                          <p className="font-medium">
-                            {getDisplayName(tx.recipient)}
-                          </p>
-                          <Badge variant="outline" className="text-xs mt-1">
-                            {tx.category}
-                          </Badge>
+        {previewExpenses.length > 0 &&
+          (inputMethod === "sms" || analysisComplete) && (
+            <div className="rounded-lg border p-4 space-y-2">
+              <p className="text-sm font-medium">
+                Preview ({previewExpenses.length} expense
+                {previewExpenses.length !== 1 ? "s" : ""})
+              </p>
+              {flaggedDuplicates.length > 0 && (
+                <div className="bg-yellow-100 border border-yellow-300 rounded p-2 mb-2 text-yellow-900 text-xs">
+                  <b>Possible duplicates detected:</b>
+                  <ul className="list-disc ml-4">
+                    {flaggedDuplicates.map((dup, i) => (
+                      <li key={i} className="mb-2">
+                        <div>
+                          <span>
+                            Imported: <b>{dup.parsed.recipient}</b> Ksh{" "}
+                            {dup.parsed.amount} on{" "}
+                            {new Date(dup.parsed.date).toLocaleDateString(
+                              "en-KE"
+                            )}
+                            <br />
+                          </span>
+                          <span>
+                            Matches manual:{" "}
+                            {dup.matches
+                              .map(
+                                (m) =>
+                                  `${m.recipient} Ksh ${m.amount} (${new Date(
+                                    m.date
+                                  ).toLocaleDateString("en-KE")})`
+                              )
+                              .join(", ")}
+                          </span>
                         </div>
-                        <span className="font-semibold">
-                          Ksh {tx.amount.toLocaleString()}
-                        </span>
-                      </div>
+                        <div className="flex gap-2 mt-1">
+                          <label>
+                            <input
+                              type="radio"
+                              name={`flagged-action-${i}`}
+                              value="add"
+                              checked={flaggedActions[i] === "add"}
+                              onChange={() =>
+                                setFlaggedActions((a) => ({ ...a, [i]: "add" }))
+                              }
+                            />{" "}
+                            Add as new
+                          </label>
+                          <label>
+                            <input
+                              type="radio"
+                              name={`flagged-action-${i}`}
+                              value="merge"
+                              checked={flaggedActions[i] === "merge"}
+                              onChange={() =>
+                                setFlaggedActions((a) => ({
+                                  ...a,
+                                  [i]: "merge",
+                                }))
+                              }
+                            />{" "}
+                            Merge with manual
+                          </label>
+                          <label>
+                            <input
+                              type="radio"
+                              name={`flagged-action-${i}`}
+                              value="ignore"
+                              checked={flaggedActions[i] === "ignore"}
+                              onChange={() =>
+                                setFlaggedActions((a) => ({
+                                  ...a,
+                                  [i]: "ignore",
+                                }))
+                              }
+                            />{" "}
+                            Ignore
+                          </label>
+                        </div>
+                      </li>
                     ))}
-                  </div>
-                ));
-              })()}
+                  </ul>
+                  <span>
+                    Choose what to do with each duplicate before adding.
+                  </span>
+                </div>
+              )}
+              <div className="space-y-3 max-h-60 overflow-y-auto">
+                {(() => {
+                  // Group by date
+                  const grouped = previewExpenses.reduce((acc, tx) => {
+                    const dateKey = new Date(tx.date).toLocaleDateString(
+                      "en-KE",
+                      {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      }
+                    );
+                    if (!acc[dateKey]) acc[dateKey] = [];
+                    acc[dateKey].push(tx);
+                    return acc;
+                  }, {} as Record<string, typeof previewExpenses>);
+
+                  return Object.entries(grouped).map(([date, txs]) => (
+                    <div key={date} className="space-y-1">
+                      <p className="text-xs font-medium text-muted-foreground px-2">
+                        {date} ({txs.length})
+                      </p>
+                      {txs.map((tx, idx) => (
+                        <div
+                          key={idx}
+                          className="flex items-start justify-between text-sm p-2 rounded bg-muted/50"
+                        >
+                          <div className="flex-1">
+                            <p className="font-medium">
+                              {getDisplayName(tx.recipient)}
+                            </p>
+                            <Badge variant="outline" className="text-xs mt-1">
+                              {tx.category}
+                            </Badge>
+                          </div>
+                          <span className="font-semibold">
+                            Ksh {tx.amount.toLocaleString()}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  ));
+                })()}
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
         {(inputMethod === "sms" || analysisComplete) && (
           <Button
