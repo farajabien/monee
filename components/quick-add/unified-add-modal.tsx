@@ -42,7 +42,9 @@ export function UnifiedAddModal({
 
   // Common fields
   const [amount, setAmount] = useState("");
+  const [isNewRecipient, setIsNewRecipient] = useState(false);
   const [recipient, setRecipient] = useState("");
+  const [newRecipientName, setNewRecipientName] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
   const [showAddCategoryDialog, setShowAddCategoryDialog] = useState(false);
@@ -96,6 +98,8 @@ export function UnifiedAddModal({
   const resetForm = () => {
     setAmount("");
     setRecipient("");
+    setIsNewRecipient(false);
+    setNewRecipientName("");
     setSelectedCategory("");
     setDate(new Date().toISOString().split("T")[0]);
     setSourceName("");
@@ -124,21 +128,26 @@ export function UnifiedAddModal({
 
       switch (activeTab) {
         case "expense":
-          if (!recipient) {
-            toast.error("Please select a recipient");
+          // Get the final recipient value
+          const finalRecipient = isNewRecipient
+            ? newRecipientName.trim()
+            : recipient;
+
+          if (!finalRecipient) {
+            toast.error("Please select or enter a recipient");
             return;
           }
           await db.transact(
             db.tx.expenses[id()]
               .update({
                 amount: parsedAmount,
-                recipient,
+                recipient: finalRecipient,
                 date: new Date(date).getTime(),
                 category: selectedCategory || "Uncategorized",
-                rawMessage: `Manual entry: Ksh${amount} to ${recipient}`,
+                rawMessage: `Manual entry: Ksh${amount} to ${finalRecipient}`,
                 parsedData: {
                   amount: parsedAmount,
-                  recipient,
+                  recipient: finalRecipient,
                   timestamp: new Date(date).getTime(),
                   type: "manual",
                 },
@@ -292,18 +301,75 @@ export function UnifiedAddModal({
                 {/* Recipient Dropdown */}
                 <div className="space-y-2">
                   <Label htmlFor="recipient">Recipient</Label>
-                  <Select value={recipient} onValueChange={setRecipient}>
-                    <SelectTrigger id="recipient">
-                      <SelectValue placeholder="e.g., Naivas, Uber" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {uniqueRecipients.map((r) => (
-                        <SelectItem key={r} value={r}>
-                          {getDisplayName(r)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  {!isNewRecipient ? (
+                    <div className="flex gap-2">
+                      <Select
+                        value={recipient}
+                        onValueChange={(value) => {
+                          if (value === "__new__") {
+                            setIsNewRecipient(true);
+                            setRecipient("");
+                          } else {
+                            setRecipient(value);
+                          }
+                        }}
+                      >
+                        <SelectTrigger id="recipient" className="flex-1">
+                          <SelectValue placeholder="Select or add new recipient..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {uniqueRecipients.length > 0 ? (
+                            <>
+                              {uniqueRecipients.map((r) => (
+                                <SelectItem key={r} value={r}>
+                                  {getDisplayName(r)}
+                                </SelectItem>
+                              ))}
+                              <SelectItem
+                                value="__new__"
+                                className="font-medium"
+                              >
+                                <div className="flex items-center gap-1.5">
+                                  <Plus className="h-3 w-3" />
+                                  Add New Recipient
+                                </div>
+                              </SelectItem>
+                            </>
+                          ) : (
+                            <SelectItem value="__new__" className="font-medium">
+                              <div className="flex items-center gap-1.5">
+                                <Plus className="h-3 w-3" />
+                                Add New Recipient
+                              </div>
+                            </SelectItem>
+                          )}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <Input
+                        id="new-recipient"
+                        placeholder="Enter recipient name"
+                        value={newRecipientName}
+                        onChange={(e) => setNewRecipientName(e.target.value)}
+                        required
+                        autoFocus
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setIsNewRecipient(false);
+                          setNewRecipientName("");
+                        }}
+                        className="text-xs"
+                      >
+                        ← Back to existing recipients
+                      </Button>
+                    </div>
+                  )}
                 </div>
 
                 {/* Category */}
