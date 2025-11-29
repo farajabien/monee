@@ -9,8 +9,8 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
-  SheetDescription,
 } from "@/components/ui/sheet";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   createRecipientListConfig,
   type RecipientWithStats,
@@ -94,29 +94,45 @@ export function RecipientList() {
     setShowManageSheet(true);
   };
 
-  const config = createRecipientListConfig(handleManage);
+  const config = useMemo(() => createRecipientListConfig(handleManage), []);
 
   return (
     <>
-      <UnifiedListContainer config={config} data={allRecipients} />
+      <Tabs defaultValue="list" className="w-full">
+        <TabsList className="grid w-full grid-cols-2 mb-4">
+          <TabsTrigger value="list">All Recipients</TabsTrigger>
+          <TabsTrigger value="stats">Statistics</TabsTrigger>
+        </TabsList>
+        <TabsContent value="list">
+          <UnifiedListContainer<RecipientWithStats>
+            config={config}
+            data={allRecipients}
+          />
+        </TabsContent>
+        <TabsContent value="stats">
+          {/* Placeholder for future statistics view */}
+          <div className="text-center text-muted-foreground py-8">
+            Statistics view coming soon
+          </div>
+        </TabsContent>
+      </Tabs>
 
-      {/* Manage Recipient Sheet */}
       <Sheet open={showManageSheet} onOpenChange={setShowManageSheet}>
-        <SheetContent>
+        <SheetContent
+          side="bottom"
+          className="h-[90vh] overflow-y-auto pb-safe"
+        >
           <SheetHeader>
             <SheetTitle>Manage Recipient</SheetTitle>
-            <SheetDescription>
-              Set nickname and default category for this recipient
-            </SheetDescription>
           </SheetHeader>
-          <div className="mt-6">
-            {selectedRecipient && (
+          {selectedRecipient && (
+            <div className="mt-6">
               <RecipientManager
                 recipientName={selectedRecipient.originalName}
                 currentCategory={selectedRecipient.defaultCategory}
               />
-            )}
-          </div>
+            </div>
+          )}
         </SheetContent>
       </Sheet>
     </>

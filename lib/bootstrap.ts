@@ -1,5 +1,6 @@
-
-import { tx } from "@instantdb/react";
+import { id } from "@instantdb/react";
+import db from "@/lib/db";
+import type { Category } from "@/types";
 
 export const DEFAULT_CATEGORIES = [
   {
@@ -16,7 +17,13 @@ export const DEFAULT_CATEGORIES = [
     isDefault: true,
     isActive: true,
   },
-  { name: "Food", color: "#f9a825", icon: "🍔", isDefault: true, isActive: true },
+  {
+    name: "Food",
+    color: "#f9a825",
+    icon: "🍔",
+    isDefault: true,
+    isActive: true,
+  },
   {
     name: "Transport",
     color: "#29b6f6",
@@ -24,7 +31,13 @@ export const DEFAULT_CATEGORIES = [
     isDefault: true,
     isActive: true,
   },
-  { name: "Housing", color: "#7e57c2", icon: "🏠", isDefault: true, isActive: true },
+  {
+    name: "Housing",
+    color: "#7e57c2",
+    icon: "🏠",
+    isDefault: true,
+    isActive: true,
+  },
   {
     name: "Entertainment",
     color: "#ec407a",
@@ -34,14 +47,15 @@ export const DEFAULT_CATEGORIES = [
   },
 ];
 
-export async function ensureDefaultCategories(db: any, userId: string) {
+export async function ensureDefaultCategories(userId: string) {
   try {
-    const { data: existingCategories } = await db.query("categories", {
-      where: { "user.id": userId },
+    const { data } = await db.useQuery({
+      categories: { $: { where: { "user.id": userId } } },
     });
 
+    const existingCategories = data?.categories || [];
     const existingCategoryNames = new Set(
-      existingCategories.map((c: any) => c.name)
+      existingCategories.map((c: Category) => c.name)
     );
 
     const missingCategories = DEFAULT_CATEGORIES.filter(
@@ -50,7 +64,7 @@ export async function ensureDefaultCategories(db: any, userId: string) {
 
     if (missingCategories.length > 0) {
       const transactions = missingCategories.map((category) =>
-        tx.categories[crypto.randomUUID()].update({ ...category }).link({ user: userId })
+        db.tx.categories[id()].update({ ...category }).link({ user: userId })
       );
       await db.transact(transactions);
       console.log("Created missing default categories:", missingCategories);

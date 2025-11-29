@@ -1,23 +1,34 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { id } from "@instantdb/react";
 import db from "@/lib/db";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import type { DebtWithUser } from "@/types";
 
 interface QuickDebtFormProps {
   onSuccess?: () => void;
+  debt?: DebtWithUser;
 }
 
-export function QuickDebtForm({ onSuccess }: QuickDebtFormProps) {
+export function QuickDebtForm({ onSuccess, debt }: QuickDebtFormProps) {
   const user = db.useUser();
   const [name, setName] = useState("");
   const [totalAmount, setTotalAmount] = useState<string>("");
   const [monthlyPaymentAmount, setMonthlyPaymentAmount] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Populate form fields when editing
+  useEffect(() => {
+    if (debt) {
+      setName(debt.name || "");
+      setTotalAmount(debt.totalAmount?.toString() || "");
+      setMonthlyPaymentAmount(debt.monthlyPaymentAmount?.toString() || "");
+    }
+  }, [debt]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,17 +42,23 @@ export function QuickDebtForm({ onSuccess }: QuickDebtFormProps) {
       const debtData = {
         name: name.trim(),
         totalAmount: parseFloat(totalAmount),
-        currentBalance: parseFloat(totalAmount), // Start with full amount
+        currentBalance: debt ? debt.currentBalance : parseFloat(totalAmount), // Keep existing balance when editing
         monthlyPaymentAmount: parseFloat(monthlyPaymentAmount),
-        paymentDueDay: 1, // Default to 1st of month
-        createdAt: Date.now(),
+        paymentDueDay: debt?.paymentDueDay || 1, // Keep existing or default to 1st of month
+        createdAt: debt?.createdAt || Date.now(),
       };
 
-      await db.transact(
-        db.tx.debts[id()].update(debtData).link({ user: user.id })
-      );
-
-      toast.success("Debt added successfully!");
+      if (debt) {
+        // Update existing debt
+        await db.transact(db.tx.debts[debt.id].update(debtData));
+        toast.success("Debt updated successfully!");
+      } else {
+        // Create new debt
+        await db.transact(
+          db.tx.debts[id()].update(debtData).link({ user: user.id })
+        );
+        toast.success("Debt added successfully!");
+      }
 
       // Reset form
       setName("");
@@ -52,8 +69,8 @@ export function QuickDebtForm({ onSuccess }: QuickDebtFormProps) {
         onSuccess();
       }
     } catch (error) {
-      console.error("Error adding debt:", error);
-      toast.error("Failed to add debt");
+      console.error("Error saving debt:", error);
+      toast.error(debt ? "Failed to update debt" : "Failed to add debt");
     } finally {
       setIsSubmitting(false);
     }
@@ -98,11 +115,18 @@ export function QuickDebtForm({ onSuccess }: QuickDebtFormProps) {
       </div>
 
       <div className="text-xs text-muted-foreground p-2 bg-muted rounded">
-        You can add interest rate, deadline, and other details later by editing this debt.
+        You can add interest rate, deadline, and other details later by editing
+        this debt.
       </div>
 
       <Button type="submit" className="w-full" disabled={isSubmitting}>
-        {isSubmitting ? "Adding..." : "Add Debt"}
+        {isSubmitting
+          ? debt
+            ? "Updating..."
+            : "Adding..."
+          : debt
+          ? "Update Debt"
+          : "Add Debt"}
       </Button>
     </form>
   );

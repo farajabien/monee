@@ -11,12 +11,12 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { DebtFormDialog } from "./debt-form-dialog";
 import { DebtPaymentForm } from "./debt-payment-form";
 import { DebtProgress } from "./debt-progress";
 import { createDebtListConfig } from "./debt-list-config";
 import type { DebtWithUser } from "@/types";
 import { toast } from "sonner";
+import { QuickDebtForm } from "./quick-debt-form";
 
 export function DebtList() {
   const user = db.useUser();
@@ -124,11 +124,8 @@ export function DebtList() {
           <TabsTrigger value="progress">Progress</TabsTrigger>
         </TabsList>
         <TabsContent value="list">
-          <UnifiedListContainer<DebtWithUser>
-            config={config}
-            data={debts}
-            editDialog={DebtFormDialog}
-          />
+          <QuickDebtForm />
+          <UnifiedListContainer<DebtWithUser> config={config} data={debts} />
         </TabsContent>
         <TabsContent value="progress">
           <DebtProgress />

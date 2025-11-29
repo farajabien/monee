@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
+import { toast } from "sonner";
 import type { Debt } from "@/types";
 
 interface DebtFormProps {
@@ -38,9 +39,7 @@ export function DebtForm({ debt, onSuccess, onCancel }: DebtFormProps) {
       setInterestRate(debt.interestRate?.toString() || "");
       setPushMonthsPlan(debt.pushMonthsPlan?.toString() || "");
       setDeadline(
-        debt.deadline
-          ? new Date(debt.deadline).toISOString().split("T")[0]
-          : ""
+        debt.deadline ? new Date(debt.deadline).toISOString().split("T")[0] : ""
       );
     }
   }, [debt]);
@@ -52,8 +51,10 @@ export function DebtForm({ debt, onSuccess, onCancel }: DebtFormProps) {
       !totalAmount ||
       !currentBalance ||
       !monthlyPaymentAmount
-    )
+    ) {
+      toast.error("Please fill in all required fields");
       return;
+    }
 
     setIsSubmitting(true);
     try {
@@ -74,11 +75,13 @@ export function DebtForm({ debt, onSuccess, onCancel }: DebtFormProps) {
       if (debt) {
         // Update existing debt
         await db.transact(db.tx.debts[debt.id].update(debtData));
+        toast.success("Debt updated successfully!");
       } else {
         // Create new debt
         await db.transact(
           db.tx.debts[id()].update(debtData).link({ user: user.id })
         );
+        toast.success("Debt added successfully!");
       }
 
       // Reset form
@@ -96,7 +99,7 @@ export function DebtForm({ debt, onSuccess, onCancel }: DebtFormProps) {
       }
     } catch (error) {
       console.error("Error saving debt:", error);
-      alert("Failed to save debt. Please try again.");
+      toast.error(debt ? "Failed to update debt" : "Failed to add debt");
     } finally {
       setIsSubmitting(false);
     }
@@ -218,7 +221,8 @@ export function DebtForm({ debt, onSuccess, onCancel }: DebtFormProps) {
           min={new Date().toISOString().split("T")[0]}
         />
         <p className="text-xs text-muted-foreground">
-          Set a target date to pay off this debt (e.g., for one-time payment loans)
+          Set a target date to pay off this debt (e.g., for one-time payment
+          loans)
         </p>
       </div>
 
@@ -278,7 +282,13 @@ export function DebtForm({ debt, onSuccess, onCancel }: DebtFormProps) {
             !monthlyPaymentAmount
           }
         >
-          {isSubmitting ? "Saving..." : debt ? "Update Debt" : "Add Debt"}
+          {isSubmitting
+            ? debt
+              ? "Updating..."
+              : "Adding..."
+            : debt
+            ? "Update Debt"
+            : "Add Debt"}
         </Button>
       </div>
     </form>
