@@ -28,7 +28,7 @@ export function IncomeAnalytics() {
   const [timeView, setTimeView] = useState<TimeView>("month");
   const [chartType, setChartType] = useState<"bar" | "line">("bar");
 
-  const { isLoading, error, data} = db.useQuery({
+  const { isLoading, error, data } = db.useQuery({
     profiles: {
       incomeSources: {},
       expenses: {},
@@ -36,9 +36,8 @@ export function IncomeAnalytics() {
   });
 
   const profile = data?.profiles?.[0];
-  const incomeSources = profile?.incomeSources?.filter(
-    (source) => source.isActive
-  ) || [];
+  const incomeSources =
+    profile?.incomeSources?.filter((source) => source.isActive) || [];
   const expenses = profile?.expenses || [];
 
   // Chart config for Shadcn charts
@@ -51,7 +50,7 @@ export function IncomeAnalytics() {
 
   // Calculate total monthly income
   const totalMonthlyIncome = incomeSources.reduce(
-    (sum, source) => sum + (source.monthlyAmount || 0),
+    (sum, source) => sum + (source.amount || 0),
     0
   );
 
@@ -109,16 +108,16 @@ export function IncomeAnalytics() {
     if (!incomeSources.length) return [];
 
     return incomeSources.map((source) => {
-      const amount = source.monthlyAmount || 0;
+      const amount = source.amount || 0;
       const percentage =
         totalMonthlyIncome > 0 ? (amount / totalMonthlyIncome) * 100 : 0;
 
       return {
         id: source.id,
-        name: source.sourceName || "Unnamed Source",
+        name: source.name || "Unnamed Source",
         amount: amount,
         percentage: Math.round(percentage),
-        subtitle: source.frequency ? `Frequency: ${source.frequency}` : "",
+        subtitle: `Payday: Day ${source.paydayDay}`,
         icon: Briefcase,
         color: "hsl(var(--primary))",
       };
@@ -127,13 +126,58 @@ export function IncomeAnalytics() {
 
   // Calculate next payday
   const nextPayday = useMemo(() => {
+    const now = new Date();
+    const currentDay = now.getDate();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+
     const paydays = incomeSources
-      .filter((source) => source.nextPayday)
-      .map((source) => new Date(source.nextPayday!))
+      .map((source) => {
+        let paydayDate: Date;
+
+        if (source.paydayMonth !== undefined) {
+          // Annual income source
+          paydayDate = new Date(
+            currentYear,
+            source.paydayMonth,
+            source.paydayDay
+          );
+          // If the payday has passed this year, set it for next year
+          if (paydayDate < now) {
+            paydayDate = new Date(
+              currentYear + 1,
+              source.paydayMonth,
+              source.paydayDay
+            );
+          }
+        } else {
+          // Monthly income source
+          paydayDate = new Date(currentYear, currentMonth, source.paydayDay);
+          // If the payday has passed this month, set it for next month
+          if (currentDay >= source.paydayDay) {
+            paydayDate = new Date(
+              currentYear,
+              currentMonth + 1,
+              source.paydayDay
+            );
+          }
+        }
+
+        return paydayDate;
+      })
       .sort((a, b) => a.getTime() - b.getTime());
 
     return paydays.length > 0 ? paydays[0] : null;
   }, [incomeSources]);
+
+  // Calculate days until next payday
+  const daysUntilPayday = useMemo(() => {
+    if (!nextPayday) return null;
+    const now = new Date();
+    const diffTime = nextPayday.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+  }, [nextPayday]);
 
   if (isLoading) {
     return (
@@ -158,7 +202,8 @@ export function IncomeAnalytics() {
           <Briefcase className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
           <h3 className="font-semibold text-lg mb-2">No Income to Analyze</h3>
           <p className="text-sm text-muted-foreground">
-            Add your first income source to see analytics and track your earnings.
+            Add your first income source to see analytics and track your
+            earnings.
           </p>
         </CardContent>
       </Card>
@@ -195,12 +240,15 @@ export function IncomeAnalytics() {
           <CardContent>
             <div className="text-2xl font-bold">
               {nextPayday
-                ? nextPayday.toLocaleDateString("en-US", { month: "short", day: "numeric" })
+                ? nextPayday.toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                  })
                 : "Not set"}
             </div>
             <p className="text-xs text-muted-foreground">
-              {nextPayday
-                ? `${Math.ceil((nextPayday.getTime() - Date.now()) / (1000 * 60 * 60 * 24))} days`
+              {daysUntilPayday !== null
+                ? `${daysUntilPayday} day${daysUntilPayday !== 1 ? "s" : ""}`
                 : "Add payday to income source"}
             </p>
           </CardContent>

@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Check } from "lucide-react";
+import { Check, Clock } from "lucide-react";
 import { toast } from "sonner";
 import Image from "next/image";
 
@@ -23,11 +23,31 @@ interface PaywallDialogProps {
 
 const PAYSTACK_PUBLIC_KEY = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || "";
 const PRICE_KES = 99900; // 999 KES in kobo (smallest currency unit)
+const FREE_TRIAL_DAYS = 7;
 
 export function PaywallDialog({ open, onOpenChange }: PaywallDialogProps) {
   const { user } = db.useAuth();
   const [isProcessing, setIsProcessing] = useState(false);
   const [hideDialog, setHideDialog] = useState(false);
+
+  // Query user's profile to check trial eligibility
+  const { data, isLoading } = db.useQuery({
+    profiles: {
+      $: {
+        where: {
+          "user.id": user?.id,
+        },
+      },
+    },
+  });
+
+  const profile = data?.profiles?.[0];
+  const profileCreatedAt = profile?.createdAt || Date.now();
+  const daysSinceCreation = Math.floor(
+    (Date.now() - profileCreatedAt) / (1000 * 60 * 60 * 24)
+  );
+  const isTrialActive = daysSinceCreation < FREE_TRIAL_DAYS;
+  const daysRemaining = Math.max(0, FREE_TRIAL_DAYS - daysSinceCreation);
 
   const features = [
     "Quick expense tracking (manual or M-Pesa)",
@@ -118,19 +138,41 @@ export function PaywallDialog({ open, onOpenChange }: PaywallDialogProps) {
     }
   };
 
+  const handleContinueTrial = () => {
+    toast.success(
+      `🎉 Enjoy your ${daysRemaining} day${
+        daysRemaining !== 1 ? "s" : ""
+      } of free trial!`
+    );
+    onOpenChange(false);
+  };
+
+  if (isLoading) {
+    return null;
+  }
+
   return (
     <Dialog
       open={open && !hideDialog}
       onOpenChange={(newOpen) => {
-        // Prevent closing the dialog - user must pay
-        if (!newOpen) return;
+        // Allow closing if trial is active
+        if (!newOpen && isTrialActive) {
+          onOpenChange(false);
+          return;
+        }
+        // Prevent closing if trial expired - user must pay
+        if (!newOpen && !isTrialActive) return;
         onOpenChange(newOpen);
       }}
     >
       <DialogContent
         className="max-w-2xl"
-        onEscapeKeyDown={(e) => e.preventDefault()}
-        onPointerDownOutside={(e) => e.preventDefault()}
+        onEscapeKeyDown={(e) => {
+          if (!isTrialActive) e.preventDefault();
+        }}
+        onPointerDownOutside={(e) => {
+          if (!isTrialActive) e.preventDefault();
+        }}
       >
         <DialogHeader>
           <DialogTitle className="text-2xl flex items-center gap-2">
@@ -140,20 +182,46 @@ export function PaywallDialog({ open, onOpenChange }: PaywallDialogProps) {
               width={24}
               height={24}
             />
-            Unlock Lifetime Access to MONEE
+            {isTrialActive
+              ? "Try MONEE Free for 7 Days"
+              : "Unlock Lifetime Access to MONEE"}
           </DialogTitle>
           <DialogDescription>
-            Worth KSh 10,000-15,000. Pay once. Own forever. Best deal ever.
+            {isTrialActive
+              ? `${daysRemaining} day${
+                  daysRemaining !== 1 ? "s" : ""
+                } remaining in your free trial. Upgrade anytime for lifetime access.`
+              : "Worth KSh 10,000-15,000. Pay once. Own forever. Best deal ever."}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">
+          {/* Trial Status Banner */}
+          {isTrialActive && (
+            <div className="bg-gradient-to-br from-green-500/10 to-green-500/5 p-4 rounded-lg border-2 border-green-500">
+              <div className="flex items-center gap-3">
+                <Clock className="h-5 w-5 text-green-600" />
+                <div>
+                  <p className="font-semibold text-green-700">
+                    Free Trial Active
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {daysRemaining} day{daysRemaining !== 1 ? "s" : ""}{" "}
+                    remaining • Full access to all features
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Pricing */}
           <div className="bg-gradient-to-br from-primary/10 to-primary/5 p-6 rounded-lg border-2 border-primary">
             <div className="flex items-center justify-between mb-4">
               <div>
                 <div className="flex items-center gap-3">
-                  <span className="text-5xl font-bold text-primary">Ksh 999</span>
+                  <span className="text-5xl font-bold text-primary">
+                    Ksh 999
+                  </span>
                   <div className="text-left">
                     <span className="text-2xl text-muted-foreground line-through">
                       Ksh 10,000
@@ -169,7 +237,8 @@ export function PaywallDialog({ open, onOpenChange }: PaywallDialogProps) {
               </div>
             </div>
             <p className="text-sm text-muted-foreground font-semibold">
-              💳 One-time payment • No monthly fees • Lifetime access • Best deal ever
+              💳 One-time payment • No monthly fees • Lifetime access • Best
+              deal ever
             </p>
           </div>
 
@@ -190,15 +259,37 @@ export function PaywallDialog({ open, onOpenChange }: PaywallDialogProps) {
           </div>
         </div>
 
-        <DialogFooter className="">
-          <Button
-            onClick={handlePayment}
-            disabled={isProcessing}
-            className="w-full"
-            size="lg"
-          >
-            {isProcessing ? "Processing..." : "Pay Ksh 999 & Get Started"}
-          </Button>
+        <DialogFooter className="flex-col gap-2 sm:flex-col">
+          {isTrialActive ? (
+            <>
+              <Button
+                onClick={handleContinueTrial}
+                variant="outline"
+                className="w-full"
+                size="lg"
+              >
+                Continue with Free Trial ({daysRemaining} day
+                {daysRemaining !== 1 ? "s" : ""} left)
+              </Button>
+              <Button
+                onClick={handlePayment}
+                disabled={isProcessing}
+                className="w-full"
+                size="lg"
+              >
+                {isProcessing ? "Processing..." : "Upgrade Now - Pay Ksh 999"}
+              </Button>
+            </>
+          ) : (
+            <Button
+              onClick={handlePayment}
+              disabled={isProcessing}
+              className="w-full"
+              size="lg"
+            >
+              {isProcessing ? "Processing..." : "Pay Ksh 999 & Get Started"}
+            </Button>
+          )}
         </DialogFooter>
         <p className="text-xs text-center text-muted-foreground">
           💳 Secure payment via Paystack • Worth KSh 10,000+ • Best deal ever

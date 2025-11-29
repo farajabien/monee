@@ -37,7 +37,7 @@ export function DebtAnalytics() {
   });
 
   const profile = data?.profiles?.[0];
-  const debts = profile?.debts || [];
+  const debts = useMemo(() => profile?.debts || [], [profile?.debts]);
 
   // Chart config for Shadcn charts
   const chartConfig = {
@@ -48,14 +48,19 @@ export function DebtAnalytics() {
   } satisfies ChartConfig;
 
   // Calculate total debt
-  const totalDebt = debts.reduce((sum, debt) => sum + (debt.amount || 0), 0);
+  const totalDebt = useMemo(
+    () => debts.reduce((sum, debt) => sum + (debt.totalAmount || 0), 0),
+    [debts]
+  );
 
   // Calculate total paid
-  const totalPaid = debts.reduce((sum, debt) => {
-    const debtPayments = debt.payments || [];
-    const paid = debtPayments.reduce((pSum, p) => pSum + (p.amount || 0), 0);
-    return sum + paid;
-  }, 0);
+  const totalPaid = useMemo(() => {
+    return debts.reduce((sum, debt) => {
+      const debtPayments = debt.payments || [];
+      const paid = debtPayments.reduce((pSum, p) => pSum + (p.amount || 0), 0);
+      return sum + paid;
+    }, 0);
+  }, [debts]);
 
   // Calculate remaining debt
   const remainingDebt = totalDebt - totalPaid;
@@ -164,22 +169,24 @@ export function DebtAnalytics() {
   const categoryData = useMemo(() => {
     if (!debts.length) return [];
 
-    return debts.map((debt) => {
-      const paid =
-        debt.payments?.reduce((sum, p) => sum + (p.amount || 0), 0) || 0;
-      const remaining = (debt.amount || 0) - paid;
-      const percentage = totalDebt > 0 ? (remaining / totalDebt) * 100 : 0;
+    return debts
+      .map((debt) => {
+        const paid =
+          debt.payments?.reduce((sum, p) => sum + (p.amount || 0), 0) || 0;
+        const remaining = (debt.totalAmount || 0) - paid;
+        const percentage = totalDebt > 0 ? (remaining / totalDebt) * 100 : 0;
 
-      return {
-        id: debt.id,
-        name: debt.creditorName || "Unknown Debt",
-        amount: remaining,
-        percentage: Math.round(percentage),
-        subtitle: `Paid: KSh ${paid.toLocaleString()}`,
-        icon: CreditCard,
-        color: "#ef4444", // red color for debts
-      };
-    }).filter((item) => item.amount > 0);
+        return {
+          id: debt.id,
+          name: debt.name || "Unknown Debt",
+          amount: remaining,
+          percentage: Math.round(percentage),
+          subtitle: `Paid: KSh ${paid.toLocaleString()}`,
+          icon: CreditCard,
+          color: "#ef4444", // red color for debts
+        };
+      })
+      .filter((item) => item.amount > 0);
   }, [debts, totalDebt]);
 
   // Calculate average monthly payment

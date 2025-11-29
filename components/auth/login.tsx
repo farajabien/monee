@@ -104,12 +104,10 @@ export default function Login() {
   const router = useRouter();
   const { isLoading, user } = db.useAuth();
 
-  // Redirect based on onboarding status
-  useEffect(() => {
-    const checkOnboardingStatus = async (): Promise<void> => {
-      if (!isLoading && user) {
-        // Query the user's profile to check onboarding status
-        const { data } = await db.useQuery({
+  // Only query the user's profile if user exists
+  const { data, isLoading: profileLoading } = db.useQuery(
+    user
+      ? {
           profiles: {
             $: {
               where: {
@@ -117,26 +115,29 @@ export default function Login() {
               },
             },
           },
-        });
-
-        const profile = data?.profiles?.[0];
-
-        if (!profile) {
-          // No profile exists, redirect to onboarding
-          router.push("/onboarding");
-        } else if (!profile.onboardingCompleted) {
-          // Profile exists but onboarding not completed
-          router.push("/onboarding");
-        } else {
-          // Onboarding completed, go to dashboard
-          router.push("/dashboard");
         }
-      }
-    };
-    checkOnboardingStatus();
-  }, [isLoading, user, router]);
+      : null
+  );
 
-  if (isLoading) {
+  // Redirect based on onboarding status
+  useEffect(() => {
+    if (!isLoading && !profileLoading && user) {
+      const profile = data?.profiles?.[0];
+
+      if (!profile) {
+        // No profile exists, redirect to onboarding
+        router.push("/onboarding");
+      } else if (!profile.onboardingCompleted) {
+        // Profile exists but onboarding not completed
+        router.push("/onboarding");
+      } else {
+        // Onboarding completed, go to dashboard
+        router.push("/dashboard");
+      }
+    }
+  }, [isLoading, profileLoading, user, data, router]);
+
+  if (isLoading || (user && profileLoading)) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">

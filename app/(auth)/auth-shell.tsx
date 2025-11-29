@@ -12,6 +12,8 @@ interface AuthShellProps {
   className?: string;
 }
 
+const FREE_TRIAL_DAYS = 7;
+
 export default function AuthShell({ children, className }: AuthShellProps) {
   const router = useRouter();
   const { isLoading, user } = db.useAuth();
@@ -22,7 +24,30 @@ export default function AuthShell({ children, className }: AuthShellProps) {
     user?.id ? { $users: {} } : {}
   );
 
+  // Query user's profile to check trial eligibility
+  const { data: profileData, isLoading: isLoadingProfile } = db.useQuery(
+    user?.id
+      ? {
+          profiles: {
+            $: {
+              where: {
+                "user.id": user.id,
+              },
+            },
+          },
+        }
+      : {}
+  );
+
   const userRecord = usersData?.$users?.find((u) => u.id === user?.id);
+  const profile = profileData?.profiles?.[0];
+
+  // Calculate trial status
+  const profileCreatedAt = profile?.createdAt || new Date().getTime();
+  const daysSinceCreation = Math.floor(
+    (new Date().getTime() - profileCreatedAt) / (1000 * 60 * 60 * 24)
+  );
+  const isTrialActive = daysSinceCreation < FREE_TRIAL_DAYS;
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -32,14 +57,31 @@ export default function AuthShell({ children, className }: AuthShellProps) {
 
   useEffect(() => {
     // Check payment status after user and payment data loads
-    if (!isLoading && !isLoadingUsers && user && userRecord !== undefined) {
+    if (
+      !isLoading &&
+      !isLoadingUsers &&
+      !isLoadingProfile &&
+      user &&
+      userRecord !== undefined
+    ) {
       const hasPaid = userRecord?.hasPaid === true;
-      const id = setTimeout(() => setShowPaywall(!hasPaid), 0);
+      // Show paywall if user hasn't paid and trial has expired
+      const id = setTimeout(
+        () => setShowPaywall(!hasPaid && !isTrialActive),
+        0
+      );
       return () => clearTimeout(id);
     }
-  }, [isLoading, isLoadingUsers, user, userRecord]);
+  }, [
+    isLoading,
+    isLoadingUsers,
+    isLoadingProfile,
+    user,
+    userRecord,
+    isTrialActive,
+  ]);
 
-  if (isLoading || isLoadingUsers) {
+  if (isLoading || isLoadingUsers || isLoadingProfile) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
@@ -54,13 +96,14 @@ export default function AuthShell({ children, className }: AuthShellProps) {
     return null;
   }
 
-  // Block content if user hasn't paid
+  // Allow access if user has paid OR trial is active
   const hasPaid = userRecord?.hasPaid === true;
+  const hasAccess = hasPaid || isTrialActive;
 
   return (
     <>
       <PaywallDialog open={showPaywall} onOpenChange={setShowPaywall} />
-      {hasPaid ? (
+      {hasAccess ? (
         <EnsureProfile>
           <div className={className}>{children}</div>
         </EnsureProfile>
@@ -72,8 +115,8 @@ export default function AuthShell({ children, className }: AuthShellProps) {
             </div>
             <h2 className="text-2xl font-bold">Welcome to MONEE!</h2>
             <p className="text-muted-foreground">
-              To access all features, please complete your one-time payment of
-              Ksh 999.
+              Your free trial has ended. To continue accessing all features,
+              please complete your one-time payment of Ksh 999.
             </p>
           </div>
         </div>
