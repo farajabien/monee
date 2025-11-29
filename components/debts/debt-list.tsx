@@ -16,7 +16,6 @@ import { DebtProgress } from "./debt-progress";
 import { createDebtListConfig } from "./debt-list-config";
 import type { DebtWithUser } from "@/types";
 import { toast } from "sonner";
-import { QuickDebtForm } from "./quick-debt-form";
 
 export function DebtList() {
   const user = db.useUser();
@@ -124,7 +123,6 @@ export function DebtList() {
           <TabsTrigger value="progress">Progress</TabsTrigger>
         </TabsList>
         <TabsContent value="list">
-          <QuickDebtForm />
           <UnifiedListContainer<DebtWithUser> config={config} data={debts} />
         </TabsContent>
         <TabsContent value="progress">

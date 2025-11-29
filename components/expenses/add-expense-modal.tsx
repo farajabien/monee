@@ -8,7 +8,7 @@ import {
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import AddExpenseForm from "@/components/expenses/add-expense-form";
 import { IncomeSourceForm } from "@/components/income/income-source-form";
-import { DebtForm } from "@/components/debts/debt-form";
+import { QuickDebtForm } from "../debts/quick-debt-form";
 
 export function AddExpenseModal({
   open,
@@ -40,7 +40,7 @@ export function AddExpenseModal({
             <AddExpenseForm />
           </TabsContent>
           <TabsContent value="debt">
-            <DebtForm onSuccess={() => onOpenChange(false)} />
+            <QuickDebtForm onSuccess={() => onOpenChange(false)} />
           </TabsContent>
         </Tabs>
       </SheetContent>
