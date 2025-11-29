@@ -204,7 +204,8 @@ export default function LandingPage() {
             </Link>
           </div>
           <p className="text-sm text-muted-foreground">
-            ✨ Coming soon. One-time payment of Ksh 999. No subscriptions. Replaces KSh 3,395+ in separate templates.
+            ✨ Coming soon. One-time payment of Ksh 999. No subscriptions.
+            Replaces KSh 3,395+ in separate templates.
           </p>
         </div>
       </section>
@@ -388,9 +389,11 @@ export default function LandingPage() {
               <div className="text-center space-y-2">
                 <h3 className="text-2xl font-bold">MONEE Lifetime</h3>
                 <div className="flex items-center justify-center gap-3">
-                  <span className="text-4xl font-bold">Ksh 999</span>
+                  <span className="text-4xl font-bold">KSh 999</span>
                 </div>
-                <Badge variant="secondary">One-time payment • Lifetime access</Badge>
+                <Badge variant="secondary">
+                  One-time payment • Lifetime access
+                </Badge>
                 <p className="text-sm text-muted-foreground">
                   Save KSh 2,396+ vs buying templates separately
                 </p>
@@ -400,12 +403,13 @@ export default function LandingPage() {
                 <p className="text-sm font-semibold">What&apos;s Included:</p>
                 <div className="space-y-2">
                   {[
-                    "M-Pesa Smart Parser",
-                    "Income & Expense Tracking",
-                    "Debt Management System",
-                    "Budget Planner",
-                    "Category Analytics",
-                    "Daily Check-In Reminders",
+                    "Zero-sum budgeting",
+                    "Debt tracking with interest calculations",
+                    "Savings goals with progress tracking",
+                    "Business/side-hustle expense tagging",
+                    "Student academic expense tracking",
+                    "M-Pesa auto-import & smart categorization",
+                    "Cloud sync, offline-first",
                   ].map((item, i) => (
                     <div key={i} className="flex items-start gap-2">
                       <CheckCircle2 className="h-5 w-5 text-primary shrink-0 mt-0.5" />
@@ -438,8 +442,8 @@ export default function LandingPage() {
               </Link>
 
               <p className="text-xs text-center text-muted-foreground">
-                Launching soon. One payment of Ksh 999 gets you lifetime access —
-                replacing KSh 3,395+ worth of separate spreadsheets.
+                Launching soon. One payment of KSh 999 gets you lifetime access
+                — replacing KSh 3,395+ worth of separate spreadsheets.
               </p>
             </CardContent>
           </Card>
@@ -470,8 +474,9 @@ export default function LandingPage() {
               Ready to Take Control of Your Money?
             </h2>
             <p className="text-lg opacity-90 max-w-2xl mx-auto">
-              Join the waitlist and be among the first Kenyans 🇰🇪 to get
-              MONEE at launch. One payment of Ksh 999 replaces KSh 3,395+ worth of separate spreadsheets.
+              Join the waitlist and be among the first Kenyans 🇰🇪 to get MONEE
+              at launch. One payment of Ksh 999 replaces KSh 3,395+ worth of
+              separate spreadsheets.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
               <Link href="/login">
