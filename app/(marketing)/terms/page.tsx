@@ -51,15 +51,20 @@ export default function TermsPage() {
                 2. Description of Service
               </h2>
               <p className="text-muted-foreground leading-relaxed mb-2">
-                MONEE is a personal finance management application that helps
-                users:
+                MONEE is an all-in-one personal finance management application
+                built for Kenya that helps users:
               </p>
               <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-4">
-                <li>Track M-Pesa expenses and expenses</li>
-                <li>Create and manage budgets</li>
-                <li>Monitor income sources and financial goals</li>
-                <li>Analyze spending patterns and insights</li>
-                <li>Manage debts and payment schedules</li>
+                <li>Track M-Pesa transactions and expenses</li>
+                <li>Create and manage zero-sum budgets</li>
+                <li>Monitor income sources and savings goals</li>
+                <li>
+                  Manage debts with interest calculations and payment schedules
+                </li>
+                <li>Track business/side-hustle expenses</li>
+                <li>Monitor student academic expenses</li>
+                <li>Analyze spending patterns with recipient-based insights</li>
+                <li>Predict cash runway until next payday</li>
               </ul>
             </section>
 
@@ -84,10 +89,9 @@ export default function TermsPage() {
               <p className="text-muted-foreground leading-relaxed">
                 Your financial data is stored securely using InstantDB with
                 end-to-end encryption. We do not sell or share your personal
-                financial information with third parties. The free M-Pesa
-                analyzer tool processes expenses entirely in your browser using
-                IndexedDB, and no data is transmitted to our servers. For more
-                details, please review our{" "}
+                financial information with third parties. MONEE is offline-first
+                and syncs across your devices when online. For more details,
+                please review our{" "}
                 <Link href="/privacy" className="text-primary hover:underline">
                   Privacy Policy
                 </Link>
@@ -97,16 +101,23 @@ export default function TermsPage() {
 
             <section>
               <h2 className="text-2xl font-semibold mb-3">
-                5. Payment and Subscription
+                5. Payment and Pricing
               </h2>
               <p className="text-muted-foreground leading-relaxed mb-2">
-                MONEE offers both free and paid services:
+                MONEE offers a one-time payment model:
               </p>
               <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-4">
-                <li>Free M-Pesa analyzer tool (no account required)</li>
                 <li>
-                  Full app access for Ksh 999 (one-time payment or subscription
-                  as indicated)
+                  Full app access for KSh 999 (one-time payment, lifetime
+                  access)
+                </li>
+                <li>
+                  All features included: budgeting, debt tracking, savings
+                  goals, M-Pesa integration, business/student modes
+                </li>
+                <li>
+                  All future updates and new features included at no additional
+                  cost
                 </li>
                 <li>
                   Payments are processed securely through our payment partners
@@ -155,9 +166,11 @@ export default function TermsPage() {
                 MONEE is provided &quot;as is&quot; without warranties of any
                 kind. We do not guarantee that the Service will be
                 uninterrupted, secure, or error-free. While we strive for
-                accuracy in expense parsing and financial calculations, we are
-                not responsible for any financial decisions made based on
-                information provided by the Service.
+                accuracy in M-Pesa message parsing, transaction categorization,
+                and financial calculations, we are not responsible for any
+                financial decisions made based on information provided by the
+                Service. MONEE is a personal finance tracking tool, not
+                financial advice.
               </p>
             </section>
 
@@ -179,10 +192,13 @@ export default function TermsPage() {
                 10. M-Pesa Integration
               </h2>
               <p className="text-muted-foreground leading-relaxed">
-                MONEE parses M-Pesa SMS messages to help you track expenses. We
-                are not affiliated with Safaricom or M-Pesa. Users are
-                responsible for manually inputting their M-Pesa messages. We do
-                not have direct access to your M-Pesa account or Safaricom data.
+                MONEE allows you to manually paste M-Pesa SMS messages or upload
+                M-Pesa statements to automatically import and categorize your
+                transactions. We are not affiliated with, endorsed by, or
+                partnered with Safaricom or M-Pesa. Users are responsible for
+                manually inputting their M-Pesa data. We do not have direct
+                access to your M-Pesa account, Safaricom systems, or any
+                third-party financial services.
               </p>
             </section>
 
@@ -242,10 +258,19 @@ export default function TermsPage() {
               <p className="text-muted-foreground mt-2">
                 Email:{" "}
                 <a
-                  href="mailto:support@monee.app"
+                  href="mailto:support@monee.co.ke"
                   className="text-primary hover:underline"
                 >
-                  support@monee.app
+                  support@monee.co.ke
+                </a>
+              </p>
+              <p className="text-muted-foreground mt-1">
+                Website:{" "}
+                <a
+                  href="https://monee.co.ke"
+                  className="text-primary hover:underline"
+                >
+                  monee.co.ke
                 </a>
               </p>
             </section>

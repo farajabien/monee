@@ -67,12 +67,12 @@ export default function LandingPage() {
 
   const comparison = [
     {
-      feature: "M-Pesa Expense Parsing",
+      feature: "M-Pesa Statement Import",
       monee: true,
       competitors: false,
     },
     {
-      feature: "Automatic Reconciliation",
+      feature: "SMS Message Parsing",
       monee: true,
       competitors: false,
     },
@@ -82,44 +82,44 @@ export default function LandingPage() {
       competitors: "Manual",
     },
     {
-      feature: "Income & Expense Tracking",
-      monee: true,
-      competitors: "Manual",
-    },
-    {
-      feature: "Debt Management & Progress",
+      feature: "Zero-Sum Budgeting",
       monee: true,
       competitors: "Basic",
     },
     {
-      feature: "Budgets & Limits",
+      feature: "Debt Tracking with Interest",
+      monee: true,
+      competitors: "Basic",
+    },
+    {
+      feature: "Savings Goals & Progress",
       monee: true,
       competitors: "Manual",
     },
     {
-      feature: "Daily Check-In Ritual",
+      feature: "Business Expense Tagging",
       monee: true,
       competitors: false,
     },
     {
-      feature: "Offline Access",
+      feature: "Offline-First Access",
       monee: true,
       competitors: false,
     },
     {
-      feature: "Mobile Friendly",
+      feature: "Mobile Optimized",
       monee: true,
-      competitors: false,
+      competitors: "Desktop Only",
     },
     {
-      feature: "Updates & New Features",
+      feature: "Lifetime Updates",
       monee: "Free Forever",
       competitors: "Pay Again",
     },
     {
-      feature: "Privacy & Security",
+      feature: "One-Time Payment",
       monee: true,
-      competitors: false,
+      competitors: "Subscription",
     },
   ];
 

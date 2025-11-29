@@ -239,7 +239,7 @@ export default function PrivacyPage() {
                 </li>
                 <li>
                   <strong>Payment Processors:</strong> Secure payment processing
-                  (they receive minimal data necessary for expenses)
+                  (they receive minimal data necessary for transactions)
                 </li>
                 <li>
                   <strong>Analytics Providers:</strong> Anonymous usage
@@ -301,10 +301,10 @@ export default function PrivacyPage() {
               <p className="text-muted-foreground leading-relaxed mt-3">
                 To exercise these rights, contact us at{" "}
                 <a
-                  href="mailto:privacy@monee.app"
+                  href="mailto:hello@monee.co.ke"
                   className="text-primary hover:underline"
                 >
-                  privacy@monee.app
+                  hello@monee.co.ke
                 </a>
               </p>
             </section>
@@ -410,21 +410,21 @@ export default function PrivacyPage() {
               </p>
               <div className="bg-muted p-4 rounded-lg mt-3">
                 <p className="text-muted-foreground">
-                  <strong>Email:</strong>{" "}
+                  <strong>General Inquiries:</strong>{" "}
                   <a
-                    href="mailto:privacy@monee.app"
+                    href="mailto:hello@monee.co.ke"
                     className="text-primary hover:underline"
                   >
-                    privacy@monee.app
+                    hello@monee.co.ke
                   </a>
                 </p>
                 <p className="text-muted-foreground mt-1">
                   <strong>Support:</strong>{" "}
                   <a
-                    href="mailto:support@monee.app"
+                    href="mailto:support@monee.co.ke"
                     className="text-primary hover:underline"
                   >
-                    support@monee.app
+                    support@monee.co.ke
                   </a>
                 </p>
               </div>
