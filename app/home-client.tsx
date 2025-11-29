@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import db from "@/lib/db";
 
 import { BudgetList } from "@/components/budgets/budget-list";
@@ -20,6 +20,7 @@ import { Plus } from "lucide-react";
 
 export default function HomeClient() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const tabFromUrl = searchParams.get("tab") || "overview";
   const activeTab = tabFromUrl;
   const [showAddModal, setShowAddModal] = useState(false);
@@ -28,9 +29,29 @@ export default function HomeClient() {
 
   const profile = data?.profiles?.[0];
 
+  // Check onboarding status and redirect if incomplete
+  useEffect(() => {
+    if (!isLoading && profile) {
+      if (!profile.onboardingCompleted) {
+        router.push("/onboarding");
+      }
+    }
+  }, [isLoading, profile, router]);
+
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>Error: {error.message}</div>;
   if (!profile) return <div>No profile found</div>;
+
+  // Don't render content if onboarding is incomplete (will redirect)
+  if (!profile.onboardingCompleted) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-md p-3 sm:p-4 md:p-6 pb-20 md:pb-0">

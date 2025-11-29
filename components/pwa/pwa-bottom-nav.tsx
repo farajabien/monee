@@ -13,12 +13,25 @@ import {
   Tag,
   Wallet,
   X,
+  LogOut,
 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { db } from "@/lib/instant-client";
 
 export function PWABottomNav() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [showMore, setShowMore] = useState(false);
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
   const moreRef = useRef<HTMLDivElement>(null);
 
   // Determine active tab from URL - reactive to changes
@@ -47,6 +60,12 @@ export function PWABottomNav() {
       setShowMore(false);
     }, 0);
   }, [pathname, searchParams]);
+
+  const handleLogout = () => {
+    db.auth.signOut();
+    setShowLogoutDialog(false);
+    setShowMore(false);
+  };
 
   // Main nav items (always visible) - 4 most frequent features for 1-tap access
   const navItems = [
@@ -92,6 +111,13 @@ export function PWABottomNav() {
       href: "/dashboard?tab=categories",
     },
     { value: "settings", label: "Settings", icon: Settings, href: "/settings" },
+    {
+      value: "logout",
+      label: "Logout",
+      icon: LogOut,
+      href: "#",
+      onClick: () => setShowLogoutDialog(true),
+    },
   ];
 
   const hasActiveMoreItem = moreItems.some((item) => activeTab === item.value);
@@ -168,6 +194,29 @@ export function PWABottomNav() {
                   {moreItems.map((item) => {
                     const Icon = item.icon;
                     const isActive = activeTab === item.value;
+                    const isLogout = item.value === "logout";
+
+                    if (isLogout) {
+                      return (
+                        <button
+                          key={item.value}
+                          onClick={item.onClick}
+                          className={`flex items-center gap-3 px-4 py-3 text-sm transition-all duration-150 w-full text-left ${
+                            isActive
+                              ? "bg-primary/10 text-primary font-medium"
+                              : "hover:bg-muted text-foreground active:bg-muted/80"
+                          }`}
+                        >
+                          <Icon
+                            className={`h-4 w-4 ${
+                              isActive ? "fill-current" : ""
+                            }`}
+                          />
+                          <span>{item.label}</span>
+                        </button>
+                      );
+                    }
+
                     return (
                       <Link
                         key={item.value}
@@ -193,6 +242,24 @@ export function PWABottomNav() {
           </div>
         </div>
       </nav>
+
+      {/* Logout confirmation dialog */}
+      <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Are you sure you want to logout?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              You will need to sign in again to access your account.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleLogout}>Logout</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

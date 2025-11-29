@@ -17,6 +17,8 @@ const _schema = i.schema({
       handle: i.string(),
       monthlyBudget: i.number(),
       createdAt: i.number().indexed(),
+      onboardingCompleted: i.boolean().optional(),
+      onboardingStep: i.string().optional(),
     }),
     expenses: i.entity({
       amount: i.number().indexed(),
