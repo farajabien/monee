@@ -15,8 +15,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 export type ViewMode = "list" | "grid" | "table";
 
 export interface DataViewControlsProps {
-  viewMode: ViewMode;
-  onViewModeChange: (mode: ViewMode) => void;
+  viewMode?: ViewMode;
+  onViewModeChange?: (mode: ViewMode) => void;
   availableViews?: ViewMode[];
   searchValue: string;
   onSearchChange: (value: string) => void;
@@ -116,28 +116,30 @@ export function DataViewControls({
         )}
 
         {/* View Mode Toggle */}
-        <div className="flex gap-1 border rounded-md p-1">
-          {availableViews.includes("list") && (
-            <Button
-              variant={viewMode === "list" ? "secondary" : "ghost"}
-              size="sm"
-              onClick={() => onViewModeChange("list")}
-              className="h-8 px-2"
-            >
-              <List className="h-4 w-4" />
-            </Button>
-          )}
-          {availableViews.includes("grid") && (
-            <Button
-              variant={viewMode === "grid" ? "secondary" : "ghost"}
-              size="sm"
-              onClick={() => onViewModeChange("grid")}
-              className="h-8 px-2"
-            >
-              <Grid3x3 className="h-4 w-4" />
-            </Button>
-          )}
-        </div>
+        {viewMode && onViewModeChange && (
+          <div className="flex gap-1 border rounded-md p-1">
+            {availableViews && availableViews.includes("list") && (
+              <Button
+                variant={viewMode === "list" ? "secondary" : "ghost"}
+                size="sm"
+                onClick={() => onViewModeChange("list")}
+                className="h-8 px-2"
+              >
+                <List className="h-4 w-4" />
+              </Button>
+            )}
+            {availableViews && availableViews.includes("grid") && (
+              <Button
+                variant={viewMode === "grid" ? "secondary" : "ghost"}
+                size="sm"
+                onClick={() => onViewModeChange("grid")}
+                className="h-8 px-2"
+              >
+                <Grid3x3 className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Count */}

@@ -6,10 +6,9 @@
 
 import type { ListConfig, FilterConfig } from "@/types/list-config";
 import type { DebtWithUser } from "@/types";
-import { StandardListItem } from "@/components/ui/standard-list-item";
-import { StandardGridCard } from "@/components/ui/standard-grid-card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import { DollarSign, TrendingDown, CheckCircle, Clock, Calendar, ArrowRight } from "lucide-react";
 import db from "@/lib/db";
 
@@ -131,7 +130,7 @@ export const createDebtListConfig = (
   },
 
   // Views
-  availableViews: ["list", "grid"],
+  availableViews: ["list"],
   defaultView: "list",
 
   // Rendering Functions
@@ -139,209 +138,117 @@ export const createDebtListConfig = (
     const progress = calculateProgress(item);
     const payoffMonths = calculatePayoffMonths(item);
     const isPaidOff = item.currentBalance === 0;
-    const dueToday = isDueToday(item);
-
-    const badges = [];
-    if (item.interestRate) {
-      badges.push({
-        label: `${item.interestRate}% APR`,
-        variant: "secondary" as const,
-      });
-    }
-    if (item.pushMonthsPlan) {
-      badges.push({
-        label: `Push: ${item.pushMonthsCompleted || 0}/${item.pushMonthsPlan}`,
-        variant: "outline" as const,
-      });
-    }
 
     return (
-      <div key={item.id} className="space-y-3 border rounded-lg p-4">
-        {/* Header */}
-        <div className="flex items-start justify-between gap-2">
-          <div className="flex items-center gap-2 flex-wrap">
-            <Badge variant="outline" className="text-xs px-2 py-0.5">
-              #{index + 1}
-            </Badge>
-            <span className="font-semibold text-base">{item.name}</span>
-            {isPaidOff && (
-              <Badge variant="default" className="text-xs px-2 py-0.5 bg-green-500">
-                <CheckCircle className="h-3 w-3 mr-1" />
-                Paid Off
-              </Badge>
-            )}
-            {badges.map((badge, idx) => (
-              <Badge
-                key={idx}
-                variant={badge.variant}
-                className="text-xs px-2 py-0.5"
-              >
-                {badge.label}
-              </Badge>
-            ))}
-          </div>
-          <div className="flex gap-1">
-            {actions.onEdit && (
-              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={actions.onEdit}>
-                <Calendar className="h-4 w-4" />
-              </Button>
-            )}
-            {actions.onDelete && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 text-destructive"
-                onClick={actions.onDelete}
-              >
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-            )}
-          </div>
-        </div>
+      <div key={item.id} className="flex items-center justify-between p-4 border rounded-lg">
+        <div className="flex items-center gap-3 flex-1">
+          {/* Index badge */}
+          <Badge variant="outline" className="text-xs">
+            #{index + 1}
+          </Badge>
 
-        {/* Progress */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">
-              {formatAmount(item.currentBalance)} of {formatAmount(item.totalAmount)}
-            </span>
-            <span className="font-semibold">
-              {formatAmount(item.monthlyPaymentAmount)}/month
-            </span>
-          </div>
-          <StandardGridCard
-            title=""
-            progress={{
-              value: progress,
-              label: `${progress.toFixed(1)}% paid off`,
-              showPercentage: false,
-            }}
-            className="border-0 shadow-none p-0"
-            contentClassName="p-0"
-          />
-          {payoffMonths && !isPaidOff && (
-            <div className="text-xs text-muted-foreground text-right">
-              {payoffMonths} months remaining
+          <div className="flex-1 space-y-1">
+            {/* Main line: Name + inline badges */}
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="font-semibold">{item.name}</span>
+
+              {/* Balance badge */}
+              <Badge variant="secondary">
+                {formatAmount(item.currentBalance)}
+              </Badge>
+
+              {/* Monthly payment badge */}
+              <Badge variant="outline">
+                {formatAmount(item.monthlyPaymentAmount)}/month
+              </Badge>
+
+              {/* APR badge (if exists) */}
+              {item.interestRate && (
+                <Badge variant="secondary" className="text-xs">
+                  {item.interestRate}% APR
+                </Badge>
+              )}
+
+              {/* Paid off badge */}
+              {isPaidOff && (
+                <Badge variant="default" className="bg-green-500">
+                  ✓ Paid Off
+                </Badge>
+              )}
             </div>
-          )}
-        </div>
 
-        {/* Metadata */}
-        <div className="flex items-center gap-4 flex-wrap text-sm text-muted-foreground">
-          <div className="flex items-center gap-1.5">
-            <Calendar className="h-4 w-4" />
-            <span>Due day {item.paymentDueDay}</span>
+            {/* Metadata line: due day + progress info */}
+            <div className="flex items-center gap-3 text-sm text-muted-foreground">
+              <div className="flex items-center gap-1">
+                <Calendar className="h-3 w-3" />
+                <span>Due day {item.paymentDueDay}</span>
+              </div>
+
+              {payoffMonths && !isPaidOff && (
+                <>
+                  <span>•</span>
+                  <span>{payoffMonths} months remaining</span>
+                </>
+              )}
+
+              <span>•</span>
+              <span>{progress.toFixed(0)}% paid</span>
+            </div>
           </div>
-          {item.deadline && <span>Deadline: {formatDate(item.deadline)}</span>}
-          {item.interestAccrued && item.interestAccrued > 0 && (
-            <span className="text-amber-600 font-medium">
-              Interest: {formatAmount(item.interestAccrued)}
-            </span>
-          )}
         </div>
 
-        {/* Actions for due today */}
-        {dueToday && !isPaidOff && (
-          <div className="flex gap-2 pt-2 border-t">
-            <Button
-              variant="default"
-              size="sm"
-              onClick={() => onRecordPayment(item)}
-              className="flex-1"
+        {/* Action buttons */}
+        <div className="flex gap-1">
+          {actions.onEdit && (
+            <button
+              onClick={actions.onEdit}
+              className="p-2 hover:bg-accent rounded"
+              aria-label="Edit"
             >
-              <CheckCircle className="h-4 w-4 mr-2" />
-              Record Payment
-            </Button>
-            {item.interestRate && item.interestRate > 0 && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onQuickPush(item)}
-                className="flex-1"
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               >
-                <ArrowRight className="h-4 w-4 mr-2" />
-                Push to Next Month
-              </Button>
-            )}
-          </div>
-        )}
+                <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+                <path d="m15 5 4 4" />
+              </svg>
+            </button>
+          )}
+          {actions.onDelete && (
+            <button
+              onClick={actions.onDelete}
+              className="p-2 hover:bg-destructive/10 text-destructive rounded"
+              aria-label="Delete"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M3 6h18" />
+                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+              </svg>
+            </button>
+          )}
+        </div>
       </div>
     );
   },
 
-  renderGridCard: (item: DebtWithUser, index: number, actions) => {
-    const progress = calculateProgress(item);
-    const payoffMonths = calculatePayoffMonths(item);
-    const isPaidOff = item.currentBalance === 0;
-    const dueToday = isDueToday(item);
-
-    const footerContent = dueToday && !isPaidOff && (
-      <div className="flex gap-1.5 w-full">
-        <Button
-          variant="default"
-          size="sm"
-          onClick={() => onRecordPayment(item)}
-          className="flex-1 h-8 text-xs"
-        >
-          <CheckCircle className="h-3 w-3 mr-1" />
-          Paid
-        </Button>
-        {item.interestRate && item.interestRate > 0 && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onQuickPush(item)}
-            className="flex-1 h-8 text-xs"
-          >
-            <ArrowRight className="h-3 w-3 mr-1" />
-            Push
-          </Button>
-        )}
-      </div>
-    );
-
-    return (
-      <StandardGridCard
-        key={item.id}
-        title={item.name}
-        badge={{
-          label: `#${index + 1}`,
-          variant: "outline",
-        }}
-        statusBadge={
-          isPaidOff
-            ? { label: "Paid Off", variant: "default", className: "bg-green-500" }
-            : undefined
-        }
-        mainValue={formatAmount(item.currentBalance)}
-        subtitle={`${formatAmount(item.monthlyPaymentAmount)}/month`}
-        progress={{
-          value: progress,
-          label: `${progress.toFixed(0)}% paid off`,
-          showPercentage: false,
-        }}
-        metadata={[
-          {
-            label: "Due Day",
-            value: item.paymentDueDay.toString(),
-            icon: Calendar,
-          },
-          ...(payoffMonths && !isPaidOff
-            ? [{ label: "Payoff", value: `${payoffMonths} months` }]
-            : []),
-          ...(item.deadline
-            ? [{ label: "Deadline", value: formatDate(item.deadline) }]
-            : []),
-          ...(item.interestRate
-            ? [{ label: "APR", value: `${item.interestRate}%` }]
-            : []),
-        ]}
-        onEdit={actions.onEdit}
-        onDelete={actions.onDelete}
-        footerContent={footerContent}
-      />
-    );
-  },
 
   // Actions
   actions: {

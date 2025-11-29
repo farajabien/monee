@@ -105,7 +105,7 @@ export interface ListConfig<T = any> {
     customActions?: CustomAction<T>[];
   }) => React.ReactNode;
 
-  renderGridCard: (item: T, index: number, actions: {
+  renderGridCard?: (item: T, index: number, actions: {
     onEdit?: () => void;
     onDelete?: () => void;
     customActions?: CustomAction<T>[];

@@ -73,6 +73,7 @@ export default function AddExpenseForm() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [inputMethod, setInputMethod] = useState<"sms" | "pdf">("pdf");
   const [previewExpenses, setPreviewExpenses] = useState<ParsedTx[]>([]);
+  const [analysisComplete, setAnalysisComplete] = useState(false);
 
   // Fetch existing expenses for recipient matching
   const { data: expensesData } = db.useQuery({
@@ -124,6 +125,12 @@ export default function AddExpenseForm() {
     try {
       const allMessages: string[] = [];
 
+      // TODO: Re-enable PDF extraction once extractTextFromPDF is implemented
+      // For now, show a placeholder message
+      alert(
+        "PDF extraction is currently being set up. Please use the 'Paste SMS' tab to manually paste your M-Pesa messages for now."
+      );
+
       for (let i = 0; i < uploadedFiles.length; i++) {
         const file = uploadedFiles[i];
         console.log(
@@ -154,12 +161,19 @@ export default function AddExpenseForm() {
     }
   };
 
-  // Auto-process PDFs when files are uploaded
+  // Manual analysis for PDFs - don't auto-process
+  const handleAnalyzeStatement = async () => {
+    setAnalysisComplete(false);
+    await processPDFs();
+    setAnalysisComplete(true);
+  };
+
+  // Reset analysis state when files change or input method changes
   useMemo(() => {
-    if (uploadedFiles.length > 0 && inputMethod === "pdf") {
-      processPDFs();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    setAnalysisComplete(false);
+    setPreviewExpenses([]);
+    setFlaggedDuplicates([]);
+    setFlaggedActions({});
   }, [uploadedFiles, inputMethod]);
 
   // Parse and preview expenses when messages change, flag possible duplicates
@@ -170,6 +184,11 @@ export default function AddExpenseForm() {
     Record<number, FlaggedAction>
   >({});
   useMemo(() => {
+    // For PDF mode, only parse after analysis is complete
+    if (inputMethod === "pdf" && !analysisComplete) {
+      return;
+    }
+
     if (!messages.trim()) {
       setPreviewExpenses([]);
       setFlaggedDuplicates([]);
@@ -222,7 +241,7 @@ export default function AddExpenseForm() {
         return acc;
       }, {})
     );
-  }, [messages, existingExpenses, selectedCategory]);
+  }, [messages, existingExpenses, selectedCategory, inputMethod, analysisComplete]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -421,6 +440,18 @@ export default function AddExpenseForm() {
                   Processing {uploadedFiles.length} file(s)...
                 </div>
               )}
+
+              {/* Analyze Statement Button */}
+              {uploadedFiles.length > 0 && !isProcessing && (
+                <Button
+                  type="button"
+                  onClick={handleAnalyzeStatement}
+                  className="w-full"
+                  variant={analysisComplete ? "outline" : "default"}
+                >
+                  {analysisComplete ? "✓ Analysis Complete - Re-analyze?" : "📊 Analyze Statement"}
+                </Button>
+              )}
             </div>
           </TabsContent>
 
@@ -471,7 +502,7 @@ export default function AddExpenseForm() {
           </div>
         </div>
 
-        {previewExpenses.length > 0 && (
+        {previewExpenses.length > 0 && (inputMethod === "sms" || analysisComplete) && (
           <div className="rounded-lg border p-4 space-y-2">
             <p className="text-sm font-medium">
               Preview ({previewExpenses.length} expense
@@ -600,18 +631,20 @@ export default function AddExpenseForm() {
           </div>
         )}
 
-        <Button
-          type="submit"
-          disabled={
-            isSubmitting || !messages.trim() || previewExpenses.length === 0
-          }
-        >
-          {isSubmitting
-            ? "Adding..."
-            : `Add ${previewExpenses.length} Expense${
-                previewExpenses.length !== 1 ? "s" : ""
-              }`}
-        </Button>
+        {(inputMethod === "sms" || analysisComplete) && (
+          <Button
+            type="submit"
+            disabled={
+              isSubmitting || !messages.trim() || previewExpenses.length === 0
+            }
+          >
+            {isSubmitting
+              ? "Adding..."
+              : `Import ${previewExpenses.length} Expense${
+                  previewExpenses.length !== 1 ? "s" : ""
+                }`}
+          </Button>
+        )}
       </form>
 
       <AddCategoryDialog

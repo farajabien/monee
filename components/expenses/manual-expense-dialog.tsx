@@ -41,6 +41,8 @@ export function ManualExpenseDialog({
   const [isOpen, setIsOpen] = useState(false);
   const [amount, setAmount] = useState<string>("");
   const [recipient, setRecipient] = useState<string>("");
+  const [isNewRecipient, setIsNewRecipient] = useState(false);
+  const [newRecipientName, setNewRecipientName] = useState<string>("");
   const [selectedCategory, setSelectedCategory] =
     useState<string>("Uncategorized");
   const [expenseDate, setExpenseDate] = useState<string>(
@@ -54,23 +56,51 @@ export function ManualExpenseDialog({
   const dialogOpen = open !== undefined ? open : isOpen;
   const setDialogOpen = onOpenChange !== undefined ? onOpenChange : setIsOpen;
 
-  // Fetch categories
-  const { data: categoriesData } = db.useQuery({
+  // Fetch categories and recipients
+  const { data } = db.useQuery({
     categories: {
       $: {
         where: { "user.id": user.id },
         order: { name: "asc" },
       },
     },
+    recipients: {
+      $: {
+        where: { "user.id": user.id },
+      },
+    },
+    expenses: {
+      $: {
+        where: { "user.id": user.id },
+      },
+    },
   });
 
-  const categories: Category[] = (categoriesData?.categories || []).filter(
+  const categories: Category[] = (data?.categories || []).filter(
     (category) => category.isActive !== false
   );
 
+  const savedRecipients = data?.recipients || [];
+  const expenses = data?.expenses || [];
+
+  // Get unique recipients from expenses
+  const uniqueRecipients = Array.from(
+    new Set(expenses.map((e) => e.recipient).filter((r) => r && r.trim()))
+  );
+
+  // Helper to get display name (nickname or original)
+  const getDisplayName = (originalName: string) => {
+    const recipient = savedRecipients.find((r) => r.originalName === originalName);
+    return recipient?.nickname || originalName;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!amount || !recipient.trim()) {
+
+    // Get the final recipient value
+    const finalRecipient = isNewRecipient ? newRecipientName.trim() : recipient;
+
+    if (!amount || !finalRecipient) {
       alert("Please fill in amount and recipient");
       return;
     }
@@ -79,13 +109,13 @@ export function ManualExpenseDialog({
     try {
       const expenseData = {
         amount: parseFloat(amount),
-        recipient: recipient.trim(),
+        recipient: finalRecipient,
         date: new Date(expenseDate).getTime(),
         category: selectedCategory || "Uncategorized",
-        rawMessage: `Manual entry: Ksh${amount} to ${recipient}`,
+        rawMessage: `Manual entry: Ksh${amount} to ${finalRecipient}`,
         parsedData: {
           amount: parseFloat(amount),
-          recipient: recipient.trim(),
+          recipient: finalRecipient,
           timestamp: new Date(expenseDate).getTime(),
           type: "manual",
         },
@@ -101,6 +131,8 @@ export function ManualExpenseDialog({
       // Reset form
       setAmount("");
       setRecipient("");
+      setIsNewRecipient(false);
+      setNewRecipientName("");
       setSelectedCategory("Uncategorized");
       setExpenseDate(new Date().toISOString().split("T")[0]);
       setNotes("");
@@ -157,14 +189,73 @@ export function ManualExpenseDialog({
 
             <div className="space-y-2">
               <Label htmlFor="recipient">Recipient / Description</Label>
-              <Input
-                id="recipient"
-                type="text"
-                placeholder="e.g., Cash payment, Market vendor"
-                value={recipient}
-                onChange={(e) => setRecipient(e.target.value)}
-                required
-              />
+              {!isNewRecipient ? (
+                <div className="flex gap-2">
+                  <Select
+                    value={recipient}
+                    onValueChange={(value) => {
+                      if (value === "__new__") {
+                        setIsNewRecipient(true);
+                        setRecipient("");
+                      } else {
+                        setRecipient(value);
+                      }
+                    }}
+                  >
+                    <SelectTrigger id="recipient" className="flex-1">
+                      <SelectValue placeholder="Select or add new recipient..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {uniqueRecipients.length > 0 ? (
+                        <>
+                          {uniqueRecipients.map((r) => (
+                            <SelectItem key={r} value={r}>
+                              {getDisplayName(r)}
+                            </SelectItem>
+                          ))}
+                          <SelectItem value="__new__" className="font-medium">
+                            <div className="flex items-center gap-1.5">
+                              <Plus className="h-3 w-3" />
+                              Add New Recipient
+                            </div>
+                          </SelectItem>
+                        </>
+                      ) : (
+                        <SelectItem value="__new__" className="font-medium">
+                          <div className="flex items-center gap-1.5">
+                            <Plus className="h-3 w-3" />
+                            Add New Recipient
+                          </div>
+                        </SelectItem>
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <Input
+                    id="new-recipient"
+                    type="text"
+                    placeholder="Enter recipient name..."
+                    value={newRecipientName}
+                    onChange={(e) => setNewRecipientName(e.target.value)}
+                    required
+                    autoFocus
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setIsNewRecipient(false);
+                      setNewRecipientName("");
+                    }}
+                    className="text-xs"
+                  >
+                    ← Back to existing recipients
+                  </Button>
+                </div>
+              )}
             </div>
 
             <div className="space-y-2">

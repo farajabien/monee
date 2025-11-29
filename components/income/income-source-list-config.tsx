@@ -6,8 +6,6 @@
 
 import type { ListConfig, FilterConfig } from "@/types/list-config";
 import type { IncomeSourceWithUser } from "@/types";
-import { StandardListItem } from "@/components/ui/standard-list-item";
-import { StandardGridCard } from "@/components/ui/standard-grid-card";
 import { DollarSign, Calendar, TrendingUp, CheckCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import db from "@/lib/db";
@@ -99,8 +97,8 @@ export const createIncomeSourceListConfig = (): ListConfig<IncomeSourceWithUser>
   },
 
   // Views
-  availableViews: ["list", "grid"],
-  defaultView: "grid",
+  availableViews: ["list"],
+  defaultView: "list",
 
   // Rendering Functions
   renderListItem: (item: IncomeSourceWithUser, index: number, actions) => {
@@ -173,33 +171,6 @@ export const createIncomeSourceListConfig = (): ListConfig<IncomeSourceWithUser>
     );
   },
 
-  renderGridCard: (item: IncomeSourceWithUser, index: number, actions) => {
-    return (
-      <StandardGridCard
-        key={item.id}
-        title={item.name}
-        badge={{
-          label: `#${index + 1}`,
-          variant: "outline",
-        }}
-        statusBadge={
-          !item.isActive
-            ? { label: "Inactive", variant: "outline" }
-            : undefined
-        }
-        mainValue={formatAmount(item.amount)}
-        metadata={[
-          {
-            label: "Payday",
-            value: formatPayday(item.paydayDay, item.paydayMonth),
-            icon: Calendar,
-          },
-        ]}
-        onEdit={actions.onEdit}
-        onDelete={actions.onDelete}
-      />
-    );
-  },
 
   // Actions
   actions: {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { id } from "@instantdb/react";
 import db from "@/lib/db";
 import { Button } from "@/components/ui/button";
@@ -75,6 +75,17 @@ export function RecipientManager({
   const categories =
     categoriesData?.categories?.filter((cat) => cat.isActive !== false) || [];
 
+  // Update form when existingRecipient changes (for non-compact mode)
+  useEffect(() => {
+    if (!compact && existingRecipient) {
+      setNickname(existingRecipient.nickname || "");
+      setSelectedCategory(
+        existingRecipient.defaultCategory || currentCategory || ""
+      );
+      setNotes(existingRecipient.notes || "");
+    }
+  }, [existingRecipient, currentCategory, compact]);
+
   const handleOpenSheet = () => {
     setNickname(existingRecipient?.nickname || "");
     setSelectedCategory(
@@ -124,7 +135,9 @@ export function RecipientManager({
         onCategoryAssigned(selectedCategory);
       }
 
-      setShowSheet(false);
+      if (compact) {
+        setShowSheet(false);
+      }
     } catch (error) {
       console.error("Failed to save recipient:", error);
       alert("Failed to save. Please try again.");
@@ -139,7 +152,9 @@ export function RecipientManager({
 
     try {
       await db.transact([db.tx.recipients[existingRecipient.id].delete()]);
-      setShowSheet(false);
+      if (compact) {
+        setShowSheet(false);
+      }
     } catch (error) {
       console.error("Failed to delete recipient:", error);
       alert("Failed to delete. Please try again.");
@@ -312,5 +327,119 @@ export function RecipientManager({
     );
   }
 
-  return null;
+  // Non-compact mode: Full form view
+  return (
+    <div className="space-y-6">
+      <div className="space-y-2">
+        <Label className="text-sm font-medium">Original Name</Label>
+        <Input
+          value={recipientName}
+          disabled
+          className="bg-muted/50 cursor-not-allowed"
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="nickname-full" className="text-sm font-medium">
+          Nickname{" "}
+          <span className="text-muted-foreground text-xs">(optional)</span>
+        </Label>
+        <Input
+          id="nickname-full"
+          placeholder="e.g., Eggs Guy, Rice Plug"
+          value={nickname}
+          onChange={(e) => setNickname(e.target.value)}
+          className="transition-all focus:ring-2 focus:ring-primary/20"
+        />
+        <p className="text-xs text-muted-foreground">
+          Give this recipient a memorable name
+        </p>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="category-full" className="text-sm font-medium">
+          Default Category{" "}
+          <span className="text-muted-foreground text-xs">(optional)</span>
+        </Label>
+        <div className="flex gap-2">
+          <Select
+            value={selectedCategory || "none"}
+            onValueChange={(val) =>
+              setSelectedCategory(val === "none" ? "" : val)
+            }
+          >
+            <SelectTrigger
+              id="category-full"
+              className="flex-1 transition-all focus:ring-2 focus:ring-primary/20"
+            >
+              <SelectValue placeholder="Select default category" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">None</SelectItem>
+              {categories.map((cat) => (
+                <SelectItem key={cat.id} value={cat.name}>
+                  {cat.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            onClick={() => setShowAddCategoryDialog(true)}
+            className="shrink-0 hover:bg-primary/10 hover:text-primary hover:border-primary transition-colors"
+            aria-label="Add new category"
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Auto-assign expenses from this recipient to a category
+        </p>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="notes-full" className="text-sm font-medium">
+          Notes{" "}
+          <span className="text-muted-foreground text-xs">(optional)</span>
+        </Label>
+        <Textarea
+          id="notes-full"
+          placeholder="Add notes about this recipient..."
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          rows={3}
+          className="resize-none transition-all focus:ring-2 focus:ring-primary/20"
+        />
+      </div>
+
+      <div className="flex gap-2 pt-4">
+        {existingRecipient && (
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={handleDelete}
+            className="hover:bg-destructive/90 transition-colors"
+          >
+            <Trash2 className="h-4 w-4 mr-2" />
+            Delete
+          </Button>
+        )}
+        <Button
+          onClick={handleSave}
+          disabled={isSaving}
+          className="ml-auto bg-primary hover:bg-primary/90 transition-colors disabled:opacity-50"
+        >
+          {isSaving ? "Saving..." : "Save"}
+        </Button>
+      </div>
+
+      <AddCategoryDialog
+        open={showAddCategoryDialog}
+        onOpenChange={setShowAddCategoryDialog}
+        onCategoryCreated={handleCategoryCreated}
+      />
+    </div>
+  );
 }

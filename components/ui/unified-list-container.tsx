@@ -8,12 +8,11 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import type { ListConfig, ViewMode, FilterState } from "@/types/list-config";
+import type { ListConfig, FilterState } from "@/types/list-config";
 import { useListData } from "@/hooks/use-list-data";
 import { useListActions } from "@/hooks/use-list-actions";
 import { ListMetrics } from "@/components/ui/list-metrics";
 import { DataViewControls } from "@/components/ui/data-view-controls";
-import { DataTable } from "@/components/ui/data-table";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -51,9 +50,6 @@ export function UnifiedListContainer<T>({
   additionalFilters,
 }: UnifiedListContainerProps<T>) {
   // View state
-  const [viewMode, setViewMode] = useState<ViewMode>(
-    config.defaultView || config.availableViews[0] || "list"
-  );
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState(config.defaultSort);
   const [filters, setFilters] = useState<FilterState>(() => {
@@ -93,12 +89,6 @@ export function UnifiedListContainer<T>({
     itemName: config.title.toLowerCase(),
   });
 
-  // Handle view mode change
-  const handleViewModeChange = (mode: ViewMode) => {
-    if (config.availableViews.includes(mode)) {
-      setViewMode(mode);
-    }
-  };
 
   // Handle filter changes
   const handleFilterChange = (
@@ -134,8 +124,6 @@ export function UnifiedListContainer<T>({
 
         {/* Controls */}
         <DataViewControls
-          viewMode={viewMode}
-          onViewModeChange={handleViewModeChange}
           searchValue={searchQuery}
           onSearchChange={setSearchQuery}
           searchPlaceholder={config.searchPlaceholder}
@@ -156,7 +144,6 @@ export function UnifiedListContainer<T>({
           filterLabel={primaryFilter?.label}
           totalCount={data.length}
           filteredCount={filteredData.length}
-          availableViews={config.availableViews}
         />
 
         {/* Additional filters (if any) */}
@@ -210,26 +197,8 @@ export function UnifiedListContainer<T>({
           </div>
         )}
 
-        {/* Table view */}
-        {filteredData.length > 0 &&
-          viewMode === "table" &&
-          config.tableColumns && (
-            <DataTable
-              columns={config.tableColumns}
-              data={filteredData}
-              onEdit={
-                config.actions?.edit ? (item: T) => handleEdit(item) : undefined
-              }
-              onDelete={
-                config.actions?.delete
-                  ? (id: string) => handleDelete(id)
-                  : undefined
-              }
-            />
-          )}
-
         {/* List view */}
-        {filteredData.length > 0 && viewMode === "list" && (
+        {filteredData.length > 0 && (
           <div className="space-y-2">
             {filteredData.map((item, index) =>
               config.renderListItem(item, index, {
@@ -245,22 +214,6 @@ export function UnifiedListContainer<T>({
           </div>
         )}
 
-        {/* Grid view */}
-        {filteredData.length > 0 && viewMode === "grid" && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {filteredData.map((item, index) =>
-              config.renderGridCard(item, index, {
-                onEdit: config.actions?.edit
-                  ? () => handleEdit(item)
-                  : undefined,
-                onDelete: config.actions?.delete
-                  ? () => handleDelete(config.getItemId(item))
-                  : undefined,
-                customActions: config.actions?.custom,
-              })
-            )}
-          </div>
-        )}
       </div>
 
       {/* Edit Dialog */}

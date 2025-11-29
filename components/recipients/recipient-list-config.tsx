@@ -247,7 +247,7 @@ export const createRecipientListConfig = (
   getItemId: (item: RecipientWithStats) => item.id,
 
   // Custom filter
-  customFilter: (item: RecipientWithStats, searchQuery: string, filters: any) => {
+  customFilter: (item: RecipientWithStats, searchQuery: string, filters: Record<string, any>): boolean => {
     // Apply nickname filter
     const nicknameFilter = filters.hasNickname;
     if (nicknameFilter && nicknameFilter !== "all") {
@@ -271,8 +271,8 @@ export const createRecipientListConfig = (
       return (
         displayName.toLowerCase().includes(query) ||
         item.originalName.toLowerCase().includes(query) ||
-        item.defaultCategory?.toLowerCase().includes(query) ||
-        item.notes?.toLowerCase().includes(query)
+        (item.defaultCategory?.toLowerCase().includes(query) ?? false) ||
+        (item.notes?.toLowerCase().includes(query) ?? false)
       );
     }
 

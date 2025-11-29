@@ -123,7 +123,11 @@ export const createSavingsGoalListConfig = (
               }
             : undefined
         }
-        mainValue={formatCurrency(item.currentAmount)}
+        mainValue={
+          <div className="text-3xl font-bold tracking-tight">
+            {formatCurrency(item.currentAmount)}
+          </div>
+        }
         subtitle={`${Math.round(progress)}% complete`}
         description={
           !isCompleted ? `${formatCurrency(remaining)} to go` : undefined

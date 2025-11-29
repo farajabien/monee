@@ -6,8 +6,7 @@
 
 import type { ListConfig } from "@/types/list-config";
 import type { BudgetWithRelations } from "@/types";
-import { StandardListItem } from "@/components/ui/standard-list-item";
-import { StandardGridCard } from "@/components/ui/standard-grid-card";
+import { Badge } from "@/components/ui/badge";
 import { DollarSign, Calendar } from "lucide-react";
 import db from "@/lib/db";
 
@@ -48,56 +47,66 @@ export const createBudgetListConfig = (currentMonth: number, currentYear: number
   metrics: [],
 
   // Views
-  availableViews: ["list", "grid"],
-  defaultView: "grid",
+  availableViews: ["list"],
+  defaultView: "list",
 
   // Rendering Functions
   renderListItem: (item: BudgetWithRelations, index: number, actions) => {
     return (
-      <StandardListItem
-        key={item.id}
-        title={item.category?.name || "Unknown Category"}
-        subtitle={formatMonthYear(item.month, item.year)}
-        badge={{
-          label: `#${index + 1}`,
-          variant: "outline",
-        }}
-        metadata={[
-          {
-            label: "Amount",
-            value: formatAmount(item.amount),
-            icon: DollarSign,
-          },
-        ]}
-        onEdit={actions.onEdit}
-        onDelete={actions.onDelete}
-      />
+      <div key={item.id} className="flex items-center justify-between p-4 border rounded-lg">
+        <div className="flex items-center gap-3 flex-1">
+          <Badge variant="outline" className="text-xs">
+            #{index + 1}
+          </Badge>
+          <div className="flex-1 space-y-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="font-semibold">{item.category?.name || "Unknown Category"}</span>
+              <Badge variant="secondary">{formatAmount(item.amount)}</Badge>
+            </div>
+            <div className="flex items-center gap-1 text-sm text-muted-foreground">
+              <Calendar className="h-3 w-3" />
+              <span>{formatMonthYear(item.month, item.year)}</span>
+            </div>
+          </div>
+        </div>
+        <div className="flex gap-1">
+          {actions.onEdit && (
+            <button
+              onClick={actions.onEdit}
+              className="p-2 hover:bg-accent rounded"
+              aria-label="Edit"
+            >
+              <DollarSign className="h-4 w-4" />
+            </button>
+          )}
+          {actions.onDelete && (
+            <button
+              onClick={actions.onDelete}
+              className="p-2 hover:bg-destructive/10 text-destructive rounded"
+              aria-label="Delete"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M3 6h18" />
+                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+              </svg>
+            </button>
+          )}
+        </div>
+      </div>
     );
   },
 
-  renderGridCard: (item: BudgetWithRelations, index: number, actions) => {
-    return (
-      <StandardGridCard
-        key={item.id}
-        title={item.category?.name || "Unknown Category"}
-        badge={{
-          label: `#${index + 1}`,
-          variant: "outline",
-        }}
-        mainValue={formatAmount(item.amount)}
-        subtitle={formatMonthYear(item.month, item.year)}
-        metadata={[
-          {
-            label: "Month",
-            value: formatMonthYear(item.month, item.year),
-            icon: Calendar,
-          },
-        ]}
-        onEdit={actions.onEdit}
-        onDelete={actions.onDelete}
-      />
-    );
-  },
 
   // Actions
   actions: {

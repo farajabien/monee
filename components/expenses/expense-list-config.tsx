@@ -6,10 +6,8 @@
 
 import type { ListConfig } from "@/types/list-config";
 import type { Expense } from "@/types";
-import { StandardListItem } from "@/components/ui/standard-list-item";
-import { StandardGridCard } from "@/components/ui/standard-grid-card";
-import { DollarSign, Calendar, TrendingUp } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { DollarSign, Calendar, TrendingUp } from "lucide-react";
 import db from "@/lib/db";
 
 // Helper functions
@@ -94,7 +92,7 @@ export const createExpenseListConfig = (
   },
 
   // Views
-  availableViews: ["list", "grid"],
+  availableViews: ["list"],
   defaultView: "list",
 
   // Rendering Functions
@@ -102,69 +100,80 @@ export const createExpenseListConfig = (
     const displayName = getDisplayName(item.recipient || "", recipients);
 
     return (
-      <StandardListItem
-        key={item.id}
-        title={formatAmount(item.amount)}
-        subtitle={displayName ? `To: ${displayName}` : undefined}
-        badge={{
-          label: `#${index + 1}`,
-          variant: "outline",
-        }}
-        metadata={[
-          {
-            label: "Date",
-            value: formatDate(item.date || item.createdAt),
-          },
-          ...(item.category
-            ? [
-                {
-                  label: "Category",
-                  value: item.category,
-                },
-              ]
-            : []),
-        ]}
-        onEdit={actions.onEdit}
-        onDelete={actions.onDelete}
-      />
+      <div key={item.id} className="flex items-center justify-between p-4 border rounded-lg">
+        <div className="flex items-center gap-3 flex-1">
+          <Badge variant="outline" className="text-xs">
+            #{index + 1}
+          </Badge>
+          <div className="flex-1 space-y-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="font-semibold">{displayName || "Unknown"}</span>
+              <Badge variant="secondary">{formatAmount(item.amount)}</Badge>
+              {item.category && (
+                <Badge variant="outline">{item.category}</Badge>
+              )}
+            </div>
+            <div className="flex items-center gap-1 text-sm text-muted-foreground">
+              <Calendar className="h-3 w-3" />
+              <span>{formatDate(item.date || item.createdAt)}</span>
+            </div>
+          </div>
+        </div>
+        <div className="flex gap-1">
+          {actions.onEdit && (
+            <button
+              onClick={actions.onEdit}
+              className="p-2 hover:bg-accent rounded"
+              aria-label="Edit"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+                <path d="m15 5 4 4" />
+              </svg>
+            </button>
+          )}
+          {actions.onDelete && (
+            <button
+              onClick={actions.onDelete}
+              className="p-2 hover:bg-destructive/10 text-destructive rounded"
+              aria-label="Delete"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M3 6h18" />
+                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+              </svg>
+            </button>
+          )}
+        </div>
+      </div>
     );
   },
 
-  renderGridCard: (item: Expense, index: number, actions) => {
-    const displayName = getDisplayName(item.recipient || "", recipients);
-
-    return (
-      <StandardGridCard
-        key={item.id}
-        title={formatAmount(item.amount)}
-        badge={{
-          label: `#${index + 1}`,
-          variant: "outline",
-        }}
-        subtitle={displayName ? `To: ${displayName}` : undefined}
-        metadata={[
-          {
-            label: "Date",
-            value: formatDate(item.date || item.createdAt),
-          },
-          ...(item.category
-            ? [
-                {
-                  label: "Category",
-                  value: item.category,
-                },
-              ]
-            : []),
-        ]}
-        onEdit={actions.onEdit}
-        onDelete={actions.onDelete}
-      />
-    );
-  },
 
   // Actions
   actions: {
-    edit: async (item: Expense) => {
+    edit: async () => {
       // Handled by parent component via editDialog prop
     },
     delete: async (id: string) => {
@@ -192,7 +201,7 @@ export const createExpenseListConfig = (
   },
 
   // Custom filter
-  customFilter: (item: Expense, searchQuery: string, filters: any) => {
+  customFilter: (item: Expense, searchQuery: string) => {
     const displayName = getDisplayName(item.recipient || "", recipients);
     const searchLower = searchQuery.toLowerCase();
 
