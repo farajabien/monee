@@ -16,7 +16,6 @@ import {
   Zap,
   CheckCircle2,
   X,
-  Clock,
 } from "lucide-react";
 
 export default function LandingPage() {
@@ -113,7 +112,7 @@ export default function LandingPage() {
     },
     {
       feature: "Lifetime Updates",
-      monee: "Free Forever",
+      monee: "One-Time Payment",
       competitors: "Pay Again",
     },
     {
@@ -141,24 +140,14 @@ export default function LandingPage() {
           <div className="flex items-center gap-2 sm:gap-4">
             <Link href="/login">
               <Button variant="default" size="sm" className="sm:size-default">
-                <span className="hidden sm:inline">Join Waitlist</span>
-                <span className="sm:hidden">Join</span>
+                <span className="hidden sm:inline">Try Free for 1 Week</span>
+                <span className="sm:hidden">Try Free</span>
                 <ArrowRight className="ml-1 sm:ml-2 h-3 w-3 sm:h-4 sm:w-4" />
               </Button>
             </Link>
           </div>
         </div>
       </nav>
-
-      {/* Coming Soon Banner */}
-      <section className="bg-primary text-primary-foreground py-3">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-center gap-2 text-sm md:text-base font-medium">
-            <Clock className="h-4 w-4 md:h-5 md:w-5" />
-            <span>Coming Soon - Launching Dec 2025</span>
-          </div>
-        </div>
-      </section>
 
       {/* Hero Section */}
       <section className="container mx-auto px-4 py-20 md:py-32">
@@ -198,14 +187,14 @@ export default function LandingPage() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/login">
               <Button size="lg" className="w-full sm:w-auto">
-                Join Waitlist - Early Access
+                Try Free for 1 Week
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>
           </div>
           <p className="text-sm text-muted-foreground">
-            ✨ Coming soon. One-time payment of Ksh 999. No subscriptions.
-            Replaces KSh 3,395+ in separate templates.
+            ✨ 7-day free trial. No credit card required. Then KSh 999 one-time
+            payment — replaces KSh 3,395+ in separate templates.
           </p>
         </div>
       </section>
@@ -377,13 +366,13 @@ export default function LandingPage() {
             Simple, Honest Pricing
           </h2>
           <p className="text-lg text-muted-foreground">
-            One payment. Lifetime access. No surprises.
+            Try free for 1 week. Then one payment, yours forever.
           </p>
         </div>
         <div className="max-w-lg mx-auto">
           <Card className="border-4 border-primary relative overflow-hidden">
             <div className="absolute top-0 right-0 bg-primary text-primary-foreground px-4 py-1 text-sm font-semibold">
-              Coming Soon
+              Available Now
             </div>
             <CardContent className="p-8 space-y-6">
               <div className="text-center space-y-2">
@@ -395,7 +384,8 @@ export default function LandingPage() {
                   One-time payment • Lifetime access
                 </Badge>
                 <p className="text-sm text-muted-foreground">
-                  Save KSh 2,396+ vs buying templates separately
+                  Save KSh 2,396+ vs buying templates separately (worth KSh
+                  3,395)
                 </p>
               </div>
 
@@ -422,6 +412,10 @@ export default function LandingPage() {
               <div className="pt-4 border-t space-y-3">
                 <div className="flex items-center gap-2 text-sm">
                   <CheckCircle2 className="h-4 w-4 text-green-600" />
+                  <span>7-day free trial included</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <CheckCircle2 className="h-4 w-4 text-green-600" />
                   <span>All future updates included</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
@@ -436,13 +430,13 @@ export default function LandingPage() {
 
               <Link href="/login" className="block">
                 <Button size="lg" className="w-full">
-                  Join Waitlist for Early Access
+                  Start Free Trial
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
 
               <p className="text-xs text-center text-muted-foreground">
-                Launching soon. One payment of KSh 999 gets you lifetime access
+                7-day free trial. No credit card required. Then KSh 999 one-time
                 — replacing KSh 3,395+ worth of separate spreadsheets.
               </p>
             </CardContent>
@@ -474,9 +468,9 @@ export default function LandingPage() {
               Ready to Take Control of Your Money?
             </h2>
             <p className="text-lg opacity-90 max-w-2xl mx-auto">
-              Join the waitlist and be among the first Kenyans 🇰🇪 to get MONEE
-              at launch. One payment of Ksh 999 replaces KSh 3,395+ worth of
-              separate spreadsheets.
+              Start your free 1-week trial today and join Kenyans 🇰🇪 who are
+              taking control of their finances. Then just KSh 999 one-time —
+              replaces KSh 3,395+ worth of separate spreadsheets.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
               <Link href="/login">
@@ -485,7 +479,7 @@ export default function LandingPage() {
                   variant="outline"
                   className="w-full sm:w-auto bg-transparent border-2 border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary"
                 >
-                  Join Waitlist - Early Access
+                  Start Free Trial
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>

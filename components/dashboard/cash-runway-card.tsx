@@ -124,14 +124,6 @@ export function CashRunwayCard({
   return (
     <Item variant="outline" className={`h-full border-0 ${itemClass}`}>
       <ItemContent className="space-y-4 w-full">
-        {/* Current Cash Left */}
-        <div className="space-y-1">
-          <div className="text-xs text-muted-foreground">Cash Remaining</div>
-          <div className={`text-3xl font-bold ${amountClass}`}>
-            {formatCurrency(currentCash)}
-          </div>
-        </div>
-
         {/* Income vs Expenses */}
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1">
