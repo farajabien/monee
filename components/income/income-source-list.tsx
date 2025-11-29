@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import db from "@/lib/db";
 import { UnifiedListContainer } from "@/components/custom/unified-list-container";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
   DialogContent,
@@ -10,6 +11,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { IncomeSourceForm } from "./income-source-form";
+import { IncomeAnalytics } from "./income-analytics";
 import { createIncomeSourceListConfig } from "./income-source-list-config";
 import type { IncomeSourceWithUser } from "@/types";
 
@@ -48,10 +50,21 @@ export function IncomeSourceList() {
 
   return (
     <div className="space-y-4">
-      <UnifiedListContainer<IncomeSourceWithUser>
-        config={config}
-        data={incomeSources}
-      />
+      <Tabs defaultValue="list" className="w-full">
+        <TabsList className="grid w-full grid-cols-2 mb-4">
+          <TabsTrigger value="list">All Sources</TabsTrigger>
+          <TabsTrigger value="analytics">Analytics</TabsTrigger>
+        </TabsList>
+        <TabsContent value="list">
+          <UnifiedListContainer<IncomeSourceWithUser>
+            config={config}
+            data={incomeSources}
+          />
+        </TabsContent>
+        <TabsContent value="analytics">
+          <IncomeAnalytics />
+        </TabsContent>
+      </Tabs>
 
       {/* Dialog for add/edit income source */}
       <Dialog

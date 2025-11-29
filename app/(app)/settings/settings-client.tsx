@@ -47,11 +47,11 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { NotificationSettings } from "@/components/settings/notification-settings";
 
 export default function SettingsClient() {
   const [theme, setTheme] = useState<"light" | "dark" | "system">("system");
   const [currency, setCurrency] = useState("KES");
-  const [notifications, setNotifications] = useState(true);
   const [isExporting, setIsExporting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -337,8 +337,9 @@ export default function SettingsClient() {
       </p>
 
       <Tabs defaultValue="general" className="w-full">
-        <TabsList className="w-full grid grid-cols-3 mb-4">
+        <TabsList className="w-full grid grid-cols-4 mb-4">
           <TabsTrigger value="general">General</TabsTrigger>
+          <TabsTrigger value="notifications">Notifications</TabsTrigger>
           <TabsTrigger value="profile">Profile</TabsTrigger>
           <TabsTrigger value="account">Account</TabsTrigger>
         </TabsList>
@@ -405,29 +406,11 @@ export default function SettingsClient() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Notifications</CardTitle>
-              <CardDescription>
-                Manage your notification preferences
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label>Push Notifications</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Get reminders for daily check-ins and upcoming payments
-                  </p>
-                </div>
-                <Switch
-                  checked={notifications}
-                  onCheckedChange={setNotifications}
-                />
-              </div>
-            </CardContent>
-          </Card>
+        {/* Notification Settings */}
+        <TabsContent value="notifications" className="space-y-4">
+          <NotificationSettings />
         </TabsContent>
 
         {/* Profile Settings */}

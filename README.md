@@ -17,12 +17,14 @@ Most people buy 5–6 different spreadsheets or templates just to manage differe
 
 Instead of juggling multiple spreadsheets, you get one app that does everything:
 
-- Zero-sum budgeting
-- Debt tracking with interest calculations
-- Savings goals with progress tracking
+- Zero-sum budgeting with visual analytics
+- Debt tracking with interest calculations and payment progress
+- Savings goals with contribution tracking and milestone celebrations
 - Business/side-hustle expense tagging
 - Student academic expense tracking
-- Mpesa auto-import and smart categorization
+- Smart notifications for daily check-ins, debt reminders, and payday alerts
+- Optional M-Pesa auto-import and smart categorization
+- Visual insights with charts and breakdowns for all modules
 - Cloud sync, offline-first, and works on any device
 
 **MONEE** is about **awareness, control, and saving**, not spreadsheets. By recording your transactions daily, weekly, or monthly, you start seeing where your money goes — and make sure every shilling is accounted for.
@@ -45,7 +47,9 @@ Here's what you'd pay for separate tools vs. getting everything in Monee:
 **Plus with Monee you get:**
 
 - Cloud sync across devices (spreadsheets don't sync)
-- Mpesa auto-import (no copy-pasting)
+- Visual analytics for all modules (charts, trends, insights)
+- Smart push notifications (daily reminders, debt alerts, payday notifications)
+- Optional M-Pesa auto-import (no copy-pasting)
 - Smart recipient matching (see where money _really_ goes)
 - Offline-first (works without internet)
 - One habit, complete picture (not 6 different files)
@@ -94,11 +98,16 @@ Every time you open Monee, you see:
 ### **4. Habit-Building & Smart Transaction Recording**
 
 - Record transactions daily, weekly, or monthly
-- **Manual entry** or **paste Mpesa messages** (auto-parsed)
-- **Upload Mpesa statement** for bulk import
+- **Manual entry** for any expense type
+- **Optional M-Pesa integration**: paste messages or upload statements for auto-parsing
 - **Auto-categorization** based on saved recipients
 - **Recipient nicknames** to see where money _really_ goes
-- Gentle reminders to keep your habit consistent
+- **Smart push notifications**:
+  - Daily expense reminders at your preferred time
+  - Debt payment due date alerts
+  - Payday reminders to help budget planning
+  - Weekly savings nudges to build consistency
+  - Spending threshold notifications to stay on track
 
 ### **5. Debt Management**
 
@@ -108,7 +117,16 @@ Every time you open Monee, you see:
 - Track payment history and principal vs interest breakdown
 - Automatic integration of debt payments into your monthly budget
 
-### **6. Business & Student Modes**
+### **6. Visual Analytics & Insights**
+
+- **Comprehensive analytics** for debts, savings, and income (matching existing expense analytics)
+- **Interactive charts**: Bar and line charts showing trends over time
+- **Category breakdowns**: Understand where every shilling goes
+- **Time period views**: Week, month, and year perspectives
+- **Progress tracking**: Visual representation of debt payoff and savings growth
+- **Summary cards**: Quick overview of key metrics
+
+### **7. Business & Student Modes**
 
 - **Business/Side-Hustle**: Tag expenses as business to track profitability separately
 - **Student**: Track academic expenses (tuition, books, supplies) in one view
@@ -130,17 +148,25 @@ Other apps show you budgets. Monee tells you: "At your current rate, you'll run 
 
 No complex setup every month. Set your recurring income and budgets once, then just record daily expenses. That's it.
 
-### **4. Mpesa-Native**
+### **4. Smart Notifications That Build Habits**
 
-Paste Mpesa messages or upload statements. Monee auto-imports, auto-categorizes, and learns your spending patterns.
+Get personalized reminders at your preferred time. Debt payment alerts keep you on track. Payday notifications help you plan. Weekly savings nudges build consistency. All configurable to your preferences.
 
-### **5. Offline-First, Cloud-Synced**
+### **5. Visual Insights**
+
+See your financial data come to life with charts and analytics. Track trends over time, understand category breakdowns, and visualize your progress toward goals.
+
+### **6. M-Pesa Integration (Optional)**
+
+For Kenyan users: paste M-Pesa messages or upload statements. MONEE auto-imports, auto-categorizes, and learns your spending patterns. Not required — manual entry works perfectly too.
+
+### **7. Offline-First, Cloud-Synced**
 
 Record expenses on your phone without internet. Syncs automatically when you're back online. Works across all your devices.
 
-### **6. All-In-One**
+### **8. All-In-One**
 
-Budget, debts, savings, business expenses, student costs — one app, one price, one habit.
+Budget, debts, savings, business expenses, student costs, analytics, notifications — one app, one price, one habit.
 
 ---
 
@@ -157,17 +183,20 @@ Budget, debts, savings, business expenses, student costs — one app, one price,
 
 **Daily Use (< 2 minutes):**
 
-1. Open app → See dashboard (income vs expenses, cash runway, debt alerts, savings progress)
-2. Tap "Add Expense" or paste Mpesa message
-3. Auto-categorized based on recipient
-4. Done! Check in daily or weekly to stay on track.
+1. Get notification reminder at your preferred time
+2. Open app → See dashboard (income vs expenses, cash runway, debt alerts, savings progress)
+3. Tap "Add Expense" and enter details (or paste M-Pesa message if you use that feature)
+4. Auto-categorized based on recipient
+5. Done! Check in daily or weekly to stay on track.
 
 **Weekly Check-In:**
 
-- Review spending by category
-- Check if you're on track to next payday
-- Adjust habits if needed
-- Update savings progress
+- Review visual analytics showing spending trends
+- Check interactive charts for category breakdowns
+- See if you're on track to next payday
+- Review debt payment progress with visual insights
+- Check savings goal progress with contribution tracking
+- Adjust habits based on data insights
 
 ---
 
@@ -200,10 +229,13 @@ Budget, debts, savings, business expenses, student costs — one app, one price,
 
 **What you get:**
 - Complete financial tracking (income, expenses, debts, savings, budgets)
-- Mpesa auto-import and smart categorization
+- Visual analytics with charts and insights for all modules
+- Smart push notifications (daily reminders, debt alerts, payday notifications, spending threshold alerts)
+- Optional M-Pesa auto-import and smart categorization (Kenya)
 - Cash runway predictions with discipline tracking
 - Offline-first with cloud sync across all devices
 - Business and student expense tagging
+- Free M-Pesa analyzer tool (no login required) for trying before buying
 - Lifetime updates and new features
 
 **Launch Strategy:**

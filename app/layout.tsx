@@ -14,9 +14,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "MONEE - Your Money, Finally in One Place",
+  title: "MONEE - Your Personal Finance Companion for Kenya",
   description:
-    "Your simple, personal money assistant — built for real life in Kenya 🇰🇪. Track, understand, and plan your money — all in one beautiful daily ritual.",
+    "Track expenses, manage debts, build savings — all in one simple app. Built for real life in Kenya 🇰🇪. Free to download, 7-day trial, then KSh 999 lifetime access.",
 };
 
 export default function RootLayout({

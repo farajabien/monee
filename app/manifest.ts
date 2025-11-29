@@ -2,11 +2,11 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "MONEE - Your Money, Finally in One Place",
+    name: "MONEE - Personal Finance for Kenya",
     short_name: "MONEE",
     description:
-      "Your simple, personal money assistant — built for real life in Kenya. Track, understand, and plan your money — all in one beautiful daily ritual.",
-    start_url: "/",
+      "Track expenses, manage debts, build savings. Your complete personal finance companion built for Kenya. Simple, fast, and intuitive.",
+    start_url: "/dashboard",
     display: "standalone",
     background_color: "#ffffff",
     theme_color: "#000000",

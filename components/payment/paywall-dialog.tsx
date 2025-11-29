@@ -30,17 +30,16 @@ export function PaywallDialog({ open, onOpenChange }: PaywallDialogProps) {
   const [hideDialog, setHideDialog] = useState(false);
 
   const features = [
-    "M-Pesa Smart Parsing (6+ formats)",
-    "Unlimited Expenses",
-    "Income & Expense Tracking",
-    "Budget Management",
-    "Debt Tracking & Payments",
-    "Daily Check-In Reminders",
-    "Monthly Insights",
-    "Auto-Categorization",
-    "Sync Across Devices",
-    "Lifetime Access",
-    "Free Updates Forever",
+    "Quick expense tracking (manual or M-Pesa)",
+    "Debt management with progress tracking",
+    "Savings goals & contributions",
+    "Income source management",
+    "Rich analytics & insights",
+    "Auto-categorization & learning",
+    "Offline-first PWA",
+    "Sync across all devices",
+    "Lifetime access - no monthly fees",
+    "Free updates forever",
   ];
 
   const handlePayment = async () => {
@@ -141,10 +140,10 @@ export function PaywallDialog({ open, onOpenChange }: PaywallDialogProps) {
               width={24}
               height={24}
             />
-            Unlock Full Access to MONEE
+            Unlock Lifetime Access to MONEE
           </DialogTitle>
           <DialogDescription>
-            Get lifetime access to all features for a one-time payment
+            Worth KSh 10,000-15,000. Pay once. Own forever. Best deal ever.
           </DialogDescription>
         </DialogHeader>
 
@@ -154,18 +153,23 @@ export function PaywallDialog({ open, onOpenChange }: PaywallDialogProps) {
             <div className="flex items-center justify-between mb-4">
               <div>
                 <div className="flex items-center gap-3">
-                  <span className="text-4xl font-bold">Ksh 999</span>
-                  <span className="text-xl text-muted-foreground line-through">
-                    Ksh 1,500
-                  </span>
+                  <span className="text-5xl font-bold text-primary">Ksh 999</span>
+                  <div className="text-left">
+                    <span className="text-2xl text-muted-foreground line-through">
+                      Ksh 10,000
+                    </span>
+                    <div className="text-xs text-muted-foreground">
+                      True Value
+                    </div>
+                  </div>
                 </div>
                 <Badge variant="secondary" className="mt-2">
-                  33% Launch Discount
+                  Limited Lifetime Offer
                 </Badge>
               </div>
             </div>
-            <p className="text-sm text-muted-foreground">
-              💳 One-time payment • No subscriptions • Lifetime access
+            <p className="text-sm text-muted-foreground font-semibold">
+              💳 One-time payment • No monthly fees • Lifetime access • Best deal ever
             </p>
           </div>
 
@@ -180,9 +184,8 @@ export function PaywallDialog({ open, onOpenChange }: PaywallDialogProps) {
                 </div>
               ))}
             </div>
-            <p className="text-xs text-muted-foreground mt-3 text-center">
-              + {features.length - 8} more features • Lifetime access • Free
-              updates forever
+            <p className="text-xs text-muted-foreground mt-3 text-center font-semibold">
+              Worth KSh 10,000-15,000 • Pay once, own forever • No monthly fees
             </p>
           </div>
         </div>
@@ -198,7 +201,7 @@ export function PaywallDialog({ open, onOpenChange }: PaywallDialogProps) {
           </Button>
         </DialogFooter>
         <p className="text-xs text-center text-muted-foreground">
-          💳 Payment required to access all features
+          💳 Secure payment via Paystack • Worth KSh 10,000+ • Best deal ever
         </p>
       </DialogContent>
     </Dialog>

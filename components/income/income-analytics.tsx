@@ -1,0 +1,316 @@
+"use client";
+
+import { useState, useMemo } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig,
+} from "@/components/ui/chart";
+import {
+  Bar,
+  BarChart,
+  Line,
+  LineChart,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+} from "recharts";
+import { CategoryBreakdown } from "@/components/charts/category-breakdown";
+import { TrendingUp, DollarSign, Calendar, Briefcase } from "lucide-react";
+import db from "@/lib/db";
+
+type TimeView = "week" | "month" | "year";
+
+export function IncomeAnalytics() {
+  const [timeView, setTimeView] = useState<TimeView>("month");
+  const [chartType, setChartType] = useState<"bar" | "line">("bar");
+
+  const { isLoading, error, data} = db.useQuery({
+    profiles: {
+      incomeSources: {},
+      expenses: {},
+    },
+  });
+
+  const profile = data?.profiles?.[0];
+  const incomeSources = profile?.incomeSources?.filter(
+    (source) => source.isActive
+  ) || [];
+  const expenses = profile?.expenses || [];
+
+  // Chart config for Shadcn charts
+  const chartConfig = {
+    value: {
+      label: "Total Income",
+      color: "hsl(var(--primary))",
+    },
+  } satisfies ChartConfig;
+
+  // Calculate total monthly income
+  const totalMonthlyIncome = incomeSources.reduce(
+    (sum, source) => sum + (source.monthlyAmount || 0),
+    0
+  );
+
+  // Calculate actual income received (from expense transactions marked as income)
+  const actualIncome = useMemo(() => {
+    // In a real implementation, you'd track income transactions separately
+    // For now, we'll estimate based on monthly income sources
+    return totalMonthlyIncome;
+  }, [totalMonthlyIncome]);
+
+  // Prepare income over time data
+  const incomeOverTimeData = useMemo(() => {
+    if (!incomeSources.length) return [];
+
+    const dataPoints: Array<{ name: string; value: number }> = [];
+
+    if (timeView === "week") {
+      // Last 7 days - show daily income estimate
+      const dailyIncome = totalMonthlyIncome / 30;
+      const today = new Date();
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date(today);
+        date.setDate(date.getDate() - i);
+        dataPoints.push({
+          name: date.toLocaleDateString("en-US", { weekday: "short" }),
+          value: Math.round(dailyIncome),
+        });
+      }
+    } else if (timeView === "month") {
+      // Last 4 weeks
+      const weeklyIncome = totalMonthlyIncome / 4;
+      for (let i = 1; i <= 4; i++) {
+        dataPoints.push({
+          name: `Week ${i}`,
+          value: Math.round(weeklyIncome),
+        });
+      }
+    } else {
+      // Last 12 months
+      const today = new Date();
+      for (let i = 11; i >= 0; i--) {
+        const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
+        dataPoints.push({
+          name: date.toLocaleDateString("en-US", { month: "short" }),
+          value: totalMonthlyIncome,
+        });
+      }
+    }
+
+    return dataPoints;
+  }, [totalMonthlyIncome, timeView, incomeSources.length]);
+
+  // Prepare category breakdown data
+  const categoryData = useMemo(() => {
+    if (!incomeSources.length) return [];
+
+    return incomeSources.map((source) => {
+      const amount = source.monthlyAmount || 0;
+      const percentage =
+        totalMonthlyIncome > 0 ? (amount / totalMonthlyIncome) * 100 : 0;
+
+      return {
+        id: source.id,
+        name: source.sourceName || "Unnamed Source",
+        amount: amount,
+        percentage: Math.round(percentage),
+        subtitle: source.frequency ? `Frequency: ${source.frequency}` : "",
+        icon: Briefcase,
+        color: "hsl(var(--primary))",
+      };
+    });
+  }, [incomeSources, totalMonthlyIncome]);
+
+  // Calculate next payday
+  const nextPayday = useMemo(() => {
+    const paydays = incomeSources
+      .filter((source) => source.nextPayday)
+      .map((source) => new Date(source.nextPayday!))
+      .sort((a, b) => a.getTime() - b.getTime());
+
+    return paydays.length > 0 ? paydays[0] : null;
+  }, [incomeSources]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center p-12">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-4 text-center text-destructive">
+        Error loading income analytics
+      </div>
+    );
+  }
+
+  if (!incomeSources.length) {
+    return (
+      <Card>
+        <CardContent className="p-12 text-center">
+          <Briefcase className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+          <h3 className="font-semibold text-lg mb-2">No Income to Analyze</h3>
+          <p className="text-sm text-muted-foreground">
+            Add your first income source to see analytics and track your earnings.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Monthly Income
+            </CardTitle>
+            <TrendingUp className="h-4 w-4 text-green-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              KSh {totalMonthlyIncome.toLocaleString()}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {incomeSources.length} active source
+              {incomeSources.length !== 1 ? "s" : ""}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Next Payday</CardTitle>
+            <Calendar className="h-4 w-4 text-primary" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {nextPayday
+                ? nextPayday.toLocaleDateString("en-US", { month: "short", day: "numeric" })
+                : "Not set"}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {nextPayday
+                ? `${Math.ceil((nextPayday.getTime() - Date.now()) / (1000 * 60 * 60 * 24))} days`
+                : "Add payday to income source"}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Daily Average</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              KSh {Math.round(totalMonthlyIncome / 30).toLocaleString()}
+            </div>
+            <p className="text-xs text-muted-foreground">Per day estimate</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Chart Section */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle>Income Over Time</CardTitle>
+            <div className="flex gap-2">
+              <Button
+                variant={chartType === "bar" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setChartType("bar")}
+              >
+                Bar
+              </Button>
+              <Button
+                variant={chartType === "line" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setChartType("line")}
+              >
+                Line
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {/* Time View Selector */}
+          <div className="flex justify-center gap-2 mb-6">
+            <Button
+              variant={timeView === "week" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setTimeView("week")}
+            >
+              Week
+            </Button>
+            <Button
+              variant={timeView === "month" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setTimeView("month")}
+            >
+              Month
+            </Button>
+            <Button
+              variant={timeView === "year" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setTimeView("year")}
+            >
+              Year
+            </Button>
+          </div>
+
+          {/* Chart */}
+          <ChartContainer config={chartConfig} className="h-[250px] w-full">
+            {chartType === "bar" ? (
+              <BarChart data={incomeOverTimeData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <ChartTooltip content={<ChartTooltipContent />} />
+                <Bar
+                  dataKey="value"
+                  fill="var(--color-value)"
+                  radius={[8, 8, 0, 0]}
+                />
+              </BarChart>
+            ) : (
+              <LineChart data={incomeOverTimeData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <ChartTooltip content={<ChartTooltipContent />} />
+                <Line
+                  type="monotone"
+                  dataKey="value"
+                  stroke="var(--color-value)"
+                  strokeWidth={2}
+                  dot={{ fill: "var(--color-value)", r: 4 }}
+                />
+              </LineChart>
+            )}
+          </ChartContainer>
+        </CardContent>
+      </Card>
+
+      {/* Income Breakdown */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Breakdown by Source</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <CategoryBreakdown items={categoryData} />
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

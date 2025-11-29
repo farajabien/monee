@@ -21,28 +21,16 @@ import {
 export default function LandingPage() {
   const features = [
     {
-      icon: Smartphone,
-      title: "M-Pesa Smart Parsing",
+      icon: Wallet,
+      title: "Quick Expense Tracking",
       description:
-        "Paste any M-Pesa message and MONEE instantly extracts amount, recipient, date, and category. Supports 6+ message formats.",
+        "Log expenses manually in seconds with smart categorization. Simple, fast, and builds the habit.",
     },
     {
       icon: TrendingUp,
       title: "Income vs Expenses",
       description:
         "Track multiple income sources, set payday dates, and see your monthly balance at a glance.",
-    },
-    {
-      icon: Calendar,
-      title: "Daily Check-In Ritual",
-      description:
-        "A gentle 2-minute evening routine to paste your day's expenses. Build awareness, not guilt.",
-    },
-    {
-      icon: Wallet,
-      title: "Smart Categorization",
-      description:
-        "6 built-in categories + unlimited custom ones. Auto-matches recipients to remember categories.",
     },
     {
       icon: CreditCard,
@@ -52,9 +40,27 @@ export default function LandingPage() {
     },
     {
       icon: BarChart3,
-      title: "Monthly Insights",
+      title: "Savings Goals",
       description:
-        "See where your money goes by category, recipient, and week. No spreadsheets needed.",
+        "Set targets, track contributions, and watch your savings grow month by month.",
+    },
+    {
+      icon: Calendar,
+      title: "Daily Check-In Ritual",
+      description:
+        "A gentle 2-minute evening routine to log your day's expenses. Build awareness, not guilt.",
+    },
+    {
+      icon: BarChart3,
+      title: "Rich Analytics",
+      description:
+        "See where your money goes by category, recipient, and time period. No spreadsheets needed.",
+    },
+    {
+      icon: Smartphone,
+      title: "M-Pesa Import (Optional)",
+      description:
+        "Want to bulk-clean old transactions? Upload M-Pesa statements. Great for catching up, not required daily.",
     },
     {
       icon: Shield,
@@ -66,14 +72,9 @@ export default function LandingPage() {
 
   const comparison = [
     {
-      feature: "M-Pesa Statement Import",
+      feature: "Quick Manual Entry",
       monee: true,
-      competitors: false,
-    },
-    {
-      feature: "SMS Message Parsing",
-      monee: true,
-      competitors: false,
+      competitors: "Slow",
     },
     {
       feature: "Auto-Categorization & Learning",
@@ -81,27 +82,32 @@ export default function LandingPage() {
       competitors: "Manual",
     },
     {
-      feature: "Zero-Sum Budgeting",
+      feature: "Debt Tracking with Progress",
       monee: true,
       competitors: "Basic",
     },
     {
-      feature: "Debt Tracking with Interest",
-      monee: true,
-      competitors: "Basic",
-    },
-    {
-      feature: "Savings Goals & Progress",
+      feature: "Savings Goals & Targets",
       monee: true,
       competitors: "Manual",
     },
     {
-      feature: "Business Expense Tagging",
+      feature: "Rich Analytics & Charts",
+      monee: true,
+      competitors: "Basic",
+    },
+    {
+      feature: "Income Source Tracking",
       monee: true,
       competitors: false,
     },
     {
-      feature: "Offline-First Access",
+      feature: "M-Pesa Bulk Import (Optional)",
+      monee: true,
+      competitors: false,
+    },
+    {
+      feature: "Offline-First PWA",
       monee: true,
       competitors: false,
     },
@@ -111,14 +117,14 @@ export default function LandingPage() {
       competitors: "Desktop Only",
     },
     {
-      feature: "Lifetime Updates",
-      monee: "One-Time Payment",
-      competitors: "Pay Again",
+      feature: "Pricing",
+      monee: "KSh 999 Lifetime",
+      competitors: "Monthly Subscription",
     },
     {
-      feature: "One-Time Payment",
+      feature: "Free Updates Forever",
       monee: true,
-      competitors: "Subscription",
+      competitors: false,
     },
   ];
 
@@ -151,51 +157,55 @@ export default function LandingPage() {
 
       {/* Hero Section */}
       <section className="container mx-auto px-4 py-20 md:py-32">
-        <div className="max-w-4xl mx-auto text-center space-y-8">
-          <Badge variant="secondary" className="mx-auto w-fit">
-            <Zap className="h-3 w-3 mr-1" />
-            Built for Real Life in Kenya 🇰🇪
-          </Badge>
-          <h1 className="text-4xl md:text-6xl font-bold tracking-tight">
-            Your Money,{" "}
-            <span className="text-primary">Finally in One Place</span>
-          </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Stop wondering where your money goes. MONEE tracks your M-Pesa
-            spending, helps you plan, and turns personal finance into a mindful
-            daily ritual.
-          </p>
+        <div className="max-w-6xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            {/* Left: Text Content */}
+            <div className="space-y-8 text-center md:text-left">
+              <Badge variant="secondary" className="mx-auto md:mx-0 w-fit">
+                <Zap className="h-3 w-3 mr-1" />
+                Built for Real Life in Kenya 🇰🇪
+              </Badge>
+              <h1 className="text-4xl md:text-6xl font-bold tracking-tight">
+                Your Money,{" "}
+                <span className="text-primary">Finally in One Place</span>
+              </h1>
+              <p className="text-xl text-muted-foreground">
+                Stop wondering where your money goes. MONEE helps you track expenses,
+                manage debts, save smarter, and turns personal finance into a mindful
+                daily ritual.
+              </p>
 
-          {/* Audience-fit message */}
-          <div className="flex justify-center">
-            <Card className="mt-4 border-primary/80 bg-primary/10 max-w-xl w-full shadow-sm">
-              <CardContent className="py-5 px-7 text-center">
-                <span className="font-semibold text-primary block mb-1">
-                  If your main source of income is a stipend, pocket money,
-                  salary, or small business — and you use M-Pesa for 90% of your
-                  expenses — MONEE is built for you.
-                </span>
-                <span className="text-muted-foreground text-sm">
-                  Designed for students, early professionals, tech-savvy and
-                  organized people who want clarity and control over their
-                  money.
-                </span>
-              </CardContent>
-            </Card>
-          </div>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
+                <Link href="/login">
+                  <Button size="lg" className="w-full sm:w-auto">
+                    Download App - Free Trial
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </Link>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                ✨ Free to download. 7-day free trial. Then KSh 999 one-time
+                payment — true value: KSh 10,000-15,000.
+              </p>
+            </div>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/login">
-              <Button size="lg" className="w-full sm:w-auto">
-                Try Free for 1 Week
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </Link>
+            {/* Right: App Screenshot Placeholder */}
+            <div className="relative">
+              <div className="relative rounded-3xl overflow-hidden border-8 border-foreground/10 shadow-2xl bg-gradient-to-br from-primary/20 to-primary/5 aspect-[9/16] max-w-sm mx-auto">
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="text-center p-8 space-y-4">
+                    <Smartphone className="h-24 w-24 mx-auto text-primary/40" />
+                    <p className="text-sm text-muted-foreground">
+                      App Screenshot Placeholder
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Dashboard • Expenses • Analytics
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-          <p className="text-sm text-muted-foreground">
-            ✨ 7-day free trial. No credit card required. Then KSh 999 one-time
-            payment — replaces KSh 3,395+ in separate templates.
-          </p>
         </div>
       </section>
 
@@ -207,13 +217,13 @@ export default function LandingPage() {
           </h2>
           <p className="text-lg text-muted-foreground">
             You <em>think</em> you know where your money goes. Until the end of
-            the month, when it&apos;s gone — and you&apos;re left with
-            screenshots of M-Pesa messages and good intentions.
+            the month, when it&apos;s gone — and you&apos;re left wondering what
+            happened.
           </p>
           <p className="text-lg">
-            <strong>MONEE</strong> brings all that together and helps you
-            finally <em>see</em> your financial reality — clearly, gently, and
-            honestly.
+            <strong>MONEE</strong> helps you finally <em>see</em> your financial
+            reality — clearly, gently, and honestly. Track expenses in seconds,
+            manage debts, build savings, and understand your spending patterns.
           </p>
         </div>
       </section>
@@ -264,10 +274,10 @@ export default function LandingPage() {
             <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto text-2xl font-bold text-primary">
               1
             </div>
-            <h3 className="font-semibold text-xl">Paste Messages</h3>
+            <h3 className="font-semibold text-xl">Log Expenses</h3>
             <p className="text-muted-foreground">
-              Copy your day&apos;s M-Pesa messages and paste them into MONEE.
-              Multiple messages at once work too.
+              Add expenses manually in seconds, or paste M-Pesa messages for bulk
+              import. Your choice.
             </p>
           </div>
           <div className="text-center space-y-4">
@@ -276,8 +286,8 @@ export default function LandingPage() {
             </div>
             <h3 className="font-semibold text-xl">Auto-Categorize</h3>
             <p className="text-muted-foreground">
-              MONEE reads the messages, extracts details, and remembers
-              categories for recurring recipients.
+              MONEE learns your spending patterns and remembers categories for
+              recurring expenses automatically.
             </p>
           </div>
           <div className="text-center space-y-4">
@@ -286,8 +296,8 @@ export default function LandingPage() {
             </div>
             <h3 className="font-semibold text-xl">See Insights</h3>
             <p className="text-muted-foreground">
-              View where your money goes by category, person, and week. No math
-              needed.
+              View where your money goes by category, time period, and recipient.
+              No math needed.
             </p>
           </div>
         </div>
@@ -297,10 +307,10 @@ export default function LandingPage() {
       <section className="container mx-auto px-4 py-16">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            MONEE vs Excel Templates
+            MONEE vs Other Finance Apps
           </h2>
           <p className="text-lg text-muted-foreground">
-            See why MONEE is worth every shilling
+            See why MONEE is the smartest choice for Kenyan users
           </p>
         </div>
         <div className="max-w-4xl mx-auto">
@@ -363,43 +373,51 @@ export default function LandingPage() {
       <section className="container mx-auto px-4 py-16">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Simple, Honest Pricing
+            The Smartest Money App in Kenya — For Less Than Lunch
           </h2>
           <p className="text-lg text-muted-foreground">
-            Try free for 1 week. Then one payment, yours forever.
+            Free to download. 7-day free trial. Then one payment, yours forever.
           </p>
         </div>
         <div className="max-w-lg mx-auto">
           <Card className="border-4 border-primary relative overflow-hidden">
             <div className="absolute top-0 right-0 bg-primary text-primary-foreground px-4 py-1 text-sm font-semibold">
-              Available Now
+              Limited Lifetime Offer
             </div>
             <CardContent className="p-8 space-y-6">
               <div className="text-center space-y-2">
-                <h3 className="text-2xl font-bold">MONEE Lifetime</h3>
+                <h3 className="text-2xl font-bold">MONEE Lifetime Access</h3>
                 <div className="flex items-center justify-center gap-3">
-                  <span className="text-4xl font-bold">KSh 999</span>
+                  <span className="text-5xl font-bold text-primary">KSh 999</span>
+                  <div className="text-left">
+                    <div className="text-2xl text-muted-foreground line-through">
+                      KSh 10,000
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      True Value
+                    </div>
+                  </div>
                 </div>
-                <Badge variant="secondary">
-                  One-time payment • Lifetime access
+                <Badge variant="secondary" className="text-base">
+                  One-time payment • Lifetime access • Best deal ever
                 </Badge>
-                <p className="text-sm text-muted-foreground">
-                  Save KSh 2,396+ vs buying templates separately (worth KSh
-                  3,395)
+                <p className="text-sm text-muted-foreground font-semibold">
+                  Worth KSh 10,000-15,000. Pay once. Own forever. No monthly fees.
                 </p>
               </div>
 
               <div className="space-y-3">
-                <p className="text-sm font-semibold">What&apos;s Included:</p>
+                <p className="text-sm font-semibold">Everything Included:</p>
                 <div className="space-y-2">
                   {[
-                    "Zero-sum budgeting",
-                    "Debt tracking with interest calculations",
-                    "Savings goals with progress tracking",
-                    "Business/side-hustle expense tagging",
-                    "Student academic expense tracking",
-                    "M-Pesa auto-import & smart categorization",
-                    "Cloud sync, offline-first",
+                    "Quick expense tracking (manual or M-Pesa import)",
+                    "Debt tracking with progress visualization",
+                    "Savings goals with target tracking",
+                    "Income source management",
+                    "Rich analytics and insights",
+                    "Auto-categorization & learning",
+                    "Offline-first PWA - works everywhere",
+                    "Cloud sync across all devices",
                   ].map((item, i) => (
                     <div key={i} className="flex items-start gap-2">
                       <CheckCircle2 className="h-5 w-5 text-primary shrink-0 mt-0.5" />
@@ -430,14 +448,14 @@ export default function LandingPage() {
 
               <Link href="/login" className="block">
                 <Button size="lg" className="w-full">
-                  Start Free Trial
+                  Download App - Start Free Trial
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
 
               <p className="text-xs text-center text-muted-foreground">
-                7-day free trial. No credit card required. Then KSh 999 one-time
-                — replacing KSh 3,395+ worth of separate spreadsheets.
+                Free to download. 7-day free trial. No credit card required. Then
+                KSh 999 one-time — worth KSh 10,000-15,000. Best deal ever.
               </p>
             </CardContent>
           </Card>
@@ -479,7 +497,7 @@ export default function LandingPage() {
                   variant="outline"
                   className="w-full sm:w-auto bg-transparent border-2 border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary"
                 >
-                  Start Free Trial
+                  Download App Now - Free Trial
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>

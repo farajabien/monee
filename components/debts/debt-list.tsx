@@ -13,6 +13,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DebtPaymentForm } from "./debt-payment-form";
 import { DebtProgress } from "./debt-progress";
+import { DebtAnalytics } from "./debt-analytics";
 import { createDebtListConfig } from "./debt-list-config";
 import type { DebtWithUser } from "@/types";
 import { toast } from "sonner";
@@ -124,9 +125,10 @@ export function DebtList() {
   return (
     <>
       <Tabs defaultValue="list" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 mb-4">
+        <TabsList className="grid w-full grid-cols-3 mb-4">
           <TabsTrigger value="list">All Debts</TabsTrigger>
           <TabsTrigger value="progress">Progress</TabsTrigger>
+          <TabsTrigger value="analytics">Analytics</TabsTrigger>
         </TabsList>
         <TabsContent value="list">
           <UnifiedListContainer<DebtWithUser>
@@ -138,6 +140,9 @@ export function DebtList() {
         </TabsContent>
         <TabsContent value="progress">
           <DebtProgress />
+        </TabsContent>
+        <TabsContent value="analytics">
+          <DebtAnalytics />
         </TabsContent>
       </Tabs>
 

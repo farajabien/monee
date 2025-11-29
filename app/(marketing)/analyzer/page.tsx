@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
 
 export default function AnalyzerRedirect() {
-  redirect("/free-mpesa-analyzer-year-review");
+  redirect("/free-mpesa-analyzer");
 }
