@@ -54,10 +54,10 @@ export function CashRunwayCard({
         <ItemContent>
           <div className="text-center py-4 w-full">
             <p className="text-sm text-muted-foreground">
-              Set up your income sources to see predictions
+              Set up your income sources to see your cash runway
             </p>
             <p className="text-xs text-muted-foreground mt-1">
-              We&apos;ll tell you if you&apos;ll make it to payday!
+              We&apos;ll predict if you&apos;ll make it to payday!
             </p>
           </div>
         </ItemContent>
