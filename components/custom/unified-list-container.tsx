@@ -31,6 +31,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { DebtWithUser } from "@/types";
 
 interface UnifiedListContainerProps<T> {
   config: ListConfig<T>;
@@ -41,6 +42,8 @@ interface UnifiedListContainerProps<T> {
     item: T | null;
   }>;
   additionalFilters?: React.ReactNode; // For custom filters like month selector
+  editingItem?: T | null;
+  onEditingChange?: (item: T | null) => void;
 }
 
 export function UnifiedListContainer<T>({
@@ -48,6 +51,8 @@ export function UnifiedListContainer<T>({
   data,
   editDialog: EditDialog,
   additionalFilters,
+  editingItem: externalEditingItem,
+  onEditingChange,
 }: UnifiedListContainerProps<T>) {
   // View state
   const [searchQuery, setSearchQuery] = useState("");
@@ -74,7 +79,7 @@ export function UnifiedListContainer<T>({
 
   // Action handlers
   const {
-    editingItem,
+    editingItem: internalEditingItem,
     isEditDialogOpen,
     deletingItemId,
     isDeleteDialogOpen,
@@ -88,6 +93,30 @@ export function UnifiedListContainer<T>({
     actions: config.actions,
     itemName: config.title.toLowerCase(),
   });
+
+  // Use external editing state if provided, otherwise use internal
+  const editingItem = externalEditingItem ?? internalEditingItem;
+  const effectiveIsEditDialogOpen = externalEditingItem
+    ? !!externalEditingItem
+    : isEditDialogOpen;
+
+  const handleEditWrapper = (item: T) => {
+    if (onEditingChange) {
+      onEditingChange(item);
+    } else {
+      handleEdit(item);
+    }
+  };
+
+  const handleEditDialogClose = (open: boolean) => {
+    if (onEditingChange) {
+      if (!open) {
+        onEditingChange(null);
+      }
+    } else {
+      setIsEditDialogOpen(open);
+    }
+  };
 
   // Handle filter changes
   const handleFilterChange = (
@@ -105,6 +134,20 @@ export function UnifiedListContainer<T>({
   const primaryFilterValue = primaryFilter
     ? (filters[primaryFilter.key] as string) || "all"
     : "all";
+
+  // Get the item being deleted for context-aware dialog
+  const deletingItem = useMemo(() => {
+    if (!deletingItemId) return null;
+    return data.find((item) => config.getItemId(item) === deletingItemId);
+  }, [deletingItemId, data, config]);
+
+  // Get display name for the item being deleted
+  const deletingItemName = useMemo(() => {
+    if (!deletingItem) return "";
+    // Try to get name from common properties
+    const item = deletingItem as DebtWithUser;
+    return item.name || "";
+  }, [deletingItem]);
 
   return (
     <div className="space-y-3">
@@ -202,7 +245,7 @@ export function UnifiedListContainer<T>({
             {filteredData.map((item, index) =>
               config.renderListItem(item, index, {
                 onEdit: config.actions?.edit
-                  ? () => handleEdit(item)
+                  ? () => handleEditWrapper(item)
                   : undefined,
                 onDelete: config.actions?.delete
                   ? () => handleDelete(config.getItemId(item))
@@ -217,8 +260,8 @@ export function UnifiedListContainer<T>({
       {/* Edit Dialog */}
       {EditDialog && (
         <EditDialog
-          open={isEditDialogOpen}
-          onOpenChange={setIsEditDialogOpen}
+          open={effectiveIsEditDialogOpen}
+          onOpenChange={handleEditDialogClose}
           item={editingItem}
         />
       )}
@@ -229,8 +272,18 @@ export function UnifiedListContainer<T>({
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete this{" "}
-              {config.title.toLowerCase()}.
+              This action cannot be undone. This will permanently delete
+              {deletingItemName ? (
+                <>
+                  {" "}
+                  <span className="font-semibold">
+                    &ldquo;{deletingItemName}&rdquo;
+                  </span>
+                </>
+              ) : (
+                <> this {config.title.toLowerCase()}</>
+              )}
+              .
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

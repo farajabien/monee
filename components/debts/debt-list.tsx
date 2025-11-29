@@ -22,6 +22,7 @@ export function DebtList() {
   const [selectedDebtForPayment, setSelectedDebtForPayment] =
     useState<DebtWithUser | null>(null);
   const [showPaymentSheet, setShowPaymentSheet] = useState(false);
+  const [editingDebt, setEditingDebt] = useState<DebtWithUser | null>(null);
 
   const { data } = db.useQuery({
     debts: {
@@ -38,6 +39,10 @@ export function DebtList() {
   const handleRecordPayment = useCallback((debt: DebtWithUser) => {
     setSelectedDebtForPayment(debt);
     setShowPaymentSheet(true);
+  }, []);
+
+  const handleEdit = useCallback((debt: DebtWithUser) => {
+    setEditingDebt(debt);
   }, []);
 
   const handleQuickPush = useCallback(async (debt: DebtWithUser) => {
@@ -111,8 +116,9 @@ export function DebtList() {
 
   // Create configuration with callbacks
   const config = useMemo(
-    () => createDebtListConfig(handleRecordPayment, handleQuickPush),
-    [handleRecordPayment, handleQuickPush]
+    () =>
+      createDebtListConfig(handleRecordPayment, handleQuickPush, handleEdit),
+    [handleRecordPayment, handleQuickPush, handleEdit]
   );
 
   return (
@@ -123,7 +129,12 @@ export function DebtList() {
           <TabsTrigger value="progress">Progress</TabsTrigger>
         </TabsList>
         <TabsContent value="list">
-          <UnifiedListContainer<DebtWithUser> config={config} data={debts} />
+          <UnifiedListContainer<DebtWithUser>
+            config={config}
+            data={debts}
+            editingItem={editingDebt}
+            onEditingChange={setEditingDebt}
+          />
         </TabsContent>
         <TabsContent value="progress">
           <DebtProgress />

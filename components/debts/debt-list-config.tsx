@@ -9,7 +9,13 @@ import type { DebtWithUser } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { TrendingDown, CheckCircle, Clock, Calendar, ArrowRight } from "lucide-react";
+import {
+  TrendingDown,
+  CheckCircle,
+  Clock,
+  Calendar,
+  ArrowRight,
+} from "lucide-react";
 import db from "@/lib/db";
 
 // Helper functions
@@ -53,7 +59,8 @@ const isDueToday = (debt: DebtWithUser) => {
 
 export const createDebtListConfig = (
   onRecordPayment: (debt: DebtWithUser) => void,
-  onQuickPush: (debt: DebtWithUser) => void
+  onQuickPush: (debt: DebtWithUser) => void,
+  onEdit: (debt: DebtWithUser) => void
 ): ListConfig<DebtWithUser> => ({
   // Identity
   queryKey: "debts",
@@ -119,12 +126,19 @@ export const createDebtListConfig = (
 
   calculateMetrics: (items: DebtWithUser[]) => {
     const activeDebts = items.filter((d) => d.currentBalance > 0);
-    const totalDebt = activeDebts.reduce((sum, debt) => sum + debt.currentBalance, 0);
-    const totalOriginal = activeDebts.reduce((sum, debt) => sum + debt.totalAmount, 0);
+    const totalDebt = activeDebts.reduce(
+      (sum, debt) => sum + debt.currentBalance,
+      0
+    );
+    const totalOriginal = activeDebts.reduce(
+      (sum, debt) => sum + debt.totalAmount,
+      0
+    );
     const totalPaid = totalOriginal - totalDebt;
     const avgProgress =
       activeDebts.length > 0
-        ? activeDebts.reduce((sum, d) => sum + calculateProgress(d), 0) / activeDebts.length
+        ? activeDebts.reduce((sum, d) => sum + calculateProgress(d), 0) /
+          activeDebts.length
         : 0;
 
     return {
@@ -146,7 +160,10 @@ export const createDebtListConfig = (
     const isPaidOff = item.currentBalance === 0;
 
     return (
-      <div key={item.id} className="flex items-center justify-between p-3 border rounded-lg">
+      <div
+        key={item.id}
+        className="flex items-center justify-between p-3 border rounded-lg"
+      >
         <div className="flex items-center gap-2 flex-1">
           {/* Index badge */}
           <Badge variant="outline" className="text-[10px] px-1.5 py-0">
@@ -177,7 +194,10 @@ export const createDebtListConfig = (
 
               {/* Paid off badge */}
               {isPaidOff && (
-                <Badge variant="default" className="bg-green-500 text-[10px] px-1.5 py-0">
+                <Badge
+                  variant="default"
+                  className="bg-green-500 text-[10px] px-1.5 py-0"
+                >
                   ✓ Paid
                 </Badge>
               )}
@@ -252,11 +272,10 @@ export const createDebtListConfig = (
     );
   },
 
-
   // Actions
   actions: {
     edit: async (item: DebtWithUser) => {
-      // Handled by parent component via editDialog prop
+      onEdit(item);
     },
     delete: async (id: string) => {
       await db.transact(db.tx.debts[id].delete());
@@ -267,7 +286,11 @@ export const createDebtListConfig = (
   getItemId: (item: DebtWithUser) => item.id,
 
   // Custom filter
-  customFilter: (item: DebtWithUser, searchQuery: string, filters: any) => {
+  customFilter: (
+    item: DebtWithUser,
+    searchQuery: string,
+    filters: Record<string, string>
+  ) => {
     // Apply status filter
     const statusFilter = filters.status;
     if (statusFilter && statusFilter !== "all") {
