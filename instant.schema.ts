@@ -113,6 +113,15 @@ const _schema = i.schema({
       notes: i.string().optional(),
       createdAt: i.number().indexed(),
     }),
+    statement_expenses: i.entity({
+      amount: i.number().indexed(),
+      recipient: i.string().indexed(),
+      timestamp: i.number().indexed(),
+      description: i.string(),
+      category: i.string().optional().indexed(),
+      isProcessed: i.boolean(),
+      createdAt: i.number().indexed(),
+    }),
   },
   links: {
     userProfiles: {
@@ -166,6 +175,10 @@ const _schema = i.schema({
     savingsGoalContributions: {
       forward: { on: "savings_contributions", has: "one", label: "goal" },
       reverse: { on: "savings_goals", has: "many", label: "contributions" },
+    },
+    profileStatementExpenses: {
+      forward: { on: "statement_expenses", has: "one", label: "user" },
+      reverse: { on: "profiles", has: "many", label: "statementExpenses" },
     },
   },
   rooms: {},

@@ -57,6 +57,7 @@ import { Upload, FileText, X } from "lucide-react";
 import { parseMpesaMessage } from "@/lib/mpesa-parser";
 import { findMostCommonCategoryForRecipient } from "@/lib/recipient-matcher";
 import { parseStatementText } from "@/lib/statement-parser";
+import { extractTextFromPDF } from "@/app/actions/parse-pdf";
 import { AddCategoryDialog } from "@/components/categories/add-category-dialog";
 import { ManualExpenseDialog } from "@/components/expenses/manual-expense-dialog";
 import type { Expense, Category } from "@/types";
@@ -131,24 +132,40 @@ export default function AddExpenseForm() {
     try {
       const allMessages: string[] = [];
 
-      // TODO: Re-enable PDF extraction once extractTextFromPDF is implemented
-      // For now, show a placeholder message
-      alert(
-        "PDF extraction is currently being set up. Please use the 'Paste SMS' tab to manually paste your M-Pesa messages for now."
-      );
-
       for (let i = 0; i < uploadedFiles.length; i++) {
         const file = uploadedFiles[i];
         console.log(
           `Processing file ${i + 1} of ${uploadedFiles.length}: ${file.name}`
         );
 
-        // PDF import temporarily disabled: extractTextFromPDF and convertStatementToMessages are missing
-        // const pdfText = await extractTextFromPDF(file);
-        // const statementExpenses = parseStatementText(pdfText);
-        // const messagesFromPDF = convertStatementToMessages(statementExpenses);
-        // allMessages = [...allMessages, ...messagesFromPDF];
-        // console.log(`File ${i + 1}: Extracted ${messagesFromPDF.length} expenses`);
+        const pdfText = await extractTextFromPDF(file);
+        const statementExpenses = parseStatementText(pdfText);
+
+        // Convert parsed statement expenses to M-Pesa message format
+        const messagesFromPDF = statementExpenses.map((expense) => {
+          const date = new Date(expense.timestamp);
+          const dateStr = date.toLocaleDateString("en-GB", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "2-digit",
+          });
+          const timeStr = date.toLocaleTimeString("en-US", {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true,
+          });
+
+          return `${
+            expense.description.split("-")[0] || "UNKNOWN"
+          } Confirmed. Ksh${expense.amount.toFixed(2)} sent to ${
+            expense.recipient
+          } on ${dateStr} at ${timeStr}`;
+        });
+
+        allMessages.push(...messagesFromPDF);
+        console.log(
+          `File ${i + 1}: Extracted ${messagesFromPDF.length} expenses`
+        );
       }
 
       setMessages(allMessages.join("\n"));
