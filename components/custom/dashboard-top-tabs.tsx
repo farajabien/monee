@@ -7,7 +7,13 @@ const topTabs = [
   { label: "Summary", value: "summary", icon: FileText },
 ];
 
-export function DashboardTopTabs({ activeTab, onTabChange }: { activeTab: string; onTabChange: (tab: string) => void }) {
+export function DashboardTopTabs({
+  activeTab,
+  onTabChange,
+}: {
+  activeTab: string;
+  onTabChange: (tab: string) => void;
+}) {
   return (
     <div className="flex w-full border-b bg-background sticky top-0 z-40">
       {topTabs.map((tab) => {
@@ -18,7 +24,9 @@ export function DashboardTopTabs({ activeTab, onTabChange }: { activeTab: string
             key={tab.value}
             onClick={() => onTabChange(tab.value)}
             className={`flex-1 flex flex-col items-center py-3 px-1 transition-colors border-b-2 ${
-              isActive ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"
+              isActive
+                ? "border-primary text-primary"
+                : "border-transparent text-muted-foreground hover:text-foreground"
             }`}
           >
             <Icon className="h-5 w-5 mb-0.5" />

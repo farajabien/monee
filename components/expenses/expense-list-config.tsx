@@ -7,7 +7,7 @@
 import type { ListConfig } from "@/types/list-config";
 import type { Expense } from "@/types";
 import { Badge } from "@/components/ui/badge";
-import { DollarSign, Calendar, TrendingUp } from "lucide-react";
+import { Calendar } from "lucide-react";
 import db from "@/lib/db";
 
 // Helper functions
@@ -63,7 +63,7 @@ export const createExpenseListConfig = (
       key: "totalSpent",
       label: "Total",
       type: "currency",
-      icon: DollarSign,
+      icon: "💰",
     },
     {
       key: "expenseCount",
@@ -75,7 +75,7 @@ export const createExpenseListConfig = (
       key: "avgExpense",
       label: "Avg",
       type: "currency",
-      icon: TrendingUp,
+      icon: "💰",
     },
   ],
 

@@ -139,18 +139,6 @@ export default function LandingPage() {
             <span className="font-bold text-xl">MONEE</span>
           </Link>
           <div className="flex items-center gap-2 sm:gap-4">
-            <Link href="/free-mpesa-analyzer-year-review">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="hidden sm:inline-flex"
-              >
-                Free M-Pesa Analyzer
-              </Button>
-              <Button variant="ghost" size="sm" className="sm:hidden">
-                Analyzer
-              </Button>
-            </Link>
             <Link href="/login">
               <Button variant="default" size="sm" className="sm:size-default">
                 <span className="hidden sm:inline">Join Waitlist</span>
@@ -208,11 +196,6 @@ export default function LandingPage() {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/free-mpesa-analyzer-year-review">
-              <Button size="lg" variant="outline" className="w-full sm:w-auto">
-                Try Free M-Pesa Analyzer
-              </Button>
-            </Link>
             <Link href="/login">
               <Button size="lg" className="w-full sm:w-auto">
                 Join Waitlist - Early Access
@@ -491,15 +474,6 @@ export default function LandingPage() {
               MONEE at launch. One payment of Ksh 999 replaces KSh 3,395+ worth of separate spreadsheets.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-              <Link href="/free-mpesa-analyzer-year-review">
-                <Button
-                  size="lg"
-                  variant="secondary"
-                  className="w-full sm:w-auto"
-                >
-                  Try Free Statement Analyzer First
-                </Button>
-              </Link>
               <Link href="/login">
                 <Button
                   size="lg"

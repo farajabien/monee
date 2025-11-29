@@ -2,16 +2,13 @@
 
 import { useState, useMemo } from "react";
 import db from "@/lib/db";
-import { UnifiedListContainer } from "@/components/ui/unified-list-container";
-import { CardHeader, CardContent } from "@/components/ui/card";
+import { UnifiedListContainer } from "@/components/custom/unified-list-container";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
 import { IncomeSourceForm } from "./income-source-form";
 import { createIncomeSourceListConfig } from "./income-source-list-config";
 import type { IncomeSourceWithUser } from "@/types";
@@ -51,26 +48,10 @@ export function IncomeSourceList() {
 
   return (
     <div className="space-y-4">
-      <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => {
-            setEditingIncomeSource(null);
-            setShowDialog(true);
-          }}
-        >
-          <Plus className="h-4 w-4 mr-1" />
-          Add Income
-        </Button>
-      </CardHeader>
-
-      <CardContent>
-        <UnifiedListContainer<IncomeSourceWithUser>
-          config={config}
-          data={incomeSources}
-        />
-      </CardContent>
+      <UnifiedListContainer<IncomeSourceWithUser>
+        config={config}
+        data={incomeSources}
+      />
 
       {/* Dialog for add/edit income source */}
       <Dialog

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { id } from "@instantdb/react";
 import db from "@/lib/db";
-import { UnifiedListContainer } from "@/components/ui/unified-list-container";
+import { UnifiedListContainer } from "@/components/custom/unified-list-container";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -110,10 +110,7 @@ export default function CategoryList() {
     handleModalChange(false);
   };
 
-  const handleToggleActive = async (
-    category: Category,
-    nextState: boolean
-  ) => {
+  const handleToggleActive = async (category: Category, nextState: boolean) => {
     // If category exists in database
     if (!category.id.startsWith("template-")) {
       await db.transact(

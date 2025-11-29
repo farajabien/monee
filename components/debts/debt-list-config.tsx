@@ -9,7 +9,7 @@ import type { DebtWithUser } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { DollarSign, TrendingDown, CheckCircle, Clock, Calendar, ArrowRight } from "lucide-react";
+import { TrendingDown, CheckCircle, Clock, Calendar, ArrowRight } from "lucide-react";
 import db from "@/lib/db";
 
 // Helper functions
@@ -19,6 +19,12 @@ const formatAmount = (amount: number) => {
     currency: "KES",
     minimumFractionDigits: 0,
   }).format(amount);
+};
+
+const formatCompactAmount = (amount: number) => {
+  if (amount >= 1000000) return `💰${(amount / 1000000).toFixed(1)}M`;
+  if (amount >= 1000) return `💰${(amount / 1000).toFixed(0)}K`;
+  return `💰${amount}`;
 };
 
 const formatDate = (timestamp: number) => {
@@ -89,7 +95,7 @@ export const createDebtListConfig = (
       key: "totalDebt",
       label: "Total Debt",
       type: "currency",
-      icon: DollarSign,
+      icon: "💰",
     },
     {
       key: "activeCount",
@@ -101,7 +107,7 @@ export const createDebtListConfig = (
       key: "totalPaid",
       label: "Total Paid",
       type: "currency",
-      icon: CheckCircle,
+      icon: "💰",
     },
     {
       key: "avgProgress",
@@ -140,54 +146,51 @@ export const createDebtListConfig = (
     const isPaidOff = item.currentBalance === 0;
 
     return (
-      <div key={item.id} className="flex items-center justify-between p-4 border rounded-lg">
-        <div className="flex items-center gap-3 flex-1">
+      <div key={item.id} className="flex items-center justify-between p-3 border rounded-lg">
+        <div className="flex items-center gap-2 flex-1">
           {/* Index badge */}
-          <Badge variant="outline" className="text-xs">
+          <Badge variant="outline" className="text-[10px] px-1.5 py-0">
             #{index + 1}
           </Badge>
 
-          <div className="flex-1 space-y-1">
-            {/* Main line: Name + inline badges */}
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="font-semibold">{item.name}</span>
+          <div className="flex-1 space-y-0.5">
+            {/* Main line: Name + compact inline badges */}
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="font-semibold text-sm">{item.name}</span>
 
-              {/* Balance badge */}
-              <Badge variant="secondary">
-                {formatAmount(item.currentBalance)}
+              {/* Compact balance */}
+              <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                {formatCompactAmount(item.currentBalance)}
               </Badge>
 
-              {/* Monthly payment badge */}
-              <Badge variant="outline">
-                {formatAmount(item.monthlyPaymentAmount)}/month
+              {/* Compact monthly payment */}
+              <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                📅 {formatCompactAmount(item.monthlyPaymentAmount)}/mo
               </Badge>
 
               {/* APR badge (if exists) */}
               {item.interestRate && (
-                <Badge variant="secondary" className="text-xs">
+                <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
                   {item.interestRate}% APR
                 </Badge>
               )}
 
               {/* Paid off badge */}
               {isPaidOff && (
-                <Badge variant="default" className="bg-green-500">
-                  ✓ Paid Off
+                <Badge variant="default" className="bg-green-500 text-[10px] px-1.5 py-0">
+                  ✓ Paid
                 </Badge>
               )}
             </div>
 
-            {/* Metadata line: due day + progress info */}
-            <div className="flex items-center gap-3 text-sm text-muted-foreground">
-              <div className="flex items-center gap-1">
-                <Calendar className="h-3 w-3" />
-                <span>Due day {item.paymentDueDay}</span>
-              </div>
+            {/* Metadata line: compact due day + progress */}
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <span>Due day {item.paymentDueDay}</span>
 
               {payoffMonths && !isPaidOff && (
                 <>
                   <span>•</span>
-                  <span>{payoffMonths} months remaining</span>
+                  <span>{payoffMonths}mo left</span>
                 </>
               )}
 

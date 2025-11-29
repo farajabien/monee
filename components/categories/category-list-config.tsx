@@ -6,7 +6,7 @@
 
 import type { ListConfig, FilterConfig } from "@/types/list-config";
 import type { Category } from "@/types";
-import { StandardGridCard } from "@/components/ui/standard-grid-card";
+import { StandardGridCard } from "@/components/custom/standard-grid-card";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Tag, ToggleLeft } from "lucide-react";
@@ -59,7 +59,8 @@ export const createCategoryListConfig = (
   // Display
   title: "Categories",
   description: "Manage your expense categories",
-  emptyMessage: "No categories yet. System categories will appear when activated.",
+  emptyMessage:
+    "No categories yet. System categories will appear when activated.",
   emptyMessageFiltered: "No categories found matching your filters",
   searchPlaceholder: "Search categories...",
 
@@ -124,8 +125,8 @@ export const createCategoryListConfig = (
   },
 
   // Views
-  availableViews: ["grid", "list"],
-  defaultView: "grid",
+  availableViews: ["list"],
+  defaultView: "list",
 
   // Rendering Functions
   renderListItem: (item: Category, index: number, actions) => {
@@ -157,41 +158,6 @@ export const createCategoryListConfig = (
         <div className="flex-1" />
 
         {/* Status & Toggle */}
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground">
-            {active ? "Active" : "Inactive"}
-          </span>
-          <Switch
-            checked={active}
-            onCheckedChange={(checked) => onToggleActive(item, checked)}
-          />
-        </div>
-      </div>
-    );
-  },
-
-  renderGridCard: (item: Category, index: number, actions) => {
-    const active = item.isActive !== false;
-    const system = isSystemCategory(item);
-
-    return (
-      <div
-        key={item.id}
-        className="flex items-center gap-3 rounded-full border px-4 py-2 transition-colors"
-        style={{ opacity: active ? 1 : 0.6 }}
-      >
-        {/* Badge */}
-        <Badge
-          style={{
-            backgroundColor: item.color || CATEGORY_COLORS[0],
-            color: "white",
-          }}
-          className="text-xs px-2 py-1"
-        >
-          {item.name}
-        </Badge>
-
-        {/* Toggle */}
         <div className="flex items-center gap-2">
           <span className="text-xs text-muted-foreground">
             {active ? "Active" : "Inactive"}
@@ -260,9 +226,7 @@ export const createCategoryListConfig = (
 });
 
 // Export helper for adding missing system categories
-export function getDisplayCategories(
-  userCategories: Category[]
-): Category[] {
+export function getDisplayCategories(userCategories: Category[]): Category[] {
   const existingNames = new Set(
     userCategories.map((c) => normalizeName(c.name))
   );

@@ -6,7 +6,7 @@
 
 import type { ListConfig, FilterConfig } from "@/types/list-config";
 import type { IncomeSourceWithUser } from "@/types";
-import { DollarSign, Calendar, TrendingUp, CheckCircle } from "lucide-react";
+import { Calendar, TrendingUp, CheckCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import db from "@/lib/db";
 
@@ -68,7 +68,7 @@ export const createIncomeSourceListConfig = (): ListConfig<IncomeSourceWithUser>
       key: "totalAmount",
       label: "Total Income",
       type: "currency",
-      icon: DollarSign,
+      icon: "💰",
     },
     {
       key: "activeCount",

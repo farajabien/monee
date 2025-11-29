@@ -24,7 +24,7 @@ import { Input } from "@/components/ui/input";
 import { tx } from "@instantdb/react";
 import db from "@/lib/db";
 import { toast } from "sonner";
-import type { SavingsGoalWithUser } from "@/types";
+import type { SavingsGoalWithUser, SavingsGoalWithContributions } from "@/types";
 
 const addToSavingsSchema = z.object({
   amount: z.number().positive("Amount must be a positive number"),
@@ -33,7 +33,7 @@ const addToSavingsSchema = z.object({
 type AddToSavingsFormData = z.infer<typeof addToSavingsSchema>;
 
 interface AddToSavingsDialogProps {
-  goal: SavingsGoalWithUser;
+  goal: SavingsGoalWithUser | SavingsGoalWithContributions;
   children: React.ReactNode;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
@@ -45,6 +45,7 @@ export function AddToSavingsDialog({
   open,
   onOpenChange,
 }: AddToSavingsDialogProps) {
+  const user = db.useUser();
   const form = useForm<AddToSavingsFormData>({
     resolver: zodResolver(addToSavingsSchema),
     defaultValues: { amount: 0 },
@@ -81,7 +82,7 @@ export function AddToSavingsDialog({
             notes: `Contribution to ${goal.name}`,
             createdAt: now,
           })
-          .link({ user: goal.user?.id }),
+          .link({ user: user.id }),
       ]);
 
       toast.success(`Added KES ${amount.toLocaleString()} to ${goal.name}`);

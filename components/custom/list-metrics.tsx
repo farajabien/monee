@@ -53,10 +53,17 @@ export function ListMetrics({ metrics, values }: ListMetricsProps) {
 
   const getIcon = (iconProp?: LucideIcon | string) => {
     if (!iconProp) return null;
+
     if (typeof iconProp === "string") {
+      // Try to find a Lucide icon with this name
       const IconComponent = (Icons as any)[iconProp] as LucideIcon;
-      return IconComponent ? <IconComponent className="h-3 w-3 mr-1" /> : null;
+      if (!IconComponent) {
+        // Not a Lucide icon - render as emoji/text
+        return <span className="mr-1">{iconProp}</span>;
+      }
+      return <IconComponent className="h-3 w-3 mr-1" />;
     }
+
     const IconComponent = iconProp;
     return <IconComponent className="h-3 w-3 mr-1" />;
   };
@@ -64,7 +71,7 @@ export function ListMetrics({ metrics, values }: ListMetricsProps) {
   if (metrics.length === 0) return null;
 
   return (
-    <div className="flex flex-wrap gap-1.5">
+    <div className="flex flex-wrap gap-2">
       {metrics.map((metric) => {
         const value = values[metric.key];
         if (value === undefined) return null;
@@ -73,7 +80,7 @@ export function ListMetrics({ metrics, values }: ListMetricsProps) {
           <Badge
             key={metric.key}
             variant={metric.key === "totalSpent" || metric.key === "totalDebt" ? "secondary" : "outline"}
-            className={`text-xs px-2 py-0.5 ${metric.className || ""}`}
+            className={`whitespace-nowrap text-xs px-2 py-0.5 ${metric.className || ""}`}
           >
             {getIcon(metric.icon)}
             {metric.label && <span className="mr-1">{metric.label}:</span>}

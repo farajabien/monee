@@ -5,10 +5,9 @@
  */
 
 import type { ListConfig, FilterConfig } from "@/types/list-config";
-import { StandardGridCard } from "@/components/ui/standard-grid-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Users, DollarSign, Receipt, Settings } from "lucide-react";
+import { Users, Receipt, Settings } from "lucide-react";
 
 export type RecipientWithStats = {
   id: string;
@@ -87,13 +86,13 @@ export const createRecipientListConfig = (
       key: "totalSpent",
       label: "Total Spent",
       type: "currency",
-      icon: DollarSign,
+      icon: "💰",
     },
     {
       key: "avgPerRecipient",
       label: "Avg/Recipient",
       type: "currency",
-      icon: Receipt,
+      icon: "💰",
     },
   ],
 
@@ -109,7 +108,7 @@ export const createRecipientListConfig = (
   },
 
   // Views
-  availableViews: ["list", "grid"],
+  availableViews: ["list"],
   defaultView: "list",
 
   // Rendering Functions
@@ -160,7 +159,7 @@ export const createRecipientListConfig = (
           {/* Stats */}
           <div className="flex items-center gap-4 text-sm text-muted-foreground pt-1">
             <div className="flex items-center gap-1.5">
-              <DollarSign className="h-4 w-4" />
+              <span>💰</span>
               <span className="font-semibold text-foreground">
                 {formatAmount(item.totalAmount)}
               </span>
@@ -183,52 +182,6 @@ export const createRecipientListConfig = (
           Manage
         </Button>
       </div>
-    );
-  },
-
-  renderGridCard: (item: RecipientWithStats, index: number, actions) => {
-    const displayName = item.nickname || item.originalName;
-    const hasNickname = !!item.nickname;
-
-    return (
-      <StandardGridCard
-        key={item.id}
-        title={displayName}
-        subtitle={hasNickname ? item.originalName : undefined}
-        badge={
-          hasNickname
-            ? { label: "Nicknamed", variant: "outline" }
-            : undefined
-        }
-        statusBadge={
-          item.defaultCategory
-            ? { label: item.defaultCategory, variant: "secondary" }
-            : undefined
-        }
-        mainValue={formatAmount(item.totalAmount)}
-        metadata={[
-          {
-            label: "Expenses",
-            value: item.expenseCount.toString(),
-            icon: Receipt,
-          },
-          {
-            label: "Average",
-            value: formatAmount(item.totalAmount / item.expenseCount),
-          },
-        ]}
-        footerContent={
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onManage(item)}
-            className="w-full h-8 text-xs"
-          >
-            <Settings className="h-3 w-3 mr-1" />
-            Manage
-          </Button>
-        }
-      />
     );
   },
 

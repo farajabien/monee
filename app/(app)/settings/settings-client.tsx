@@ -30,7 +30,6 @@ import {
   User,
   Mail,
   Calendar,
-  DollarSign,
   TrendingUp,
   Download,
   Trash2,
@@ -331,7 +330,7 @@ export default function SettingsClient() {
   if (!profile) return <div className="p-4">No profile found</div>;
 
   return (
-    <div className="container mx-auto px-2 py-4 max-w-2xl pb-24">
+    <div className="mx-auto max-w-md p-3 sm:p-4 md:p-6 pb-20 md:pb-0">
       <h1 className="text-2xl font-bold mb-2">Settings</h1>
       <p className="text-muted-foreground mb-4">
         Manage your preferences and account settings
@@ -473,7 +472,7 @@ export default function SettingsClient() {
 
               <div className="space-y-2">
                 <Label htmlFor="monthlyBudget">
-                  <DollarSign className="h-4 w-4 inline mr-2" />
+                  <span className="inline mr-2">💰</span>
                   Monthly Budget (KES)
                 </Label>
                 <Input

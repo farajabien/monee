@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import db from "@/lib/db";
-import { UnifiedListContainer } from "@/components/ui/unified-list-container";
+import { UnifiedListContainer } from "@/components/custom/unified-list-container";
 import { RecipientManager } from "./recipient-manager";
 import {
   Sheet,
@@ -69,7 +69,9 @@ export function RecipientList() {
 
     // Merge saved recipients with expense recipients
     return Array.from(uniqueRecipientNames).map((originalName) => {
-      const saved = savedRecipients.find((r) => r.originalName === originalName);
+      const saved = savedRecipients.find(
+        (r) => r.originalName === originalName
+      );
       const totals = recipientTotals.get(originalName) || {
         totalAmount: 0,
         count: 0,

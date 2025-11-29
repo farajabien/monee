@@ -6,10 +6,9 @@
 
 import type { ListConfig } from "@/types/list-config";
 import type { SavingsGoalWithContributions } from "@/types";
-import { StandardGridCard } from "@/components/ui/standard-grid-card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Target, CalendarDays, TrendingUp, CheckCircle } from "lucide-react";
+import { CalendarDays, TrendingUp } from "lucide-react";
 import db from "@/lib/db";
 import { tx } from "@instantdb/react";
 import { toast } from "sonner";
@@ -66,13 +65,11 @@ export const createSavingsGoalListConfig = (
   metrics: [],
 
   // Views
-  availableViews: ["grid"],
-  defaultView: "grid",
+  availableViews: ["list"],
+  defaultView: "list",
 
   // Rendering Functions
-  renderListItem: () => null, // Not used for savings goals
-
-  renderGridCard: (
+  renderListItem: (
     item: SavingsGoalWithContributions,
     index: number,
     actions
@@ -82,95 +79,92 @@ export const createSavingsGoalListConfig = (
     const isCompleted =
       item.isCompleted || item.currentAmount >= item.targetAmount;
 
-    const footerContent = isCompleted ? (
-      <Badge variant="outline" className="text-green-600 w-full justify-center">
-        Goal Achieved! 🎉
-      </Badge>
-    ) : (
-      <div className="flex gap-2 w-full">
-        <Button
-          variant="default"
-          size="sm"
-          className="flex-1"
-          onClick={() => onAddMoney(item)}
-        >
-          Add Money
-        </Button>
-        {progress >= 100 && !item.isCompleted && (
-          <Button
-            variant="outline"
-            size="sm"
-            className="flex-1"
-            onClick={() => onMarkComplete(item.id)}
-          >
-            Mark Complete
-          </Button>
-        )}
-      </div>
-    );
-
     return (
-      <StandardGridCard
-        key={item.id}
-        title={item.name}
-        emoji={item.emoji || "💰"}
-        statusBadge={
-          isCompleted
-            ? {
-                label: "Completed!",
-                variant: "default",
-                className: "bg-green-600",
-              }
-            : undefined
-        }
-        mainValue={
-          <div className="text-3xl font-bold tracking-tight">
-            {formatCurrency(item.currentAmount)}
+      <div className="flex items-center justify-between p-4 border rounded-lg">
+        <div className="flex items-center gap-3 flex-1">
+          <Badge variant="outline" className="text-xs">
+            #{index + 1}
+          </Badge>
+
+          <div className="flex-1 space-y-1">
+            {/* Line 1: Name + inline badges */}
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="font-semibold">
+                {item.emoji || "💰"} {item.name}
+              </span>
+              <Badge variant="secondary">
+                {formatCurrency(item.currentAmount)}
+              </Badge>
+              <Badge variant="outline">
+                Target: {formatCurrency(item.targetAmount)}
+              </Badge>
+              <Badge variant="outline">{Math.round(progress)}% saved</Badge>
+              {isCompleted && (
+                <Badge className="bg-green-500">✓ Goal Achieved!</Badge>
+              )}
+            </div>
+
+            {/* Line 2: Metadata */}
+            <div className="flex items-center gap-3 text-sm text-muted-foreground">
+              {item.deadline && (
+                <>
+                  <div className="flex items-center gap-1">
+                    <CalendarDays className="h-3 w-3" />
+                    <span>{formatDate(item.deadline)}</span>
+                  </div>
+                  <span>•</span>
+                </>
+              )}
+              {!isCompleted && (
+                <>
+                  <span>{formatCurrency(remaining)} to go</span>
+                  <span>•</span>
+                </>
+              )}
+              {item.contributions && item.contributions.length > 0 && (
+                <div className="flex items-center gap-1">
+                  <TrendingUp className="h-3 w-3" />
+                  <span>
+                    {item.contributions.length} contribution
+                    {item.contributions.length !== 1 ? "s" : ""}
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
-        }
-        subtitle={`${Math.round(progress)}% complete`}
-        description={
-          !isCompleted ? `${formatCurrency(remaining)} to go` : undefined
-        }
-        progress={{
-          value: progress,
-          showPercentage: false,
-        }}
-        metadata={[
-          {
-            label: "Target",
-            value: formatCurrency(item.targetAmount),
-            icon: Target,
-          },
-          ...(item.deadline
-            ? [
-                {
-                  label: "Due",
-                  value: formatDate(item.deadline),
-                  icon: CalendarDays,
-                },
-              ]
-            : []),
-          ...(item.contributions && item.contributions.length > 0
-            ? [
-                {
-                  label: "Contributions",
-                  value: `${item.contributions.length} contribution${
-                    item.contributions.length !== 1 ? "s" : ""
-                  }`,
-                  icon: TrendingUp,
-                },
-              ]
-            : []),
-        ]}
-        onDelete={actions.onDelete}
-        footerContent={footerContent}
-        className={
-          isCompleted
-            ? "border-green-500 bg-green-50/50 dark:bg-green-950/20"
-            : ""
-        }
-      />
+        </div>
+
+        {/* Action buttons */}
+        <div className="flex items-center gap-2">
+          {!isCompleted && (
+            <Button
+              variant="default"
+              size="sm"
+              onClick={() => onAddMoney(item)}
+            >
+              Add Money
+            </Button>
+          )}
+          {progress >= 100 && !item.isCompleted && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onMarkComplete(item.id)}
+            >
+              Mark Complete
+            </Button>
+          )}
+          {actions.onDelete && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={actions.onDelete}
+            >
+              Delete
+            </Button>
+          )}
+        </div>
+      </div>
     );
   },
 

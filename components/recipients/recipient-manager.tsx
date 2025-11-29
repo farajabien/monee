@@ -22,7 +22,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Textarea } from "@/components/ui/textarea";
-import { Tag, Trash2, User, Plus } from "lucide-react";
+import { Tag, Trash2, User, Plus, Check } from "lucide-react";
 import { AddCategoryDialog } from "@/components/categories/add-category-dialog";
 
 interface RecipientManagerProps {
@@ -173,62 +173,73 @@ export function RecipientManager({
           variant="ghost"
           size="sm"
           onClick={handleOpenSheet}
-          className="h-6 px-2 hover:bg-accent/50 transition-colors"
+          className="h-8 w-8 p-0 hover:bg-accent/80 transition-all duration-150 active:scale-95"
           aria-label={`Manage recipient ${recipientName}`}
         >
-          <Tag className="h-3 w-3" />
+          <Tag className="h-4 w-4 text-muted-foreground" />
         </Button>
 
         <Sheet open={showSheet} onOpenChange={setShowSheet}>
           <SheetContent
             side="bottom"
-            className="pb-safe flex flex-col max-h-[85vh]"
+            className="pb-safe flex flex-col max-h-[90vh] w-full max-w-full rounded-t-xl border-t"
           >
-            <SheetHeader className="shrink-0">
-              <SheetTitle className="flex items-center gap-2 text-lg">
-                <User className="h-5 w-5 text-primary" />
-                Manage Recipient
-              </SheetTitle>
-              <SheetDescription className="text-sm">
-                Add a nickname and default category for {recipientName}
-              </SheetDescription>
+            <SheetHeader className="shrink-0 pb-4 border-b">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                  <User className="h-5 w-5 text-primary" />
+                </div>
+                <div className="flex-1 text-left">
+                  <SheetTitle className="text-lg font-semibold">
+                    Manage Recipient
+                  </SheetTitle>
+                  <SheetDescription className="text-sm text-muted-foreground">
+                    Customize {recipientName}
+                  </SheetDescription>
+                </div>
+              </div>
             </SheetHeader>
 
-            <div className="flex-1 overflow-y-auto space-y-4 py-4">
+            <div className="flex-1 overflow-y-auto space-y-6 py-6 px-1">
+              {/* Original Name - Read Only */}
               <div className="space-y-2">
-                <Label className="text-sm font-medium">Original Name</Label>
-                <Input
-                  value={recipientName}
-                  disabled
-                  className="bg-muted/50 cursor-not-allowed"
-                />
+                <Label className="text-sm font-semibold text-foreground">
+                  Original Name
+                </Label>
+                <div className="px-4 py-3 rounded-lg bg-muted/50 border border-border/50">
+                  <p className="text-sm text-muted-foreground">
+                    {recipientName}
+                  </p>
+                </div>
               </div>
 
+              {/* Nickname Input */}
               <div className="space-y-2">
-                <Label htmlFor="nickname" className="text-sm font-medium">
-                  Nickname{" "}
-                  <span className="text-muted-foreground text-xs">
-                    (optional)
-                  </span>
+                <Label
+                  htmlFor="nickname"
+                  className="text-sm font-semibold text-foreground"
+                >
+                  Nickname
                 </Label>
                 <Input
                   id="nickname"
                   placeholder="e.g., Eggs Guy, Rice Plug"
                   value={nickname}
                   onChange={(e) => setNickname(e.target.value)}
-                  className="transition-all focus:ring-2 focus:ring-primary/20"
+                  className="h-12 text-base transition-all duration-150 focus:ring-2 focus:ring-primary/20 focus:border-primary"
                 />
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-muted-foreground pl-1">
                   Give this recipient a memorable name
                 </p>
               </div>
 
+              {/* Category Selection */}
               <div className="space-y-2">
-                <Label htmlFor="category" className="text-sm font-medium">
-                  Default Category{" "}
-                  <span className="text-muted-foreground text-xs">
-                    (optional)
-                  </span>
+                <Label
+                  htmlFor="category"
+                  className="text-sm font-semibold text-foreground"
+                >
+                  Default Category
                 </Label>
                 <div className="flex gap-2">
                   <Select
@@ -239,12 +250,14 @@ export function RecipientManager({
                   >
                     <SelectTrigger
                       id="category"
-                      className="flex-1 transition-all focus:ring-2 focus:ring-primary/20"
+                      className="flex-1 h-12 text-base transition-all duration-150 focus:ring-2 focus:ring-primary/20 focus:border-primary"
                     >
-                      <SelectValue placeholder="Select default category" />
+                      <SelectValue placeholder="Select category" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="none">None</SelectItem>
+                      <SelectItem value="none">
+                        <span className="text-muted-foreground">None</span>
+                      </SelectItem>
                       {categories.map((cat) => (
                         <SelectItem key={cat.id} value={cat.name}>
                           {cat.name}
@@ -257,61 +270,71 @@ export function RecipientManager({
                     variant="outline"
                     size="icon"
                     onClick={() => setShowAddCategoryDialog(true)}
-                    className="shrink-0 hover:bg-primary/10 hover:text-primary hover:border-primary transition-colors"
+                    className="h-12 w-12 shrink-0 hover:bg-primary/10 hover:text-primary hover:border-primary transition-all duration-150 active:scale-95"
                     aria-label="Add new category"
                   >
-                    <Plus className="h-4 w-4" />
+                    <Plus className="h-5 w-5" />
                   </Button>
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Auto-assign expenses from this recipient to a category
+                <p className="text-xs text-muted-foreground pl-1">
+                  Auto-assign expenses to this category
                 </p>
               </div>
 
+              {/* Notes Textarea */}
               <div className="space-y-2">
-                <Label htmlFor="notes" className="text-sm font-medium">
-                  Notes{" "}
-                  <span className="text-muted-foreground text-xs">
-                    (optional)
-                  </span>
+                <Label
+                  htmlFor="notes"
+                  className="text-sm font-semibold text-foreground"
+                >
+                  Notes
                 </Label>
                 <Textarea
                   id="notes"
                   placeholder="Add notes about this recipient..."
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  rows={3}
-                  className="resize-none transition-all focus:ring-2 focus:ring-primary/20"
+                  rows={4}
+                  className="resize-none text-base transition-all duration-150 focus:ring-2 focus:ring-primary/20 focus:border-primary"
                 />
               </div>
             </div>
 
-            <SheetFooter className="shrink-0 flex flex-col sm:flex-row gap-2 pt-4 border-t">
+            <SheetFooter className="shrink-0 flex flex-col gap-3 pt-4 border-t">
               {existingRecipient && (
                 <Button
-                  variant="destructive"
-                  size="sm"
+                  variant="outline"
+                  size="lg"
                   onClick={handleDelete}
-                  className="sm:mr-auto hover:bg-destructive/90 transition-colors"
+                  className="w-full h-12 text-destructive border-destructive/30 hover:bg-destructive/10 hover:border-destructive transition-all duration-150 active:scale-98"
                 >
                   <Trash2 className="h-4 w-4 mr-2" />
-                  Delete
+                  Delete Recipient
                 </Button>
               )}
-              <div className="flex gap-2 w-full sm:w-auto sm:ml-auto">
+              <div className="flex gap-3 w-full">
                 <Button
                   variant="outline"
+                  size="lg"
                   onClick={() => setShowSheet(false)}
-                  className="flex-1 sm:flex-none hover:bg-accent transition-colors"
+                  className="flex-1 h-12 hover:bg-accent transition-all duration-150 active:scale-98"
                 >
                   Cancel
                 </Button>
                 <Button
                   onClick={handleSave}
                   disabled={isSaving}
-                  className="flex-1 sm:flex-none bg-primary hover:bg-primary/90 transition-colors disabled:opacity-50"
+                  size="lg"
+                  className="flex-1 h-12 bg-primary hover:bg-primary/90 transition-all duration-150 active:scale-98 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isSaving ? "Saving..." : "Save"}
+                  {isSaving ? (
+                    "Saving..."
+                  ) : (
+                    <>
+                      <Check className="h-4 w-4 mr-2" />
+                      Save
+                    </>
+                  )}
                 </Button>
               </div>
             </SheetFooter>
@@ -327,39 +350,46 @@ export function RecipientManager({
     );
   }
 
-  // Non-compact mode: Full form view
+  // Non-compact mode: Full form view with improved spacing and touch targets
   return (
     <div className="space-y-6">
+      {/* Original Name - Read Only */}
       <div className="space-y-2">
-        <Label className="text-sm font-medium">Original Name</Label>
-        <Input
-          value={recipientName}
-          disabled
-          className="bg-muted/50 cursor-not-allowed"
-        />
+        <Label className="text-sm font-semibold text-foreground">
+          Original Name
+        </Label>
+        <div className="px-4 py-3 rounded-lg bg-muted/50 border border-border/50">
+          <p className="text-sm text-muted-foreground">{recipientName}</p>
+        </div>
       </div>
 
+      {/* Nickname Input */}
       <div className="space-y-2">
-        <Label htmlFor="nickname-full" className="text-sm font-medium">
-          Nickname{" "}
-          <span className="text-muted-foreground text-xs">(optional)</span>
+        <Label
+          htmlFor="nickname-full"
+          className="text-sm font-semibold text-foreground"
+        >
+          Nickname
         </Label>
         <Input
           id="nickname-full"
           placeholder="e.g., Eggs Guy, Rice Plug"
           value={nickname}
           onChange={(e) => setNickname(e.target.value)}
-          className="transition-all focus:ring-2 focus:ring-primary/20"
+          className="h-12 text-base transition-all duration-150 focus:ring-2 focus:ring-primary/20 focus:border-primary"
         />
-        <p className="text-xs text-muted-foreground">
+        <p className="text-xs text-muted-foreground pl-1">
           Give this recipient a memorable name
         </p>
       </div>
 
+      {/* Category Selection */}
       <div className="space-y-2">
-        <Label htmlFor="category-full" className="text-sm font-medium">
-          Default Category{" "}
-          <span className="text-muted-foreground text-xs">(optional)</span>
+        <Label
+          htmlFor="category-full"
+          className="text-sm font-semibold text-foreground"
+        >
+          Default Category
         </Label>
         <div className="flex gap-2">
           <Select
@@ -370,12 +400,14 @@ export function RecipientManager({
           >
             <SelectTrigger
               id="category-full"
-              className="flex-1 transition-all focus:ring-2 focus:ring-primary/20"
+              className="flex-1 h-12 text-base transition-all duration-150 focus:ring-2 focus:ring-primary/20 focus:border-primary"
             >
-              <SelectValue placeholder="Select default category" />
+              <SelectValue placeholder="Select category" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="none">None</SelectItem>
+              <SelectItem value="none">
+                <span className="text-muted-foreground">None</span>
+              </SelectItem>
               {categories.map((cat) => (
                 <SelectItem key={cat.id} value={cat.name}>
                   {cat.name}
@@ -388,50 +420,62 @@ export function RecipientManager({
             variant="outline"
             size="icon"
             onClick={() => setShowAddCategoryDialog(true)}
-            className="shrink-0 hover:bg-primary/10 hover:text-primary hover:border-primary transition-colors"
+            className="h-12 w-12 shrink-0 hover:bg-primary/10 hover:text-primary hover:border-primary transition-all duration-150 active:scale-95"
             aria-label="Add new category"
           >
-            <Plus className="h-4 w-4" />
+            <Plus className="h-5 w-5" />
           </Button>
         </div>
-        <p className="text-xs text-muted-foreground">
-          Auto-assign expenses from this recipient to a category
+        <p className="text-xs text-muted-foreground pl-1">
+          Auto-assign expenses to this category
         </p>
       </div>
 
+      {/* Notes Textarea */}
       <div className="space-y-2">
-        <Label htmlFor="notes-full" className="text-sm font-medium">
-          Notes{" "}
-          <span className="text-muted-foreground text-xs">(optional)</span>
+        <Label
+          htmlFor="notes-full"
+          className="text-sm font-semibold text-foreground"
+        >
+          Notes
         </Label>
         <Textarea
           id="notes-full"
           placeholder="Add notes about this recipient..."
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
-          rows={3}
-          className="resize-none transition-all focus:ring-2 focus:ring-primary/20"
+          rows={4}
+          className="resize-none text-base transition-all duration-150 focus:ring-2 focus:ring-primary/20 focus:border-primary"
         />
       </div>
 
-      <div className="flex gap-2 pt-4">
+      {/* Action Buttons */}
+      <div className="flex flex-col gap-3 pt-4">
         {existingRecipient && (
           <Button
-            variant="destructive"
-            size="sm"
+            variant="outline"
+            size="lg"
             onClick={handleDelete}
-            className="hover:bg-destructive/90 transition-colors"
+            className="w-full h-12 text-destructive border-destructive/30 hover:bg-destructive/10 hover:border-destructive transition-all duration-150 active:scale-98"
           >
             <Trash2 className="h-4 w-4 mr-2" />
-            Delete
+            Delete Recipient
           </Button>
         )}
         <Button
           onClick={handleSave}
           disabled={isSaving}
-          className="ml-auto bg-primary hover:bg-primary/90 transition-colors disabled:opacity-50"
+          size="lg"
+          className="w-full h-12 bg-primary hover:bg-primary/90 transition-all duration-150 active:scale-98 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {isSaving ? "Saving..." : "Save"}
+          {isSaving ? (
+            "Saving..."
+          ) : (
+            <>
+              <Check className="h-4 w-4 mr-2" />
+              Save Changes
+            </>
+          )}
         </Button>
       </div>
 

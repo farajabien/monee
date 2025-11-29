@@ -1,0 +1,520 @@
+"use client";
+
+import { useState } from "react";
+import { id } from "@instantdb/react";
+import db from "@/lib/db";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { AddCategoryDialog } from "@/components/categories/add-category-dialog";
+import { Plus } from "lucide-react";
+import { toast } from "sonner";
+import type { Category, Recipient } from "@/types";
+
+interface UnifiedAddModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  defaultTab?: "expense" | "income" | "debt" | "savings" | "budget";
+}
+
+export function UnifiedAddModal({
+  open,
+  onOpenChange,
+  defaultTab = "expense",
+}: UnifiedAddModalProps) {
+  const user = db.useUser();
+  const [activeTab, setActiveTab] = useState(defaultTab);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Common fields
+  const [amount, setAmount] = useState("");
+  const [recipient, setRecipient] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
+  const [showAddCategoryDialog, setShowAddCategoryDialog] = useState(false);
+
+  // Entity-specific fields
+  const [sourceName, setSourceName] = useState(""); // Income
+  const [frequency, setFrequency] = useState("monthly"); // Income
+  const [debtName, setDebtName] = useState(""); // Debt
+  const [interestRate, setInterestRate] = useState(""); // Debt
+  const [monthlyPayment, setMonthlyPayment] = useState(""); // Debt
+  const [savingsName, setSavingsName] = useState(""); // Savings
+  const [targetAmount, setTargetAmount] = useState(""); // Savings
+  const [deadline, setDeadline] = useState(""); // Savings
+
+  // Fetch data
+  const { data } = db.useQuery({
+    categories: {
+      $: {
+        where: { "user.id": user.id, isActive: true },
+        order: { name: "asc" },
+      },
+    },
+    recipients: {
+      $: {
+        where: { "user.id": user.id },
+      },
+    },
+    expenses: {
+      $: {
+        where: { "user.id": user.id },
+        limit: 100,
+      },
+    },
+  });
+
+  const categories: Category[] = data?.categories || [];
+  const savedRecipients: Recipient[] = data?.recipients || [];
+  const expenses = data?.expenses || [];
+
+  // Get unique recipients from expenses
+  const uniqueRecipients = Array.from(
+    new Set(expenses.map((e) => e.recipient).filter((r) => r && r.trim()))
+  );
+
+  // Get display name helper
+  const getDisplayName = (originalName: string) => {
+    const r = savedRecipients.find((sr) => sr.originalName === originalName);
+    return r?.nickname || originalName;
+  };
+
+  const resetForm = () => {
+    setAmount("");
+    setRecipient("");
+    setSelectedCategory("");
+    setDate(new Date().toISOString().split("T")[0]);
+    setSourceName("");
+    setFrequency("monthly");
+    setDebtName("");
+    setInterestRate("");
+    setMonthlyPayment("");
+    setSavingsName("");
+    setTargetAmount("");
+    setDeadline("");
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!amount || parseFloat(amount) <= 0) {
+      toast.error("Please enter a valid amount");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const now = Date.now();
+      const parsedAmount = parseFloat(amount);
+
+      switch (activeTab) {
+        case "expense":
+          if (!recipient) {
+            toast.error("Please select a recipient");
+            return;
+          }
+          await db.transact(
+            db.tx.expenses[id()]
+              .update({
+                amount: parsedAmount,
+                recipient,
+                date: new Date(date).getTime(),
+                category: selectedCategory || "Uncategorized",
+                rawMessage: `Manual entry: Ksh${amount} to ${recipient}`,
+                parsedData: {
+                  amount: parsedAmount,
+                  recipient,
+                  timestamp: new Date(date).getTime(),
+                  type: "manual",
+                },
+                createdAt: now,
+              })
+              .link({ user: user.id })
+          );
+          toast.success("Expense added successfully");
+          break;
+
+        case "income":
+          if (!sourceName) {
+            toast.error("Please enter a source name");
+            return;
+          }
+          await db.transact(
+            db.tx.income_sources[id()]
+              .update({
+                name: sourceName,
+                amount: parsedAmount,
+                isActive: true,
+                createdAt: now,
+              })
+              .link({ user: user.id })
+          );
+          toast.success("Income source added successfully");
+          break;
+
+        case "debt":
+          if (!debtName) {
+            toast.error("Please enter a debt name");
+            return;
+          }
+          await db.transact(
+            db.tx.debts[id()]
+              .update({
+                name: debtName,
+                totalAmount: parsedAmount,
+                currentBalance: parsedAmount,
+                monthlyPaymentAmount: monthlyPayment
+                  ? parseFloat(monthlyPayment)
+                  : parsedAmount * 0.1,
+                interestRate: interestRate
+                  ? parseFloat(interestRate)
+                  : undefined,
+                paymentDueDay: 1,
+                createdAt: now,
+              })
+              .link({ user: user.id })
+          );
+          toast.success("Debt added successfully");
+          break;
+
+        case "savings":
+          if (!savingsName) {
+            toast.error("Please enter a goal name");
+            return;
+          }
+          if (!targetAmount) {
+            toast.error("Please enter a target amount");
+            return;
+          }
+          await db.transact(
+            db.tx.savings_goals[id()]
+              .update({
+                name: savingsName,
+                targetAmount: parseFloat(targetAmount),
+                currentAmount: parsedAmount,
+                deadline: deadline ? new Date(deadline).getTime() : undefined,
+                isCompleted: false,
+                createdAt: now,
+              })
+              .link({ user: user.id })
+          );
+          toast.success("Savings goal added successfully");
+          break;
+
+        case "budget":
+          if (!selectedCategory) {
+            toast.error("Please select a category");
+            return;
+          }
+          const currentDate = new Date();
+          await db.transact(
+            db.tx.budgets[id()]
+              .update({
+                amount: parsedAmount,
+                month: currentDate.getMonth() + 1,
+                year: currentDate.getFullYear(),
+              })
+              .link({
+                user: user.id,
+                category: categories.find((c) => c.name === selectedCategory)
+                  ?.id,
+              })
+          );
+          toast.success("Budget added successfully");
+          break;
+      }
+
+      resetForm();
+      onOpenChange(false);
+    } catch (error) {
+      console.error("Error adding:", error);
+      toast.error("Failed to add. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="w-full max-w-md max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Add New</DialogTitle>
+          </DialogHeader>
+
+          <Tabs
+            value={activeTab}
+            onValueChange={(v) =>
+              setActiveTab(
+                v as "expense" | "income" | "debt" | "savings" | "budget"
+              )
+            }
+          >
+            <TabsList className="grid w-full grid-cols-5">
+              <TabsTrigger value="expense">Expense</TabsTrigger>
+              <TabsTrigger value="income">Income</TabsTrigger>
+              <TabsTrigger value="debt">Debt</TabsTrigger>
+              <TabsTrigger value="savings">Savings</TabsTrigger>
+              <TabsTrigger value="budget">Budget</TabsTrigger>
+            </TabsList>
+
+            <form onSubmit={handleSubmit} className="space-y-4 pt-4">
+              {/* Common: Amount */}
+              <div className="space-y-2">
+                <Label htmlFor="amount">Amount (KES)</Label>
+                <Input
+                  id="amount"
+                  type="number"
+                  placeholder="500"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  required
+                />
+              </div>
+
+              {/* EXPENSE TAB */}
+              <TabsContent value="expense" className="space-y-4 mt-0">
+                {/* Recipient Dropdown */}
+                <div className="space-y-2">
+                  <Label htmlFor="recipient">Recipient</Label>
+                  <Select value={recipient} onValueChange={setRecipient}>
+                    <SelectTrigger id="recipient">
+                      <SelectValue placeholder="e.g., Naivas, Uber" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {uniqueRecipients.map((r) => (
+                        <SelectItem key={r} value={r}>
+                          {getDisplayName(r)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Category */}
+                <div className="space-y-2">
+                  <Label htmlFor="category">Category</Label>
+                  <div className="flex gap-2">
+                    <Select
+                      value={selectedCategory}
+                      onValueChange={setSelectedCategory}
+                    >
+                      <SelectTrigger id="category" className="flex-1">
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories.map((cat) => (
+                          <SelectItem key={cat.id} value={cat.name}>
+                            {cat.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={() => setShowAddCategoryDialog(true)}
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Date */}
+                <div className="space-y-2">
+                  <Label htmlFor="date">Date</Label>
+                  <Input
+                    id="date"
+                    type="date"
+                    value={date}
+                    onChange={(e) => setDate(e.target.value)}
+                  />
+                </div>
+              </TabsContent>
+
+              {/* INCOME TAB */}
+              <TabsContent value="income" className="space-y-4 mt-0">
+                <div className="space-y-2">
+                  <Label htmlFor="source-name">Source Name</Label>
+                  <Input
+                    id="source-name"
+                    placeholder="e.g., Salary, Freelance"
+                    value={sourceName}
+                    onChange={(e) => setSourceName(e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="frequency">Frequency</Label>
+                  <Select value={frequency} onValueChange={setFrequency}>
+                    <SelectTrigger id="frequency">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="weekly">Weekly</SelectItem>
+                      <SelectItem value="biweekly">Bi-weekly</SelectItem>
+                      <SelectItem value="monthly">Monthly</SelectItem>
+                      <SelectItem value="yearly">Yearly</SelectItem>
+                      <SelectItem value="one-time">One-time</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </TabsContent>
+
+              {/* DEBT TAB */}
+              <TabsContent value="debt" className="space-y-4 mt-0">
+                <div className="space-y-2">
+                  <Label htmlFor="debt-name">Debt Name</Label>
+                  <Input
+                    id="debt-name"
+                    placeholder="e.g., Student Loan, Credit Card"
+                    value={debtName}
+                    onChange={(e) => setDebtName(e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="interest-rate">Interest Rate (%)</Label>
+                  <Input
+                    id="interest-rate"
+                    type="number"
+                    step="0.1"
+                    placeholder="5.5"
+                    value={interestRate}
+                    onChange={(e) => setInterestRate(e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="monthly-payment">
+                    Monthly Payment (Optional)
+                  </Label>
+                  <Input
+                    id="monthly-payment"
+                    type="number"
+                    placeholder="Leave blank for 10% of amount"
+                    value={monthlyPayment}
+                    onChange={(e) => setMonthlyPayment(e.target.value)}
+                  />
+                </div>
+              </TabsContent>
+
+              {/* SAVINGS TAB */}
+              <TabsContent value="savings" className="space-y-4 mt-0">
+                <div className="space-y-2">
+                  <Label htmlFor="savings-name">Goal Name</Label>
+                  <Input
+                    id="savings-name"
+                    placeholder="e.g., Emergency Fund, Vacation"
+                    value={savingsName}
+                    onChange={(e) => setSavingsName(e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="target-amount">Target Amount (KES)</Label>
+                  <Input
+                    id="target-amount"
+                    type="number"
+                    placeholder="100000"
+                    value={targetAmount}
+                    onChange={(e) => setTargetAmount(e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="deadline">Deadline (Optional)</Label>
+                  <Input
+                    id="deadline"
+                    type="date"
+                    value={deadline}
+                    onChange={(e) => setDeadline(e.target.value)}
+                  />
+                </div>
+
+                <p className="text-xs text-muted-foreground">
+                  Amount will be set as initial contribution
+                </p>
+              </TabsContent>
+
+              {/* BUDGET TAB */}
+              <TabsContent value="budget" className="space-y-4 mt-0">
+                <div className="space-y-2">
+                  <Label htmlFor="budget-category">Category</Label>
+                  <div className="flex gap-2">
+                    <Select
+                      value={selectedCategory}
+                      onValueChange={setSelectedCategory}
+                    >
+                      <SelectTrigger id="budget-category" className="flex-1">
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories.map((cat) => (
+                          <SelectItem key={cat.id} value={cat.name}>
+                            {cat.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={() => setShowAddCategoryDialog(true)}
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                <p className="text-xs text-muted-foreground">
+                  Budget will be created for{" "}
+                  {new Date().toLocaleString("default", {
+                    month: "long",
+                    year: "numeric",
+                  })}
+                </p>
+              </TabsContent>
+
+              {/* Submit Button */}
+              <Button type="submit" disabled={isSubmitting} className="w-full">
+                {isSubmitting
+                  ? "Adding..."
+                  : `Add ${
+                      activeTab.charAt(0).toUpperCase() + activeTab.slice(1)
+                    }`}
+              </Button>
+            </form>
+          </Tabs>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Category Dialog */}
+      <AddCategoryDialog
+        open={showAddCategoryDialog}
+        onOpenChange={setShowAddCategoryDialog}
+        onCategoryCreated={(categoryId, categoryName) => {
+          setSelectedCategory(categoryName);
+          setShowAddCategoryDialog(false);
+        }}
+      />
+    </>
+  );
+}

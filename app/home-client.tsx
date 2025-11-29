@@ -1,42 +1,29 @@
 "use client";
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import db from "@/lib/db";
+import { useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import db from "@/lib/db";
 
 import { BudgetList } from "@/components/budgets/budget-list";
 import CategoryList from "@/components/categories/category-list";
 import { DashboardOverview } from "@/components/dashboard/dashboard-overview";
 import { DebtList } from "@/components/debts/debt-list";
-import { DebtProgress } from "@/components/debts/debt-progress";
 import AddExpenseForm from "@/components/expenses/add-expense-form";
 import ExpenseList from "@/components/expenses/expense-list";
 import { IncomeSourceList } from "@/components/income/income-source-list";
-import { YearInReview } from "@/components/insights/year-in-review";
 import { PWABottomNav } from "@/components/pwa/pwa-bottom-nav";
 import { RecipientList } from "@/components/recipients/recipient-list";
 import SavingsPage from "@/components/savings/savings-page";
-
-// Helper component for consistent tab content styling
-const TabContentShell = ({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) => (
-  <div className="space-y-4">
-    <h1 className="text-3xl font-bold tracking-tight">{title}</h1>
-    {children}
-  </div>
-);
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { UnifiedAddModal } from "@/components/quick-add/unified-add-modal";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
 
 export default function HomeClient() {
   const searchParams = useSearchParams();
   const tabFromUrl = searchParams.get("tab") || "overview";
-  const [overviewTab, setOverviewTab] = useState("summary");
   const activeTab = tabFromUrl;
+  const [showAddModal, setShowAddModal] = useState(false);
 
   const { isLoading, error, data } = db.useQuery({ profiles: {} });
 
@@ -53,16 +40,7 @@ export default function HomeClient() {
           <DashboardOverview />
         </div>
       )}
-      {activeTab === "year-review" && (
-        <TabContentShell title="Year in Review">
-          <YearInReview />
-        </TabContentShell>
-      )}
-      {activeTab === "income" && (
-        <TabContentShell title="Income">
-          <IncomeSourceList />
-        </TabContentShell>
-      )}
+      {activeTab === "income" && <IncomeSourceList />}
       {activeTab === "expenses" && (
         <Tabs defaultValue="list" className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-2">
@@ -78,21 +56,40 @@ export default function HomeClient() {
         </Tabs>
       )}
       {activeTab === "debts" && <DebtList />}
-      {activeTab === "savings" && (
-        <TabContentShell title="Savings">
-          <SavingsPage profileId={profile.id} />
-        </TabContentShell>
+      {activeTab === "savings" && <SavingsPage />}
+      {activeTab === "recipients" && <RecipientList />}
+      {activeTab === "categories" && <CategoryList />}
+
+      {/* Floating Add Button - only show on list tabs */}
+      {activeTab !== "overview" && (
+        <Button
+          size="lg"
+          className="fixed bottom-20 right-4 md:right-6 h-14 w-14 rounded-full shadow-lg z-40"
+          onClick={() => setShowAddModal(true)}
+        >
+          <Plus className="h-6 w-6" />
+        </Button>
       )}
-      {activeTab === "recipients" && (
-        <TabContentShell title="Recipients">
-          <RecipientList />
-        </TabContentShell>
-      )}
-      {activeTab === "categories" && (
-        <TabContentShell title="Categories">
-          <CategoryList />
-        </TabContentShell>
-      )}
+
+      {/* Unified Add Modal */}
+      <UnifiedAddModal
+        open={showAddModal}
+        onOpenChange={setShowAddModal}
+        defaultTab={
+          activeTab === "expenses"
+            ? "expense"
+            : activeTab === "income"
+            ? "income"
+            : activeTab === "debts"
+            ? "debt"
+            : activeTab === "savings"
+            ? "savings"
+            : activeTab === "budgets"
+            ? "budget"
+            : "expense"
+        }
+      />
+
       <PWABottomNav />
     </div>
   );

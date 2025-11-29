@@ -11,7 +11,7 @@ import { useState, useMemo } from "react";
 import type { ListConfig, FilterState } from "@/types/list-config";
 import { useListData } from "@/hooks/use-list-data";
 import { useListActions } from "@/hooks/use-list-actions";
-import { ListMetrics } from "@/components/ui/list-metrics";
+import { ListMetrics } from "@/components/custom/list-metrics";
 import { DataViewControls } from "@/components/ui/data-view-controls";
 import { Button } from "@/components/ui/button";
 import {
@@ -88,7 +88,6 @@ export function UnifiedListContainer<T>({
     actions: config.actions,
     itemName: config.title.toLowerCase(),
   });
-
 
   // Handle filter changes
   const handleFilterChange = (
@@ -213,7 +212,6 @@ export function UnifiedListContainer<T>({
             )}
           </div>
         )}
-
       </div>
 
       {/* Edit Dialog */}

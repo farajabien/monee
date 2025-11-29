@@ -1,16 +1,18 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { tx } from "@instantdb/react";
+import { useState, useMemo, useCallback } from "react";
+import { tx, User } from "@instantdb/react";
 import { AddToSavingsDialog } from "./add-to-savings-dialog";
 import db from "@/lib/db";
-import { UnifiedListContainer } from "@/components/ui/unified-list-container";
+import { UnifiedListContainer } from "@/components/custom/unified-list-container";
 import { toast } from "sonner";
 import { createSavingsGoalListConfig } from "./savings-goal-list-config";
+import { SavingsGoal, SavingsGoalWithContributions } from "@/types";
 
 export function SavingsGoalList() {
   const user = db.useUser();
-  const [selectedGoal, setSelectedGoal] = useState<any | null>(null);
+  const [selectedGoal, setSelectedGoal] =
+    useState<SavingsGoalWithContributions | null>(null);
 
   const { isLoading, error, data } = db.useQuery({
     savings_goals: {
@@ -23,41 +25,45 @@ export function SavingsGoalList() {
         },
       },
       contributions: {},
+      user: {},
     },
   });
 
   const savingsGoals = data?.savings_goals || [];
 
-  const handleAddMoney = (goal: any) => {
+  const handleAddMoney = useCallback((goal: SavingsGoalWithContributions) => {
     setSelectedGoal(goal);
-  };
+  }, []);
 
-  const handleMarkComplete = (goalId: string) => {
-    const goal = savingsGoals.find((g: any) => g.id === goalId);
-    if (!goal) return;
+  const handleMarkComplete = useCallback(
+    (goalId: string) => {
+      const goal = savingsGoals.find((g: SavingsGoal) => g.id === goalId);
+      if (!goal) return;
 
-    if (goal.currentAmount < goal.targetAmount) {
-      toast.error("Goal not yet reached. Keep saving!");
-      return;
-    }
+      if (goal.currentAmount < goal.targetAmount) {
+        toast.error("Goal not yet reached. Keep saving!");
+        return;
+      }
 
-    db.transact(
-      tx.savings_goals[goalId].update({
-        isCompleted: true,
-      })
-    )
-      .then(() => {
-        toast.success("Congratulations! Goal completed! 🎉");
-      })
-      .catch((err: Error) => {
-        toast.error("Failed to mark as complete: " + err.message);
-      });
-  };
+      db.transact(
+        tx.savings_goals[goalId].update({
+          isCompleted: true,
+        })
+      )
+        .then(() => {
+          toast.success("Congratulations! Goal completed! 🎉");
+        })
+        .catch((err: Error) => {
+          toast.error("Failed to mark as complete: " + err.message);
+        });
+    },
+    [savingsGoals]
+  );
 
   // Create configuration with callbacks
   const config = useMemo(
     () => createSavingsGoalListConfig(handleAddMoney, handleMarkComplete),
-    []
+    [handleAddMoney, handleMarkComplete]
   );
 
   if (isLoading) return <div className="text-center py-8">Loading...</div>;
@@ -82,10 +88,7 @@ export function SavingsGoalList() {
 
   return (
     <>
-      <UnifiedListContainer
-        config={config}
-        data={savingsGoals}
-      />
+      <UnifiedListContainer config={config} data={savingsGoals} />
 
       {selectedGoal && (
         <AddToSavingsDialog

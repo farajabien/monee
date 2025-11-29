@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import {
   Home,
   CreditCard,
@@ -12,22 +12,17 @@ import {
   Settings,
   Tag,
   Wallet,
-  Calendar,
 } from "lucide-react";
 
 export function PWABottomNav() {
   const pathname = usePathname();
-  // React hooks must be called unconditionally
+  const searchParams = useSearchParams();
   const [showMore, setShowMore] = useState(false);
-  // Determine active tab from URL
-  const getTabFromPath = () => {
-    if (pathname.startsWith("/settings")) return "settings";
-    const searchParams = new URLSearchParams(
-      typeof window !== "undefined" ? window.location.search : ""
-    );
-    return searchParams.get("tab") || "overview";
-  };
-  const activeTab = getTabFromPath();
+
+  // Determine active tab from URL - reactive to changes
+  const activeTab = pathname.startsWith("/settings")
+    ? "settings"
+    : searchParams.get("tab") || "overview";
 
   // Main nav items (always visible) - 4 most frequent features for 1-tap access
   const navItems = [
@@ -76,12 +71,6 @@ export function PWABottomNav() {
       label: "Categories",
       icon: Tag,
       href: "/dashboard?tab=categories",
-    },
-    {
-      value: "year-review",
-      label: "Year Review",
-      icon: Calendar,
-      href: "/dashboard?tab=year-review",
     },
     { value: "settings", label: "Settings", icon: Settings, href: "/settings" },
   ];

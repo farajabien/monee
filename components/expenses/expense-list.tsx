@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import db from "@/lib/db";
-import { UnifiedListContainer } from "@/components/ui/unified-list-container";
+import { UnifiedListContainer } from "@/components/custom/unified-list-container";
 import { EditExpenseDialog } from "./edit-expense-dialog";
 import { createExpenseListConfig } from "./expense-list-config";
 import type { Expense } from "@/types";

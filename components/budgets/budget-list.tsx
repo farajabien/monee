@@ -2,10 +2,7 @@
 
 import { useState, useMemo } from "react";
 import db from "@/lib/db";
-import { UnifiedListContainer } from "@/components/ui/unified-list-container";
-import { CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { UnifiedListContainer } from "@/components/custom/unified-list-container";
 import { BudgetForm } from "./budget-form";
 import { SteppedFormModal } from "@/components/stepped-form-modal";
 import { createBudgetListConfig } from "./budget-list-config";
@@ -54,24 +51,6 @@ export function BudgetList() {
 
   return (
     <div className="space-y-4">
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>
-          Budgets for{" "}
-          {now.toLocaleString("default", { month: "long", year: "numeric" })}
-        </CardTitle>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => {
-            setEditingBudget(null);
-            setShowAddDialog(true);
-          }}
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Add Budget
-        </Button>
-      </CardHeader>
-
       <UnifiedListContainer<BudgetWithRelations>
         config={config}
         data={budgets}
