@@ -14,6 +14,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import db from "@/lib/db";
 import { id } from "@instantdb/react";
 import { Check, Plus, X } from "lucide-react";
@@ -24,6 +30,29 @@ import {
   getLocaleForCurrency,
 } from "@/lib/currency-utils";
 import { DEFAULT_CATEGORIES } from "@/lib/bootstrap";
+
+const EMOJI_OPTIONS = [
+  "🎯",
+  "💰",
+  "🏠",
+  "🚗",
+  "✈️",
+  "📱",
+  "💻",
+  "🎓",
+  "💍",
+  "🎉",
+  "🏖️",
+  "🎮",
+  "📚",
+  "🎸",
+  "⚽",
+  "🏋️",
+  "🎨",
+  "🍕",
+  "☕",
+  "🌟",
+];
 
 export default function Onboarding() {
   const { user } = db.useAuth();
@@ -72,6 +101,8 @@ export default function Onboarding() {
       monthlyPaymentAmount: string;
       paymentDueDay: string;
       interestRate: string;
+      isOneTimePayment: boolean;
+      dueDate?: string;
     }>
   >([]);
   const [savingsGoals, setSavingsGoals] = useState<
@@ -219,6 +250,7 @@ export default function Onboarding() {
         monthlyPaymentAmount: "",
         paymentDueDay: "",
         interestRate: "",
+        isOneTimePayment: false,
       },
     ]);
   };
@@ -227,7 +259,11 @@ export default function Onboarding() {
     setDebts(debts.filter((_, i) => i !== index));
   };
 
-  const updateDebt = (index: number, field: string, value: string) => {
+  const updateDebt = (
+    index: number,
+    field: string,
+    value: string | boolean
+  ) => {
     const updated = [...debts];
     updated[index] = { ...updated[index], [field]: value };
     setDebts(updated);
@@ -278,7 +314,8 @@ export default function Onboarding() {
         ).map((cat) => ({
           name: cat.name,
           color: cat.color,
-          icon: "",
+          icon: cat.icon || "",
+          isDefault: cat.isDefault || false,
           isActive: true,
           createdAt: Date.now(),
         }));
@@ -384,24 +421,34 @@ export default function Onboarding() {
         if (validDebts.length > 0) {
           const txs = validDebts.map((debt) => {
             const debtId = id();
+            const debtData = {
+              name: debt.name,
+              totalAmount: parseFloat(debt.totalAmount),
+              currentBalance: debt.currentBalance
+                ? parseFloat(debt.currentBalance)
+                : parseFloat(debt.totalAmount),
+              monthlyPaymentAmount: debt.monthlyPaymentAmount
+                ? parseFloat(debt.monthlyPaymentAmount)
+                : 0,
+              paymentDueDay: debt.paymentDueDay
+                ? parseInt(debt.paymentDueDay)
+                : 1,
+              interestRate: debt.interestRate
+                ? parseFloat(debt.interestRate)
+                : undefined,
+              deadline: debt.dueDate
+                ? new Date(debt.dueDate).getTime()
+                : undefined,
+              createdAt: Date.now(),
+            };
+
+            // Add deadline for one-time payments
+            if (debt.isOneTimePayment && debt.dueDate) {
+              debtData.deadline = new Date(debt.dueDate).getTime();
+            }
+
             return db.tx.debts[debtId]
-              .update({
-                name: debt.name,
-                totalAmount: parseFloat(debt.totalAmount),
-                currentBalance: debt.currentBalance
-                  ? parseFloat(debt.currentBalance)
-                  : parseFloat(debt.totalAmount),
-                monthlyPaymentAmount: debt.monthlyPaymentAmount
-                  ? parseFloat(debt.monthlyPaymentAmount)
-                  : 0,
-                paymentDueDay: debt.paymentDueDay
-                  ? parseInt(debt.paymentDueDay)
-                  : 1,
-                interestRate: debt.interestRate
-                  ? parseFloat(debt.interestRate)
-                  : undefined,
-                createdAt: Date.now(),
-              })
+              .update(debtData)
               .link({ user: profile.id });
           });
 
@@ -537,172 +584,177 @@ export default function Onboarding() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            {step === 1 && (
-              <>
-                <p className="text-muted-foreground">
-                  Select your preferred currency. All amounts will be displayed
-                  in this currency.
-                </p>
-                <div className="grid grid-cols-2 gap-3">
-                  {getAllCurrencies().map((curr) => (
-                    <button
-                      key={curr.code}
-                      onClick={() => setSelectedCurrency(curr.code)}
-                      className={`flex items-center gap-3 p-4 rounded-lg border-2 transition-all ${
-                        selectedCurrency === curr.code
-                          ? "border-primary bg-primary/5"
-                          : "border-muted hover:border-muted-foreground/50"
-                      }`}
-                    >
-                      <div className="flex flex-col items-start flex-1">
-                        <span className="font-medium text-lg">
-                          {curr.symbol} {curr.code}
-                        </span>
-                        <span className="text-sm text-muted-foreground">
-                          {curr.name}
-                        </span>
-                      </div>
-                      {selectedCurrency === curr.code && (
-                        <Check className="h-5 w-5 text-primary" />
-                      )}
-                    </button>
-                  ))}
-                </div>
-              </>
-            )}
+            <ScrollArea className="h-[500px] pr-4">
+              {step === 1 && (
+                <>
+                  <p className="text-muted-foreground">
+                    Select your preferred currency. All amounts will be
+                    displayed in this currency.
+                  </p>
+                  <div className="grid grid-cols-2 gap-3 mt-6">
+                    {getAllCurrencies().map((curr) => (
+                      <button
+                        key={curr.code}
+                        onClick={() => setSelectedCurrency(curr.code)}
+                        className={`flex items-center gap-3 p-4 rounded-lg border-2 transition-all ${
+                          selectedCurrency === curr.code
+                            ? "border-primary bg-primary/5"
+                            : "border-muted hover:border-muted-foreground/50"
+                        }`}
+                      >
+                        <div className="flex flex-col items-start flex-1">
+                          <span className="font-medium text-lg">
+                            {curr.symbol} {curr.code}
+                          </span>
+                          <span className="text-sm text-muted-foreground">
+                            {curr.name}
+                          </span>
+                        </div>
+                        {selectedCurrency === curr.code && (
+                          <Check className="h-5 w-5 text-primary" />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
 
-            {step === 2 && (
-              <>
-                <p className="text-muted-foreground">
-                  Choose the spending categories you want to track. You can
-                  customize these later.
-                </p>
-                <div className="grid grid-cols-2 gap-3">
-                  {allCategories.map((category) => (
-                    <button
-                      key={category.name}
-                      onClick={() => toggleCategory(category.name)}
-                      className={`flex items-center gap-3 p-4 rounded-lg border-2 transition-all ${
-                        selectedCategories.includes(category.name)
-                          ? "border-primary bg-primary/5"
-                          : "border-muted hover:border-muted-foreground/50"
-                      }`}
-                    >
+              {step === 2 && (
+                <>
+                  <p className="text-muted-foreground">
+                    Choose the spending categories you want to track. You can
+                    customize these later.
+                  </p>
+                  <div className="grid grid-cols-2 gap-3 mt-6">
+                    {allCategories.map((category) => (
+                      <button
+                        key={category.name}
+                        onClick={() => toggleCategory(category.name)}
+                        className={`flex items-center gap-3 p-4 rounded-lg border-2 transition-all ${
+                          selectedCategories.includes(category.name)
+                            ? "border-primary bg-primary/5"
+                            : "border-muted hover:border-muted-foreground/50"
+                        }`}
+                      >
+                        <div
+                          className="w-6 h-6 rounded-full"
+                          style={{ backgroundColor: category.color }}
+                        />
+                        <span className="font-medium">{category.name}</span>
+                        {selectedCategories.includes(category.name) && (
+                          <Check className="ml-auto h-5 w-5 text-primary" />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setShowAddCategoryDialog(true)}
+                    className="w-full mt-4"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Custom Category
+                  </Button>
+                </>
+              )}
+
+              {step === 3 && (
+                <>
+                  <p className="text-muted-foreground">
+                    Add your income sources and paydays. This helps us track
+                    your money flow. Toggle &quot;Irregular&quot; for income
+                    that varies monthly.
+                  </p>
+                  <div className="space-y-4 mt-6">
+                    {incomeSources.map((source, index) => (
                       <div
-                        className="w-6 h-6 rounded-full"
-                        style={{ backgroundColor: category.color }}
-                      />
-                      <span className="font-medium">{category.name}</span>
-                      {selectedCategories.includes(category.name) && (
-                        <Check className="ml-auto h-5 w-5 text-primary" />
-                      )}
-                    </button>
-                  ))}
-                </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setShowAddCategoryDialog(true)}
-                  className="w-full"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Custom Category
-                </Button>
-              </>
-            )}
-
-            {step === 3 && (
-              <>
-                <p className="text-muted-foreground">
-                  Add your income sources and paydays. This helps us track your
-                  money flow. Toggle &quot;Irregular&quot; for income that
-                  varies monthly.
-                </p>
-                <div className="space-y-4">
-                  {incomeSources.map((source, index) => (
-                    <div
-                      key={index}
-                      className="p-4 border rounded-lg space-y-3"
-                    >
-                      <div className="space-y-2">
-                        <Label>Source Name</Label>
-                        <Input
-                          placeholder="e.g., Salary, Business"
-                          value={source.name}
-                          onChange={(e) =>
-                            updateIncomeSource(index, "name", e.target.value)
-                          }
-                        />
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <Label>Irregular Income</Label>
-                        <Switch
-                          checked={source.isIrregular}
-                          onCheckedChange={(checked) =>
-                            updateIncomeSource(index, "isIrregular", checked)
-                          }
-                        />
-                      </div>
-                      <div className="grid grid-cols-2 gap-3">
+                        key={index}
+                        className="p-4 border rounded-lg space-y-3"
+                      >
                         <div className="space-y-2">
-                          <Label>
-                            {source.isIrregular ? "Estimated Amount" : "Amount"}
-                          </Label>
+                          <Label>Source Name</Label>
                           <Input
-                            type="number"
-                            placeholder="50000"
-                            value={source.amount}
+                            placeholder="e.g., Salary, Business"
+                            value={source.name}
                             onChange={(e) =>
-                              updateIncomeSource(
-                                index,
-                                "amount",
-                                e.target.value
-                              )
+                              updateIncomeSource(index, "name", e.target.value)
                             }
                           />
                         </div>
-                        {!source.isIrregular && (
+                        <div className="flex items-center justify-between">
+                          <Label>Irregular Income</Label>
+                          <Switch
+                            checked={source.isIrregular}
+                            onCheckedChange={(checked) =>
+                              updateIncomeSource(index, "isIrregular", checked)
+                            }
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
                           <div className="space-y-2">
-                            <Label>Payday</Label>
+                            <Label>
+                              {source.isIrregular
+                                ? "Estimated Amount"
+                                : "Amount"}
+                            </Label>
                             <Input
                               type="number"
-                              min="1"
-                              max="31"
-                              placeholder="25"
-                              value={source.paydayDay}
+                              placeholder="50000"
+                              value={source.amount}
                               onChange={(e) =>
                                 updateIncomeSource(
                                   index,
-                                  "paydayDay",
+                                  "amount",
                                   e.target.value
                                 )
                               }
                             />
                           </div>
-                        )}
-                      </div>
-                      {!source.isIrregular && (
-                        <div className="space-y-2">
-                          <Label>Month (Optional)</Label>
-                          <Select
-                            value={source.paydayMonth || "none"}
-                            onValueChange={(value) =>
-                              updateIncomeSource(
-                                index,
-                                "paydayMonth",
-                                value === "none" ? "" : value
-                              )
-                            }
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Recurring monthly" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="none">
-                                Recurring monthly
-                              </SelectItem>
-                              {Array.from({ length: 12 }, (_, i) => i + 1).map(
-                                (m) => (
+                          {!source.isIrregular && (
+                            <div className="space-y-2">
+                              <Label>Payday</Label>
+                              <Input
+                                type="number"
+                                min="1"
+                                max="31"
+                                placeholder="25"
+                                value={source.paydayDay}
+                                onChange={(e) =>
+                                  updateIncomeSource(
+                                    index,
+                                    "paydayDay",
+                                    e.target.value
+                                  )
+                                }
+                              />
+                            </div>
+                          )}
+                        </div>
+                        {!source.isIrregular && (
+                          <div className="space-y-2">
+                            <Label>Month (Optional)</Label>
+                            <Select
+                              value={source.paydayMonth || "none"}
+                              onValueChange={(value) =>
+                                updateIncomeSource(
+                                  index,
+                                  "paydayMonth",
+                                  value === "none" ? "" : value
+                                )
+                              }
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Recurring monthly" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="none">
+                                  Recurring monthly
+                                </SelectItem>
+                                {Array.from(
+                                  { length: 12 },
+                                  (_, i) => i + 1
+                                ).map((m) => (
                                   <SelectItem key={m} value={m.toString()}>
                                     {new Date(2000, m - 1).toLocaleString(
                                       "default",
@@ -711,366 +763,414 @@ export default function Onboarding() {
                                       }
                                     )}
                                   </SelectItem>
-                                )
-                              )}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      )}
-                      {incomeSources.length > 1 && (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeIncomeSource(index)}
-                          className="w-full"
-                        >
-                          <X className="h-4 w-4 mr-2" />
-                          Remove
-                        </Button>
-                      )}
-                    </div>
-                  ))}
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={addIncomeSource}
-                    className="w-full"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Another Income Source
-                  </Button>
-                </div>
-              </>
-            )}
-
-            {step === 4 && (
-              <>
-                <p className="text-muted-foreground">
-                  Add your recurring monthly expenses like rent, bills, and
-                  subscriptions. Focus on essentials first.
-                </p>
-                <div className="space-y-4">
-                  {recurringExpenses.length === 0 ? (
-                    <div className="text-center py-8 text-muted-foreground">
-                      No recurring expenses added yet
-                    </div>
-                  ) : (
-                    recurringExpenses.map((expense, index) => (
-                      <div
-                        key={index}
-                        className="flex gap-3 items-end p-4 border rounded-lg"
-                      >
-                        <div className="flex-1 space-y-2">
-                          <Label>Expense Name</Label>
-                          <Input
-                            placeholder="e.g., Rent, WiFi"
-                            value={expense.name}
-                            onChange={(e) =>
-                              updateRecurringExpense(
-                                index,
-                                "name",
-                                e.target.value
-                              )
-                            }
-                          />
-                        </div>
-                        <div className="flex-1 space-y-2">
-                          <Label>Amount</Label>
-                          <Input
-                            type="number"
-                            placeholder="5000"
-                            value={expense.amount}
-                            onChange={(e) =>
-                              updateRecurringExpense(
-                                index,
-                                "amount",
-                                e.target.value
-                              )
-                            }
-                          />
-                        </div>
-                        <div className="flex-1 space-y-2">
-                          <Label>Category</Label>
-                          <select
-                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                            value={expense.category}
-                            onChange={(e) =>
-                              updateRecurringExpense(
-                                index,
-                                "category",
-                                e.target.value
-                              )
-                            }
-                          >
-                            {selectedCategories.map((cat) => (
-                              <option key={cat} value={cat}>
-                                {cat}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => removeRecurringExpense(index)}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))
-                  )}
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={addRecurringExpense}
-                    className="w-full"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Recurring Expense
-                  </Button>
-                </div>
-                {recurringExpenses.length > 0 && (
-                  <div className="p-4 bg-muted rounded-lg">
-                    <p className="text-sm font-medium">
-                      Estimated Monthly Total
-                    </p>
-                    <p className="text-2xl font-bold">
-                      {selectedCurrency}{" "}
-                      {recurringExpenses
-                        .reduce(
-                          (sum, exp) => sum + (parseFloat(exp.amount) || 0),
-                          0
-                        )
-                        .toLocaleString()}
-                    </p>
-                  </div>
-                )}
-              </>
-            )}
-
-            {step === 5 && (
-              <>
-                <p className="text-muted-foreground">
-                  Track your debts to stay on top of payments and interest. This
-                  is optional but helps with financial planning.
-                </p>
-                <div className="space-y-4">
-                  {debts.length === 0 ? (
-                    <div className="text-center py-8 text-muted-foreground">
-                      No debts added yet
-                    </div>
-                  ) : (
-                    debts.map((debt, index) => (
-                      <div
-                        key={index}
-                        className="p-4 border rounded-lg space-y-3"
-                      >
-                        <div className="space-y-2">
-                          <Label>Debt Name</Label>
-                          <Input
-                            placeholder="e.g., Car Loan, Credit Card"
-                            value={debt.name}
-                            onChange={(e) =>
-                              updateDebt(index, "name", e.target.value)
-                            }
-                          />
-                        </div>
-                        <div className="grid grid-cols-2 gap-3">
-                          <div className="space-y-2">
-                            <Label>Total Amount</Label>
-                            <Input
-                              type="number"
-                              placeholder="100000"
-                              value={debt.totalAmount}
-                              onChange={(e) =>
-                                updateDebt(index, "totalAmount", e.target.value)
-                              }
-                            />
+                                ))}
+                              </SelectContent>
+                            </Select>
                           </div>
-                          <div className="space-y-2">
-                            <Label>Current Balance</Label>
+                        )}
+                        {incomeSources.length > 1 && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeIncomeSource(index)}
+                            className="w-full"
+                          >
+                            <X className="h-4 w-4 mr-2" />
+                            Remove
+                          </Button>
+                        )}
+                      </div>
+                    ))}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={addIncomeSource}
+                      className="w-full"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Another Income Source
+                    </Button>
+                  </div>
+                </>
+              )}
+
+              {step === 4 && (
+                <>
+                  <p className="text-muted-foreground">
+                    Add your recurring monthly expenses like rent, bills, and
+                    subscriptions. Focus on essentials first.
+                  </p>
+                  <div className="space-y-4 mt-6">
+                    {recurringExpenses.length === 0 ? (
+                      <div className="text-center py-8 text-muted-foreground">
+                        No recurring expenses added yet
+                      </div>
+                    ) : (
+                      recurringExpenses.map((expense, index) => (
+                        <div
+                          key={index}
+                          className="flex gap-3 items-end p-4 border rounded-lg"
+                        >
+                          <div className="flex-1 space-y-2">
+                            <Label>Expense Name</Label>
                             <Input
-                              type="number"
-                              placeholder="80000"
-                              value={debt.currentBalance}
+                              placeholder="e.g., Rent, WiFi"
+                              value={expense.name}
                               onChange={(e) =>
-                                updateDebt(
+                                updateRecurringExpense(
                                   index,
-                                  "currentBalance",
+                                  "name",
                                   e.target.value
                                 )
                               }
                             />
                           </div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-3">
-                          <div className="space-y-2">
-                            <Label>Monthly Payment</Label>
+                          <div className="flex-1 space-y-2">
+                            <Label>Amount</Label>
                             <Input
                               type="number"
                               placeholder="5000"
-                              value={debt.monthlyPaymentAmount}
+                              value={expense.amount}
                               onChange={(e) =>
-                                updateDebt(
+                                updateRecurringExpense(
                                   index,
-                                  "monthlyPaymentAmount",
+                                  "amount",
                                   e.target.value
                                 )
                               }
                             />
                           </div>
+                          <div className="flex-1 space-y-2">
+                            <Label>Category</Label>
+                            <select
+                              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                              value={expense.category}
+                              onChange={(e) =>
+                                updateRecurringExpense(
+                                  index,
+                                  "category",
+                                  e.target.value
+                                )
+                              }
+                            >
+                              {selectedCategories.map((cat) => (
+                                <option key={cat} value={cat}>
+                                  {cat}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => removeRecurringExpense(index)}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))
+                    )}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={addRecurringExpense}
+                      className="w-full"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Recurring Expense
+                    </Button>
+                  </div>
+                  {recurringExpenses.length > 0 && (
+                    <div className="p-4 bg-muted rounded-lg mt-4">
+                      <p className="text-sm font-medium">
+                        Estimated Monthly Total
+                      </p>
+                      <p className="text-2xl font-bold">
+                        {selectedCurrency}{" "}
+                        {recurringExpenses
+                          .reduce(
+                            (sum, exp) => sum + (parseFloat(exp.amount) || 0),
+                            0
+                          )
+                          .toLocaleString()}
+                      </p>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {step === 5 && (
+                <>
+                  <p className="text-muted-foreground">
+                    Track your debts to stay on top of payments and interest.
+                    This is optional but helps with financial planning.
+                  </p>
+                  <div className="space-y-4 mt-6">
+                    {debts.length === 0 ? (
+                      <div className="text-center py-8 text-muted-foreground">
+                        No debts added yet
+                      </div>
+                    ) : (
+                      debts.map((debt, index) => (
+                        <div
+                          key={index}
+                          className="p-4 border rounded-lg space-y-3"
+                        >
                           <div className="space-y-2">
-                            <Label>Payment Due Day</Label>
+                            <Label>Debt Name</Label>
+                            <Input
+                              placeholder="e.g., Car Loan, Friend Loan"
+                              value={debt.name}
+                              onChange={(e) =>
+                                updateDebt(index, "name", e.target.value)
+                              }
+                            />
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <Label>One-time Payment (e.g., friend debt)</Label>
+                            <Switch
+                              checked={debt.isOneTimePayment}
+                              onCheckedChange={(checked) =>
+                                updateDebt(index, "isOneTimePayment", checked)
+                              }
+                            />
+                          </div>
+                          <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-2">
+                              <Label>Total Amount</Label>
+                              <Input
+                                type="number"
+                                placeholder="100000"
+                                value={debt.totalAmount}
+                                onChange={(e) =>
+                                  updateDebt(
+                                    index,
+                                    "totalAmount",
+                                    e.target.value
+                                  )
+                                }
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label>Current Balance</Label>
+                              <Input
+                                type="number"
+                                placeholder="80000"
+                                value={debt.currentBalance}
+                                onChange={(e) =>
+                                  updateDebt(
+                                    index,
+                                    "currentBalance",
+                                    e.target.value
+                                  )
+                                }
+                              />
+                            </div>
+                          </div>
+                          {debt.isOneTimePayment ? (
+                            <div className="space-y-2">
+                              <Label>Due Date (Optional)</Label>
+                              <Input
+                                type="date"
+                                value={debt.dueDate || ""}
+                                onChange={(e) =>
+                                  updateDebt(index, "dueDate", e.target.value)
+                                }
+                              />
+                            </div>
+                          ) : (
+                            <div className="grid grid-cols-2 gap-3">
+                              <div className="space-y-2">
+                                <Label>Monthly Payment</Label>
+                                <Input
+                                  type="number"
+                                  placeholder="5000"
+                                  value={debt.monthlyPaymentAmount}
+                                  onChange={(e) =>
+                                    updateDebt(
+                                      index,
+                                      "monthlyPaymentAmount",
+                                      e.target.value
+                                    )
+                                  }
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label>Payment Due Day</Label>
+                                <Input
+                                  type="number"
+                                  min="1"
+                                  max="31"
+                                  placeholder="15"
+                                  value={debt.paymentDueDay}
+                                  onChange={(e) =>
+                                    updateDebt(
+                                      index,
+                                      "paymentDueDay",
+                                      e.target.value
+                                    )
+                                  }
+                                />
+                              </div>
+                            </div>
+                          )}
+                          <div className="space-y-2">
+                            <Label>Interest Rate (%) - Optional</Label>
                             <Input
                               type="number"
-                              min="1"
-                              max="31"
-                              placeholder="15"
-                              value={debt.paymentDueDay}
+                              step="0.1"
+                              placeholder="5.5"
+                              value={debt.interestRate}
                               onChange={(e) =>
                                 updateDebt(
                                   index,
-                                  "paymentDueDay",
+                                  "interestRate",
                                   e.target.value
                                 )
                               }
                             />
                           </div>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeDebt(index)}
+                            className="w-full"
+                          >
+                            <X className="h-4 w-4 mr-2" />
+                            Remove
+                          </Button>
                         </div>
-                        <div className="space-y-2">
-                          <Label>Interest Rate (%) - Optional</Label>
-                          <Input
-                            type="number"
-                            step="0.1"
-                            placeholder="5.5"
-                            value={debt.interestRate}
-                            onChange={(e) =>
-                              updateDebt(index, "interestRate", e.target.value)
-                            }
-                          />
-                        </div>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeDebt(index)}
-                          className="w-full"
-                        >
-                          <X className="h-4 w-4 mr-2" />
-                          Remove
-                        </Button>
-                      </div>
-                    ))
-                  )}
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={addDebt}
-                    className="w-full"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Debt
-                  </Button>
-                </div>
-                {debts.length > 0 && (
-                  <div className="p-4 bg-muted rounded-lg">
-                    <p className="text-sm font-medium">Total Debt</p>
-                    <p className="text-2xl font-bold">
-                      {selectedCurrency}{" "}
-                      {debts
-                        .reduce(
-                          (sum, debt) =>
-                            sum + (parseFloat(debt.totalAmount) || 0),
-                          0
-                        )
-                        .toLocaleString()}
-                    </p>
+                      ))
+                    )}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={addDebt}
+                      className="w-full"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Debt
+                    </Button>
                   </div>
-                )}
-              </>
-            )}
-
-            {step === 6 && (
-              <>
-                <p className="text-muted-foreground">
-                  Set savings goals to work towards. Add items you want to save
-                  for.
-                </p>
-
-                {/* Savings Goals */}
-                <div className="space-y-3">
-                  <h3 className="font-medium">Savings Goals</h3>
-                  {savingsGoals.length === 0 ? (
-                    <div className="text-center py-6 text-muted-foreground text-sm">
-                      No savings goals added yet
+                  {debts.length > 0 && (
+                    <div className="p-4 bg-muted rounded-lg mt-4">
+                      <p className="text-sm font-medium">Total Debt</p>
+                      <p className="text-2xl font-bold">
+                        {selectedCurrency}{" "}
+                        {debts
+                          .reduce(
+                            (sum, debt) =>
+                              sum + (parseFloat(debt.totalAmount) || 0),
+                            0
+                          )
+                          .toLocaleString()}
+                      </p>
                     </div>
-                  ) : (
-                    savingsGoals.map((goal, index) => (
-                      <div
-                        key={index}
-                        className="flex gap-3 items-end p-4 border rounded-lg"
-                      >
-                        <div className="flex-1 space-y-2">
-                          <Label>Goal Name</Label>
-                          <Input
-                            placeholder="e.g., New Phone, Vacation"
-                            value={goal.name}
-                            onChange={(e) =>
-                              updateSavingsGoal(index, "name", e.target.value)
-                            }
-                          />
-                        </div>
-                        <div className="flex-1 space-y-2">
-                          <Label>Target Amount</Label>
-                          <Input
-                            type="number"
-                            placeholder="50000"
-                            value={goal.targetAmount}
-                            onChange={(e) =>
-                              updateSavingsGoal(
-                                index,
-                                "targetAmount",
-                                e.target.value
-                              )
-                            }
-                          />
-                        </div>
-                        <div className="w-20 space-y-2">
-                          <Label>Emoji</Label>
-                          <Input
-                            placeholder="🎯"
-                            value={goal.emoji}
-                            onChange={(e) =>
-                              updateSavingsGoal(index, "emoji", e.target.value)
-                            }
-                            maxLength={2}
-                          />
-                        </div>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => removeSavingsGoal(index)}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))
                   )}
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={addSavingsGoal}
-                    className="w-full"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Savings Goal
-                  </Button>
-                </div>
-              </>
-            )}
+                </>
+              )}
+
+              {step === 6 && (
+                <>
+                  <p className="text-muted-foreground">
+                    Set savings goals to work towards. Add items you want to
+                    save for.
+                  </p>
+
+                  {/* Savings Goals */}
+                  <div className="space-y-3 mt-6">
+                    <h3 className="font-medium">Savings Goals</h3>
+                    {savingsGoals.length === 0 ? (
+                      <div className="text-center py-6 text-muted-foreground text-sm">
+                        No savings goals added yet
+                      </div>
+                    ) : (
+                      savingsGoals.map((goal, index) => (
+                        <div
+                          key={index}
+                          className="flex gap-3 items-end p-4 border rounded-lg"
+                        >
+                          <div className="flex-1 space-y-2">
+                            <Label>Goal Name</Label>
+                            <Input
+                              placeholder="e.g., New Phone, Vacation"
+                              value={goal.name}
+                              onChange={(e) =>
+                                updateSavingsGoal(index, "name", e.target.value)
+                              }
+                            />
+                          </div>
+                          <div className="flex-1 space-y-2">
+                            <Label>Target Amount</Label>
+                            <Input
+                              type="number"
+                              placeholder="50000"
+                              value={goal.targetAmount}
+                              onChange={(e) =>
+                                updateSavingsGoal(
+                                  index,
+                                  "targetAmount",
+                                  e.target.value
+                                )
+                              }
+                            />
+                          </div>
+                          <div className="w-20 space-y-2">
+                            <Label>Emoji</Label>
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  className="w-full h-10 text-xl"
+                                >
+                                  {goal.emoji || "🎯"}
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-64 p-2">
+                                <div className="grid grid-cols-5 gap-2">
+                                  {EMOJI_OPTIONS.map((emoji) => (
+                                    <button
+                                      key={emoji}
+                                      type="button"
+                                      onClick={() =>
+                                        updateSavingsGoal(index, "emoji", emoji)
+                                      }
+                                      className="text-2xl hover:bg-muted rounded p-2 transition-colors"
+                                    >
+                                      {emoji}
+                                    </button>
+                                  ))}
+                                </div>
+                              </PopoverContent>
+                            </Popover>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => removeSavingsGoal(index)}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))
+                    )}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={addSavingsGoal}
+                      className="w-full"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Savings Goal
+                    </Button>
+                  </div>
+                </>
+              )}
+            </ScrollArea>
 
             <div className="flex gap-3 pt-4">
               {canSkipStep() && (
