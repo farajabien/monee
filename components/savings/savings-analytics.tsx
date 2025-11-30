@@ -37,7 +37,10 @@ export function SavingsAnalytics() {
   });
 
   const profile = data?.profiles?.[0];
-  const savingsGoals = profile?.savingsGoals || [];
+  const rawSavingsGoals = profile?.savingsGoals || [];
+
+  // Create a stable reference by using useMemo to derive the goals array
+  const savingsGoals = useMemo(() => rawSavingsGoals, [rawSavingsGoals]);
 
   // Chart config for Shadcn charts
   const chartConfig = {
@@ -48,20 +51,24 @@ export function SavingsAnalytics() {
   } satisfies ChartConfig;
 
   // Calculate total saved
-  const totalSaved = savingsGoals.reduce((sum, goal) => {
-    const goalContributions = goal.contributions || [];
-    const saved = goalContributions.reduce(
-      (cSum, c) => cSum + (c.amount || 0),
-      0
-    );
-    return sum + saved;
-  }, 0);
+  const totalSaved = useMemo(() => {
+    return savingsGoals.reduce((sum, goal) => {
+      const goalContributions = goal.contributions || [];
+      const saved = goalContributions.reduce(
+        (cSum, c) => cSum + (c.amount || 0),
+        0
+      );
+      return sum + saved;
+    }, 0);
+  }, [savingsGoals]);
 
   // Calculate total targets
-  const totalTargets = savingsGoals.reduce(
-    (sum, goal) => sum + (goal.targetAmount || 0),
-    0
-  );
+  const totalTargets = useMemo(() => {
+    return savingsGoals.reduce(
+      (sum, goal) => sum + (goal.targetAmount || 0),
+      0
+    );
+  }, [savingsGoals]);
 
   // Calculate progress percentage
   const progressPercentage =
