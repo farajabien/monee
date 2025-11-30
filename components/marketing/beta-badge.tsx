@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge";
-import { Flask } from "lucide-react";
+import { FlaskConical } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface BetaBadgeProps {
@@ -22,8 +22,10 @@ export function BetaBadge({
   };
 
   const variantClasses = {
-    default: "bg-gradient-to-r from-blue-500/20 to-purple-500/20 border-blue-500/30",
-    gradient: "bg-gradient-to-r from-primary/20 to-blue-500/20 border-primary/30",
+    default:
+      "bg-gradient-to-r from-blue-500/20 to-purple-500/20 border-blue-500/30",
+    gradient:
+      "bg-gradient-to-r from-primary/20 to-blue-500/20 border-primary/30",
     outline: "border-primary/50 bg-transparent",
   };
 
@@ -37,7 +39,7 @@ export function BetaBadge({
         className
       )}
     >
-      {showIcon && <Flask className="h-3 w-3 mr-1" />}
+      {showIcon && <FlaskConical className="h-3 w-3 mr-1" />}
       Beta
     </Badge>
   );

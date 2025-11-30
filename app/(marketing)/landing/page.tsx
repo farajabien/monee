@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { HowToGetStatement } from "@/components/how-to-get-statement";
 import { FAQSection } from "@/components/marketing/faq-section";
 import { Footer } from "@/components/marketing/footer";
+import { BetaBadge } from "@/components/marketing/beta-badge";
 import {
   ArrowRight,
   Smartphone,
@@ -18,6 +19,8 @@ import {
   Zap,
   CheckCircle2,
   X,
+  Users,
+  FlaskConical,
 } from "lucide-react";
 
 export default function LandingPage() {
@@ -163,10 +166,13 @@ export default function LandingPage() {
           <div className="grid md:grid-cols-2 gap-12 items-center">
             {/* Left: Text Content */}
             <div className="space-y-8 text-center md:text-left">
-              <Badge variant="secondary" className="mx-auto md:mx-0 w-fit">
-                <Zap className="h-3 w-3 mr-1" />
-                Built for Real Life in Kenya 🇰🇪
-              </Badge>
+              <div className="flex items-center gap-2 justify-center md:justify-start">
+                <BetaBadge variant="gradient" size="sm" />
+                <Badge variant="secondary" className="w-fit">
+                  <Zap className="h-3 w-3 mr-1" />
+                  Built for Real Life in Kenya 🇰🇪
+                </Badge>
+              </div>
               <h1 className="text-4xl md:text-6xl font-bold tracking-tight">
                 Your Money,{" "}
                 <span className="text-primary">Finally in One Place</span>
@@ -261,6 +267,64 @@ export default function LandingPage() {
               </CardContent>
             </Card>
           ))}
+        </div>
+      </section>
+
+      {/* Social Proof / Beta Testing Section */}
+      <section className="container mx-auto px-4 py-16">
+        <div className="max-w-4xl mx-auto">
+          <Card className="border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-blue-500/5">
+            <CardContent className="p-8 md:p-12 text-center space-y-6">
+              <div className="flex justify-center">
+                <BetaBadge variant="gradient" size="lg" />
+              </div>
+              <h2 className="text-2xl md:text-3xl font-bold">
+                Join Our Beta Testing Community
+              </h2>
+              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                We&apos;re in beta – join our first users testing and shaping
+                the app. Your feedback directly influences MONEE&apos;s
+                development.
+              </p>
+              <div className="grid md:grid-cols-3 gap-6 pt-4">
+                <div className="space-y-2">
+                  <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
+                    <Users className="h-6 w-6 text-primary" />
+                  </div>
+                  <h3 className="font-semibold">Early Access</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Be among the first to use new features
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
+                    <FlaskConical className="h-6 w-6 text-primary" />
+                  </div>
+                  <h3 className="font-semibold">Shape the Product</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Your feedback directly impacts development
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
+                    <Zap className="h-6 w-6 text-primary" />
+                  </div>
+                  <h3 className="font-semibold">Exclusive Benefits</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Special perks for early supporters
+                  </p>
+                </div>
+              </div>
+              <div className="pt-4">
+                <Link href="/login">
+                  <Button size="lg" className="gap-2">
+                    Try Beta - Free for 7 Days
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </section>
 

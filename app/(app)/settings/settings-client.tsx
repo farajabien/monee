@@ -40,6 +40,7 @@ import {
   Download,
   Trash2,
   AlertTriangle,
+  MessageSquare,
 } from "lucide-react";
 import db from "@/lib/db";
 import {
@@ -54,6 +55,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { NotificationSettings } from "@/components/settings/notification-settings";
+import { FeedbackDialog } from "@/components/feedback/feedback-dialog";
 import {
   getAllCurrencies,
   getLocaleForCurrency,
@@ -68,6 +70,7 @@ export default function SettingsClient() {
   const [isExporting, setIsExporting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
+  const [showFeedbackDialog, setShowFeedbackDialog] = useState(false);
 
   const { isLoading, error, data } = db.useQuery({
     profiles: {
@@ -84,6 +87,7 @@ export default function SettingsClient() {
       savingsGoals: {
         contributions: {},
       },
+      feedback: {},
     },
     $users: {},
   });
@@ -397,6 +401,10 @@ export default function SettingsClient() {
   return (
     <>
       <PaywallDialog open={showPaywall} onOpenChange={setShowPaywall} />
+      <FeedbackDialog
+        open={showFeedbackDialog}
+        onOpenChange={setShowFeedbackDialog}
+      />
       <div className="mx-auto max-w-md p-3 sm:p-4 md:p-6 pb-20 md:pb-0">
         <h1 className="text-2xl font-bold mb-2">Settings</h1>
         <p className="text-muted-foreground mb-4">
@@ -642,6 +650,50 @@ export default function SettingsClient() {
                             .length || 0}
                         </span>
                       </div>
+                    </ItemContent>
+                  </AccordionContent>
+                </Item>
+              </AccordionItem>
+
+              <AccordionItem value="feedback">
+                <Item>
+                  <ItemHeader>
+                    <AccordionTrigger className="hover:no-underline">
+                      <div className="flex items-center gap-2">
+                        <MessageSquare className="h-5 w-5" />
+                        <div className="text-left">
+                          <ItemTitle>Give Feedback</ItemTitle>
+                          <ItemDescription>
+                            Your feedback shapes the app
+                          </ItemDescription>
+                        </div>
+                      </div>
+                    </AccordionTrigger>
+                  </ItemHeader>
+                  <AccordionContent>
+                    <ItemContent className="space-y-4">
+                      <p className="text-sm text-muted-foreground">
+                        Your feedback shapes the app. Share your thoughts here, or
+                        update it anytime.
+                      </p>
+                      {profile.feedback && profile.feedback.length > 0 && (
+                        <div className="p-3 bg-muted rounded-lg text-sm">
+                          <p className="text-muted-foreground">
+                            Last feedback:{" "}
+                            {new Date(
+                              profile.feedback[profile.feedback.length - 1]
+                                .createdAt
+                            ).toLocaleDateString("en-KE")}
+                          </p>
+                        </div>
+                      )}
+                      <Button
+                        className="w-full"
+                        onClick={() => setShowFeedbackDialog(true)}
+                      >
+                        <MessageSquare className="h-4 w-4 mr-2" />
+                        Share Feedback
+                      </Button>
                     </ItemContent>
                   </AccordionContent>
                 </Item>
