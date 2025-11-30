@@ -121,6 +121,14 @@ export function CashRunwayCard({
       ? "text-yellow-600 dark:text-yellow-400"
       : "text-muted-foreground";
 
+  // Determine balance color based on value
+  const balanceColorClass =
+    currentCash < 0
+      ? "text-red-600 dark:text-red-400"
+      : currentCash < 1000
+      ? "text-yellow-600 dark:text-yellow-400"
+      : "text-green-600 dark:text-green-400";
+
   return (
     <Item variant="outline" className={`h-full border-0 ${itemClass}`}>
       <ItemContent className="space-y-4 w-full">
@@ -149,7 +157,7 @@ export function CashRunwayCard({
               <span className="text-sm">💰</span>
               Balance
             </div>
-            <div className="text-base font-semibold">
+            <div className={`text-base font-semibold ${balanceColorClass}`}>
               {formatCurrency(currentCash)}
             </div>
           </div>
