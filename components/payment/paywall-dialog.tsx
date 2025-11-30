@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Check, Clock } from "lucide-react";
+import { Clock, BarChart3, Bell, TrendingUp, Wallet, Cloud, Zap, Shield, Star } from "lucide-react";
 import { toast } from "sonner";
 import Image from "next/image";
 
@@ -31,17 +31,23 @@ export function PaywallDialog({ open, onOpenChange }: PaywallDialogProps) {
   const [hideDialog, setHideDialog] = useState(false);
 
   // Query user's profile to check trial eligibility
-  const { data, isLoading } = db.useQuery({
-    profiles: {
-      $: {
-        where: {
-          "user.id": user?.id,
-        },
-      },
-    },
-  });
+  const { data, isLoading } = db.useQuery(
+    user?.id
+      ? {
+          profiles: {
+            $: {
+              where: {
+                "user.id": user.id,
+              },
+            },
+          },
+        }
+      : {}
+  );
 
-  const profile = data?.profiles?.[0];
+  if (!data || !user) return null;
+
+  const profile = data.profiles?.[0];
   const profileCreatedAt = profile?.createdAt || Date.now();
   const daysSinceCreation = Math.floor(
     (Date.now() - profileCreatedAt) / (1000 * 60 * 60 * 24)
@@ -50,16 +56,14 @@ export function PaywallDialog({ open, onOpenChange }: PaywallDialogProps) {
   const daysRemaining = Math.max(0, FREE_TRIAL_DAYS - daysSinceCreation);
 
   const features = [
-    "Quick expense tracking (manual or M-Pesa)",
-    "Debt management with progress tracking",
-    "Savings goals & contributions",
-    "Income source management",
-    "Rich analytics & insights",
-    "Auto-categorization & learning",
-    "Offline-first PWA",
-    "Sync across all devices",
-    "Lifetime access - no monthly fees",
-    "Free updates forever",
+    { icon: BarChart3, text: "Visual analytics with charts for all modules" },
+    { icon: Bell, text: "Smart notifications (daily, debt, payday reminders)" },
+    { icon: TrendingUp, text: "Debt tracking with progress visualization" },
+    { icon: Wallet, text: "Savings goals with milestone celebrations" },
+    { icon: Zap, text: "Quick expense tracking (manual or optional M-Pesa)" },
+    { icon: Cloud, text: "Offline-first with cloud sync across devices" },
+    { icon: Shield, text: "Cash runway predictions & spending insights" },
+    { icon: Star, text: "Lifetime access - no monthly fees ever" },
   ];
 
   const handlePayment = async () => {
@@ -244,18 +248,28 @@ export function PaywallDialog({ open, onOpenChange }: PaywallDialogProps) {
 
           {/* Features */}
           <div>
-            <h3 className="font-semibold mb-3">Everything Included:</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
-              {features.slice(0, 8).map((feature) => (
-                <div key={feature} className="flex items-start gap-2">
-                  <Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                  <span className="text-sm">{feature}</span>
-                </div>
-              ))}
+            <h3 className="font-semibold mb-4 text-center">Everything Included:</h3>
+            <div className="grid grid-cols-1 gap-3">
+              {features.map((feature) => {
+                const Icon = feature.icon;
+                return (
+                  <div
+                    key={feature.text}
+                    className="flex items-start gap-3 p-2 rounded-lg hover:bg-accent/50 transition-colors"
+                  >
+                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                      <Icon className="h-4 w-4 text-primary" />
+                    </div>
+                    <span className="text-sm leading-relaxed">{feature.text}</span>
+                  </div>
+                );
+              })}
             </div>
-            <p className="text-xs text-muted-foreground mt-3 text-center font-semibold">
-              Worth KSh 10,000-15,000 • Pay once, own forever • No monthly fees
-            </p>
+            <div className="mt-4 p-3 bg-gradient-to-r from-green-500/10 to-blue-500/10 rounded-lg border border-green-500/20">
+              <p className="text-xs text-center font-semibold">
+                🎯 Worth KSh 10,000-15,000 • Pay once, own forever • No monthly fees
+              </p>
+            </div>
           </div>
         </div>
 

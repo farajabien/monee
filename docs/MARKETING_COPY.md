@@ -15,7 +15,7 @@
 **Display Name:** Monee App
 **Bio (160 characters):**
 ```
-Track your money, plan your life, crush your goals — simple, all-in-one personal finance app. monee.co.ke
+Track expenses, manage debts, build savings — with visual analytics & smart notifications. One app for your money. monee.co.ke
 ```
 
 **Link:** https://monee.co.ke
@@ -49,21 +49,21 @@ Track your money, plan your life, crush your goals — simple, all-in-one person
 ---
 
 #### Video 2: "The Solution" (30 seconds)
-**Hook (0-3s):** "Stop wondering where your money went every month"
+**Hook (0-3s):** "Finally understand where your money goes"
 
 **Body (3-25s):**
-- Screen recording: Opening Monee app
-- Showing Mpesa message: "QK8YPLM123 Confirmed. You have sent KSh 1,500..."
-- Copying message
-- Pasting into Monee
-- BOOM - Instant auto-categorization
-- Shows expense logged with recipient nickname "Naivas - Groceries"
-- Text overlay: "Auto-categorized. Auto-saved. Done."
+- Screen recording: Opening Monee app dashboard
+- Show visual analytics: colorful charts showing spending by category
+- Navigate to debts tab: progress bars filling up with analytics
+- Show notification: "💰 Debt payment due in 3 days"
+- Quick expense entry: simple, fast
+- Show savings analytics with milestone celebration
+- Text overlay: "Analytics. Notifications. All your money in one place."
 
 **CTA (25-30s):**
-"Monee makes tracking money stupid simple. Join waitlist: monee.co.ke"
+"Track smarter, not harder. monee.co.ke"
 
-**Hashtags:** #MpesaKenya #FinanceApp #BudgetApp #SaveMoneyKenya #TechKenya
+**Hashtags:** #PersonalFinanceKenya #MoneyManagement #BudgetApp #SaveMoneyKenya #FinTechKE
 
 ---
 
@@ -108,15 +108,16 @@ Track your money, plan your life, crush your goals — simple, all-in-one person
 ---
 
 #### Video 5: "Value Proposition" (30 seconds)
-**Hook (0-3s):** "Budget tracker + Debt tracker + Savings goals + Mpesa auto-import + Business expenses..."
+**Hook (0-3s):** "Visual analytics + Smart notifications + Debt tracking + Savings goals + Business expenses..."
 
 **Body (3-25s):**
 - Fast-paced montage showing each feature:
   - Dashboard with 4 cards
-  - Expense list with auto-categorization
-  - Savings goals with progress bars
-  - Debt payment recording
-  - Budget allocation
+  - Interactive charts (bar/line toggle, time periods)
+  - Push notification examples
+  - Savings analytics with progress
+  - Debt analytics with payoff visualization
+  - Optional M-Pesa integration
 - Split screen comparison:
   - LEFT: "6 separate spreadsheets = KSh 3,500+"
   - RIGHT: "Monee = KSh 999"
@@ -144,11 +145,13 @@ Thanks for joining the Monee waitlist!
 You're about to get early access to an app that replaces 5-6 spreadsheets (worth KSh 3,500+) with one simple tool for KSh 999.
 
 What you'll get:
-✅ Mpesa auto-import & smart categorization
+✅ Visual analytics with charts for all modules (expenses, debts, savings, income)
+✅ Smart notifications (daily reminders, debt alerts, payday notifications)
 ✅ Zero-sum budgeting that actually works
-✅ Debt tracking with payoff planning
-✅ Savings goals with progress tracking
+✅ Debt tracking with payoff planning & progress visualization
+✅ Savings goals with contribution tracking & milestone celebrations
 ✅ Cash runway predictions (know if you'll make it to payday)
+✅ Optional M-Pesa auto-import & smart categorization (Kenya)
 ✅ Business & student expense tagging
 
 No subscriptions. No hidden fees. Just one payment, lifetime access.
@@ -182,11 +185,13 @@ Instead of buying 5-6 different spreadsheets for KSh 3,500+, you can get everyth
 → Start tracking: https://monee.co.ke/signup
 
 Here's what's inside:
-• Mpesa auto-import (paste messages or upload statements)
-• Smart recipient matching (see where money REALLY goes)
+• Visual analytics with interactive charts for expenses, debts, savings & income
+• Smart notifications for daily check-ins, debt alerts, and payday reminders
 • Cash runway predictions (know if you'll make it to payday)
-• Debt tracking with progress visualization
-• Savings goals with automatic tracking
+• Debt tracking with progress visualization and payoff planning
+• Savings goals with contribution tracking and milestone celebrations
+• Optional M-Pesa auto-import (paste messages or upload statements)
+• Smart recipient matching (see where money REALLY goes)
 • Business & student expense modes
 • Offline-first (works without internet)
 • Cloud sync across all your devices
@@ -267,13 +272,15 @@ Monee replaces them all:
 Total: KSh 3,395+ → Get everything for KSh 999
 
 🎯 One app. Lifetime access. No subscriptions.
-📲 Mpesa auto-import included
+📊 Visual analytics with charts for all modules
+🔔 Smart notifications (daily reminders, debt alerts, payday notifications)
+📲 Optional M-Pesa auto-import
 💾 Works offline, syncs everywhere
-📊 Smart insights & cash runway predictions
+🎯 Cash runway predictions
 
 Join waitlist: monee.co.ke
 
-#MoneeApp #BudgetingKenya #PersonalFinance #SaveMoney #DebtFree #MpesaKenya #FinancialFreedom #KenyanTech
+#MoneeApp #BudgetingKenya #PersonalFinance #SaveMoney #DebtFree #FinancialFreedom #KenyanTech
 ```
 
 **Image Suggestion:** Side-by-side comparison graphic showing 6 spreadsheet icons with prices vs Monee app logo with KSh 999
@@ -283,23 +290,25 @@ Join waitlist: monee.co.ke
 ### Instagram / Facebook Post #2 (Feature Highlight)
 
 ```
-💰 Know BEFORE you run out of money.
+📊 Your money story, visualized.
 
-Monee's Cash Runway feature tells you:
-• How many days until your next paycheck
-• If you're spending too fast
-• Your projected balance on payday
+Monee shows you:
+• Interactive charts for spending, debts, savings & income
+• Trends over time (week, month, year views)
+• Category breakdowns with percentages
+• Smart notifications to keep you on track
+• Cash runway predictions
 
-No more surprises. No more "where did my money go?"
+Stop guessing. Start knowing.
 
 Track your money like a pro: monee.co.ke
 
 KSh 999 • One-time payment • Lifetime access
 
-#MoneyManagement #BudgetingTips #PersonalFinanceKenya #PaydayKenya #FinancialPlanning
+#VisualAnalytics #MoneyManagement #BudgetingTips #PersonalFinanceKenya #FinancialPlanning
 ```
 
-**Image Suggestion:** Screenshot of Cash Runway card showing clear metrics
+**Image Suggestion:** Screenshot of analytics dashboard showing colorful charts
 
 ---
 

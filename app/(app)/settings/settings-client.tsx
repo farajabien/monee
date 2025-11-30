@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 import { PWABottomNav } from "@/components/pwa/pwa-bottom-nav";
+import { PaywallDialog } from "@/components/payment/paywall-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -49,11 +50,14 @@ import {
 } from "@/components/ui/alert-dialog";
 import { NotificationSettings } from "@/components/settings/notification-settings";
 
+const FREE_TRIAL_DAYS = 7;
+
 export default function SettingsClient() {
   const [theme, setTheme] = useState<"light" | "dark" | "system">("system");
   const [currency, setCurrency] = useState("KES");
   const [isExporting, setIsExporting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showPaywall, setShowPaywall] = useState(false);
 
   const { isLoading, error, data } = db.useQuery({
     profiles: {
@@ -76,6 +80,14 @@ export default function SettingsClient() {
 
   const profile = data?.profiles?.[0];
   const user = data?.$users?.[0];
+
+  // Calculate trial status
+  const profileCreatedAt = profile?.createdAt || Date.now();
+  const daysSinceCreation = Math.floor(
+    (Date.now() - profileCreatedAt) / (1000 * 60 * 60 * 24)
+  );
+  const isTrialActive = daysSinceCreation < FREE_TRIAL_DAYS;
+  const daysRemaining = Math.max(0, FREE_TRIAL_DAYS - daysSinceCreation);
 
   const handleThemeChange = (newTheme: "light" | "dark" | "system") => {
     setTheme(newTheme);
@@ -330,11 +342,13 @@ export default function SettingsClient() {
   if (!profile) return <div className="p-4">No profile found</div>;
 
   return (
-    <div className="mx-auto max-w-md p-3 sm:p-4 md:p-6 pb-20 md:pb-0">
-      <h1 className="text-2xl font-bold mb-2">Settings</h1>
-      <p className="text-muted-foreground mb-4">
-        Manage your preferences and account settings
-      </p>
+    <>
+      <PaywallDialog open={showPaywall} onOpenChange={setShowPaywall} />
+      <div className="mx-auto max-w-md p-3 sm:p-4 md:p-6 pb-20 md:pb-0">
+        <h1 className="text-2xl font-bold mb-2">Settings</h1>
+        <p className="text-muted-foreground mb-4">
+          Manage your preferences and account settings
+        </p>
 
       <Tabs defaultValue="general" className="w-full">
         <TabsList className="w-full grid grid-cols-4 mb-4">
@@ -592,9 +606,33 @@ export default function SettingsClient() {
                 </div>
               )}
 
-              {!user?.hasPaid && (
-                <Button className="w-full" size="lg">
-                  Upgrade to Lifetime Access - KES 999
+              {!user?.hasPaid && isTrialActive && (
+                <div className="space-y-3">
+                  <div className="p-3 bg-gradient-to-r from-green-500/10 to-blue-500/10 rounded-lg border border-green-500/20">
+                    <p className="text-sm font-semibold text-center">
+                      🎉 {daysRemaining} day{daysRemaining !== 1 ? "s" : ""} left in your free trial
+                    </p>
+                    <p className="text-xs text-muted-foreground text-center mt-1">
+                      Unlock lifetime access for just KSh 999
+                    </p>
+                  </div>
+                  <Button
+                    className="w-full"
+                    size="lg"
+                    onClick={() => setShowPaywall(true)}
+                  >
+                    Upgrade to Lifetime Access - KSh 999
+                  </Button>
+                </div>
+              )}
+
+              {!user?.hasPaid && !isTrialActive && (
+                <Button
+                  className="w-full"
+                  size="lg"
+                  onClick={() => setShowPaywall(true)}
+                >
+                  Unlock Full Access - KSh 999
                 </Button>
               )}
             </CardContent>
@@ -695,8 +733,9 @@ export default function SettingsClient() {
         </TabsContent>
       </Tabs>
 
-      <div className="h-20" />
-      <PWABottomNav />
-    </div>
+        <div className="h-20" />
+        <PWABottomNav />
+      </div>
+    </>
   );
 }

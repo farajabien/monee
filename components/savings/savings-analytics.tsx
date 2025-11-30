@@ -76,7 +76,7 @@ export function SavingsAnalytics() {
     savingsGoals.forEach((goal) => {
       goal.contributions?.forEach((contribution) => {
         allContributions.push({
-          date: contribution.date || contribution.createdAt,
+          date: contribution.contributionDate || contribution.createdAt,
           amount: contribution.amount || 0,
         });
       });
@@ -187,7 +187,7 @@ export function SavingsAnalytics() {
 
       return {
         id: goal.id,
-        name: goal.goalName || "Unnamed Goal",
+        name: goal.name || "Unnamed Goal",
         amount: saved,
         percentage: Math.round(percentage),
         subtitle: `Target: KSh ${targetAmount.toLocaleString()} (${progress}%)`,
@@ -205,7 +205,9 @@ export function SavingsAnalytics() {
     // Group by month
     const monthlyTotals = new Map<string, number>();
     allContributions.forEach((contribution) => {
-      const date = new Date(contribution.date || contribution.createdAt);
+      const date = new Date(
+        contribution.contributionDate || contribution.createdAt
+      );
       const monthKey = `${date.getFullYear()}-${date.getMonth()}`;
       monthlyTotals.set(
         monthKey,
@@ -265,7 +267,8 @@ export function SavingsAnalytics() {
               KSh {totalSaved.toLocaleString()}
             </div>
             <p className="text-xs text-muted-foreground">
-              {savingsGoals.length} active goal{savingsGoals.length !== 1 ? "s" : ""}
+              {savingsGoals.length} active goal
+              {savingsGoals.length !== 1 ? "s" : ""}
             </p>
           </CardContent>
         </Card>
