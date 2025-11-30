@@ -13,20 +13,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import db from "@/lib/db";
 import { id } from "@instantdb/react";
 import { Check, Plus, X } from "lucide-react";
 import { AddCategoryDialog } from "@/components/categories/add-category-dialog";
-import { getAllCurrencies, DEFAULT_CURRENCY, getLocaleForCurrency } from "@/lib/currency-utils";
-
-const DEFAULT_CATEGORIES = [
-  { name: "Food", color: "#f97316" },
-  { name: "Transport", color: "#3b82f6" },
-  { name: "Housing", color: "#8b5cf6" },
-  { name: "Utilities", color: "#06b6d4" },
-  { name: "Savings", color: "#22c55e" },
-  { name: "Misc", color: "#a3a3a3" },
-];
+import {
+  getAllCurrencies,
+  DEFAULT_CURRENCY,
+  getLocaleForCurrency,
+} from "@/lib/currency-utils";
+import { DEFAULT_CATEGORIES } from "@/lib/bootstrap";
 
 export default function Onboarding() {
   const { user } = db.useAuth();
@@ -61,10 +58,24 @@ export default function Onboarding() {
       amount: string;
       paydayDay: string;
       paydayMonth?: string;
+      isIrregular: boolean;
     }>
-  >([{ name: "", amount: "", paydayDay: "" }]);
+  >([{ name: "", amount: "", paydayDay: "", isIrregular: false }]);
   const [recurringExpenses, setRecurringExpenses] = useState<
     Array<{ name: string; amount: string; category: string }>
+  >([]);
+  const [debts, setDebts] = useState<
+    Array<{
+      name: string;
+      totalAmount: string;
+      currentBalance: string;
+      monthlyPaymentAmount: string;
+      paymentDueDay: string;
+      interestRate: string;
+    }>
+  >([]);
+  const [savingsGoals, setSavingsGoals] = useState<
+    Array<{ name: string; targetAmount: string; emoji: string }>
   >([]);
   const [showAddCategoryDialog, setShowAddCategoryDialog] = useState(false);
   const [isCreatingProfile, setIsCreatingProfile] = useState(false);
@@ -143,7 +154,11 @@ export default function Onboarding() {
     );
   };
 
-  const handleCategoryCreated = (categoryId: string, categoryName: string, categoryColor: string) => {
+  const handleCategoryCreated = (
+    categoryId: string,
+    categoryName: string,
+    categoryColor: string
+  ) => {
     const newCategory = {
       name: categoryName,
       color: categoryColor,
@@ -155,7 +170,7 @@ export default function Onboarding() {
   const addIncomeSource = () => {
     setIncomeSources([
       ...incomeSources,
-      { name: "", amount: "", paydayDay: "" },
+      { name: "", amount: "", paydayDay: "", isIrregular: false },
     ]);
   };
 
@@ -163,7 +178,11 @@ export default function Onboarding() {
     setIncomeSources(incomeSources.filter((_, i) => i !== index));
   };
 
-  const updateIncomeSource = (index: number, field: string, value: string) => {
+  const updateIncomeSource = (
+    index: number,
+    field: string,
+    value: string | boolean
+  ) => {
     const updated = [...incomeSources];
     updated[index] = { ...updated[index], [field]: value };
     setIncomeSources(updated);
@@ -190,6 +209,47 @@ export default function Onboarding() {
     setRecurringExpenses(updated);
   };
 
+  const addDebt = () => {
+    setDebts([
+      ...debts,
+      {
+        name: "",
+        totalAmount: "",
+        currentBalance: "",
+        monthlyPaymentAmount: "",
+        paymentDueDay: "",
+        interestRate: "",
+      },
+    ]);
+  };
+
+  const removeDebt = (index: number) => {
+    setDebts(debts.filter((_, i) => i !== index));
+  };
+
+  const updateDebt = (index: number, field: string, value: string) => {
+    const updated = [...debts];
+    updated[index] = { ...updated[index], [field]: value };
+    setDebts(updated);
+  };
+
+  const addSavingsGoal = () => {
+    setSavingsGoals([
+      ...savingsGoals,
+      { name: "", targetAmount: "", emoji: "🎯" },
+    ]);
+  };
+
+  const removeSavingsGoal = (index: number) => {
+    setSavingsGoals(savingsGoals.filter((_, i) => i !== index));
+  };
+
+  const updateSavingsGoal = (index: number, field: string, value: string) => {
+    const updated = [...savingsGoals];
+    updated[index] = { ...updated[index], [field]: value };
+    setSavingsGoals(updated);
+  };
+
   const handleNext = async () => {
     setIsSaving(true);
     try {
@@ -205,6 +265,13 @@ export default function Onboarding() {
 
         setStep(2);
       } else if (step === 2) {
+        // Validate at least one category is selected
+        if (selectedCategories.length === 0) {
+          alert("Please select at least one category");
+          setIsSaving(false);
+          return;
+        }
+
         // Save categories (only default ones, custom ones are already saved via dialog)
         const categoriesToCreate = DEFAULT_CATEGORIES.filter((cat) =>
           selectedCategories.includes(cat.name)
@@ -216,13 +283,16 @@ export default function Onboarding() {
           createdAt: Date.now(),
         }));
 
-        await Promise.all(
-          categoriesToCreate.map((cat) =>
-            db.transact(
-              db.tx.categories[id()].update(cat).link({ user: profile.id })
-            )
-          )
-        );
+        const txs = categoriesToCreate.map((cat) => {
+          const categoryId = id();
+          return db.tx.categories[categoryId]
+            .update(cat)
+            .link({ user: profile.id });
+        });
+
+        if (txs.length > 0) {
+          await db.transact(txs);
+        }
 
         // Update onboarding step
         await db.transact(
@@ -233,29 +303,35 @@ export default function Onboarding() {
 
         setStep(3);
       } else if (step === 3) {
-        // Save income sources
+        // Validate at least one income source
         const validIncomeSources = incomeSources.filter(
-          (source) => source.name && source.amount && source.paydayDay
+          (source) => source.name && source.amount
         );
 
-        await Promise.all(
-          validIncomeSources.map((source) =>
-            db.transact(
-              db.tx.income_sources[id()]
-                .update({
-                  name: source.name,
-                  amount: parseFloat(source.amount),
-                  paydayDay: parseInt(source.paydayDay),
-                  paydayMonth: source.paydayMonth
-                    ? parseInt(source.paydayMonth)
-                    : undefined,
-                  isActive: true,
-                  createdAt: Date.now(),
-                })
-                .link({ user: profile.id })
-            )
-          )
-        );
+        if (validIncomeSources.length === 0) {
+          alert("Please add at least one income source");
+          setIsSaving(false);
+          return;
+        }
+
+        // Save income sources
+        const txs = validIncomeSources.map((source) => {
+          const incomeId = id();
+          return db.tx.income_sources[incomeId]
+            .update({
+              name: source.name,
+              amount: parseFloat(source.amount),
+              paydayDay: source.paydayDay ? parseInt(source.paydayDay) : 0,
+              paydayMonth: source.paydayMonth
+                ? parseInt(source.paydayMonth)
+                : undefined,
+              isActive: true,
+              createdAt: Date.now(),
+            })
+            .link({ user: profile.id });
+        });
+
+        await db.transact(txs);
 
         // Update onboarding step
         await db.transact(
@@ -266,29 +342,103 @@ export default function Onboarding() {
 
         setStep(4);
       } else if (step === 4) {
-        // Save recurring expenses
+        // Save recurring expenses (optional)
         const validRecurringExpenses = recurringExpenses.filter(
           (expense) => expense.name && expense.amount
         );
 
-        await Promise.all(
-          validRecurringExpenses.map((expense) =>
-            db.transact(
-              db.tx.expenses[id()]
-                .update({
-                  amount: parseFloat(expense.amount),
-                  recipient: expense.name,
-                  date: Date.now(),
-                  category: expense.category,
-                  expenseType: "recurring",
-                  rawMessage: "",
-                  parsedData: {},
-                  createdAt: Date.now(),
-                })
-                .link({ user: profile.id })
-            )
-          )
+        if (validRecurringExpenses.length > 0) {
+          const txs = validRecurringExpenses.map((expense) => {
+            const expenseId = id();
+            return db.tx.expenses[expenseId]
+              .update({
+                amount: parseFloat(expense.amount),
+                recipient: expense.name,
+                date: Date.now(),
+                category: expense.category,
+                expenseType: "recurring",
+                rawMessage: "",
+                parsedData: {},
+                createdAt: Date.now(),
+              })
+              .link({ user: profile.id });
+          });
+
+          await db.transact(txs);
+        }
+
+        // Update onboarding step
+        await db.transact(
+          db.tx.profiles[profile.id].update({
+            onboardingStep: "debts",
+          })
         );
+
+        setStep(5);
+      } else if (step === 5) {
+        // Save debts (optional)
+        const validDebts = debts.filter(
+          (debt) => debt.name && debt.totalAmount
+        );
+
+        if (validDebts.length > 0) {
+          const txs = validDebts.map((debt) => {
+            const debtId = id();
+            return db.tx.debts[debtId]
+              .update({
+                name: debt.name,
+                totalAmount: parseFloat(debt.totalAmount),
+                currentBalance: debt.currentBalance
+                  ? parseFloat(debt.currentBalance)
+                  : parseFloat(debt.totalAmount),
+                monthlyPaymentAmount: debt.monthlyPaymentAmount
+                  ? parseFloat(debt.monthlyPaymentAmount)
+                  : 0,
+                paymentDueDay: debt.paymentDueDay
+                  ? parseInt(debt.paymentDueDay)
+                  : 1,
+                interestRate: debt.interestRate
+                  ? parseFloat(debt.interestRate)
+                  : undefined,
+                createdAt: Date.now(),
+              })
+              .link({ user: profile.id });
+          });
+
+          await db.transact(txs);
+        }
+
+        // Update onboarding step
+        await db.transact(
+          db.tx.profiles[profile.id].update({
+            onboardingStep: "savings",
+          })
+        );
+
+        setStep(6);
+      } else if (step === 6) {
+        // Save savings goals (optional)
+        const validSavingsGoals = savingsGoals.filter(
+          (goal) => goal.name && goal.targetAmount
+        );
+
+        if (validSavingsGoals.length > 0) {
+          const txs = validSavingsGoals.map((goal) => {
+            const goalId = id();
+            return db.tx.savings_goals[goalId]
+              .update({
+                name: goal.name,
+                targetAmount: parseFloat(goal.targetAmount),
+                currentAmount: 0,
+                emoji: goal.emoji || "🎯",
+                isCompleted: false,
+                createdAt: Date.now(),
+              })
+              .link({ user: profile.id });
+          });
+
+          await db.transact(txs);
+        }
 
         // Mark onboarding as completed
         await db.transact(
@@ -309,29 +459,52 @@ export default function Onboarding() {
   };
 
   const handleSkip = async () => {
-    if (step === 4) {
-      // Mark onboarding as completed even if skipping recurring expenses
-      await db.transact(
-        db.tx.profiles[profile.id].update({
-          onboardingCompleted: true,
-          onboardingStep: "completed",
-        })
-      );
-      router.push("/dashboard");
-    } else {
-      // Update onboarding step when skipping
-      let nextStepName = "completed";
-      if (step === 1) nextStepName = "categories";
-      else if (step === 2) nextStepName = "income";
-      else if (step === 3) nextStepName = "expenses";
+    setIsSaving(true);
+    try {
+      if (step === 6) {
+        // Mark onboarding as completed
+        await db.transact(
+          db.tx.profiles[profile.id].update({
+            onboardingCompleted: true,
+            onboardingStep: "completed",
+          })
+        );
+        router.push("/dashboard");
+      } else {
+        // Update onboarding step when skipping
+        let nextStepName = "completed";
+        if (step === 1) nextStepName = "categories";
+        else if (step === 2) nextStepName = "income";
+        else if (step === 3) nextStepName = "expenses";
+        else if (step === 4) nextStepName = "debts";
+        else if (step === 5) nextStepName = "savings";
 
-      await db.transact(
-        db.tx.profiles[profile.id].update({
-          onboardingStep: nextStepName,
-        })
-      );
-      setStep(step + 1);
+        await db.transact(
+          db.tx.profiles[profile.id].update({
+            onboardingStep: nextStepName,
+          })
+        );
+        setStep(step + 1);
+      }
+    } catch (error) {
+      console.error("Skip error:", error);
+    } finally {
+      setIsSaving(false);
     }
+  };
+
+  const canSkipStep = () => {
+    // Can't skip currency and categories
+    if (step === 1 || step === 2) return false;
+    // Can't skip income without at least one source
+    if (step === 3) {
+      const validIncomeSources = incomeSources.filter(
+        (source) => source.name && source.amount
+      );
+      return validIncomeSources.length > 0;
+    }
+    // Can skip expenses, debts, and savings
+    return true;
   };
 
   return (
@@ -341,17 +514,17 @@ export default function Onboarding() {
           <CardHeader>
             <div className="flex items-center justify-between mb-2">
               <div className="flex gap-2">
-                {[1, 2, 3, 4].map((s) => (
+                {[1, 2, 3, 4, 5, 6].map((s) => (
                   <div
                     key={s}
-                    className={`h-2 w-12 rounded-full ${
+                    className={`h-2 w-10 rounded-full ${
                       s <= step ? "bg-primary" : "bg-muted"
                     }`}
                   />
                 ))}
               </div>
               <span className="text-sm text-muted-foreground">
-                Step {step} of 4
+                Step {step} of 6
               </span>
             </div>
             <CardTitle>
@@ -359,13 +532,16 @@ export default function Onboarding() {
               {step === 2 && "Setup Your Categories"}
               {step === 3 && "Setup Income Sources"}
               {step === 4 && "Setup Recurring Expenses"}
+              {step === 5 && "Track Your Debts"}
+              {step === 6 && "Set Savings Goals"}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             {step === 1 && (
               <>
                 <p className="text-muted-foreground">
-                  Select your preferred currency. All amounts will be displayed in this currency.
+                  Select your preferred currency. All amounts will be displayed
+                  in this currency.
                 </p>
                 <div className="grid grid-cols-2 gap-3">
                   {getAllCurrencies().map((curr) => (
@@ -379,8 +555,12 @@ export default function Onboarding() {
                       }`}
                     >
                       <div className="flex flex-col items-start flex-1">
-                        <span className="font-medium text-lg">{curr.symbol} {curr.code}</span>
-                        <span className="text-sm text-muted-foreground">{curr.name}</span>
+                        <span className="font-medium text-lg">
+                          {curr.symbol} {curr.code}
+                        </span>
+                        <span className="text-sm text-muted-foreground">
+                          {curr.name}
+                        </span>
                       </div>
                       {selectedCurrency === curr.code && (
                         <Check className="h-5 w-5 text-primary" />
@@ -435,15 +615,16 @@ export default function Onboarding() {
               <>
                 <p className="text-muted-foreground">
                   Add your income sources and paydays. This helps us track your
-                  money flow.
+                  money flow. Toggle &quot;Irregular&quot; for income that
+                  varies monthly.
                 </p>
                 <div className="space-y-4">
                   {incomeSources.map((source, index) => (
                     <div
                       key={index}
-                      className="flex gap-3 items-end p-4 border rounded-lg"
+                      className="p-4 border rounded-lg space-y-3"
                     >
-                      <div className="flex-1 space-y-2">
+                      <div className="space-y-2">
                         <Label>Source Name</Label>
                         <Input
                           placeholder="e.g., Salary, Business"
@@ -453,76 +634,99 @@ export default function Onboarding() {
                           }
                         />
                       </div>
-                      <div className="flex-1 space-y-2">
-                        <Label>Amount (KES)</Label>
-                        <Input
-                          type="number"
-                          placeholder="50000"
-                          value={source.amount}
-                          onChange={(e) =>
-                            updateIncomeSource(index, "amount", e.target.value)
+                      <div className="flex items-center justify-between">
+                        <Label>Irregular Income</Label>
+                        <Switch
+                          checked={source.isIrregular}
+                          onCheckedChange={(checked) =>
+                            updateIncomeSource(index, "isIrregular", checked)
                           }
                         />
                       </div>
-                      <div className="w-24 space-y-2">
-                        <Label>Payday</Label>
-                        <Input
-                          type="number"
-                          min="1"
-                          max="31"
-                          placeholder="25"
-                          value={source.paydayDay}
-                          onChange={(e) =>
-                            updateIncomeSource(
-                              index,
-                              "paydayDay",
-                              e.target.value
-                            )
-                          }
-                        />
-                      </div>
-                      <div className="flex-1 space-y-2">
-                        <Label>Month (Optional)</Label>
-                        <Select
-                          value={source.paydayMonth || "none"}
-                          onValueChange={(value) =>
-                            updateIncomeSource(
-                              index,
-                              "paydayMonth",
-                              value === "none" ? "" : value
-                            )
-                          }
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Recurring monthly" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="none">
-                              Recurring monthly
-                            </SelectItem>
-                            {Array.from({ length: 12 }, (_, i) => i + 1).map(
-                              (m) => (
-                                <SelectItem key={m} value={m.toString()}>
-                                  {new Date(2000, m - 1).toLocaleString(
-                                    "default",
-                                    {
-                                      month: "long",
-                                    }
-                                  )}
-                                </SelectItem>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-2">
+                          <Label>
+                            {source.isIrregular ? "Estimated Amount" : "Amount"}
+                          </Label>
+                          <Input
+                            type="number"
+                            placeholder="50000"
+                            value={source.amount}
+                            onChange={(e) =>
+                              updateIncomeSource(
+                                index,
+                                "amount",
+                                e.target.value
                               )
-                            )}
-                          </SelectContent>
-                        </Select>
+                            }
+                          />
+                        </div>
+                        {!source.isIrregular && (
+                          <div className="space-y-2">
+                            <Label>Payday</Label>
+                            <Input
+                              type="number"
+                              min="1"
+                              max="31"
+                              placeholder="25"
+                              value={source.paydayDay}
+                              onChange={(e) =>
+                                updateIncomeSource(
+                                  index,
+                                  "paydayDay",
+                                  e.target.value
+                                )
+                              }
+                            />
+                          </div>
+                        )}
                       </div>
+                      {!source.isIrregular && (
+                        <div className="space-y-2">
+                          <Label>Month (Optional)</Label>
+                          <Select
+                            value={source.paydayMonth || "none"}
+                            onValueChange={(value) =>
+                              updateIncomeSource(
+                                index,
+                                "paydayMonth",
+                                value === "none" ? "" : value
+                              )
+                            }
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Recurring monthly" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="none">
+                                Recurring monthly
+                              </SelectItem>
+                              {Array.from({ length: 12 }, (_, i) => i + 1).map(
+                                (m) => (
+                                  <SelectItem key={m} value={m.toString()}>
+                                    {new Date(2000, m - 1).toLocaleString(
+                                      "default",
+                                      {
+                                        month: "long",
+                                      }
+                                    )}
+                                  </SelectItem>
+                                )
+                              )}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
                       {incomeSources.length > 1 && (
                         <Button
                           type="button"
                           variant="ghost"
-                          size="icon"
+                          size="sm"
                           onClick={() => removeIncomeSource(index)}
+                          className="w-full"
                         >
-                          <X className="h-4 w-4" />
+                          <X className="h-4 w-4 mr-2" />
+                          Remove
                         </Button>
                       )}
                     </div>
@@ -544,7 +748,7 @@ export default function Onboarding() {
               <>
                 <p className="text-muted-foreground">
                   Add your recurring monthly expenses like rent, bills, and
-                  subscriptions.
+                  subscriptions. Focus on essentials first.
                 </p>
                 <div className="space-y-4">
                   {recurringExpenses.length === 0 ? (
@@ -572,7 +776,7 @@ export default function Onboarding() {
                           />
                         </div>
                         <div className="flex-1 space-y-2">
-                          <Label>Amount (KES)</Label>
+                          <Label>Amount</Label>
                           <Input
                             type="number"
                             placeholder="5000"
@@ -633,7 +837,7 @@ export default function Onboarding() {
                       Estimated Monthly Total
                     </p>
                     <p className="text-2xl font-bold">
-                      KES{" "}
+                      {selectedCurrency}{" "}
                       {recurringExpenses
                         .reduce(
                           (sum, exp) => sum + (parseFloat(exp.amount) || 0),
@@ -646,12 +850,249 @@ export default function Onboarding() {
               </>
             )}
 
+            {step === 5 && (
+              <>
+                <p className="text-muted-foreground">
+                  Track your debts to stay on top of payments and interest. This
+                  is optional but helps with financial planning.
+                </p>
+                <div className="space-y-4">
+                  {debts.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                      No debts added yet
+                    </div>
+                  ) : (
+                    debts.map((debt, index) => (
+                      <div
+                        key={index}
+                        className="p-4 border rounded-lg space-y-3"
+                      >
+                        <div className="space-y-2">
+                          <Label>Debt Name</Label>
+                          <Input
+                            placeholder="e.g., Car Loan, Credit Card"
+                            value={debt.name}
+                            onChange={(e) =>
+                              updateDebt(index, "name", e.target.value)
+                            }
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="space-y-2">
+                            <Label>Total Amount</Label>
+                            <Input
+                              type="number"
+                              placeholder="100000"
+                              value={debt.totalAmount}
+                              onChange={(e) =>
+                                updateDebt(index, "totalAmount", e.target.value)
+                              }
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Current Balance</Label>
+                            <Input
+                              type="number"
+                              placeholder="80000"
+                              value={debt.currentBalance}
+                              onChange={(e) =>
+                                updateDebt(
+                                  index,
+                                  "currentBalance",
+                                  e.target.value
+                                )
+                              }
+                            />
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="space-y-2">
+                            <Label>Monthly Payment</Label>
+                            <Input
+                              type="number"
+                              placeholder="5000"
+                              value={debt.monthlyPaymentAmount}
+                              onChange={(e) =>
+                                updateDebt(
+                                  index,
+                                  "monthlyPaymentAmount",
+                                  e.target.value
+                                )
+                              }
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Payment Due Day</Label>
+                            <Input
+                              type="number"
+                              min="1"
+                              max="31"
+                              placeholder="15"
+                              value={debt.paymentDueDay}
+                              onChange={(e) =>
+                                updateDebt(
+                                  index,
+                                  "paymentDueDay",
+                                  e.target.value
+                                )
+                              }
+                            />
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Interest Rate (%) - Optional</Label>
+                          <Input
+                            type="number"
+                            step="0.1"
+                            placeholder="5.5"
+                            value={debt.interestRate}
+                            onChange={(e) =>
+                              updateDebt(index, "interestRate", e.target.value)
+                            }
+                          />
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeDebt(index)}
+                          className="w-full"
+                        >
+                          <X className="h-4 w-4 mr-2" />
+                          Remove
+                        </Button>
+                      </div>
+                    ))
+                  )}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={addDebt}
+                    className="w-full"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Debt
+                  </Button>
+                </div>
+                {debts.length > 0 && (
+                  <div className="p-4 bg-muted rounded-lg">
+                    <p className="text-sm font-medium">Total Debt</p>
+                    <p className="text-2xl font-bold">
+                      {selectedCurrency}{" "}
+                      {debts
+                        .reduce(
+                          (sum, debt) =>
+                            sum + (parseFloat(debt.totalAmount) || 0),
+                          0
+                        )
+                        .toLocaleString()}
+                    </p>
+                  </div>
+                )}
+              </>
+            )}
+
+            {step === 6 && (
+              <>
+                <p className="text-muted-foreground">
+                  Set savings goals to work towards. Add items you want to save
+                  for.
+                </p>
+
+                {/* Savings Goals */}
+                <div className="space-y-3">
+                  <h3 className="font-medium">Savings Goals</h3>
+                  {savingsGoals.length === 0 ? (
+                    <div className="text-center py-6 text-muted-foreground text-sm">
+                      No savings goals added yet
+                    </div>
+                  ) : (
+                    savingsGoals.map((goal, index) => (
+                      <div
+                        key={index}
+                        className="flex gap-3 items-end p-4 border rounded-lg"
+                      >
+                        <div className="flex-1 space-y-2">
+                          <Label>Goal Name</Label>
+                          <Input
+                            placeholder="e.g., New Phone, Vacation"
+                            value={goal.name}
+                            onChange={(e) =>
+                              updateSavingsGoal(index, "name", e.target.value)
+                            }
+                          />
+                        </div>
+                        <div className="flex-1 space-y-2">
+                          <Label>Target Amount</Label>
+                          <Input
+                            type="number"
+                            placeholder="50000"
+                            value={goal.targetAmount}
+                            onChange={(e) =>
+                              updateSavingsGoal(
+                                index,
+                                "targetAmount",
+                                e.target.value
+                              )
+                            }
+                          />
+                        </div>
+                        <div className="w-20 space-y-2">
+                          <Label>Emoji</Label>
+                          <Input
+                            placeholder="🎯"
+                            value={goal.emoji}
+                            onChange={(e) =>
+                              updateSavingsGoal(index, "emoji", e.target.value)
+                            }
+                            maxLength={2}
+                          />
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => removeSavingsGoal(index)}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))
+                  )}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={addSavingsGoal}
+                    className="w-full"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Savings Goal
+                  </Button>
+                </div>
+              </>
+            )}
+
             <div className="flex gap-3 pt-4">
-              <Button variant="outline" onClick={handleSkip} disabled={isSaving} className="flex-1">
-                Skip
-              </Button>
-              <Button onClick={handleNext} disabled={isSaving} className="flex-1">
-                {isSaving ? "Saving..." : step === 4 ? "Complete Setup" : "Continue"}
+              {canSkipStep() && (
+                <Button
+                  variant="outline"
+                  onClick={handleSkip}
+                  disabled={isSaving}
+                  className="flex-1"
+                >
+                  Skip
+                </Button>
+              )}
+              <Button
+                onClick={handleNext}
+                disabled={isSaving}
+                className="flex-1"
+              >
+                {isSaving
+                  ? "Saving..."
+                  : step === 6
+                  ? "Complete Setup"
+                  : "Continue"}
               </Button>
             </div>
           </CardContent>

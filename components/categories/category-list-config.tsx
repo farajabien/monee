@@ -12,6 +12,7 @@ import { Switch } from "@/components/ui/switch";
 import { Tag, ToggleLeft } from "lucide-react";
 import db from "@/lib/db";
 import { id } from "@instantdb/react";
+import { DEFAULT_CATEGORIES } from "@/lib/bootstrap";
 
 // System default category names
 const SYSTEM_CATEGORY_NAMES = new Set([
@@ -22,15 +23,6 @@ const SYSTEM_CATEGORY_NAMES = new Set([
   "savings",
   "misc",
 ]);
-
-const DEFAULT_CATEGORIES = [
-  { name: "Food", color: "#f97316" },
-  { name: "Transport", color: "#3b82f6" },
-  { name: "Housing", color: "#8b5cf6" },
-  { name: "Utilities", color: "#06b6d4" },
-  { name: "Savings", color: "#22c55e" },
-  { name: "Misc", color: "#a3a3a3" },
-];
 
 const CATEGORY_COLORS = [
   "#3b82f6", // blue
@@ -187,7 +179,7 @@ export const createCategoryListConfig = (
   getItemId: (item: Category) => item.id,
 
   // Custom filter
-  customFilter: (item: Category, searchQuery: string, filters: any) => {
+  customFilter: (item: Category, searchQuery: string, filters) => {
     // Apply status filter
     const statusFilter = filters.status;
     if (statusFilter && statusFilter !== "all") {
