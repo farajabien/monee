@@ -65,7 +65,7 @@ import {
 const FREE_TRIAL_DAYS = 7;
 
 export default function SettingsClient() {
-  const [theme, setTheme] = useState<"light" | "dark" | "system">("system");
+  const [theme, setTheme] = useState<"light" | "dark" | "system">("dark");
   const [currency, setCurrency] = useState(DEFAULT_CURRENCY);
   const [isExporting, setIsExporting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -113,7 +113,10 @@ export default function SettingsClient() {
       setTheme(savedTheme);
       applyTheme(savedTheme);
     } else {
-      applyTheme("system");
+      // Default to dark mode
+      setTheme("dark");
+      localStorage.setItem("theme", "dark");
+      applyTheme("dark");
     }
   }, []);
 
