@@ -170,9 +170,9 @@ export default function LandingPage() {
                 <span className="text-primary">Finally in One Place</span>
               </h1>
               <p className="text-xl text-muted-foreground">
-                Stop wondering where your money goes. MONEE helps you track expenses,
-                manage debts, save smarter, and turns personal finance into a mindful
-                daily ritual.
+                Stop wondering where your money goes. MONEE helps you track
+                expenses, manage debts, save smarter, and turns personal finance
+                into a mindful daily ritual.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
@@ -189,20 +189,23 @@ export default function LandingPage() {
               </p>
             </div>
 
-            {/* Right: App Screenshot Placeholder */}
+            {/* Right: App Screenshot */}
             <div className="relative">
               <div className="relative rounded-3xl overflow-hidden border-8 border-foreground/10 shadow-2xl bg-gradient-to-br from-primary/20 to-primary/5 aspect-[9/16] max-w-sm mx-auto">
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="text-center p-8 space-y-4">
-                    <Smartphone className="h-24 w-24 mx-auto text-primary/40" />
-                    <p className="text-sm text-muted-foreground">
-                      App Screenshot Placeholder
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Dashboard • Expenses • Analytics
-                    </p>
-                  </div>
-                </div>
+                <Image
+                  src="/images/monee-dashboard.jpeg"
+                  alt="MONEE Dashboard Screenshot - Light Mode"
+                  fill
+                  className="object-cover dark:hidden"
+                  priority
+                />
+                <Image
+                  src="/images/monee-dashboard-dark.jpeg"
+                  alt="MONEE Dashboard Screenshot - Dark Mode"
+                  fill
+                  className="object-cover hidden dark:block"
+                  priority
+                />
               </div>
             </div>
           </div>
@@ -276,8 +279,8 @@ export default function LandingPage() {
             </div>
             <h3 className="font-semibold text-xl">Log Expenses</h3>
             <p className="text-muted-foreground">
-              Add expenses manually in seconds, or paste M-Pesa messages for bulk
-              import. Your choice.
+              Add expenses manually in seconds, or paste M-Pesa messages for
+              bulk import. Your choice.
             </p>
           </div>
           <div className="text-center space-y-4">
@@ -296,8 +299,8 @@ export default function LandingPage() {
             </div>
             <h3 className="font-semibold text-xl">See Insights</h3>
             <p className="text-muted-foreground">
-              View where your money goes by category, time period, and recipient.
-              No math needed.
+              View where your money goes by category, time period, and
+              recipient. No math needed.
             </p>
           </div>
         </div>
@@ -388,7 +391,9 @@ export default function LandingPage() {
               <div className="text-center space-y-2">
                 <h3 className="text-2xl font-bold">MONEE Lifetime Access</h3>
                 <div className="flex items-center justify-center gap-3">
-                  <span className="text-5xl font-bold text-primary">KSh 999</span>
+                  <span className="text-5xl font-bold text-primary">
+                    KSh 999
+                  </span>
                   <div className="text-left">
                     <div className="text-2xl text-muted-foreground line-through">
                       KSh 10,000
@@ -402,7 +407,8 @@ export default function LandingPage() {
                   One-time payment • Lifetime access • Best deal ever
                 </Badge>
                 <p className="text-sm text-muted-foreground font-semibold">
-                  Worth KSh 10,000-15,000. Pay once. Own forever. No monthly fees.
+                  Worth KSh 10,000-15,000. Pay once. Own forever. No monthly
+                  fees.
                 </p>
               </div>
 
@@ -454,8 +460,8 @@ export default function LandingPage() {
               </Link>
 
               <p className="text-xs text-center text-muted-foreground">
-                Free to download. 7-day free trial. No credit card required. Then
-                KSh 999 one-time — worth KSh 10,000-15,000. Best deal ever.
+                Free to download. 7-day free trial. No credit card required.
+                Then KSh 999 one-time — worth KSh 10,000-15,000. Best deal ever.
               </p>
             </CardContent>
           </Card>
