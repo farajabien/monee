@@ -25,7 +25,9 @@ export function DebtList() {
     useState<DebtWithUser | null>(null);
   const [showPaymentSheet, setShowPaymentSheet] = useState(false);
   const [editingDebt, setEditingDebt] = useState<DebtWithUser | null>(null);
-
+  const [analyticsView, setAnalyticsView] = useState<
+    "overview" | "timeline" | "breakdown"
+  >("overview");
   const { data } = db.useQuery({
     debts: {
       $: {
@@ -143,7 +145,7 @@ export function DebtList() {
           <DebtProgress />
         </TabsContent>
         <TabsContent value="analytics">
-          <DebtAnalytics />
+          <DebtAnalytics onBack={() => setAnalyticsView("overview")} />
         </TabsContent>
       </Tabs>
 
