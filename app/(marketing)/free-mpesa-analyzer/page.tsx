@@ -59,8 +59,9 @@ export default function FreeMPesaAnalyzer() {
             <span className="text-primary">Transaction Analyzer</span>
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            It's Monday. Can you tell where all your money went? Upload your last 3
-            days, 7 days, or monthly M-Pesa statement and see everything clearly.
+            It&apos;s Monday. Can you tell where all your money went? Upload
+            your last 3 days, 7 days, or monthly M-Pesa statement and see
+            everything clearly.
           </p>
           <p className="text-sm text-muted-foreground">
             ✨ Completely free • No signup required • Instant insights
@@ -141,8 +142,8 @@ export default function FreeMPesaAnalyzer() {
                       className="min-h-[200px]"
                     />
                     <p className="text-xs text-muted-foreground">
-                      Tip: Copy all your M-Pesa messages from the last few days and
-                      paste them here
+                      Tip: Copy all your M-Pesa messages from the last few days
+                      and paste them here
                     </p>
                   </div>
                   <Button
@@ -196,7 +197,9 @@ export default function FreeMPesaAnalyzer() {
                     <div className="text-2xl font-bold">
                       KSh {mockResults.avgDailySpend.toLocaleString()}
                     </div>
-                    <p className="text-xs text-muted-foreground">Daily burn rate</p>
+                    <p className="text-xs text-muted-foreground">
+                      Daily burn rate
+                    </p>
                   </CardContent>
                 </Card>
 
@@ -249,8 +252,8 @@ export default function FreeMPesaAnalyzer() {
                 <CardContent className="p-8 text-center space-y-4">
                   <h3 className="text-2xl font-bold">Want to Track Ongoing?</h3>
                   <p className="text-lg opacity-90">
-                    Sign up for MONEE and track your expenses, manage debts, build
-                    savings — all in one simple app.
+                    Sign up for MONEE and track your expenses, manage debts,
+                    build savings — all in one simple app.
                   </p>
                   <p className="text-sm opacity-75">
                     Free to download. 7-day free trial. Then KSh 999 one-time

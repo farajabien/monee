@@ -28,7 +28,6 @@ function EmailStep({ onSendEmail }: { onSendEmail: (email: string) => void }) {
       onSubmit={handleSubmit}
       className="flex flex-col space-y-4"
     >
-      <h2 className="text-2xl font-bold">Welcome to MONEE</h2>
       <p className="text-muted-foreground">
         Enter your email and we&apos;ll send you a magic code. No password
         needed.
