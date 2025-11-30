@@ -11,6 +11,7 @@ import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
+  type ChartConfig,
 } from "@/components/ui/chart";
 import {
   BarChart,
@@ -152,12 +153,26 @@ export default function ExpenseList() {
   }, [expenses, recipients]);
 
   const COLORS = [
-    "hsl(var(--chart-1))",
-    "hsl(var(--chart-2))",
-    "hsl(var(--chart-3))",
-    "hsl(var(--chart-4))",
-    "hsl(var(--chart-5))",
+    "var(--chart-1)",
+    "var(--chart-2)",
+    "var(--chart-3)",
+    "var(--chart-4)",
+    "var(--chart-5)",
   ];
+
+  // Create chart config for category pie chart
+  const categoryChartConfig = useMemo(() => {
+    if (!analytics?.categoryChartData) return {};
+
+    const config: ChartConfig = {};
+    analytics.categoryChartData.forEach((item, index) => {
+      config[item.name] = {
+        label: item.name,
+        color: COLORS[index % COLORS.length],
+      };
+    });
+    return config;
+  }, [analytics?.categoryChartData]);
 
   // Main view navigation
   if (activeView === "list") {
@@ -302,7 +317,7 @@ export default function ExpenseList() {
                     config={{
                       amount: {
                         label: "Amount",
-                        color: "hsl(var(--chart-1))",
+                        color: "var(--chart-1)",
                       },
                     }}
                     className="h-[250px] w-full"
@@ -315,8 +330,16 @@ export default function ExpenseList() {
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis dataKey="day" tick={{ fontSize: 12 }} />
                         <YAxis tick={{ fontSize: 12 }} />
-                        <ChartTooltip content={<ChartTooltipContent />} />
-                        <Bar dataKey="amount" fill="hsl(var(--chart-1))" />
+                        <ChartTooltip
+                          content={
+                            <ChartTooltipContent
+                              formatter={(value) =>
+                                formatCurrency(value as number)
+                              }
+                            />
+                          }
+                        />
+                        <Bar dataKey="amount" fill="var(--color-amount)" />
                       </BarChart>
                     </ResponsiveContainer>
                   </ChartContainer>
@@ -333,11 +356,7 @@ export default function ExpenseList() {
                 </CardHeader>
                 <CardContent className="px-2">
                   <ChartContainer
-                    config={{
-                      value: {
-                        label: "Amount",
-                      },
-                    }}
+                    config={categoryChartConfig}
                     className="h-[250px] w-full"
                   >
                     <ResponsiveContainer width="100%" height="100%">
@@ -353,15 +372,25 @@ export default function ExpenseList() {
                           outerRadius={70}
                           fill="#8884d8"
                           dataKey="value"
+                          nameKey="name"
                         >
                           {analytics.categoryChartData.map((entry, index) => (
                             <Cell
                               key={`cell-${index}`}
-                              fill={COLORS[index % COLORS.length]}
+                              fill={`var(--color-${entry.name})`}
                             />
                           ))}
                         </Pie>
-                        <ChartTooltip content={<ChartTooltipContent />} />
+                        <ChartTooltip
+                          content={
+                            <ChartTooltipContent
+                              formatter={(value) =>
+                                formatCurrency(value as number)
+                              }
+                              nameKey="name"
+                            />
+                          }
+                        />
                       </PieChart>
                     </ResponsiveContainer>
                   </ChartContainer>
@@ -379,7 +408,7 @@ export default function ExpenseList() {
                     config={{
                       value: {
                         label: "Amount",
-                        color: "hsl(var(--chart-2))",
+                        color: "var(--chart-2)",
                       },
                     }}
                     className="h-[300px] w-full"
@@ -398,8 +427,16 @@ export default function ExpenseList() {
                           width={80}
                           tick={{ fontSize: 11 }}
                         />
-                        <ChartTooltip content={<ChartTooltipContent />} />
-                        <Bar dataKey="value" fill="hsl(var(--chart-2))" />
+                        <ChartTooltip
+                          content={
+                            <ChartTooltipContent
+                              formatter={(value) =>
+                                formatCurrency(value as number)
+                              }
+                            />
+                          }
+                        />
+                        <Bar dataKey="value" fill="var(--color-value)" />
                       </BarChart>
                     </ResponsiveContainer>
                   </ChartContainer>

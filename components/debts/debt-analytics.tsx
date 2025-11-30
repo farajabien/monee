@@ -51,7 +51,7 @@ export function DebtAnalytics() {
   const chartConfig = {
     value: {
       label: "Debt Remaining",
-      color: "hsl(var(--destructive))",
+      color: "var(--destructive)",
     },
   } satisfies ChartConfig;
 

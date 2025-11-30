@@ -54,7 +54,7 @@ export function SavingsAnalytics() {
   const chartConfig = {
     value: {
       label: "Total Saved",
-      color: "hsl(142 76% 36%)", // green color
+      color: "var(--chart-1)",
     },
   } satisfies ChartConfig;
 

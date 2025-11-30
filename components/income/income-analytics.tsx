@@ -52,7 +52,7 @@ export function IncomeAnalytics() {
   const chartConfig = {
     value: {
       label: "Total Income",
-      color: "hsl(var(--primary))",
+      color: "var(--primary)",
     },
   } satisfies ChartConfig;
 
@@ -127,7 +127,7 @@ export function IncomeAnalytics() {
         percentage: Math.round(percentage),
         subtitle: `Payday: Day ${source.paydayDay}`,
         icon: Briefcase,
-        color: "hsl(var(--primary))",
+        color: "var(--primary)",
       };
     });
   }, [incomeSources, totalMonthlyIncome]);

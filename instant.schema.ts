@@ -127,6 +127,14 @@ const _schema = i.schema({
       isProcessed: i.boolean(),
       createdAt: i.number().indexed(),
     }),
+    feedback: i.entity({
+      name: i.string().optional(),
+      feedbackText: i.string(),
+      rating: i.number().indexed(),
+      featureRequest: i.string().optional(),
+      userEmail: i.string().optional(),
+      createdAt: i.number().indexed(),
+    }),
   },
   links: {
     userProfiles: {
@@ -184,6 +192,10 @@ const _schema = i.schema({
     profileStatementExpenses: {
       forward: { on: "statement_expenses", has: "one", label: "user" },
       reverse: { on: "profiles", has: "many", label: "statementExpenses" },
+    },
+    profileFeedback: {
+      forward: { on: "feedback", has: "one", label: "user" },
+      reverse: { on: "profiles", has: "many", label: "feedback" },
     },
   },
   rooms: {},
