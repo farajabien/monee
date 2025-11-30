@@ -37,6 +37,7 @@ const _schema = i.schema({
       icon: i.string(),
       isDefault: i.boolean().optional(),
       isActive: i.boolean().optional(),
+      createdAt: i.number().optional().indexed(),
     }),
     budgets: i.entity({
       amount: i.number().indexed(),

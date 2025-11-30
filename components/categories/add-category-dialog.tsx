@@ -29,7 +29,11 @@ const CATEGORY_COLORS = [
 interface AddCategoryDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onCategoryCreated?: (categoryId: string, categoryName: string, categoryColor: string) => void;
+  onCategoryCreated?: (
+    categoryId: string,
+    categoryName: string,
+    categoryColor: string
+  ) => void;
 }
 
 export function AddCategoryDialog({
