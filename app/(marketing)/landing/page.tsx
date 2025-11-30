@@ -7,6 +7,7 @@ import { HowToGetStatement } from "@/components/how-to-get-statement";
 import { FAQSection } from "@/components/marketing/faq-section";
 import { Footer } from "@/components/marketing/footer";
 import { BetaBadge } from "@/components/marketing/beta-badge";
+import { ThemeToggle } from "@/components/theme-toggle";
 import {
   ArrowRight,
   Smartphone,
@@ -149,6 +150,7 @@ export default function LandingPage() {
             <span className="font-bold text-xl">MONEE</span>
           </Link>
           <div className="flex items-center gap-2 sm:gap-4">
+            <ThemeToggle />
             <Link href="/login">
               <Button variant="default" size="sm" className="sm:size-default">
                 <span className="hidden sm:inline">Try Free for 1 Week</span>
