@@ -258,7 +258,7 @@ export function CashRunwayCard({
               </>
             ) : (
               <>
-                ✓ On track! Max{" "}
+                You can spend up to{" "}
                 <span className="font-bold text-base">
                   {formatCurrency(projectedDailyBudget)}
                 </span>

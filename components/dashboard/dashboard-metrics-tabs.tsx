@@ -1,12 +1,12 @@
 "use client";
 
 import { useMemo } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
+  ChartConfig,
 } from "@/components/ui/chart";
 import {
   PieChart,
@@ -18,9 +18,19 @@ import {
   YAxis,
   CartesianGrid,
   ResponsiveContainer,
+  Legend,
 } from "recharts";
 import { useCurrency } from "@/hooks/use-currency";
-import { TrendingUp, PieChartIcon, BarChart3, Target, Wallet } from "lucide-react";
+import {
+  TrendingUp,
+  PieChartIcon,
+  BarChart3,
+  Target,
+  Wallet,
+  Download,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 interface Expense {
   id: string;
@@ -53,14 +63,11 @@ interface DashboardMetricsTabsProps {
 }
 
 const CHART_COLORS = [
-  "#f97316", // orange
-  "#3b82f6", // blue
-  "#8b5cf6", // purple
-  "#06b6d4", // cyan
-  "#22c55e", // green
-  "#a3a3a3", // gray
-  "#ef4444", // red
-  "#eab308", // yellow
+  "hsl(var(--chart-1))",
+  "hsl(var(--chart-2))",
+  "hsl(var(--chart-3))",
+  "hsl(var(--chart-4))",
+  "hsl(var(--chart-5))",
 ];
 
 export function DashboardMetricsTabs({
@@ -88,6 +95,18 @@ export function DashboardMetricsTabs({
       .sort((a, b) => b.value - a.value);
   }, [expenses]);
 
+  // Chart config for category data
+  const categoryChartConfig = useMemo(() => {
+    const config: ChartConfig = {};
+    categoryData.forEach((item, index) => {
+      config[item.name] = {
+        label: item.name,
+        color: CHART_COLORS[index % CHART_COLORS.length],
+      };
+    });
+    return config;
+  }, [categoryData]);
+
   // Top 5 expenses
   const topExpenses = useMemo(() => {
     return [...expenses]
@@ -99,13 +118,22 @@ export function DashboardMetricsTabs({
       }));
   }, [expenses]);
 
+  // Chart config for top expenses
+  const topExpensesChartConfig = {
+    amount: {
+      label: "Amount",
+      color: "hsl(var(--chart-1))",
+    },
+  } satisfies ChartConfig;
+
   // Debts data
   const debtsData = useMemo(() => {
     return debts.map((debt) => ({
       name: debt.name,
       remaining: debt.currentBalance,
       total: debt.totalAmount,
-      progress: ((debt.totalAmount - debt.currentBalance) / debt.totalAmount) * 100,
+      progress:
+        ((debt.totalAmount - debt.currentBalance) / debt.totalAmount) * 100,
     }));
   }, [debts]);
 
@@ -119,205 +147,356 @@ export function DashboardMetricsTabs({
     }));
   }, [savingsGoals]);
 
+  // Export functions
+  const handleExportSpending = () => {
+    try {
+      const csvContent = [
+        ["Category", "Amount"].join(","),
+        ...categoryData.map((item) =>
+          [item.name, item.value].map((cell) => `"${cell}"`).join(",")
+        ),
+      ].join("\n");
+
+      const blob = new Blob([csvContent], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `spending-breakdown-${
+        new Date().toISOString().split("T")[0]
+      }.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast.success("Spending data exported successfully");
+    } catch (err) {
+      console.error("Export error:", err);
+      toast.error("Failed to export spending data");
+    }
+  };
+
+  const handleExportTopExpenses = () => {
+    try {
+      const csvContent = [
+        ["Recipient", "Amount"].join(","),
+        ...topExpenses.map((item) =>
+          [item.name, item.amount].map((cell) => `"${cell}"`).join(",")
+        ),
+      ].join("\n");
+
+      const blob = new Blob([csvContent], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `top-expenses-${
+        new Date().toISOString().split("T")[0]
+      }.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast.success("Top expenses exported successfully");
+    } catch (err) {
+      console.error("Export error:", err);
+      toast.error("Failed to export top expenses");
+    }
+  };
+
+  const handleExportDebts = () => {
+    try {
+      const csvContent = [
+        ["Debt Name", "Total Amount", "Remaining", "Progress %"].join(","),
+        ...debtsData.map((debt) =>
+          [debt.name, debt.total, debt.remaining, debt.progress.toFixed(2)]
+            .map((cell) => `"${cell}"`)
+            .join(",")
+        ),
+      ].join("\n");
+
+      const blob = new Blob([csvContent], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `debts-progress-${
+        new Date().toISOString().split("T")[0]
+      }.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast.success("Debts data exported successfully");
+    } catch (err) {
+      console.error("Export error:", err);
+      toast.error("Failed to export debts data");
+    }
+  };
+
+  const handleExportSavings = () => {
+    try {
+      const csvContent = [
+        ["Goal Name", "Target Amount", "Current Amount", "Progress %"].join(
+          ","
+        ),
+        ...savingsData.map((goal) =>
+          [goal.name, goal.target, goal.current, goal.progress.toFixed(2)]
+            .map((cell) => `"${cell}"`)
+            .join(",")
+        ),
+      ].join("\n");
+
+      const blob = new Blob([csvContent], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `savings-goals-${
+        new Date().toISOString().split("T")[0]
+      }.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast.success("Savings data exported successfully");
+    } catch (err) {
+      console.error("Export error:", err);
+      toast.error("Failed to export savings data");
+    }
+  };
+
   return (
-    <Card className="w-full">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-base flex items-center gap-2">
-          <TrendingUp className="h-4 w-4" />
-          Insights
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="p-0">
-        <Tabs defaultValue="spending" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 rounded-none border-b">
-            <TabsTrigger value="spending" className="text-xs">
-              <PieChartIcon className="h-3 w-3 mr-1" />
-              Spending
-            </TabsTrigger>
-            <TabsTrigger value="top" className="text-xs">
-              <BarChart3 className="h-3 w-3 mr-1" />
-              Top 5
-            </TabsTrigger>
-            <TabsTrigger value="debts" className="text-xs">
-              <Target className="h-3 w-3 mr-1" />
-              Debts
-            </TabsTrigger>
-            <TabsTrigger value="savings" className="text-xs">
-              <Wallet className="h-3 w-3 mr-1" />
-              Savings
-            </TabsTrigger>
-          </TabsList>
+    <Tabs defaultValue="spending" className="w-full">
+      <TabsList className="grid w-full grid-cols-4">
+        <TabsTrigger value="spending" className="text-xs">
+          <PieChartIcon className="size-3 mr-1" />
+          Spending
+        </TabsTrigger>
+        <TabsTrigger value="top" className="text-xs">
+          <BarChart3 className="size-3 mr-1" />
+          Top 5
+        </TabsTrigger>
+        <TabsTrigger value="debts" className="text-xs">
+          <Target className="size-3 mr-1" />
+          Debts
+        </TabsTrigger>
+        <TabsTrigger value="savings" className="text-xs">
+          <Wallet className="size-3 mr-1" />
+          Savings
+        </TabsTrigger>
+      </TabsList>
 
-          {/* Spending Breakdown - Pie Chart */}
-          <TabsContent value="spending" className="p-4 space-y-3">
-            {categoryData.length > 0 ? (
-              <>
-                <ChartContainer
-                  config={{}}
-                  className="h-[200px] w-full"
-                >
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={categoryData}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        label={({ name, percent }) =>
-                          `${name} ${(percent * 100).toFixed(0)}%`
-                        }
-                        outerRadius={70}
-                        fill="#8884d8"
-                        dataKey="value"
-                      >
-                        {categoryData.map((entry, index) => (
-                          <Cell
-                            key={`cell-${index}`}
-                            fill={CHART_COLORS[index % CHART_COLORS.length]}
-                          />
-                        ))}
-                      </Pie>
-                      <ChartTooltip
-                        content={({ active, payload }) => {
-                          if (active && payload && payload.length) {
-                            return (
-                              <div className="bg-background border rounded-lg p-2 shadow-lg">
-                                <p className="font-medium">{payload[0].name}</p>
-                                <p className="text-sm text-muted-foreground">
-                                  {formatCurrency(payload[0].value as number)}
-                                </p>
-                              </div>
-                            );
-                          }
-                          return null;
-                        }}
-                      />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </ChartContainer>
-                <div className="space-y-2">
-                  {categoryData.slice(0, 5).map((item, index) => (
-                    <div key={item.name} className="flex items-center justify-between text-sm">
-                      <div className="flex items-center gap-2">
-                        <div
-                          className="h-3 w-3 rounded-sm"
-                          style={{ backgroundColor: CHART_COLORS[index % CHART_COLORS.length] }}
-                        />
-                        <span>{item.name}</span>
-                      </div>
-                      <span className="font-medium">
-                        {formatCurrencyCompact(item.value)}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </>
-            ) : (
-              <div className="text-center py-8 text-muted-foreground text-sm">
-                No spending data yet
-              </div>
-            )}
-          </TabsContent>
-
-          {/* Top 5 Expenses - Bar Chart */}
-          <TabsContent value="top" className="p-4">
-            {topExpenses.length > 0 ? (
-              <ChartContainer
-                config={{}}
-                className="h-[250px] w-full"
+      {/* Spending Breakdown - Pie Chart */}
+      <TabsContent value="spending" className="p-4 space-y-3">
+        {categoryData.length > 0 ? (
+          <>
+            <div className="flex justify-end mb-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleExportSpending}
+                className="h-8 text-xs"
               >
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={topExpenses} layout="vertical">
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis type="number" />
-                    <YAxis dataKey="name" type="category" width={80} />
-                    <ChartTooltip
-                      content={({ active, payload }) => {
-                        if (active && payload && payload.length) {
-                          return (
-                            <div className="bg-background border rounded-lg p-2 shadow-lg">
-                              <p className="font-medium">{payload[0].payload.name}</p>
-                              <p className="text-sm text-muted-foreground">
-                                {formatCurrency(payload[0].value as number)}
-                              </p>
-                            </div>
-                          );
-                        }
-                        return null;
+                <Download className="size-3 mr-1" />
+                Export CSV
+              </Button>
+            </div>
+            <ChartContainer
+              config={categoryChartConfig}
+              className="min-h-[200px] w-full"
+            >
+              <PieChart>
+                <Pie
+                  data={categoryData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, percent }) =>
+                    `${name} ${(percent * 100).toFixed(0)}%`
+                  }
+                  outerRadius={70}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {categoryData.map((entry, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={CHART_COLORS[index % CHART_COLORS.length]}
+                    />
+                  ))}
+                </Pie>
+                <ChartTooltip
+                  content={
+                    <ChartTooltipContent
+                      formatter={(value) => formatCurrency(value as number)}
+                      nameKey="name"
+                    />
+                  }
+                />
+              </PieChart>
+            </ChartContainer>
+            <div className="space-y-2">
+              {categoryData.slice(0, 5).map((item, index) => (
+                <div
+                  key={item.name}
+                  className="flex items-center justify-between text-sm"
+                >
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="size-3 rounded-sm"
+                      style={{
+                        backgroundColor:
+                          CHART_COLORS[index % CHART_COLORS.length],
                       }}
                     />
-                    <Bar dataKey="amount" fill="#f97316" radius={[0, 4, 4, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </ChartContainer>
-            ) : (
-              <div className="text-center py-8 text-muted-foreground text-sm">
-                No expenses yet
-              </div>
-            )}
-          </TabsContent>
-
-          {/* Debts Progress */}
-          <TabsContent value="debts" className="p-4 space-y-3">
-            {debtsData.length > 0 ? (
-              debtsData.map((debt) => (
-                <div key={debt.name} className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="font-medium">{debt.name}</span>
-                    <span className="text-muted-foreground">
-                      {debt.progress.toFixed(0)}% paid
-                    </span>
+                    <span>{item.name}</span>
                   </div>
-                  <div className="relative h-2 bg-muted rounded-full overflow-hidden">
-                    <div
-                      className="absolute top-0 left-0 h-full bg-green-500 transition-all"
-                      style={{ width: `${Math.min(debt.progress, 100)}%` }}
-                    />
-                  </div>
-                  <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>{formatCurrencyCompact(debt.remaining)} remaining</span>
-                    <span>{formatCurrencyCompact(debt.total)} total</span>
-                  </div>
+                  <span className="font-medium">
+                    {formatCurrencyCompact(item.value)}
+                  </span>
                 </div>
-              ))
-            ) : (
-              <div className="text-center py-8 text-muted-foreground text-sm">
-                No debts tracked yet
-              </div>
-            )}
-          </TabsContent>
+              ))}
+            </div>
+          </>
+        ) : (
+          <div className="text-center py-8 text-muted-foreground text-sm">
+            No spending data yet
+          </div>
+        )}
+      </TabsContent>
 
-          {/* Savings Progress */}
-          <TabsContent value="savings" className="p-4 space-y-3">
-            {savingsData.length > 0 ? (
-              savingsData.map((goal) => (
-                <div key={goal.name} className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="font-medium">{goal.name}</span>
-                    <span className="text-muted-foreground">
-                      {goal.progress.toFixed(0)}%
-                    </span>
-                  </div>
-                  <div className="relative h-2 bg-muted rounded-full overflow-hidden">
-                    <div
-                      className="absolute top-0 left-0 h-full bg-green-500 transition-all"
-                      style={{ width: `${Math.min(goal.progress, 100)}%` }}
+      {/* Top 5 Expenses - Bar Chart */}
+      <TabsContent value="top" className="p-4">
+        {topExpenses.length > 0 ? (
+          <>
+            <div className="flex justify-end mb-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleExportTopExpenses}
+                className="h-8 text-xs"
+              >
+                <Download className="size-3 mr-1" />
+                Export CSV
+              </Button>
+            </div>
+            <ChartContainer
+              config={topExpensesChartConfig}
+              className="min-h-[250px] w-full"
+            >
+              <BarChart data={topExpenses} layout="vertical">
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis type="number" />
+                <YAxis dataKey="name" type="category" width={80} />
+                <ChartTooltip
+                  content={
+                    <ChartTooltipContent
+                      formatter={(value) => formatCurrency(value as number)}
+                      hideLabel
                     />
-                  </div>
-                  <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>{formatCurrencyCompact(goal.current)} saved</span>
-                    <span>{formatCurrencyCompact(goal.target)} target</span>
-                  </div>
+                  }
+                />
+                <Bar
+                  dataKey="amount"
+                  fill="var(--color-amount)"
+                  radius={[0, 4, 4, 0]}
+                />
+              </BarChart>
+            </ChartContainer>
+          </>
+        ) : (
+          <div className="text-center py-8 text-muted-foreground text-sm">
+            No expenses yet
+          </div>
+        )}
+      </TabsContent>
+
+      {/* Debts Progress */}
+      <TabsContent value="debts" className="p-4 space-y-3">
+        {debtsData.length > 0 ? (
+          <>
+            <div className="flex justify-end mb-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleExportDebts}
+                className="h-8 text-xs"
+              >
+                <Download className="size-3 mr-1" />
+                Export CSV
+              </Button>
+            </div>
+            {debtsData.map((debt) => (
+              <div key={debt.name} className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="font-medium">{debt.name}</span>
+                  <span className="text-muted-foreground">
+                    {debt.progress.toFixed(0)}% paid
+                  </span>
                 </div>
-              ))
-            ) : (
-              <div className="text-center py-8 text-muted-foreground text-sm">
-                No savings goals yet
+                <div className="relative h-2 bg-muted rounded-full overflow-hidden">
+                  <div
+                    className="absolute top-0 left-0 h-full bg-primary transition-all"
+                    style={{ width: `${Math.min(debt.progress, 100)}%` }}
+                  />
+                </div>
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>{formatCurrencyCompact(debt.remaining)} remaining</span>
+                  <span>{formatCurrencyCompact(debt.total)} total</span>
+                </div>
               </div>
-            )}
-          </TabsContent>
-        </Tabs>
-      </CardContent>
-    </Card>
+            ))}
+          </>
+        ) : (
+          <div className="text-center py-8 text-muted-foreground text-sm">
+            No debts tracked yet
+          </div>
+        )}
+      </TabsContent>
+
+      {/* Savings Progress */}
+      <TabsContent value="savings" className="p-4 space-y-3">
+        {savingsData.length > 0 ? (
+          <>
+            <div className="flex justify-end mb-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleExportSavings}
+                className="h-8 text-xs"
+              >
+                <Download className="size-3 mr-1" />
+                Export CSV
+              </Button>
+            </div>
+            {savingsData.map((goal) => (
+              <div key={goal.name} className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="font-medium">{goal.name}</span>
+                  <span className="text-muted-foreground">
+                    {goal.progress.toFixed(0)}%
+                  </span>
+                </div>
+                <div className="relative h-2 bg-muted rounded-full overflow-hidden">
+                  <div
+                    className="absolute top-0 left-0 h-full bg-primary transition-all"
+                    style={{ width: `${Math.min(goal.progress, 100)}%` }}
+                  />
+                </div>
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>{formatCurrencyCompact(goal.current)} saved</span>
+                  <span>{formatCurrencyCompact(goal.target)} target</span>
+                </div>
+              </div>
+            ))}
+          </>
+        ) : (
+          <div className="text-center py-8 text-muted-foreground text-sm">
+            No savings goals yet
+          </div>
+        )}
+      </TabsContent>
+    </Tabs>
   );
 }
