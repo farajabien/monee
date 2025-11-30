@@ -405,482 +405,469 @@ export default function SettingsClient() {
         open={showFeedbackDialog}
         onOpenChange={setShowFeedbackDialog}
       />
-      <div className="mx-auto max-w-md p-3 sm:p-4 md:p-6 pb-20 md:pb-0">
-        <h1 className="text-2xl font-bold mb-2">Settings</h1>
-        <p className="text-muted-foreground mb-4">
-          Manage your preferences and account settings
-        </p>
+      <Tabs defaultValue="general" className="w-full">
+        <TabsList className="w-full grid grid-cols-4 mb-4">
+          <TabsTrigger value="general">General</TabsTrigger>
+          <TabsTrigger value="notifications">Notifications</TabsTrigger>
+          <TabsTrigger value="profile">Profile</TabsTrigger>
+          <TabsTrigger value="account">Account</TabsTrigger>
+        </TabsList>
 
-        <Tabs defaultValue="general" className="w-full">
-          <TabsList className="w-full grid grid-cols-4 mb-4">
-            <TabsTrigger value="general">General</TabsTrigger>
-            <TabsTrigger value="notifications">Notifications</TabsTrigger>
-            <TabsTrigger value="profile">Profile</TabsTrigger>
-            <TabsTrigger value="account">Account</TabsTrigger>
-          </TabsList>
-
-          {/* General Settings */}
-          <TabsContent value="general" className="space-y-4">
-            <Item>
-              <ItemHeader>
-                <ItemTitle>Appearance</ItemTitle>
-                <ItemDescription>Customize how Monee looks</ItemDescription>
-              </ItemHeader>
-              <ItemContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label>Theme</Label>
-                  <div className="grid grid-cols-3 gap-2">
-                    <Button
-                      variant={theme === "light" ? "default" : "outline"}
-                      className="w-full"
-                      onClick={() => handleThemeChange("light")}
-                    >
-                      <Sun className="h-4 w-4 mr-2" />
-                      Light
-                    </Button>
-                    <Button
-                      variant={theme === "dark" ? "default" : "outline"}
-                      className="w-full"
-                      onClick={() => handleThemeChange("dark")}
-                    >
-                      <Moon className="h-4 w-4 mr-2" />
-                      Dark
-                    </Button>
-                    <Button
-                      variant={theme === "system" ? "default" : "outline"}
-                      className="w-full"
-                      onClick={() => handleThemeChange("system")}
-                    >
-                      <Monitor className="h-4 w-4 mr-2" />
-                      System
-                    </Button>
-                  </div>
-                </div>
-              </ItemContent>
-            </Item>
-
-            <Item>
-              <ItemHeader>
-                <ItemTitle>Currency & Format</ItemTitle>
-                <ItemDescription>Set your preferred currency</ItemDescription>
-              </ItemHeader>
-              <ItemContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="currency">Currency</Label>
-                  <Select value={currency} onValueChange={handleCurrencyChange}>
-                    <SelectTrigger id="currency">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {getAllCurrencies().map((curr) => (
-                        <SelectItem key={curr.code} value={curr.code}>
-                          {curr.symbol} {curr.code} ({curr.name})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </ItemContent>
-            </Item>
-          </TabsContent>
-
-          {/* Notification Settings */}
-          <TabsContent value="notifications" className="space-y-4">
-            <NotificationSettings />
-          </TabsContent>
-
-          {/* Profile Settings */}
-          <TabsContent value="profile" className="space-y-4">
-            <Accordion type="single" collapsible className="w-full space-y-4">
-              <AccordionItem value="profile-info">
-                <Item>
-                  <ItemHeader>
-                    <AccordionTrigger className="hover:no-underline">
-                      <div className="flex items-center gap-2">
-                        <User className="h-5 w-5" />
-                        <div className="text-left">
-                          <ItemTitle>Profile Information</ItemTitle>
-                          <ItemDescription>
-                            Update your personal details
-                          </ItemDescription>
-                        </div>
-                      </div>
-                    </AccordionTrigger>
-                  </ItemHeader>
-                  <AccordionContent>
-                    <ItemContent className="space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="handle">
-                          <User className="h-4 w-4 inline mr-2" />
-                          Handle
-                        </Label>
-                        <Input
-                          id="handle"
-                          value={profile.handle || ""}
-                          onChange={(e) =>
-                            handleProfileUpdate("handle", e.target.value)
-                          }
-                          placeholder="Your handle"
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="email">
-                          <Mail className="h-4 w-4 inline mr-2" />
-                          Email
-                        </Label>
-                        <Input
-                          id="email"
-                          type="email"
-                          value={user?.email || ""}
-                          disabled
-                          className="bg-muted"
-                        />
-                        <p className="text-xs text-muted-foreground">
-                          Email cannot be changed
-                        </p>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="monthlyBudget">
-                          <span className="inline mr-2">💰</span>
-                          Monthly Budget (KES)
-                        </Label>
-                        <Input
-                          id="monthlyBudget"
-                          type="number"
-                          value={profile.monthlyBudget || 0}
-                          onChange={(e) =>
-                            handleProfileUpdate(
-                              "monthlyBudget",
-                              Number(e.target.value)
-                            )
-                          }
-                          placeholder="50000"
-                        />
-                        <p className="text-xs text-muted-foreground">
-                          Your total monthly budget across all categories
-                        </p>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label>
-                          <Calendar className="h-4 w-4 inline mr-2" />
-                          Member Since
-                        </Label>
-                        <Input
-                          value={
-                            profile.createdAt
-                              ? new Date(profile.createdAt).toLocaleDateString(
-                                  "en-KE",
-                                  {
-                                    year: "numeric",
-                                    month: "long",
-                                    day: "numeric",
-                                  }
-                                )
-                              : "Unknown"
-                          }
-                          disabled
-                          className="bg-muted"
-                        />
-                      </div>
-                    </ItemContent>
-                  </AccordionContent>
-                </Item>
-              </AccordionItem>
-
-              <AccordionItem value="stats">
-                <Item>
-                  <ItemHeader>
-                    <AccordionTrigger className="hover:no-underline">
-                      <div className="flex items-center gap-2">
-                        <TrendingUp className="h-5 w-5" />
-                        <div className="text-left">
-                          <ItemTitle>Your Stats</ItemTitle>
-                          <ItemDescription>
-                            Overview of your financial activity
-                          </ItemDescription>
-                        </div>
-                      </div>
-                    </AccordionTrigger>
-                  </ItemHeader>
-                  <AccordionContent>
-                    <ItemContent className="space-y-3">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-muted-foreground">
-                          Total Expenses
-                        </span>
-                        <span className="font-semibold">
-                          {profile.expenses?.length || 0} transactions
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-muted-foreground">
-                          Active Categories
-                        </span>
-                        <span className="font-semibold">
-                          {profile.categories?.filter(
-                            (c) => c.isActive !== false
-                          ).length || 0}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-muted-foreground">
-                          Savings Goals
-                        </span>
-                        <span className="font-semibold">
-                          {profile.savingsGoals?.length || 0}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-muted-foreground">
-                          Active Debts
-                        </span>
-                        <span className="font-semibold">
-                          {profile.debts?.length || 0}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-muted-foreground">
-                          Income Sources
-                        </span>
-                        <span className="font-semibold">
-                          {profile.incomeSources?.filter((i) => i.isActive)
-                            .length || 0}
-                        </span>
-                      </div>
-                    </ItemContent>
-                  </AccordionContent>
-                </Item>
-              </AccordionItem>
-
-              <AccordionItem value="feedback">
-                <Item>
-                  <ItemHeader>
-                    <AccordionTrigger className="hover:no-underline">
-                      <div className="flex items-center gap-2">
-                        <MessageSquare className="h-5 w-5" />
-                        <div className="text-left">
-                          <ItemTitle>Give Feedback</ItemTitle>
-                          <ItemDescription>
-                            Your feedback shapes the app
-                          </ItemDescription>
-                        </div>
-                      </div>
-                    </AccordionTrigger>
-                  </ItemHeader>
-                  <AccordionContent>
-                    <ItemContent className="space-y-4">
-                      <p className="text-sm text-muted-foreground">
-                        Your feedback shapes the app. Share your thoughts here, or
-                        update it anytime.
-                      </p>
-                      {profile.feedback && profile.feedback.length > 0 && (
-                        <div className="p-3 bg-muted rounded-lg text-sm">
-                          <p className="text-muted-foreground">
-                            Last feedback:{" "}
-                            {new Date(
-                              profile.feedback[profile.feedback.length - 1]
-                                .createdAt
-                            ).toLocaleDateString("en-KE")}
-                          </p>
-                        </div>
-                      )}
-                      <Button
-                        className="w-full"
-                        onClick={() => setShowFeedbackDialog(true)}
-                      >
-                        <MessageSquare className="h-4 w-4 mr-2" />
-                        Share Feedback
-                      </Button>
-                    </ItemContent>
-                  </AccordionContent>
-                </Item>
-              </AccordionItem>
-            </Accordion>
-          </TabsContent>
-
-          {/* Account Settings */}
-          <TabsContent value="account" className="space-y-4">
-            <Item>
-              <ItemHeader>
-                <ItemTitle>Subscription</ItemTitle>
-                <ItemDescription>
-                  Manage your Monee subscription
-                </ItemDescription>
-              </ItemHeader>
-              <ItemContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label>Status</Label>
-                    <p className="text-sm text-muted-foreground">
-                      {user?.hasPaid
-                        ? "Active - Lifetime Access"
-                        : "Free Trial"}
-                    </p>
-                  </div>
-                  <div
-                    className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                      user?.hasPaid
-                        ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
-                        : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300"
-                    }`}
+        {/* General Settings */}
+        <TabsContent value="general" className="space-y-4">
+          <Item>
+            <ItemHeader>
+              <ItemTitle>Appearance</ItemTitle>
+              <ItemDescription>Customize how Monee looks</ItemDescription>
+            </ItemHeader>
+            <ItemContent className="space-y-4">
+              <div className="space-y-2">
+                <Label>Theme</Label>
+                <div className="grid grid-cols-3 gap-2">
+                  <Button
+                    variant={theme === "light" ? "default" : "outline"}
+                    className="w-full"
+                    onClick={() => handleThemeChange("light")}
                   >
-                    {user?.hasPaid ? "PAID" : "TRIAL"}
-                  </div>
+                    <Sun className="h-4 w-4 mr-2" />
+                    Light
+                  </Button>
+                  <Button
+                    variant={theme === "dark" ? "default" : "outline"}
+                    className="w-full"
+                    onClick={() => handleThemeChange("dark")}
+                  >
+                    <Moon className="h-4 w-4 mr-2" />
+                    Dark
+                  </Button>
+                  <Button
+                    variant={theme === "system" ? "default" : "outline"}
+                    className="w-full"
+                    onClick={() => handleThemeChange("system")}
+                  >
+                    <Monitor className="h-4 w-4 mr-2" />
+                    System
+                  </Button>
                 </div>
+              </div>
+            </ItemContent>
+          </Item>
 
-                {user?.hasPaid && user?.paymentDate && (
-                  <div className="space-y-0.5">
-                    <Label>Payment Date</Label>
-                    <p className="text-sm text-muted-foreground">
-                      {new Date(user.paymentDate).toLocaleDateString("en-KE", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      })}
-                    </p>
-                  </div>
-                )}
+          <Item>
+            <ItemHeader>
+              <ItemTitle>Currency & Format</ItemTitle>
+              <ItemDescription>Set your preferred currency</ItemDescription>
+            </ItemHeader>
+            <ItemContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="currency">Currency</Label>
+                <Select value={currency} onValueChange={handleCurrencyChange}>
+                  <SelectTrigger id="currency">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {getAllCurrencies().map((curr) => (
+                      <SelectItem key={curr.code} value={curr.code}>
+                        {curr.symbol} {curr.code} ({curr.name})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </ItemContent>
+          </Item>
+        </TabsContent>
 
-                {!user?.hasPaid && isTrialActive && (
-                  <div className="space-y-3">
-                    <div className="p-3 bg-gradient-to-r from-green-500/10 to-blue-500/10 rounded-lg border border-green-500/20">
-                      <p className="text-sm font-semibold text-center">
-                        🎉 {daysRemaining} day{daysRemaining !== 1 ? "s" : ""}{" "}
-                        left in your free trial
-                      </p>
-                      <p className="text-xs text-muted-foreground text-center mt-1">
-                        Unlock lifetime access for just KSh 999
+        {/* Notification Settings */}
+        <TabsContent value="notifications" className="space-y-4">
+          <NotificationSettings />
+        </TabsContent>
+
+        {/* Profile Settings */}
+        <TabsContent value="profile" className="space-y-4">
+          <Accordion type="single" collapsible className="w-full space-y-4">
+            <AccordionItem value="profile-info">
+              <Item>
+                <ItemHeader>
+                  <AccordionTrigger className="hover:no-underline">
+                    <div className="flex items-center gap-2">
+                      <User className="h-5 w-5" />
+                      <div className="text-left">
+                        <ItemTitle>Profile Information</ItemTitle>
+                        <ItemDescription>
+                          Update your personal details
+                        </ItemDescription>
+                      </div>
+                    </div>
+                  </AccordionTrigger>
+                </ItemHeader>
+                <AccordionContent>
+                  <ItemContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="handle">
+                        <User className="h-4 w-4 inline mr-2" />
+                        Handle
+                      </Label>
+                      <Input
+                        id="handle"
+                        value={profile.handle || ""}
+                        onChange={(e) =>
+                          handleProfileUpdate("handle", e.target.value)
+                        }
+                        placeholder="Your handle"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="email">
+                        <Mail className="h-4 w-4 inline mr-2" />
+                        Email
+                      </Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={user?.email || ""}
+                        disabled
+                        className="bg-muted"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Email cannot be changed
                       </p>
                     </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="monthlyBudget">
+                        <span className="inline mr-2">💰</span>
+                        Monthly Budget (KES)
+                      </Label>
+                      <Input
+                        id="monthlyBudget"
+                        type="number"
+                        value={profile.monthlyBudget || 0}
+                        onChange={(e) =>
+                          handleProfileUpdate(
+                            "monthlyBudget",
+                            Number(e.target.value)
+                          )
+                        }
+                        placeholder="50000"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Your total monthly budget across all categories
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>
+                        <Calendar className="h-4 w-4 inline mr-2" />
+                        Member Since
+                      </Label>
+                      <Input
+                        value={
+                          profile.createdAt
+                            ? new Date(profile.createdAt).toLocaleDateString(
+                                "en-KE",
+                                {
+                                  year: "numeric",
+                                  month: "long",
+                                  day: "numeric",
+                                }
+                              )
+                            : "Unknown"
+                        }
+                        disabled
+                        className="bg-muted"
+                      />
+                    </div>
+                  </ItemContent>
+                </AccordionContent>
+              </Item>
+            </AccordionItem>
+
+            <AccordionItem value="stats">
+              <Item>
+                <ItemHeader>
+                  <AccordionTrigger className="hover:no-underline">
+                    <div className="flex items-center gap-2">
+                      <TrendingUp className="h-5 w-5" />
+                      <div className="text-left">
+                        <ItemTitle>Your Stats</ItemTitle>
+                        <ItemDescription>
+                          Overview of your financial activity
+                        </ItemDescription>
+                      </div>
+                    </div>
+                  </AccordionTrigger>
+                </ItemHeader>
+                <AccordionContent>
+                  <ItemContent className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">
+                        Total Expenses
+                      </span>
+                      <span className="font-semibold">
+                        {profile.expenses?.length || 0} transactions
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">
+                        Active Categories
+                      </span>
+                      <span className="font-semibold">
+                        {profile.categories?.filter((c) => c.isActive !== false)
+                          .length || 0}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">
+                        Savings Goals
+                      </span>
+                      <span className="font-semibold">
+                        {profile.savingsGoals?.length || 0}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">
+                        Active Debts
+                      </span>
+                      <span className="font-semibold">
+                        {profile.debts?.length || 0}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">
+                        Income Sources
+                      </span>
+                      <span className="font-semibold">
+                        {profile.incomeSources?.filter((i) => i.isActive)
+                          .length || 0}
+                      </span>
+                    </div>
+                  </ItemContent>
+                </AccordionContent>
+              </Item>
+            </AccordionItem>
+
+            <AccordionItem value="feedback">
+              <Item>
+                <ItemHeader>
+                  <AccordionTrigger className="hover:no-underline">
+                    <div className="flex items-center gap-2">
+                      <MessageSquare className="h-5 w-5" />
+                      <div className="text-left">
+                        <ItemTitle>Give Feedback</ItemTitle>
+                        <ItemDescription>
+                          Your feedback shapes the app
+                        </ItemDescription>
+                      </div>
+                    </div>
+                  </AccordionTrigger>
+                </ItemHeader>
+                <AccordionContent>
+                  <ItemContent className="space-y-4">
+                    <p className="text-sm text-muted-foreground">
+                      Your feedback shapes the app. Share your thoughts here, or
+                      update it anytime.
+                    </p>
+                    {profile.feedback && profile.feedback.length > 0 && (
+                      <div className="p-3 bg-muted rounded-lg text-sm">
+                        <p className="text-muted-foreground">
+                          Last feedback:{" "}
+                          {new Date(
+                            profile.feedback[
+                              profile.feedback.length - 1
+                            ].createdAt
+                          ).toLocaleDateString("en-KE")}
+                        </p>
+                      </div>
+                    )}
                     <Button
                       className="w-full"
-                      size="lg"
-                      onClick={() => setShowPaywall(true)}
+                      onClick={() => setShowFeedbackDialog(true)}
                     >
-                      Upgrade to Lifetime Access - KSh 999
+                      <MessageSquare className="h-4 w-4 mr-2" />
+                      Share Feedback
                     </Button>
-                  </div>
-                )}
+                  </ItemContent>
+                </AccordionContent>
+              </Item>
+            </AccordionItem>
+          </Accordion>
+        </TabsContent>
 
-                {!user?.hasPaid && !isTrialActive && (
+        {/* Account Settings */}
+        <TabsContent value="account" className="space-y-4">
+          <Item>
+            <ItemHeader>
+              <ItemTitle>Subscription</ItemTitle>
+              <ItemDescription>Manage your Monee subscription</ItemDescription>
+            </ItemHeader>
+            <ItemContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label>Status</Label>
+                  <p className="text-sm text-muted-foreground">
+                    {user?.hasPaid ? "Active - Lifetime Access" : "Free Trial"}
+                  </p>
+                </div>
+                <div
+                  className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                    user?.hasPaid
+                      ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
+                      : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300"
+                  }`}
+                >
+                  {user?.hasPaid ? "PAID" : "TRIAL"}
+                </div>
+              </div>
+
+              {user?.hasPaid && user?.paymentDate && (
+                <div className="space-y-0.5">
+                  <Label>Payment Date</Label>
+                  <p className="text-sm text-muted-foreground">
+                    {new Date(user.paymentDate).toLocaleDateString("en-KE", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    })}
+                  </p>
+                </div>
+              )}
+
+              {!user?.hasPaid && isTrialActive && (
+                <div className="space-y-3">
+                  <div className="p-3 bg-gradient-to-r from-green-500/10 to-blue-500/10 rounded-lg border border-green-500/20">
+                    <p className="text-sm font-semibold text-center">
+                      🎉 {daysRemaining} day{daysRemaining !== 1 ? "s" : ""}{" "}
+                      left in your free trial
+                    </p>
+                    <p className="text-xs text-muted-foreground text-center mt-1">
+                      Unlock lifetime access for just KSh 999
+                    </p>
+                  </div>
                   <Button
                     className="w-full"
                     size="lg"
                     onClick={() => setShowPaywall(true)}
                   >
-                    Unlock Full Access - KSh 999
+                    Upgrade to Lifetime Access - KSh 999
                   </Button>
-                )}
-              </ItemContent>
-            </Item>
+                </div>
+              )}
 
-            <Item>
-              <ItemHeader>
-                <ItemTitle>Data & Privacy</ItemTitle>
-                <ItemDescription>
-                  Manage your data and privacy settings
-                </ItemDescription>
-              </ItemHeader>
-              <ItemContent className="space-y-4">
+              {!user?.hasPaid && !isTrialActive && (
                 <Button
-                  variant="outline"
                   className="w-full"
-                  onClick={handleExportData}
-                  disabled={isExporting}
+                  size="lg"
+                  onClick={() => setShowPaywall(true)}
                 >
-                  <Download className="h-4 w-4 mr-2" />
-                  {isExporting ? "Exporting..." : "Export My Data"}
+                  Unlock Full Access - KSh 999
                 </Button>
-                <p className="text-xs text-muted-foreground">
-                  Download all your data in JSON format
-                </p>
+              )}
+            </ItemContent>
+          </Item>
 
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  onClick={handleExportTransactions}
-                  disabled={isExporting || !profile.expenses?.length}
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  {isExporting
-                    ? "Exporting..."
-                    : "Download Transaction History"}
-                </Button>
-                <p className="text-xs text-muted-foreground">
-                  Export your transactions as a CSV file
-                </p>
-              </ItemContent>
-            </Item>
+          <Item>
+            <ItemHeader>
+              <ItemTitle>Data & Privacy</ItemTitle>
+              <ItemDescription>
+                Manage your data and privacy settings
+              </ItemDescription>
+            </ItemHeader>
+            <ItemContent className="space-y-4">
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={handleExportData}
+                disabled={isExporting}
+              >
+                <Download className="h-4 w-4 mr-2" />
+                {isExporting ? "Exporting..." : "Export My Data"}
+              </Button>
+              <p className="text-xs text-muted-foreground">
+                Download all your data in JSON format
+              </p>
 
-            <Item className="border-destructive">
-              <ItemHeader>
-                <ItemTitle className="text-destructive">
-                  <AlertTriangle className="h-5 w-5 inline mr-2" />
-                  Danger Zone
-                </ItemTitle>
-                <ItemDescription>Irreversible actions</ItemDescription>
-              </ItemHeader>
-              <ItemContent className="space-y-4">
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button
-                      variant="destructive"
-                      className="w-full"
-                      disabled={isDeleting}
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={handleExportTransactions}
+                disabled={isExporting || !profile.expenses?.length}
+              >
+                <Download className="h-4 w-4 mr-2" />
+                {isExporting ? "Exporting..." : "Download Transaction History"}
+              </Button>
+              <p className="text-xs text-muted-foreground">
+                Export your transactions as a CSV file
+              </p>
+            </ItemContent>
+          </Item>
+
+          <Item className="border-destructive">
+            <ItemHeader>
+              <ItemTitle className="text-destructive">
+                <AlertTriangle className="h-5 w-5 inline mr-2" />
+                Danger Zone
+              </ItemTitle>
+              <ItemDescription>Irreversible actions</ItemDescription>
+            </ItemHeader>
+            <ItemContent className="space-y-4">
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="destructive"
+                    className="w-full"
+                    disabled={isDeleting}
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    {isDeleting ? "Deleting..." : "Delete Account"}
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>
+                      Are you absolutely sure?
+                    </AlertDialogTitle>
+                    <AlertDialogDescription>
+                      <div className="space-y-2">
+                        <p>
+                          This action cannot be undone. This will permanently
+                          delete your account and remove all your data from our
+                          servers, including:
+                        </p>
+                        <ul className="list-disc list-inside space-y-1">
+                          <li>All expenses and transactions</li>
+                          <li>Categories and budgets</li>
+                          <li>Savings goals and contributions</li>
+                          <li>Debts and payment history</li>
+                          <li>Income sources</li>
+                          <li>Recipients and preferences</li>
+                        </ul>
+                      </div>
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleDeleteAccount}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                     >
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      {isDeleting ? "Deleting..." : "Delete Account"}
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>
-                        Are you absolutely sure?
-                      </AlertDialogTitle>
-                      <AlertDialogDescription>
-                        <div className="space-y-2">
-                          <p>
-                            This action cannot be undone. This will permanently
-                            delete your account and remove all your data from
-                            our servers, including:
-                          </p>
-                          <ul className="list-disc list-inside space-y-1">
-                            <li>All expenses and transactions</li>
-                            <li>Categories and budgets</li>
-                            <li>Savings goals and contributions</li>
-                            <li>Debts and payment history</li>
-                            <li>Income sources</li>
-                            <li>Recipients and preferences</li>
-                          </ul>
-                        </div>
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={handleDeleteAccount}
-                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                      >
-                        Yes, delete my account
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-                <p className="text-xs text-muted-foreground text-center">
-                  This will permanently delete your account and all associated
-                  data
-                </p>
-              </ItemContent>
-            </Item>
-          </TabsContent>
-        </Tabs>
+                      Yes, delete my account
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+              <p className="text-xs text-muted-foreground text-center">
+                This will permanently delete your account and all associated
+                data
+              </p>
+            </ItemContent>
+          </Item>
+        </TabsContent>
+      </Tabs>
 
-        <div className="h-20" />
-        <PWABottomNav />
-      </div>
+      <div className="h-20" />
+      <PWABottomNav />
     </>
   );
 }

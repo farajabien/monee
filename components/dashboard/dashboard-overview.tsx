@@ -257,7 +257,12 @@ export function DashboardOverview() {
           />
         </TabsContent>
         <TabsContent value="debts" className="border-0">
-          <DebtsAlertCard debts={debtsData} isLoading={isLoading} userCurrency={profile?.currency} userLocale={profile?.locale} />
+          <DebtsAlertCard
+            debts={debtsData}
+            isLoading={isLoading}
+            userCurrency={profile?.currency}
+            userLocale={profile?.locale}
+          />
         </TabsContent>
         <TabsContent value="savings" className="border-0">
           <SavingsProgressCard
@@ -280,16 +285,6 @@ export function DashboardOverview() {
         userCurrency={profile?.currency}
         userLocale={profile?.locale}
       />
-
-      {/* Link to Detailed Summary */}
-      <div className="flex justify-center pt-4">
-        <Link href="/dashboard?tab=overview&view=detailed">
-          <Button variant="outline" size="sm" className="border-0">
-            View Detailed Summary
-            <ArrowRight className="h-3 w-3 ml-2" />
-          </Button>
-        </Link>
-      </div>
     </div>
   );
 }

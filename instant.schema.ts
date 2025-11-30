@@ -128,10 +128,13 @@ const _schema = i.schema({
       createdAt: i.number().indexed(),
     }),
     feedback: i.entity({
-      name: i.string().optional(),
+      feedbackType: i.string().indexed(), // Bug | Feature | Suggestion | UI/UX | Performance | General
       feedbackText: i.string(),
-      rating: i.number().indexed(),
-      featureRequest: i.string().optional(),
+      rating: i.number().optional().indexed(),
+      priority: i.string().optional(), // Low | Medium | High (for bugs)
+      affectedArea: i.string().optional().indexed(), // Expenses | Debts | Savings | Income | Dashboard | Settings
+      stepsToReproduce: i.string().optional(), // For bugs
+      name: i.string().optional(),
       userEmail: i.string().optional(),
       createdAt: i.number().indexed(),
     }),
