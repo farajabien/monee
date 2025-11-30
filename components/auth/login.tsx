@@ -159,7 +159,7 @@ export default function Login() {
       </div>
 
       <div className="w-full max-w-md mx-4">
-        <div className="text-center mb-8">
+        <div className="text-center">
           <div className="flex items-center justify-center gap-2 mb-4">
             <Image
               src="/AppImages/money-bag.png"
@@ -172,15 +172,11 @@ export default function Login() {
           </div>
         </div>
 
-        <Card>
-          <CardContent className="pt-6">
-            {!sentEmail ? (
-              <EmailStep onSendEmail={setSentEmail} />
-            ) : (
-              <CodeStep sentEmail={sentEmail} />
-            )}
-          </CardContent>
-        </Card>
+        {!sentEmail ? (
+          <EmailStep onSendEmail={setSentEmail} />
+        ) : (
+          <CodeStep sentEmail={sentEmail} />
+        )}
 
         <div className="text-center mt-6">
           <p className="text-sm text-muted-foreground">
