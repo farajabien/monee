@@ -56,9 +56,9 @@ export function DataViewControls({
 
   return (
     <div className="space-y-2">
-      <div className="flex flex-col sm:flex-row gap-2">
+      <div className="flex flex-row gap-2 overflow-x-auto pb-1">
         {/* Search */}
-        <div className="relative flex-1">
+        <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder={searchPlaceholder}
@@ -70,7 +70,7 @@ export function DataViewControls({
 
         {/* Sort */}
         <Select value={sortValue} onValueChange={onSortChange}>
-          <SelectTrigger className="w-full sm:w-[180px]">
+          <SelectTrigger className="w-[180px] flex-shrink-0">
             <SelectValue placeholder="Sort by..." />
           </SelectTrigger>
           <SelectContent>
@@ -85,7 +85,7 @@ export function DataViewControls({
         {/* Basic Filter */}
         {filterOptions && onFilterChange && (
           <Select value={filterValue || "all"} onValueChange={onFilterChange}>
-            <SelectTrigger className="w-full sm:w-[150px]">
+            <SelectTrigger className="w-[150px] flex-shrink-0">
               <SelectValue placeholder={filterLabel} />
             </SelectTrigger>
             <SelectContent>

@@ -37,7 +37,8 @@ const calculateProgress = (currentAmount: number, targetAmount: number) => {
 
 export const createSavingsGoalListConfig = (
   onAddMoney: (goal: SavingsGoalWithContributions) => void,
-  onMarkComplete: (goalId: string) => void
+  onMarkComplete: (goalId: string) => void,
+  onEdit: (goal: SavingsGoalWithContributions) => void
 ): ListConfig<SavingsGoalWithContributions> => ({
   // Identity
   queryKey: "savings_goals",
@@ -135,7 +136,7 @@ export const createSavingsGoalListConfig = (
         </div>
 
         {/* Action buttons */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
           {!isCompleted && (
             <Button
               variant="default"
@@ -154,14 +155,50 @@ export const createSavingsGoalListConfig = (
               Mark Complete
             </Button>
           )}
-          {actions.onDelete && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={actions.onDelete}
+          {actions.onEdit && (
+            <button
+              onClick={actions.onEdit}
+              className="p-2 hover:bg-accent rounded"
+              aria-label="Edit"
             >
-              Delete
-            </Button>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+                <path d="m15 5 4 4" />
+              </svg>
+            </button>
+          )}
+          {actions.onDelete && (
+            <button
+              onClick={actions.onDelete}
+              className="p-2 hover:bg-destructive/10 text-destructive rounded"
+              aria-label="Delete"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M3 6h18" />
+                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+              </svg>
+            </button>
           )}
         </div>
       </div>
@@ -170,6 +207,9 @@ export const createSavingsGoalListConfig = (
 
   // Actions
   actions: {
+    edit: async (item: SavingsGoalWithContributions) => {
+      onEdit(item);
+    },
     delete: async (id: string) => {
       await db.transact(tx.savings_goals[id].delete());
       toast.success("Goal deleted");

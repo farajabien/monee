@@ -56,8 +56,8 @@ export function HowToGetStatement() {
                       3
                     </span>
                     <span>
-                      Click <strong>&quot;Export Statements&quot;</strong> button
-                      (bottom right)
+                      Click <strong>&quot;Export Statements&quot;</strong>{" "}
+                      button (bottom right)
                     </span>
                   </li>
                   <li className="flex gap-3">
@@ -65,7 +65,7 @@ export function HowToGetStatement() {
                       4
                     </span>
                     <span>
-                      Leave it on <strong>&quot;All Expenses&quot;</strong>
+                      Leave it on <strong>&quot;All Transactions&quot;</strong>
                     </span>
                   </li>
                   <li className="flex gap-3">
@@ -137,8 +137,8 @@ export function HowToGetStatement() {
                 <li className="flex gap-2">
                   <span className="text-primary">•</span>
                   <span>
-                    <strong className="text-foreground">No password!</strong> New
-                    app export doesn&apos;t require password ✅
+                    <strong className="text-foreground">No password!</strong>{" "}
+                    New app export doesn&apos;t require password ✅
                   </span>
                 </li>
               </ul>
@@ -149,7 +149,9 @@ export function HowToGetStatement() {
           <TabsContent value="sms" className="space-y-4">
             <div className="space-y-4">
               <div className="bg-background p-4 rounded-lg border">
-                <p className="text-sm font-bold mb-3">📱 How to Copy M-Pesa SMS:</p>
+                <p className="text-sm font-bold mb-3">
+                  📱 How to Copy M-Pesa SMS:
+                </p>
                 <ol className="text-sm space-y-3">
                   <li className="flex gap-3">
                     <span className="flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground font-bold text-xs">
@@ -173,7 +175,8 @@ export function HowToGetStatement() {
                       3
                     </span>
                     <span>
-                      Select multiple messages (you can select as many as you want)
+                      Select multiple messages (you can select as many as you
+                      want)
                     </span>
                   </li>
                   <li className="flex gap-3">
@@ -199,22 +202,24 @@ export function HowToGetStatement() {
                   <li className="flex gap-2">
                     <span className="text-primary">•</span>
                     <span>
-                      <strong className="text-foreground">Super fast</strong> for
-                      daily check-ins
+                      <strong className="text-foreground">Super fast</strong>{" "}
+                      for daily check-ins
                     </span>
                   </li>
                   <li className="flex gap-2">
                     <span className="text-primary">•</span>
                     <span>
-                      <strong className="text-foreground">No files needed</strong>{" "}
+                      <strong className="text-foreground">
+                        No files needed
+                      </strong>{" "}
                       - just copy and paste
                     </span>
                   </li>
                   <li className="flex gap-2">
                     <span className="text-primary">•</span>
                     <span>
-                      <strong className="text-foreground">Works great</strong> for
-                      catching up on the last few days
+                      <strong className="text-foreground">Works great</strong>{" "}
+                      for catching up on the last few days
                     </span>
                   </li>
                 </ul>
@@ -229,7 +234,8 @@ export function HowToGetStatement() {
               <div>
                 <p className="font-bold text-lg mb-2">Coming Soon!</p>
                 <p className="text-sm text-muted-foreground">
-                  We&apos;re working on adding support for bank statement imports.
+                  We&apos;re working on adding support for bank statement
+                  imports.
                 </p>
                 <p className="text-sm text-muted-foreground mt-2">
                   This will include support for:
@@ -242,8 +248,8 @@ export function HowToGetStatement() {
                 </ul>
               </div>
               <p className="text-xs text-muted-foreground">
-                For now, please use M-Pesa PDF or SMS import, or add transactions
-                manually.
+                For now, please use M-Pesa PDF or SMS import, or add
+                transactions manually.
               </p>
             </div>
           </TabsContent>

@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DebtPaymentForm } from "./debt-payment-form";
+import { QuickDebtForm } from "./quick-debt-form";
 import { DebtProgress } from "./debt-progress";
 import { DebtAnalytics } from "./debt-analytics";
 import { createDebtListConfig } from "./debt-list-config";
@@ -161,6 +162,30 @@ export function DebtList() {
                 onSuccess={() => {
                   setShowPaymentSheet(false);
                   setSelectedDebtForPayment(null);
+                }}
+              />
+            </div>
+          )}
+        </SheetContent>
+      </Sheet>
+
+      <Sheet
+        open={!!editingDebt}
+        onOpenChange={(open) => !open && setEditingDebt(null)}
+      >
+        <SheetContent
+          side="bottom"
+          className="h-[90vh] overflow-y-auto pb-safe"
+        >
+          <SheetHeader>
+            <SheetTitle>Edit Debt</SheetTitle>
+          </SheetHeader>
+          {editingDebt && (
+            <div className="mt-6">
+              <QuickDebtForm
+                debt={editingDebt}
+                onSuccess={() => {
+                  setEditingDebt(null);
                 }}
               />
             </div>

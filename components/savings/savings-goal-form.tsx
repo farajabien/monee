@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -26,6 +26,7 @@ import {
 import { toast } from "sonner";
 import { tx } from "@instantdb/react";
 import db from "@/lib/db";
+import type { SavingsGoalWithContributions } from "@/types";
 
 const savingsGoalSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -36,43 +37,75 @@ const savingsGoalSchema = z.object({
 type SavingsGoalFormData = z.infer<typeof savingsGoalSchema>;
 
 interface SavingsGoalFormProps {
-  profileId: string;
+  profileId?: string;
+  goal?: SavingsGoalWithContributions; // Optional - if provided, form is in edit mode
   onSuccess?: () => void;
   asDialog?: boolean; // If true, renders with dialog wrapper (default true)
 }
 
 export function SavingsGoalForm({
   profileId,
+  goal,
   onSuccess,
   asDialog = true,
 }: SavingsGoalFormProps) {
   const [open, setOpen] = useState(false);
+  const isEditMode = !!goal;
+
   const form = useForm<SavingsGoalFormData>({
     resolver: zodResolver(savingsGoalSchema),
     defaultValues: {
-      name: "",
-      targetAmount: 0,
-      emoji: "",
+      name: goal?.name || "",
+      targetAmount: goal?.targetAmount || 0,
+      emoji: goal?.emoji || "",
     },
   });
 
+  // Update form when goal changes (for edit mode)
+  useEffect(() => {
+    if (goal) {
+      form.reset({
+        name: goal.name,
+        targetAmount: goal.targetAmount,
+        emoji: goal.emoji || "",
+      });
+    }
+  }, [goal, form]);
+
   async function onSubmit(values: SavingsGoalFormData) {
     try {
-      const createdAt = new Date().getTime();
-      await db.transact(
-        tx.savings_goals[crypto.randomUUID()]
-          .update({
+      if (isEditMode && goal) {
+        // Update existing goal
+        await db.transact(
+          tx.savings_goals[goal.id].update({
             name: values.name,
             targetAmount: values.targetAmount,
-            currentAmount: 0,
             emoji: values.emoji || "💰",
-            isCompleted: false,
-            createdAt,
           })
-          .link({ user: profileId })
-      );
+        );
+        toast.success("Savings goal updated!");
+      } else {
+        // Create new goal
+        if (!profileId) {
+          toast.error("Profile ID is required to create a goal");
+          return;
+        }
+        const createdAt = new Date().getTime();
+        await db.transact(
+          tx.savings_goals[crypto.randomUUID()]
+            .update({
+              name: values.name,
+              targetAmount: values.targetAmount,
+              currentAmount: 0,
+              emoji: values.emoji || "💰",
+              isCompleted: false,
+              createdAt,
+            })
+            .link({ user: profileId })
+        );
+        toast.success("Savings goal created!");
+      }
 
-      toast.success("Savings goal created!");
       form.reset();
       if (asDialog) {
         setOpen(false);
@@ -82,7 +115,11 @@ export function SavingsGoalForm({
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Unknown error";
-      toast.error("Failed to create savings goal: " + errorMessage);
+      toast.error(
+        isEditMode
+          ? "Failed to update savings goal: " + errorMessage
+          : "Failed to create savings goal: " + errorMessage
+      );
     }
   }
 
@@ -137,7 +174,7 @@ export function SavingsGoalForm({
           )}
         />
         <Button type="submit" className="w-full">
-          Add Savings Goal
+          {isEditMode ? "Update Savings Goal" : "Add Savings Goal"}
         </Button>
       </form>
     </Form>
@@ -148,9 +185,13 @@ export function SavingsGoalForm({
     return (
       <div className="space-y-4">
         <div>
-          <h3 className="text-lg font-semibold">New Savings Goal</h3>
+          <h3 className="text-lg font-semibold">
+            {isEditMode ? "Edit Savings Goal" : "New Savings Goal"}
+          </h3>
           <p className="text-sm text-muted-foreground">
-            Create a new savings goal to track your progress
+            {isEditMode
+              ? "Update your savings goal details"
+              : "Create a new savings goal to track your progress"}
           </p>
         </div>
         {formContent}
@@ -166,9 +207,13 @@ export function SavingsGoalForm({
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add Savings Goal</DialogTitle>
+          <DialogTitle>
+            {isEditMode ? "Edit Savings Goal" : "Add Savings Goal"}
+          </DialogTitle>
           <DialogDescription>
-            Create a new savings goal to track your progress
+            {isEditMode
+              ? "Update your savings goal details"
+              : "Create a new savings goal to track your progress"}
           </DialogDescription>
         </DialogHeader>
         {formContent}

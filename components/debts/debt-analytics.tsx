@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   ChartContainer,
   ChartTooltip,
@@ -19,7 +20,14 @@ import {
   CartesianGrid,
 } from "recharts";
 import { CategoryBreakdown } from "@/components/charts/category-breakdown";
-import { CreditCard, TrendingDown, Calendar, DollarSign } from "lucide-react";
+import {
+  CreditCard,
+  TrendingDown,
+  Calendar,
+  DollarSign,
+  BarChart3,
+  PieChart,
+} from "lucide-react";
 import db from "@/lib/db";
 
 type TimeView = "week" | "month" | "year";
@@ -294,97 +302,115 @@ export function DebtAnalytics() {
         </Card>
       </div>
 
-      {/* Chart Section */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>Debt Reduction Over Time</CardTitle>
-            <div className="flex gap-2">
-              <Button
-                variant={chartType === "bar" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setChartType("bar")}
-              >
-                Bar
-              </Button>
-              <Button
-                variant={chartType === "line" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setChartType("line")}
-              >
-                Line
-              </Button>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {/* Time View Selector */}
-          <div className="flex justify-center gap-2 mb-6">
-            <Button
-              variant={timeView === "week" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setTimeView("week")}
-            >
-              Week
-            </Button>
-            <Button
-              variant={timeView === "month" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setTimeView("month")}
-            >
-              Month
-            </Button>
-            <Button
-              variant={timeView === "year" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setTimeView("year")}
-            >
-              Year
-            </Button>
-          </div>
+      {/* Tabs for Analytics */}
+      <Tabs defaultValue="timeline" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="timeline">
+            <BarChart3 className="h-4 w-4 mr-2" />
+            Timeline
+          </TabsTrigger>
+          <TabsTrigger value="breakdown">
+            <PieChart className="h-4 w-4 mr-2" />
+            Breakdown
+          </TabsTrigger>
+        </TabsList>
 
-          {/* Chart */}
-          <ChartContainer config={chartConfig} className="h-[250px] w-full">
-            {chartType === "bar" ? (
-              <BarChart data={debtOverTimeData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <Bar
-                  dataKey="value"
-                  fill="var(--color-value)"
-                  radius={[8, 8, 0, 0]}
-                />
-              </BarChart>
-            ) : (
-              <LineChart data={debtOverTimeData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <Line
-                  type="monotone"
-                  dataKey="value"
-                  stroke="var(--color-value)"
-                  strokeWidth={2}
-                  dot={{ fill: "var(--color-value)", r: 4 }}
-                />
-              </LineChart>
-            )}
-          </ChartContainer>
-        </CardContent>
-      </Card>
+        {/* Timeline Tab */}
+        <TabsContent value="timeline" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle>Debt Reduction Over Time</CardTitle>
+                <div className="flex gap-2">
+                  <Button
+                    variant={chartType === "bar" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setChartType("bar")}
+                  >
+                    Bar
+                  </Button>
+                  <Button
+                    variant={chartType === "line" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setChartType("line")}
+                  >
+                    Line
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {/* Time View Selector */}
+              <div className="flex justify-center gap-2 mb-6">
+                <Button
+                  variant={timeView === "week" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setTimeView("week")}
+                >
+                  Week
+                </Button>
+                <Button
+                  variant={timeView === "month" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setTimeView("month")}
+                >
+                  Month
+                </Button>
+                <Button
+                  variant={timeView === "year" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setTimeView("year")}
+                >
+                  Year
+                </Button>
+              </div>
 
-      {/* Debt Breakdown */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Breakdown by Debt</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <CategoryBreakdown items={categoryData} />
-        </CardContent>
-      </Card>
+              {/* Chart */}
+              <ChartContainer config={chartConfig} className="h-[250px] w-full">
+                {chartType === "bar" ? (
+                  <BarChart data={debtOverTimeData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <ChartTooltip content={<ChartTooltipContent />} />
+                    <Bar
+                      dataKey="value"
+                      fill="var(--color-value)"
+                      radius={[8, 8, 0, 0]}
+                    />
+                  </BarChart>
+                ) : (
+                  <LineChart data={debtOverTimeData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <ChartTooltip content={<ChartTooltipContent />} />
+                    <Line
+                      type="monotone"
+                      dataKey="value"
+                      stroke="var(--color-value)"
+                      strokeWidth={2}
+                      dot={{ fill: "var(--color-value)", r: 4 }}
+                    />
+                  </LineChart>
+                )}
+              </ChartContainer>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Breakdown Tab */}
+        <TabsContent value="breakdown" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Breakdown by Debt</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <CategoryBreakdown items={categoryData} />
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

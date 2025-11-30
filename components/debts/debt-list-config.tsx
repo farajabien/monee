@@ -171,14 +171,17 @@ export const createDebtListConfig = (
           </Badge>
 
           <div className="flex-1 space-y-0.5">
-            {/* Main line: Name + compact inline badges */}
+            {/* Main line: Amount first, then name + other badges */}
             <div className="flex flex-wrap items-center gap-1.5">
-              <span className="font-semibold text-sm">{item.name}</span>
-
-              {/* Compact balance */}
-              <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+              {/* Compact balance - SHOWN FIRST */}
+              <Badge
+                variant="default"
+                className="text-xs px-2 py-0.5 font-bold bg-primary"
+              >
                 {formatCompactAmount(item.currentBalance)}
               </Badge>
+
+              <span className="font-semibold text-sm">{item.name}</span>
 
               {/* Compact monthly payment */}
               <Badge variant="outline" className="text-[10px] px-1.5 py-0">

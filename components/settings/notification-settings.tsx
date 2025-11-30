@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
@@ -13,7 +12,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Bell, Calendar, DollarSign, Target, TrendingUp, AlertCircle } from "lucide-react";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import {
+  Bell,
+  Calendar,
+  DollarSign,
+  Target,
+  TrendingUp,
+  AlertCircle,
+} from "lucide-react";
 import { toast } from "sonner";
 
 interface NotificationPreferences {
@@ -71,30 +83,34 @@ const defaultPreferences: NotificationPreferences = {
 };
 
 export function NotificationSettings() {
-  const [preferences, setPreferences] = useState<NotificationPreferences>(defaultPreferences);
-  const [permission, setPermission] = useState<NotificationPermission>("default");
-  const [isLoading, setIsLoading] = useState(false);
-
-  // Load preferences from localStorage on mount
-  useEffect(() => {
-    const saved = localStorage.getItem("notificationPreferences");
-    if (saved) {
-      try {
-        setPreferences(JSON.parse(saved));
-      } catch (error) {
-        console.error("Failed to parse notification preferences:", error);
+  const [preferences, setPreferences] = useState<NotificationPreferences>(
+    () => {
+      if (typeof window !== "undefined") {
+        const saved = localStorage.getItem("notificationPreferences");
+        if (saved) {
+          try {
+            return JSON.parse(saved);
+          } catch (error) {
+            console.error("Failed to parse notification preferences:", error);
+          }
+        }
       }
+      return defaultPreferences;
     }
-
-    // Check current notification permission
-    if ("Notification" in window) {
-      setPermission(Notification.permission);
+  );
+  const [permission, setPermission] = useState<NotificationPermission>(() => {
+    if (typeof window !== "undefined" && "Notification" in window) {
+      return Notification.permission;
     }
-  }, []);
+    return "default";
+  });
 
   // Save preferences to localStorage whenever they change
   useEffect(() => {
-    localStorage.setItem("notificationPreferences", JSON.stringify(preferences));
+    localStorage.setItem(
+      "notificationPreferences",
+      JSON.stringify(preferences)
+    );
   }, [preferences]);
 
   // Send messages to service worker when preferences change
@@ -115,7 +131,11 @@ export function NotificationSettings() {
       }
 
       // Weekly savings nudge
-      if (preferences.enabled && preferences.savingsReminders.enabled && preferences.savingsReminders.weeklyNudge) {
+      if (
+        preferences.enabled &&
+        preferences.savingsReminders.enabled &&
+        preferences.savingsReminders.weeklyNudge
+      ) {
         registration.active?.postMessage({
           type: "SCHEDULE_SAVINGS_WEEKLY",
         });
@@ -137,7 +157,7 @@ export function NotificationSettings() {
   const requestNotificationPermission = async () => {
     if (!("Notification" in window)) {
       toast.error("Notifications not supported", {
-        description: "Your browser doesn't support push notifications.",
+        description: "Your browser doesn&apos;t support push notifications.",
       });
       return false;
     }
@@ -148,7 +168,8 @@ export function NotificationSettings() {
 
       if (result === "granted") {
         toast.success("Notifications enabled!", {
-          description: "You'll receive reminders based on your preferences.",
+          description:
+            "You&apos;ll receive reminders based on your preferences.",
         });
 
         // Send test notification
@@ -212,48 +233,44 @@ export function NotificationSettings() {
 
   if (permission === "denied") {
     return (
-      <Card className="border-destructive">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+      <div className="border border-destructive rounded-lg p-6">
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
             <AlertCircle className="h-5 w-5 text-destructive" />
-            Notifications Blocked
-          </CardTitle>
-          <CardDescription>
-            You've blocked notifications for this site. To enable them:
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+            <h3 className="font-semibold">Notifications Blocked</h3>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            You&apos;ve blocked notifications for this site. To enable them:
+          </p>
           <ol className="list-decimal list-inside space-y-2 text-sm text-muted-foreground">
-            <li>Click the lock icon in your browser's address bar</li>
-            <li>Find "Notifications" in the permissions list</li>
-            <li>Change it from "Block" to "Allow"</li>
+            <li>Click the lock icon in your browser&apos;s address bar</li>
+            <li>Find &quot;Notifications&quot; in the permissions list</li>
+            <li>Change it from &quot;Block&quot; to &quot;Allow&quot;</li>
             <li>Refresh this page</li>
           </ol>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     );
   }
 
   return (
     <div className="space-y-6">
       {/* Master Toggle */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>Push Notifications</CardTitle>
-              <CardDescription>
-                Get reminders to help you stay on top of your finances
-              </CardDescription>
-            </div>
-            <Switch
-              checked={preferences.enabled}
-              onCheckedChange={handleMasterToggle}
-            />
+      <div className="border rounded-lg p-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="font-semibold mb-1">Push Notifications</h3>
+            <p className="text-sm text-muted-foreground">
+              Get reminders to help you stay on top of your finances
+            </p>
           </div>
-        </CardHeader>
+          <Switch
+            checked={preferences.enabled}
+            onCheckedChange={handleMasterToggle}
+          />
+        </div>
         {preferences.enabled && (
-          <CardContent>
+          <div className="mt-4">
             <Button
               variant="outline"
               size="sm"
@@ -262,325 +279,370 @@ export function NotificationSettings() {
             >
               Send Test Notification
             </Button>
-          </CardContent>
+          </div>
         )}
-      </Card>
+      </div>
 
-      {/* Daily Expense Reminder */}
+      {/* Notification Settings Accordion */}
       {preferences.enabled && (
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
+        <Accordion type="multiple" className="w-full space-y-4">
+          {/* Daily Expense Reminder */}
+          <AccordionItem
+            value="daily-expense"
+            className="border rounded-lg px-6"
+          >
+            <AccordionTrigger className="hover:no-underline">
               <div className="flex items-center gap-3">
                 <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
                   <Bell className="h-5 w-5 text-primary" />
                 </div>
-                <div>
-                  <CardTitle className="text-base">Daily Expense Reminder</CardTitle>
-                  <CardDescription>
+                <div className="text-left">
+                  <div className="font-semibold text-base">
+                    Daily Expense Reminder
+                  </div>
+                  <div className="text-sm text-muted-foreground">
                     Remind me to log my daily expenses
-                  </CardDescription>
+                  </div>
                 </div>
               </div>
-              <Switch
-                checked={preferences.dailyExpenseReminder.enabled}
-                onCheckedChange={(enabled) =>
-                  updatePreference("dailyExpenseReminder", {
-                    ...preferences.dailyExpenseReminder,
-                    enabled,
-                  })
-                }
-              />
-            </div>
-          </CardHeader>
-          {preferences.dailyExpenseReminder.enabled && (
-            <CardContent>
-              <div className="space-y-2">
-                <Label htmlFor="reminder-time">Reminder Time</Label>
-                <Input
-                  id="reminder-time"
-                  type="time"
-                  value={preferences.dailyExpenseReminder.time}
-                  onChange={(e) =>
-                    updatePreference("dailyExpenseReminder", {
-                      ...preferences.dailyExpenseReminder,
-                      time: e.target.value,
-                    })
-                  }
-                />
-                <p className="text-xs text-muted-foreground">
-                  We'll remind you every day at this time
-                </p>
+            </AccordionTrigger>
+            <AccordionContent>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Label>Enable Reminder</Label>
+                  <Switch
+                    checked={preferences.dailyExpenseReminder.enabled}
+                    onCheckedChange={(enabled) =>
+                      updatePreference("dailyExpenseReminder", {
+                        ...preferences.dailyExpenseReminder,
+                        enabled,
+                      })
+                    }
+                  />
+                </div>
+                {preferences.dailyExpenseReminder.enabled && (
+                  <div className="space-y-2">
+                    <Label htmlFor="reminder-time">Reminder Time</Label>
+                    <Input
+                      id="reminder-time"
+                      type="time"
+                      value={preferences.dailyExpenseReminder.time}
+                      onChange={(e) =>
+                        updatePreference("dailyExpenseReminder", {
+                          ...preferences.dailyExpenseReminder,
+                          time: e.target.value,
+                        })
+                      }
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      We&apos;ll remind you every day at this time
+                    </p>
+                  </div>
+                )}
               </div>
-            </CardContent>
-          )}
-        </Card>
-      )}
+            </AccordionContent>
+          </AccordionItem>
 
-      {/* Debt Reminders */}
-      {preferences.enabled && (
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
+          {/* Debt Reminders */}
+          <AccordionItem
+            value="debt-reminders"
+            className="border rounded-lg px-6"
+          >
+            <AccordionTrigger className="hover:no-underline">
               <div className="flex items-center gap-3">
                 <div className="h-10 w-10 rounded-full bg-destructive/10 flex items-center justify-center">
                   <Calendar className="h-5 w-5 text-destructive" />
                 </div>
-                <div>
-                  <CardTitle className="text-base">Debt Due Date Reminders</CardTitle>
-                  <CardDescription>
+                <div className="text-left">
+                  <div className="font-semibold text-base">
+                    Debt Due Date Reminders
+                  </div>
+                  <div className="text-sm text-muted-foreground">
                     Get notified before debt payments are due
-                  </CardDescription>
+                  </div>
                 </div>
               </div>
-              <Switch
-                checked={preferences.debtReminders.enabled}
-                onCheckedChange={(enabled) =>
-                  updatePreference("debtReminders", {
-                    ...preferences.debtReminders,
-                    enabled,
-                  })
-                }
-              />
-            </div>
-          </CardHeader>
-          {preferences.debtReminders.enabled && (
-            <CardContent>
-              <div className="space-y-2">
-                <Label htmlFor="debt-days">Notify me</Label>
-                <Select
-                  value={preferences.debtReminders.daysBefore.toString()}
-                  onValueChange={(value) =>
-                    updatePreference("debtReminders", {
-                      ...preferences.debtReminders,
-                      daysBefore: parseInt(value),
-                    })
-                  }
-                >
-                  <SelectTrigger id="debt-days">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="1">1 day before</SelectItem>
-                    <SelectItem value="2">2 days before</SelectItem>
-                    <SelectItem value="3">3 days before</SelectItem>
-                    <SelectItem value="7">1 week before</SelectItem>
-                  </SelectContent>
-                </Select>
+            </AccordionTrigger>
+            <AccordionContent>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Label>Enable Reminder</Label>
+                  <Switch
+                    checked={preferences.debtReminders.enabled}
+                    onCheckedChange={(enabled) =>
+                      updatePreference("debtReminders", {
+                        ...preferences.debtReminders,
+                        enabled,
+                      })
+                    }
+                  />
+                </div>
+                {preferences.debtReminders.enabled && (
+                  <div className="space-y-2">
+                    <Label htmlFor="debt-days">Notify me</Label>
+                    <Select
+                      value={preferences.debtReminders.daysBefore.toString()}
+                      onValueChange={(value) =>
+                        updatePreference("debtReminders", {
+                          ...preferences.debtReminders,
+                          daysBefore: parseInt(value),
+                        })
+                      }
+                    >
+                      <SelectTrigger id="debt-days">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1">1 day before</SelectItem>
+                        <SelectItem value="2">2 days before</SelectItem>
+                        <SelectItem value="3">3 days before</SelectItem>
+                        <SelectItem value="7">1 week before</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
               </div>
-            </CardContent>
-          )}
-        </Card>
-      )}
+            </AccordionContent>
+          </AccordionItem>
 
-      {/* Payday Reminders */}
-      {preferences.enabled && (
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
+          {/* Payday Reminders */}
+          <AccordionItem
+            value="payday-reminders"
+            className="border rounded-lg px-6"
+          >
+            <AccordionTrigger className="hover:no-underline">
               <div className="flex items-center gap-3">
                 <div className="h-10 w-10 rounded-full bg-green-500/10 flex items-center justify-center">
                   <DollarSign className="h-5 w-5 text-green-600" />
                 </div>
-                <div>
-                  <CardTitle className="text-base">Payday Reminders</CardTitle>
-                  <CardDescription>
+                <div className="text-left">
+                  <div className="font-semibold text-base">
+                    Payday Reminders
+                  </div>
+                  <div className="text-sm text-muted-foreground">
                     Get notified when payday is coming
-                  </CardDescription>
+                  </div>
                 </div>
               </div>
-              <Switch
-                checked={preferences.paydayReminders.enabled}
-                onCheckedChange={(enabled) =>
-                  updatePreference("paydayReminders", {
-                    ...preferences.paydayReminders,
-                    enabled,
-                  })
-                }
-              />
-            </div>
-          </CardHeader>
-          {preferences.paydayReminders.enabled && (
-            <CardContent>
-              <div className="space-y-2">
-                <Label htmlFor="payday-days">Notify me</Label>
-                <Select
-                  value={preferences.paydayReminders.daysBefore.toString()}
-                  onValueChange={(value) =>
-                    updatePreference("paydayReminders", {
-                      ...preferences.paydayReminders,
-                      daysBefore: parseInt(value),
-                    })
-                  }
-                >
-                  <SelectTrigger id="payday-days">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="0">On payday</SelectItem>
-                    <SelectItem value="1">1 day before</SelectItem>
-                    <SelectItem value="2">2 days before</SelectItem>
-                  </SelectContent>
-                </Select>
+            </AccordionTrigger>
+            <AccordionContent>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Label>Enable Reminder</Label>
+                  <Switch
+                    checked={preferences.paydayReminders.enabled}
+                    onCheckedChange={(enabled) =>
+                      updatePreference("paydayReminders", {
+                        ...preferences.paydayReminders,
+                        enabled,
+                      })
+                    }
+                  />
+                </div>
+                {preferences.paydayReminders.enabled && (
+                  <div className="space-y-2">
+                    <Label htmlFor="payday-days">Notify me</Label>
+                    <Select
+                      value={preferences.paydayReminders.daysBefore.toString()}
+                      onValueChange={(value) =>
+                        updatePreference("paydayReminders", {
+                          ...preferences.paydayReminders,
+                          daysBefore: parseInt(value),
+                        })
+                      }
+                    >
+                      <SelectTrigger id="payday-days">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="0">On payday</SelectItem>
+                        <SelectItem value="1">1 day before</SelectItem>
+                        <SelectItem value="2">2 days before</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
               </div>
-            </CardContent>
-          )}
-        </Card>
-      )}
+            </AccordionContent>
+          </AccordionItem>
 
-      {/* Savings Reminders */}
-      {preferences.enabled && (
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
+          {/* Savings Reminders */}
+          <AccordionItem
+            value="savings-reminders"
+            className="border rounded-lg px-6"
+          >
+            <AccordionTrigger className="hover:no-underline">
               <div className="flex items-center gap-3">
                 <div className="h-10 w-10 rounded-full bg-blue-500/10 flex items-center justify-center">
                   <Target className="h-5 w-5 text-blue-600" />
                 </div>
-                <div>
-                  <CardTitle className="text-base">Savings Reminders</CardTitle>
-                  <CardDescription>
+                <div className="text-left">
+                  <div className="font-semibold text-base">
+                    Savings Reminders
+                  </div>
+                  <div className="text-sm text-muted-foreground">
                     Stay motivated with savings milestones
-                  </CardDescription>
+                  </div>
                 </div>
               </div>
-              <Switch
-                checked={preferences.savingsReminders.enabled}
-                onCheckedChange={(enabled) =>
-                  updatePreference("savingsReminders", {
-                    ...preferences.savingsReminders,
-                    enabled,
-                  })
-                }
-              />
-            </div>
-          </CardHeader>
-          {preferences.savingsReminders.enabled && (
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label>Weekly Nudge</Label>
-                  <p className="text-xs text-muted-foreground">
-                    Remind me to contribute to savings weekly
-                  </p>
+            </AccordionTrigger>
+            <AccordionContent>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Label>Enable Reminder</Label>
+                  <Switch
+                    checked={preferences.savingsReminders.enabled}
+                    onCheckedChange={(enabled) =>
+                      updatePreference("savingsReminders", {
+                        ...preferences.savingsReminders,
+                        enabled,
+                      })
+                    }
+                  />
                 </div>
-                <Switch
-                  checked={preferences.savingsReminders.weeklyNudge}
-                  onCheckedChange={(checked) =>
-                    updatePreference("savingsReminders", {
-                      ...preferences.savingsReminders,
-                      weeklyNudge: checked,
-                    })
-                  }
-                />
+                {preferences.savingsReminders.enabled && (
+                  <>
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label>Weekly Nudge</Label>
+                        <p className="text-xs text-muted-foreground">
+                          Remind me to contribute to savings weekly
+                        </p>
+                      </div>
+                      <Switch
+                        checked={preferences.savingsReminders.weeklyNudge}
+                        onCheckedChange={(checked) =>
+                          updatePreference("savingsReminders", {
+                            ...preferences.savingsReminders,
+                            weeklyNudge: checked,
+                          })
+                        }
+                      />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label>Target Reached</Label>
+                        <p className="text-xs text-muted-foreground">
+                          Celebrate when I reach a savings goal
+                        </p>
+                      </div>
+                      <Switch
+                        checked={preferences.savingsReminders.targetReached}
+                        onCheckedChange={(checked) =>
+                          updatePreference("savingsReminders", {
+                            ...preferences.savingsReminders,
+                            targetReached: checked,
+                          })
+                        }
+                      />
+                    </div>
+                  </>
+                )}
               </div>
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label>Target Reached</Label>
-                  <p className="text-xs text-muted-foreground">
-                    Celebrate when I reach a savings goal
-                  </p>
-                </div>
-                <Switch
-                  checked={preferences.savingsReminders.targetReached}
-                  onCheckedChange={(checked) =>
-                    updatePreference("savingsReminders", {
-                      ...preferences.savingsReminders,
-                      targetReached: checked,
-                    })
-                  }
-                />
-              </div>
-            </CardContent>
-          )}
-        </Card>
-      )}
+            </AccordionContent>
+          </AccordionItem>
 
-      {/* Daily Spending Threshold */}
-      {preferences.enabled && (
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
+          {/* Daily Spending Threshold */}
+          <AccordionItem
+            value="spending-threshold"
+            className="border rounded-lg px-6"
+          >
+            <AccordionTrigger className="hover:no-underline">
               <div className="flex items-center gap-3">
                 <div className="h-10 w-10 rounded-full bg-orange-500/10 flex items-center justify-center">
                   <TrendingUp className="h-5 w-5 text-orange-600" />
                 </div>
-                <div>
-                  <CardTitle className="text-base">Daily Spending Threshold</CardTitle>
-                  <CardDescription>
+                <div className="text-left">
+                  <div className="font-semibold text-base">
+                    Daily Spending Threshold
+                  </div>
+                  <div className="text-sm text-muted-foreground">
                     Track your daily spending against a limit
-                  </CardDescription>
+                  </div>
                 </div>
               </div>
-              <Switch
-                checked={preferences.dailySpendingThreshold.enabled}
-                onCheckedChange={(enabled) =>
-                  updatePreference("dailySpendingThreshold", {
-                    ...preferences.dailySpendingThreshold,
-                    enabled,
-                  })
-                }
-              />
-            </div>
-          </CardHeader>
-          {preferences.dailySpendingThreshold.enabled && (
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="threshold-amount">Daily Limit (KSh)</Label>
-                <Input
-                  id="threshold-amount"
-                  type="number"
-                  min="0"
-                  step="100"
-                  value={preferences.dailySpendingThreshold.amount}
-                  onChange={(e) =>
-                    updatePreference("dailySpendingThreshold", {
-                      ...preferences.dailySpendingThreshold,
-                      amount: parseInt(e.target.value) || 0,
-                    })
-                  }
-                />
-                <p className="text-xs text-muted-foreground">
-                  Your target daily spending limit
-                </p>
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label>Notify when exceeding</Label>
-                  <p className="text-xs text-muted-foreground">
-                    Alert me when spending goes over limit
-                  </p>
+            </AccordionTrigger>
+            <AccordionContent>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Label>Enable Threshold</Label>
+                  <Switch
+                    checked={preferences.dailySpendingThreshold.enabled}
+                    onCheckedChange={(enabled) =>
+                      updatePreference("dailySpendingThreshold", {
+                        ...preferences.dailySpendingThreshold,
+                        enabled,
+                      })
+                    }
+                  />
                 </div>
-                <Switch
-                  checked={preferences.dailySpendingThreshold.notifyWhenExceeding}
-                  onCheckedChange={(checked) =>
-                    updatePreference("dailySpendingThreshold", {
-                      ...preferences.dailySpendingThreshold,
-                      notifyWhenExceeding: checked,
-                    })
-                  }
-                />
+                {preferences.dailySpendingThreshold.enabled && (
+                  <>
+                    <div className="space-y-2">
+                      <Label htmlFor="threshold-amount">
+                        Daily Limit (KSh)
+                      </Label>
+                      <Input
+                        id="threshold-amount"
+                        type="number"
+                        min="0"
+                        step="100"
+                        value={preferences.dailySpendingThreshold.amount}
+                        onChange={(e) =>
+                          updatePreference("dailySpendingThreshold", {
+                            ...preferences.dailySpendingThreshold,
+                            amount: parseInt(e.target.value) || 0,
+                          })
+                        }
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Your target daily spending limit
+                      </p>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label>Notify when exceeding</Label>
+                        <p className="text-xs text-muted-foreground">
+                          Alert me when spending goes over limit
+                        </p>
+                      </div>
+                      <Switch
+                        checked={
+                          preferences.dailySpendingThreshold.notifyWhenExceeding
+                        }
+                        onCheckedChange={(checked) =>
+                          updatePreference("dailySpendingThreshold", {
+                            ...preferences.dailySpendingThreshold,
+                            notifyWhenExceeding: checked,
+                          })
+                        }
+                      />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label>Notify when under budget</Label>
+                        <p className="text-xs text-muted-foreground">
+                          Celebrate staying under your daily limit
+                        </p>
+                      </div>
+                      <Switch
+                        checked={
+                          preferences.dailySpendingThreshold.notifyWhenUnder
+                        }
+                        onCheckedChange={(checked) =>
+                          updatePreference("dailySpendingThreshold", {
+                            ...preferences.dailySpendingThreshold,
+                            notifyWhenUnder: checked,
+                          })
+                        }
+                      />
+                    </div>
+                  </>
+                )}
               </div>
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label>Notify when under budget</Label>
-                  <p className="text-xs text-muted-foreground">
-                    Celebrate staying under your daily limit
-                  </p>
-                </div>
-                <Switch
-                  checked={preferences.dailySpendingThreshold.notifyWhenUnder}
-                  onCheckedChange={(checked) =>
-                    updatePreference("dailySpendingThreshold", {
-                      ...preferences.dailySpendingThreshold,
-                      notifyWhenUnder: checked,
-                    })
-                  }
-                />
-              </div>
-            </CardContent>
-          )}
-        </Card>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
       )}
     </div>
   );

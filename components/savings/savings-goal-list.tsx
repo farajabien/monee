@@ -1,10 +1,17 @@
 "use client";
 
 import { useState, useMemo, useCallback } from "react";
-import { tx, User } from "@instantdb/react";
+import { tx } from "@instantdb/react";
 import { AddToSavingsDialog } from "./add-to-savings-dialog";
+import { SavingsGoalForm } from "./savings-goal-form";
 import db from "@/lib/db";
 import { UnifiedListContainer } from "@/components/custom/unified-list-container";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { toast } from "sonner";
 import { createSavingsGoalListConfig } from "./savings-goal-list-config";
 import { SavingsGoal, SavingsGoalWithContributions } from "@/types";
@@ -12,6 +19,8 @@ import { SavingsGoal, SavingsGoalWithContributions } from "@/types";
 export function SavingsGoalList() {
   const user = db.useUser();
   const [selectedGoal, setSelectedGoal] =
+    useState<SavingsGoalWithContributions | null>(null);
+  const [editingGoal, setEditingGoal] =
     useState<SavingsGoalWithContributions | null>(null);
 
   const { isLoading, error, data } = db.useQuery({
@@ -60,10 +69,19 @@ export function SavingsGoalList() {
     [savingsGoals]
   );
 
+  const handleEdit = useCallback((goal: SavingsGoalWithContributions) => {
+    setEditingGoal(goal);
+  }, []);
+
   // Create configuration with callbacks
   const config = useMemo(
-    () => createSavingsGoalListConfig(handleAddMoney, handleMarkComplete),
-    [handleAddMoney, handleMarkComplete]
+    () =>
+      createSavingsGoalListConfig(
+        handleAddMoney,
+        handleMarkComplete,
+        handleEdit
+      ),
+    [handleAddMoney, handleMarkComplete, handleEdit]
   );
 
   if (isLoading) return <div className="text-center py-8">Loading...</div>;
@@ -101,6 +119,31 @@ export function SavingsGoalList() {
           <span />
         </AddToSavingsDialog>
       )}
+
+      <Sheet
+        open={!!editingGoal}
+        onOpenChange={(open) => !open && setEditingGoal(null)}
+      >
+        <SheetContent
+          side="bottom"
+          className="h-[90vh] overflow-y-auto pb-safe"
+        >
+          <SheetHeader>
+            <SheetTitle>Edit Savings Goal</SheetTitle>
+          </SheetHeader>
+          {editingGoal && (
+            <div className="mt-6">
+              <SavingsGoalForm
+                goal={editingGoal}
+                asDialog={false}
+                onSuccess={() => {
+                  setEditingGoal(null);
+                }}
+              />
+            </div>
+          )}
+        </SheetContent>
+      </Sheet>
     </>
   );
 }
