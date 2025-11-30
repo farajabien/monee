@@ -66,6 +66,7 @@ export default function Onboarding() {
   >([]);
   const [showAddCategoryDialog, setShowAddCategoryDialog] = useState(false);
   const [isCreatingProfile, setIsCreatingProfile] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   // Create profile if it doesn't exist
   useEffect(() => {
@@ -85,6 +86,7 @@ export default function Onboarding() {
               })
               .link({ user: user.id })
           );
+          setIsCreatingProfile(false);
         } catch (error) {
           console.error("Error creating profile:", error);
           setIsCreatingProfile(false);
@@ -139,12 +141,10 @@ export default function Onboarding() {
     );
   };
 
-  const handleCategoryCreated = (categoryId: string, categoryName: string) => {
-    // Find the color from the custom category that was just created
-    // Since we don't have direct access to it, we'll use a default color
+  const handleCategoryCreated = (categoryId: string, categoryName: string, categoryColor: string) => {
     const newCategory = {
       name: categoryName,
-      color: "#3b82f6", // Default color, will be overridden by actual color from dialog
+      color: categoryColor,
     };
     setCustomCategories((prev) => [...prev, newCategory]);
     setSelectedCategories((prev) => [...prev, categoryName]);
@@ -189,101 +189,109 @@ export default function Onboarding() {
   };
 
   const handleNext = async () => {
-    if (step === 1) {
-      // Save categories (only default ones, custom ones are already saved via dialog)
-      const categoriesToCreate = DEFAULT_CATEGORIES.filter((cat) =>
-        selectedCategories.includes(cat.name)
-      ).map((cat) => ({
-        name: cat.name,
-        color: cat.color,
-        icon: "",
-        isActive: true,
-        createdAt: Date.now(),
-      }));
+    setIsSaving(true);
+    try {
+      if (step === 1) {
+        // Save categories (only default ones, custom ones are already saved via dialog)
+        const categoriesToCreate = DEFAULT_CATEGORIES.filter((cat) =>
+          selectedCategories.includes(cat.name)
+        ).map((cat) => ({
+          name: cat.name,
+          color: cat.color,
+          icon: "",
+          isActive: true,
+          createdAt: Date.now(),
+        }));
 
-      await Promise.all(
-        categoriesToCreate.map((cat) =>
-          db.transact(
-            db.tx.categories[id()].update(cat).link({ user: profile.id })
+        await Promise.all(
+          categoriesToCreate.map((cat) =>
+            db.transact(
+              db.tx.categories[id()].update(cat).link({ user: profile.id })
+            )
           )
-        )
-      );
+        );
 
-      // Update onboarding step
-      await db.transact(
-        db.tx.profiles[profile.id].update({
-          onboardingStep: "income",
-        })
-      );
+        // Update onboarding step
+        await db.transact(
+          db.tx.profiles[profile.id].update({
+            onboardingStep: "income",
+          })
+        );
 
-      setStep(2);
-    } else if (step === 2) {
-      // Save income sources
-      const validIncomeSources = incomeSources.filter(
-        (source) => source.name && source.amount && source.paydayDay
-      );
+        setStep(2);
+      } else if (step === 2) {
+        // Save income sources
+        const validIncomeSources = incomeSources.filter(
+          (source) => source.name && source.amount && source.paydayDay
+        );
 
-      await Promise.all(
-        validIncomeSources.map((source) =>
-          db.transact(
-            db.tx.income_sources[id()]
-              .update({
-                name: source.name,
-                amount: parseFloat(source.amount),
-                paydayDay: parseInt(source.paydayDay),
-                paydayMonth: source.paydayMonth
-                  ? parseInt(source.paydayMonth)
-                  : undefined,
-                isActive: true,
-                createdAt: Date.now(),
-              })
-              .link({ user: profile.id })
+        await Promise.all(
+          validIncomeSources.map((source) =>
+            db.transact(
+              db.tx.income_sources[id()]
+                .update({
+                  name: source.name,
+                  amount: parseFloat(source.amount),
+                  paydayDay: parseInt(source.paydayDay),
+                  paydayMonth: source.paydayMonth
+                    ? parseInt(source.paydayMonth)
+                    : undefined,
+                  isActive: true,
+                  createdAt: Date.now(),
+                })
+                .link({ user: profile.id })
+            )
           )
-        )
-      );
+        );
 
-      // Update onboarding step
-      await db.transact(
-        db.tx.profiles[profile.id].update({
-          onboardingStep: "expenses",
-        })
-      );
+        // Update onboarding step
+        await db.transact(
+          db.tx.profiles[profile.id].update({
+            onboardingStep: "expenses",
+          })
+        );
 
-      setStep(3);
-    } else if (step === 3) {
-      // Save recurring expenses
-      const validRecurringExpenses = recurringExpenses.filter(
-        (expense) => expense.name && expense.amount
-      );
+        setStep(3);
+      } else if (step === 3) {
+        // Save recurring expenses
+        const validRecurringExpenses = recurringExpenses.filter(
+          (expense) => expense.name && expense.amount
+        );
 
-      await Promise.all(
-        validRecurringExpenses.map((expense) =>
-          db.transact(
-            db.tx.expenses[id()]
-              .update({
-                amount: parseFloat(expense.amount),
-                recipient: expense.name,
-                date: Date.now(),
-                category: expense.category,
-                expenseType: "recurring",
-                rawMessage: "",
-                parsedData: {},
-                createdAt: Date.now(),
-              })
-              .link({ user: profile.id })
+        await Promise.all(
+          validRecurringExpenses.map((expense) =>
+            db.transact(
+              db.tx.expenses[id()]
+                .update({
+                  amount: parseFloat(expense.amount),
+                  recipient: expense.name,
+                  date: Date.now(),
+                  category: expense.category,
+                  expenseType: "recurring",
+                  rawMessage: "",
+                  parsedData: {},
+                  createdAt: Date.now(),
+                })
+                .link({ user: profile.id })
+            )
           )
-        )
-      );
+        );
 
-      // Mark onboarding as completed
-      await db.transact(
-        db.tx.profiles[profile.id].update({
-          onboardingCompleted: true,
-          onboardingStep: "completed",
-        })
-      );
+        // Mark onboarding as completed
+        await db.transact(
+          db.tx.profiles[profile.id].update({
+            onboardingCompleted: true,
+            onboardingStep: "completed",
+          })
+        );
 
-      router.push("/dashboard");
+        router.push("/dashboard");
+      }
+    } catch (error) {
+      console.error("Onboarding save error:", error);
+      alert("Failed to save. Please try again.");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -592,11 +600,11 @@ export default function Onboarding() {
             )}
 
             <div className="flex gap-3 pt-4">
-              <Button variant="outline" onClick={handleSkip} className="flex-1">
+              <Button variant="outline" onClick={handleSkip} disabled={isSaving} className="flex-1">
                 Skip
               </Button>
-              <Button onClick={handleNext} className="flex-1">
-                {step === 3 ? "Complete Setup" : "Continue"}
+              <Button onClick={handleNext} disabled={isSaving} className="flex-1">
+                {isSaving ? "Saving..." : step === 3 ? "Complete Setup" : "Continue"}
               </Button>
             </div>
           </CardContent>

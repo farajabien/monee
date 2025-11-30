@@ -29,7 +29,7 @@ const CATEGORY_COLORS = [
 interface AddCategoryDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onCategoryCreated?: (categoryId: string, categoryName: string) => void;
+  onCategoryCreated?: (categoryId: string, categoryName: string, categoryColor: string) => void;
 }
 
 export function AddCategoryDialog({
@@ -37,14 +37,31 @@ export function AddCategoryDialog({
   onOpenChange,
   onCategoryCreated,
 }: AddCategoryDialogProps) {
-  const user = db.useUser();
+  const { user } = db.useAuth();
   const [name, setName] = useState("");
   const [color, setColor] = useState(CATEGORY_COLORS[0]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Query user's profile to get profile ID for linking
+  const { data } = db.useQuery(
+    user?.id
+      ? {
+          profiles: {
+            $: {
+              where: {
+                "user.id": user.id,
+              },
+            },
+          },
+        }
+      : {}
+  );
+
+  const profile = data?.profiles?.[0];
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) return;
+    if (!name.trim() || !profile) return;
 
     setIsSubmitting(true);
     try {
@@ -56,12 +73,13 @@ export function AddCategoryDialog({
             color: color,
             icon: "",
             isActive: true,
+            createdAt: Date.now(),
           })
-          .link({ user: user.id })
+          .link({ user: profile.id })
       );
 
       if (onCategoryCreated) {
-        onCategoryCreated(categoryId, name.trim());
+        onCategoryCreated(categoryId, name.trim(), color);
       }
 
       setName("");
