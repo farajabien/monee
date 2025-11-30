@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   ChartContainer,
   ChartTooltip,
@@ -18,23 +18,34 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
+  ResponsiveContainer,
 } from "recharts";
-import { CategoryBreakdown } from "@/components/charts/category-breakdown";
-import {
-  CreditCard,
-  TrendingDown,
-  Calendar,
-  DollarSign,
-  BarChart3,
-  PieChart,
-} from "lucide-react";
+import { CreditCard, ChevronLeft } from "lucide-react";
 import db from "@/lib/db";
+import { useCurrency } from "@/hooks/use-currency";
+import { CategoryBreakdown } from "@/components/charts/category-breakdown";
 
 type TimeView = "week" | "month" | "year";
 
-export function DebtAnalytics() {
+interface DebtAnalyticsProps {
+  onBack: () => void;
+}
+
+const COLORS = [
+  "var(--chart-1)",
+  "var(--chart-2)",
+  "var(--chart-3)",
+  "var(--chart-4)",
+  "var(--chart-5)",
+];
+
+export function DebtAnalytics({ onBack }: DebtAnalyticsProps) {
+  const [analyticsView, setAnalyticsView] = useState<
+    "overview" | "timeline" | "breakdown"
+  >("overview");
   const [timeView, setTimeView] = useState<TimeView>("month");
   const [chartType, setChartType] = useState<"bar" | "line">("bar");
+  const { formatCurrency } = useCurrency();
 
   const { isLoading, error, data } = db.useQuery({
     profiles: {
@@ -46,14 +57,6 @@ export function DebtAnalytics() {
 
   const profile = data?.profiles?.[0];
   const debts = useMemo(() => profile?.debts || [], [profile?.debts]);
-
-  // Chart config for Shadcn charts
-  const chartConfig = {
-    value: {
-      label: "Debt Remaining",
-      color: "var(--destructive)",
-    },
-  } satisfies ChartConfig;
 
   // Calculate total debt
   const totalDebt = useMemo(
@@ -174,7 +177,7 @@ export function DebtAnalytics() {
   }, [debts, totalDebt, timeView]);
 
   // Prepare category breakdown data
-  const categoryData = useMemo(() => {
+  const breakdownData = useMemo(() => {
     if (!debts.length) return [];
 
     return debts
@@ -182,20 +185,30 @@ export function DebtAnalytics() {
         const paid =
           debt.payments?.reduce((sum, p) => sum + (p.amount || 0), 0) || 0;
         const remaining = (debt.totalAmount || 0) - paid;
-        const percentage = totalDebt > 0 ? (remaining / totalDebt) * 100 : 0;
 
         return {
-          id: debt.id,
           name: debt.name || "Unknown Debt",
-          amount: remaining,
-          percentage: Math.round(percentage),
-          subtitle: `Paid: KSh ${paid.toLocaleString()}`,
-          icon: CreditCard,
-          color: "#ef4444", // red color for debts
+          value: remaining,
         };
       })
-      .filter((item) => item.amount > 0);
-  }, [debts, totalDebt]);
+      .filter((item) => item.value > 0);
+  }, [debts]);
+
+  // Prepare category breakdown items for CategoryBreakdown component
+  const categoryBreakdownItems = useMemo(() => {
+    if (!breakdownData.length) return [];
+
+    const total = breakdownData.reduce((sum, item) => sum + item.value, 0);
+
+    return breakdownData.map((item, index) => ({
+      id: item.name,
+      name: item.name,
+      amount: item.value,
+      percentage: Math.round((item.value / total) * 100),
+      icon: CreditCard,
+      color: COLORS[index % COLORS.length],
+    }));
+  }, [breakdownData]);
 
   // Calculate average monthly payment
   const avgMonthlyPayment = useMemo(() => {
@@ -220,6 +233,21 @@ export function DebtAnalytics() {
     return monthlyTotals.size > 0 ? total / monthlyTotals.size : 0;
   }, [debts]);
 
+  // Create chart config for breakdown pie chart
+  const breakdownChartConfig = useMemo(() => {
+    if (!debts.length) return {};
+
+    const config: ChartConfig = {};
+    debts.forEach((debt, index) => {
+      const debtName = debt.name || "Unknown Debt";
+      config[debtName] = {
+        label: debtName,
+        color: COLORS[index % COLORS.length],
+      };
+    });
+    return config;
+  }, [debts]);
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-12">
@@ -238,141 +266,175 @@ export function DebtAnalytics() {
 
   if (!debts.length) {
     return (
-      <Card>
-        <CardContent className="p-12 text-center">
-          <CreditCard className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-          <h3 className="font-semibold text-lg mb-2">No Debts to Analyze</h3>
-          <p className="text-sm text-muted-foreground">
-            Add your first debt to see analytics and track your progress.
-          </p>
-        </CardContent>
-      </Card>
+      <div className="space-y-4">
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="sm" onClick={onBack}>
+            <ChevronLeft className="h-4 w-4 mr-1" />
+            Back to Debts
+          </Button>
+        </div>
+        <Card>
+          <CardContent className="p-12 text-center">
+            <CreditCard className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+            <h3 className="font-semibold text-lg mb-2">No Debts to Analyze</h3>
+            <p className="text-sm text-muted-foreground">
+              Add your first debt to see analytics and track your progress.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Remaining Debt
-            </CardTitle>
-            <TrendingDown className="h-4 w-4 text-destructive" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              KSh {remainingDebt.toLocaleString()}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {debts.length} active debt{debts.length !== 1 ? "s" : ""}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Paid</CardTitle>
-            <DollarSign className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              KSh {totalPaid.toLocaleString()}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {totalDebt > 0
-                ? `${Math.round((totalPaid / totalDebt) * 100)}% paid off`
-                : "0% paid off"}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avg Monthly</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              KSh {Math.round(avgMonthlyPayment).toLocaleString()}
-            </div>
-            <p className="text-xs text-muted-foreground">Payment per month</p>
-          </CardContent>
-        </Card>
+    <div className="space-y-4">
+      <div className="flex items-center gap-2">
+        <Button variant="ghost" size="sm" onClick={onBack}>
+          <ChevronLeft className="h-4 w-4 mr-1" />
+          Back to Debts
+        </Button>
       </div>
 
-      {/* Tabs for Analytics */}
-      <Tabs defaultValue="timeline" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="timeline">
-            <BarChart3 className="h-4 w-4 mr-2" />
-            Timeline
-          </TabsTrigger>
-          <TabsTrigger value="breakdown">
-            <PieChart className="h-4 w-4 mr-2" />
-            Breakdown
-          </TabsTrigger>
+      <Tabs
+        value={analyticsView}
+        onValueChange={(v) => setAnalyticsView(v as typeof analyticsView)}
+        className="w-full"
+      >
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="timeline">Timeline</TabsTrigger>
+          <TabsTrigger value="breakdown">Breakdown</TabsTrigger>
         </TabsList>
+      </Tabs>
 
-        {/* Timeline Tab */}
-        <TabsContent value="timeline" className="space-y-4">
+      {analyticsView === "overview" && (
+        <div className="grid grid-cols-2 gap-3">
           <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Debt Reduction Over Time</CardTitle>
-                <div className="flex gap-2">
-                  <Button
-                    variant={chartType === "bar" ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setChartType("bar")}
-                  >
-                    Bar
-                  </Button>
-                  <Button
-                    variant={chartType === "line" ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setChartType("line")}
-                  >
-                    Line
-                  </Button>
-                </div>
-              </div>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xs font-medium text-muted-foreground">
+                Remaining Debt
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              {/* Time View Selector */}
-              <div className="flex justify-center gap-2 mb-6">
-                <Button
-                  variant={timeView === "week" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setTimeView("week")}
-                >
-                  Week
-                </Button>
-                <Button
-                  variant={timeView === "month" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setTimeView("month")}
-                >
-                  Month
-                </Button>
-                <Button
-                  variant={timeView === "year" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setTimeView("year")}
-                >
-                  Year
-                </Button>
+              <div className="text-xl font-bold">
+                {formatCurrency(remainingDebt)}
               </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xs font-medium text-muted-foreground">
+                Total Paid
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-xl font-bold">
+                {formatCurrency(totalPaid)}
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xs font-medium text-muted-foreground">
+                Avg Monthly
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-xl font-bold">
+                {formatCurrency(avgMonthlyPayment)}
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xs font-medium text-muted-foreground">
+                Active Debts
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-xl font-bold">{debts.length}</div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
-              {/* Chart */}
-              <ChartContainer config={chartConfig} className="h-[250px] w-full">
+      {analyticsView === "timeline" && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">
+              Debt Reduction Over Time
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="px-2">
+            {/* Time View Selector */}
+            <div className="flex justify-center gap-2 mb-4">
+              <Button
+                variant={timeView === "week" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setTimeView("week")}
+              >
+                Week
+              </Button>
+              <Button
+                variant={timeView === "month" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setTimeView("month")}
+              >
+                Month
+              </Button>
+              <Button
+                variant={timeView === "year" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setTimeView("year")}
+              >
+                Year
+              </Button>
+            </div>
+
+            {/* Chart Type Selector */}
+            <div className="flex justify-center gap-2 mb-4">
+              <Button
+                variant={chartType === "bar" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setChartType("bar")}
+              >
+                Bar
+              </Button>
+              <Button
+                variant={chartType === "line" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setChartType("line")}
+              >
+                Line
+              </Button>
+            </div>
+
+            {/* Chart */}
+            <ChartContainer
+              config={{
+                value: {
+                  label: "Debt Remaining",
+                  color: "var(--chart-1)",
+                },
+              }}
+              className="h-[250px] w-full"
+            >
+              <ResponsiveContainer width="100%" height="100%">
                 {chartType === "bar" ? (
-                  <BarChart data={debtOverTimeData}>
+                  <BarChart
+                    data={debtOverTimeData}
+                    margin={{ top: 5, right: 5, left: -20, bottom: 5 }}
+                  >
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <ChartTooltip content={<ChartTooltipContent />} />
+                    <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                    <YAxis tick={{ fontSize: 12 }} />
+                    <ChartTooltip
+                      content={
+                        <ChartTooltipContent
+                          formatter={(value) => formatCurrency(value as number)}
+                        />
+                      }
+                    />
                     <Bar
                       dataKey="value"
                       fill="var(--color-value)"
@@ -380,11 +442,20 @@ export function DebtAnalytics() {
                     />
                   </BarChart>
                 ) : (
-                  <LineChart data={debtOverTimeData}>
+                  <LineChart
+                    data={debtOverTimeData}
+                    margin={{ top: 5, right: 5, left: -20, bottom: 5 }}
+                  >
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <ChartTooltip content={<ChartTooltipContent />} />
+                    <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                    <YAxis tick={{ fontSize: 12 }} />
+                    <ChartTooltip
+                      content={
+                        <ChartTooltipContent
+                          formatter={(value) => formatCurrency(value as number)}
+                        />
+                      }
+                    />
                     <Line
                       type="monotone"
                       dataKey="value"
@@ -394,23 +465,25 @@ export function DebtAnalytics() {
                     />
                   </LineChart>
                 )}
-              </ChartContainer>
-            </CardContent>
-          </Card>
-        </TabsContent>
+              </ResponsiveContainer>
+            </ChartContainer>
+          </CardContent>
+        </Card>
+      )}
 
-        {/* Breakdown Tab */}
-        <TabsContent value="breakdown" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Breakdown by Debt</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <CategoryBreakdown items={categoryData} />
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+      {analyticsView === "breakdown" && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Breakdown by Debt</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <CategoryBreakdown
+              items={categoryBreakdownItems}
+              formatAmount={formatCurrency}
+            />
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
