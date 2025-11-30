@@ -272,14 +272,9 @@ export function calculateCashRunway(input: CashRunwayInput): CashRunwayData {
 
 /**
  * Format currency for display
+ * Note: This function has been moved to @/lib/currency-utils
+ * Please import from there instead for dynamic currency support
  */
-export function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('en-KE', {
-    style: 'currency',
-    currency: 'KES',
-    minimumFractionDigits: 0,
-  }).format(amount);
-}
 
 /**
  * Get a friendly message based on cash runway status

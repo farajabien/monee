@@ -14,6 +14,7 @@ import { IncomeSourceForm } from "./income-source-form";
 import { IncomeAnalytics } from "./income-analytics";
 import { createIncomeSourceListConfig } from "./income-source-list-config";
 import type { IncomeSourceWithUser } from "@/types";
+import { useCurrency } from "@/hooks/use-currency";
 
 export function IncomeSourceList() {
   const user = db.useUser();
@@ -22,6 +23,11 @@ export function IncomeSourceList() {
     useState<IncomeSourceWithUser | null>(null);
 
   const { data } = db.useQuery({
+    profiles: {
+      $: {
+        where: { "user.id": user.id },
+      },
+    },
     income_sources: {
       $: {
         where: { "user.id": user.id },
@@ -31,11 +37,14 @@ export function IncomeSourceList() {
     },
   });
 
+  const profile = data?.profiles?.[0];
   const incomeSources: IncomeSourceWithUser[] = data?.income_sources || [];
+
+  const { formatCurrency } = useCurrency(profile?.currency, profile?.locale);
 
   // Create configuration with edit handler
   const config = useMemo(() => {
-    const baseConfig = createIncomeSourceListConfig();
+    const baseConfig = createIncomeSourceListConfig(formatCurrency);
     return {
       ...baseConfig,
       actions: {
@@ -46,7 +55,7 @@ export function IncomeSourceList() {
         },
       },
     };
-  }, []);
+  }, [formatCurrency]);
 
   return (
     <div className="space-y-4">

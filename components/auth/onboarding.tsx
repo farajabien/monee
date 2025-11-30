@@ -17,6 +17,7 @@ import db from "@/lib/db";
 import { id } from "@instantdb/react";
 import { Check, Plus, X } from "lucide-react";
 import { AddCategoryDialog } from "@/components/categories/add-category-dialog";
+import { getAllCurrencies, DEFAULT_CURRENCY, getLocaleForCurrency } from "@/lib/currency-utils";
 
 const DEFAULT_CATEGORIES = [
   { name: "Food", color: "#f97316" },
@@ -47,6 +48,7 @@ export default function Onboarding() {
   const router = useRouter();
 
   const [step, setStep] = useState(1);
+  const [selectedCurrency, setSelectedCurrency] = useState(DEFAULT_CURRENCY);
   const [customCategories, setCustomCategories] = useState<
     Array<{ name: string; color: string }>
   >([]);
@@ -82,7 +84,7 @@ export default function Onboarding() {
                 monthlyBudget: 0,
                 createdAt: Date.now(),
                 onboardingCompleted: false,
-                onboardingStep: "categories",
+                onboardingStep: "currency",
               })
               .link({ user: user.id })
           );
@@ -192,6 +194,17 @@ export default function Onboarding() {
     setIsSaving(true);
     try {
       if (step === 1) {
+        // Save currency preference
+        await db.transact(
+          db.tx.profiles[profile.id].update({
+            currency: selectedCurrency,
+            locale: getLocaleForCurrency(selectedCurrency),
+            onboardingStep: "categories",
+          })
+        );
+
+        setStep(2);
+      } else if (step === 2) {
         // Save categories (only default ones, custom ones are already saved via dialog)
         const categoriesToCreate = DEFAULT_CATEGORIES.filter((cat) =>
           selectedCategories.includes(cat.name)
@@ -218,8 +231,8 @@ export default function Onboarding() {
           })
         );
 
-        setStep(2);
-      } else if (step === 2) {
+        setStep(3);
+      } else if (step === 3) {
         // Save income sources
         const validIncomeSources = incomeSources.filter(
           (source) => source.name && source.amount && source.paydayDay
@@ -251,8 +264,8 @@ export default function Onboarding() {
           })
         );
 
-        setStep(3);
-      } else if (step === 3) {
+        setStep(4);
+      } else if (step === 4) {
         // Save recurring expenses
         const validRecurringExpenses = recurringExpenses.filter(
           (expense) => expense.name && expense.amount
@@ -296,7 +309,7 @@ export default function Onboarding() {
   };
 
   const handleSkip = async () => {
-    if (step === 3) {
+    if (step === 4) {
       // Mark onboarding as completed even if skipping recurring expenses
       await db.transact(
         db.tx.profiles[profile.id].update({
@@ -307,7 +320,11 @@ export default function Onboarding() {
       router.push("/dashboard");
     } else {
       // Update onboarding step when skipping
-      const nextStepName = step === 1 ? "income" : "expenses";
+      let nextStepName = "completed";
+      if (step === 1) nextStepName = "categories";
+      else if (step === 2) nextStepName = "income";
+      else if (step === 3) nextStepName = "expenses";
+
       await db.transact(
         db.tx.profiles[profile.id].update({
           onboardingStep: nextStepName,
@@ -324,27 +341,57 @@ export default function Onboarding() {
           <CardHeader>
             <div className="flex items-center justify-between mb-2">
               <div className="flex gap-2">
-                {[1, 2, 3].map((s) => (
+                {[1, 2, 3, 4].map((s) => (
                   <div
                     key={s}
-                    className={`h-2 w-16 rounded-full ${
+                    className={`h-2 w-12 rounded-full ${
                       s <= step ? "bg-primary" : "bg-muted"
                     }`}
                   />
                 ))}
               </div>
               <span className="text-sm text-muted-foreground">
-                Step {step} of 3
+                Step {step} of 4
               </span>
             </div>
             <CardTitle>
-              {step === 1 && "Setup Your Categories"}
-              {step === 2 && "Setup Income Sources"}
-              {step === 3 && "Setup Recurring Expenses"}
+              {step === 1 && "Choose Your Currency"}
+              {step === 2 && "Setup Your Categories"}
+              {step === 3 && "Setup Income Sources"}
+              {step === 4 && "Setup Recurring Expenses"}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             {step === 1 && (
+              <>
+                <p className="text-muted-foreground">
+                  Select your preferred currency. All amounts will be displayed in this currency.
+                </p>
+                <div className="grid grid-cols-2 gap-3">
+                  {getAllCurrencies().map((curr) => (
+                    <button
+                      key={curr.code}
+                      onClick={() => setSelectedCurrency(curr.code)}
+                      className={`flex items-center gap-3 p-4 rounded-lg border-2 transition-all ${
+                        selectedCurrency === curr.code
+                          ? "border-primary bg-primary/5"
+                          : "border-muted hover:border-muted-foreground/50"
+                      }`}
+                    >
+                      <div className="flex flex-col items-start flex-1">
+                        <span className="font-medium text-lg">{curr.symbol} {curr.code}</span>
+                        <span className="text-sm text-muted-foreground">{curr.name}</span>
+                      </div>
+                      {selectedCurrency === curr.code && (
+                        <Check className="h-5 w-5 text-primary" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+
+            {step === 2 && (
               <>
                 <p className="text-muted-foreground">
                   Choose the spending categories you want to track. You can
@@ -384,7 +431,7 @@ export default function Onboarding() {
               </>
             )}
 
-            {step === 2 && (
+            {step === 3 && (
               <>
                 <p className="text-muted-foreground">
                   Add your income sources and paydays. This helps us track your
@@ -493,7 +540,7 @@ export default function Onboarding() {
               </>
             )}
 
-            {step === 3 && (
+            {step === 4 && (
               <>
                 <p className="text-muted-foreground">
                   Add your recurring monthly expenses like rent, bills, and
@@ -604,7 +651,7 @@ export default function Onboarding() {
                 Skip
               </Button>
               <Button onClick={handleNext} disabled={isSaving} className="flex-1">
-                {isSaving ? "Saving..." : step === 3 ? "Complete Setup" : "Continue"}
+                {isSaving ? "Saving..." : step === 4 ? "Complete Setup" : "Continue"}
               </Button>
             </div>
           </CardContent>

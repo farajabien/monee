@@ -5,6 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Wallet, ArrowRight, TrendingUp, Target } from "lucide-react";
 import Link from "next/link";
+import { useCurrency } from "@/hooks/use-currency";
 
 interface SavingsProgressCardProps {
   monthlySavings: number;
@@ -12,6 +13,8 @@ interface SavingsProgressCardProps {
   totalTarget: number;
   goalsCount: number;
   isLoading?: boolean;
+  userCurrency?: string;
+  userLocale?: string;
 }
 
 export function SavingsProgressCard({
@@ -20,13 +23,13 @@ export function SavingsProgressCard({
   totalTarget,
   goalsCount,
   isLoading = false,
+  userCurrency,
+  userLocale,
 }: SavingsProgressCardProps) {
+  const { formatCurrency } = useCurrency(userCurrency, userLocale);
+
   const formatAmount = (amount: number) => {
-    return new Intl.NumberFormat("en-KE", {
-      style: "currency",
-      currency: "KES",
-      minimumFractionDigits: 0,
-    }).format(amount);
+    return formatCurrency(amount);
   };
 
   const progressPercentage =

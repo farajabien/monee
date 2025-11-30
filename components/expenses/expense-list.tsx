@@ -27,6 +27,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft } from "lucide-react";
 import type { Expense } from "@/types";
+import { useCurrency } from "@/hooks/use-currency";
 
 // Wrapper component to adapt props
 const EditExpenseDialogAdapter = ({
@@ -53,6 +54,11 @@ export default function ExpenseList() {
   >("overview");
 
   const { data } = db.useQuery({
+    profiles: {
+      $: {
+        where: { "user.id": user.id },
+      },
+    },
     expenses: {
       $: {
         where: { "user.id": user.id },
@@ -67,13 +73,16 @@ export default function ExpenseList() {
     },
   });
 
+  const profile = data?.profiles?.[0];
   const expenses = useMemo(() => data?.expenses || [], [data?.expenses]);
   const recipients = useMemo(() => data?.recipients || [], [data?.recipients]);
 
+  const { formatCurrency } = useCurrency(profile?.currency, profile?.locale);
+
   // Create configuration with recipients for display name resolution
   const config = useMemo(
-    () => createExpenseListConfig(recipients),
-    [recipients]
+    () => createExpenseListConfig(recipients, formatCurrency),
+    [recipients, formatCurrency]
   );
 
   // Analytics calculations
@@ -238,7 +247,7 @@ export default function ExpenseList() {
                   </CardHeader>
                   <CardContent>
                     <div className="text-xl font-bold">
-                      KES {analytics.totalAmount.toLocaleString()}
+                      {formatCurrency(analytics.totalAmount)}
                     </div>
                   </CardContent>
                 </Card>
@@ -250,7 +259,7 @@ export default function ExpenseList() {
                   </CardHeader>
                   <CardContent>
                     <div className="text-xl font-bold">
-                      KES {analytics.avgAmount.toFixed(0)}
+                      {formatCurrency(analytics.avgAmount)}
                     </div>
                   </CardContent>
                 </Card>
@@ -262,7 +271,7 @@ export default function ExpenseList() {
                   </CardHeader>
                   <CardContent>
                     <div className="text-xl font-bold">
-                      KES {analytics.highestExpense.toLocaleString()}
+                      {formatCurrency(analytics.highestExpense)}
                     </div>
                   </CardContent>
                 </Card>
@@ -274,7 +283,7 @@ export default function ExpenseList() {
                   </CardHeader>
                   <CardContent>
                     <div className="text-xl font-bold">
-                      KES {analytics.lowestExpense.toLocaleString()}
+                      {formatCurrency(analytics.lowestExpense)}
                     </div>
                   </CardContent>
                 </Card>

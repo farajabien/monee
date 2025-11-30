@@ -15,6 +15,7 @@ import {
   createRecipientListConfig,
   type RecipientWithStats,
 } from "./recipient-list-config";
+import { useCurrency } from "@/hooks/use-currency";
 
 export function RecipientList() {
   const user = db.useUser();
@@ -23,6 +24,11 @@ export function RecipientList() {
   const [showManageSheet, setShowManageSheet] = useState(false);
 
   const { data } = db.useQuery({
+    profiles: {
+      $: {
+        where: { "user.id": user.id },
+      },
+    },
     recipients: {
       $: {
         where: { "user.id": user.id },
@@ -36,8 +42,11 @@ export function RecipientList() {
     },
   });
 
+  const profile = data?.profiles?.[0];
   const savedRecipients = data?.recipients || [];
   const expenses = data?.expenses || [];
+
+  const { formatCurrency } = useCurrency(profile?.currency, profile?.locale);
 
   // Calculate recipient stats
   const allRecipients: RecipientWithStats[] = useMemo(() => {
@@ -94,7 +103,7 @@ export function RecipientList() {
     setShowManageSheet(true);
   };
 
-  const config = useMemo(() => createRecipientListConfig(handleManage), []);
+  const config = useMemo(() => createRecipientListConfig(handleManage, formatCurrency), [formatCurrency]);
 
   return (
     <>

@@ -20,16 +20,9 @@ export type RecipientWithStats = {
   expenseCount: number;
 };
 
-const formatAmount = (amount: number) => {
-  return new Intl.NumberFormat("en-KE", {
-    style: "currency",
-    currency: "KES",
-    minimumFractionDigits: 0,
-  }).format(amount);
-};
-
 export const createRecipientListConfig = (
-  onManage: (recipient: RecipientWithStats) => void
+  onManage: (recipient: RecipientWithStats) => void,
+  formatAmount: (amount: number) => string
 ): ListConfig<RecipientWithStats> => ({
   // Identity
   queryKey: "recipients",

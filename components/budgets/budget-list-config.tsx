@@ -11,20 +11,16 @@ import { DollarSign, Calendar } from "lucide-react";
 import db from "@/lib/db";
 
 // Helper functions
-const formatAmount = (amount: number) => {
-  return new Intl.NumberFormat("en-KE", {
-    style: "currency",
-    currency: "KES",
-    minimumFractionDigits: 0,
-  }).format(amount);
-};
-
 const formatMonthYear = (month: number, year: number) => {
   const date = new Date(year, month - 1);
   return date.toLocaleDateString("en-KE", { month: "long", year: "numeric" });
 };
 
-export const createBudgetListConfig = (currentMonth: number, currentYear: number): ListConfig<BudgetWithRelations> => ({
+export const createBudgetListConfig = (
+  currentMonth: number,
+  currentYear: number,
+  formatAmount: (amount: number) => string
+): ListConfig<BudgetWithRelations> => ({
   // Identity
   queryKey: "budgets",
 

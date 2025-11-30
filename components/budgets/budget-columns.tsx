@@ -5,7 +5,9 @@ import { Button } from "@/components/ui/button"
 import { Edit, Trash2 } from "lucide-react"
 import type { BudgetWithRelations } from "@/types"
 
-export const budgetColumns: ColumnDef<BudgetWithRelations>[] = [
+export const createBudgetColumns = (
+  formatCurrency: (amount: number) => string
+): ColumnDef<BudgetWithRelations>[] => [
   {
     accessorKey: "index",
     header: "#",
@@ -26,11 +28,7 @@ export const budgetColumns: ColumnDef<BudgetWithRelations>[] = [
     header: "Amount",
     cell: ({ row }) => (
       <Badge variant="secondary">
-        {new Intl.NumberFormat("en-KE", {
-          style: "currency",
-          currency: "KES",
-          minimumFractionDigits: 0,
-        }).format(row.original.amount)}
+        {formatCurrency(row.original.amount)}
       </Badge>
     ),
   },

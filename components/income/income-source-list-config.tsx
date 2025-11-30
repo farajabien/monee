@@ -11,14 +11,6 @@ import { Badge } from "@/components/ui/badge";
 import db from "@/lib/db";
 
 // Helper functions
-const formatAmount = (amount: number) => {
-  return new Intl.NumberFormat("en-KE", {
-    style: "currency",
-    currency: "KES",
-    minimumFractionDigits: 0,
-  }).format(amount);
-};
-
 const formatPayday = (paydayDay: number, paydayMonth?: number) => {
   if (paydayMonth) {
     const monthName = new Date(2000, paydayMonth - 1).toLocaleString("default", {
@@ -29,7 +21,9 @@ const formatPayday = (paydayDay: number, paydayMonth?: number) => {
   return `Day ${paydayDay} of each month`;
 };
 
-export const createIncomeSourceListConfig = (): ListConfig<IncomeSourceWithUser> => ({
+export const createIncomeSourceListConfig = (
+  formatAmount: (amount: number) => string
+): ListConfig<IncomeSourceWithUser> => ({
   // Identity
   queryKey: "income_sources",
 

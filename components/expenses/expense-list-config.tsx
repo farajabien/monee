@@ -21,21 +21,14 @@ const formatDate = (timestamp: number) => {
   });
 };
 
-const formatAmount = (amount: number) => {
-  return new Intl.NumberFormat("en-KE", {
-    style: "currency",
-    currency: "KES",
-    minimumFractionDigits: 0,
-  }).format(amount);
-};
-
 const getDisplayName = (originalName: string, recipients: any[]) => {
   const recipient = recipients.find((r) => r.originalName === originalName);
   return recipient?.nickname || originalName;
 };
 
 export const createExpenseListConfig = (
-  recipients: any[]
+  recipients: any[],
+  formatAmount: (amount: number) => string
 ): ListConfig<Expense> => ({
   // Identity
   queryKey: "expenses",

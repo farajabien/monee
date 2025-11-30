@@ -5,6 +5,7 @@ import { AlertCircle, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useMemo } from "react";
+import { useCurrency } from "@/hooks/use-currency";
 
 interface DebtInfo {
   id: string;
@@ -17,20 +18,21 @@ interface DebtInfo {
 interface DebtsAlertCardProps {
   debts: DebtInfo[];
   isLoading?: boolean;
+  userCurrency?: string;
+  userLocale?: string;
 }
 
 export function DebtsAlertCard({
   debts,
   isLoading = false,
+  userCurrency,
+  userLocale,
 }: DebtsAlertCardProps) {
   const now = new Date();
+  const { formatCurrency } = useCurrency(userCurrency, userLocale);
 
   const formatAmount = (amount: number) => {
-    return new Intl.NumberFormat("en-KE", {
-      style: "currency",
-      currency: "KES",
-      minimumFractionDigits: 0,
-    }).format(amount);
+    return formatCurrency(amount);
   };
 
   const formatDate = (timestamp: number) => {

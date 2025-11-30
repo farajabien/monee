@@ -19,6 +19,8 @@ const _schema = i.schema({
       createdAt: i.number().indexed(),
       onboardingCompleted: i.boolean().optional(),
       onboardingStep: i.string().optional(),
+      currency: i.string().optional(),
+      locale: i.string().optional(),
     }),
     expenses: i.entity({
       amount: i.number().indexed(),

@@ -7,6 +7,7 @@ import { BudgetForm } from "./budget-form";
 import { SteppedFormModal } from "@/components/stepped-form-modal";
 import { createBudgetListConfig } from "./budget-list-config";
 import type { BudgetWithRelations } from "@/types";
+import { useCurrency } from "@/hooks/use-currency";
 
 export function BudgetList() {
   const user = db.useUser();
@@ -19,6 +20,11 @@ export function BudgetList() {
   const currentYear = now.getFullYear();
 
   const { data } = db.useQuery({
+    profiles: {
+      $: {
+        where: { "user.id": user.id },
+      },
+    },
     budgets: {
       $: {
         where: {
@@ -32,11 +38,14 @@ export function BudgetList() {
     },
   });
 
+  const profile = data?.profiles?.[0];
   const budgets: BudgetWithRelations[] = data?.budgets || [];
+
+  const { formatCurrency } = useCurrency(profile?.currency, profile?.locale);
 
   // Create configuration with edit handler
   const config = useMemo(() => {
-    const baseConfig = createBudgetListConfig(currentMonth, currentYear);
+    const baseConfig = createBudgetListConfig(currentMonth, currentYear, formatCurrency);
     return {
       ...baseConfig,
       actions: {
@@ -47,7 +56,7 @@ export function BudgetList() {
         },
       },
     };
-  }, [currentMonth, currentYear]);
+  }, [currentMonth, currentYear, formatCurrency]);
 
   return (
     <div className="space-y-4">

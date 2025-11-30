@@ -49,12 +49,13 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { NotificationSettings } from "@/components/settings/notification-settings";
+import { getAllCurrencies, getLocaleForCurrency, DEFAULT_CURRENCY } from "@/lib/currency-utils";
 
 const FREE_TRIAL_DAYS = 7;
 
 export default function SettingsClient() {
   const [theme, setTheme] = useState<"light" | "dark" | "system">("system");
-  const [currency, setCurrency] = useState("KES");
+  const [currency, setCurrency] = useState(DEFAULT_CURRENCY);
   const [isExporting, setIsExporting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
@@ -81,6 +82,13 @@ export default function SettingsClient() {
   const profile = data?.profiles?.[0];
   const user = data?.$users?.[0];
 
+  // Initialize currency from profile
+  useEffect(() => {
+    if (profile?.currency) {
+      setCurrency(profile.currency);
+    }
+  }, [profile?.currency]);
+
   // Calculate trial status
   const profileCreatedAt = profile?.createdAt || Date.now();
   const daysSinceCreation = Math.floor(
@@ -106,6 +114,23 @@ export default function SettingsClient() {
       }
     }
     toast.success(`Theme changed to ${newTheme}`);
+  };
+
+  const handleCurrencyChange = async (newCurrency: string) => {
+    if (!profile) return;
+
+    setCurrency(newCurrency);
+    try {
+      await db.transact([
+        db.tx.profiles[profile.id].update({
+          currency: newCurrency,
+          locale: getLocaleForCurrency(newCurrency),
+        }),
+      ]);
+      toast.success("Currency updated successfully");
+    } catch (err) {
+      toast.error("Failed to update currency");
+    }
   };
 
   const handleProfileUpdate = async (field: string, value: string | number) => {
@@ -406,15 +431,16 @@ export default function SettingsClient() {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="currency">Currency</Label>
-                <Select value={currency} onValueChange={setCurrency}>
+                <Select value={currency} onValueChange={handleCurrencyChange}>
                   <SelectTrigger id="currency">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="KES">KES (Kenyan Shilling)</SelectItem>
-                    <SelectItem value="USD">USD (US Dollar)</SelectItem>
-                    <SelectItem value="EUR">EUR (Euro)</SelectItem>
-                    <SelectItem value="GBP">GBP (British Pound)</SelectItem>
+                    {getAllCurrencies().map((curr) => (
+                      <SelectItem key={curr.code} value={curr.code}>
+                        {curr.symbol} {curr.code} ({curr.name})
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>

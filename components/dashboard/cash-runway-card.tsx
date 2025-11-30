@@ -10,7 +10,7 @@ import {
   ArrowDownCircle,
 } from "lucide-react";
 import type { CashRunwayData } from "@/lib/cash-runway-calculator";
-import { formatCurrency } from "@/lib/cash-runway-calculator";
+import { useCurrency } from "@/hooks/use-currency";
 
 interface CashRunwayCardProps {
   runwayData: CashRunwayData | null;
@@ -18,6 +18,8 @@ interface CashRunwayCardProps {
   totalIncome?: number;
   totalExpenses?: number;
   monthlySavings?: number;
+  userCurrency?: string;
+  userLocale?: string;
 }
 
 export function CashRunwayCard({
@@ -26,7 +28,11 @@ export function CashRunwayCard({
   totalIncome = 0,
   totalExpenses = 0,
   monthlySavings = 0,
+  userCurrency,
+  userLocale,
 }: CashRunwayCardProps) {
+  const { formatCurrency } = useCurrency(userCurrency, userLocale);
+
   if (isLoading) {
     return (
       <Item variant="outline" className="h-full border-0">

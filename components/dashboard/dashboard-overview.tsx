@@ -34,6 +34,14 @@ const CashRunwayCard = dynamic(
   { ssr: false }
 );
 
+const DashboardMetricsTabs = dynamic(
+  () =>
+    import("./dashboard-metrics-tabs").then((mod) => ({
+      default: mod.DashboardMetricsTabs,
+    })),
+  { ssr: false }
+);
+
 export function DashboardOverview() {
   const user = db.useUser();
 
@@ -52,6 +60,13 @@ export function DashboardOverview() {
 
   // Query all required data
   const { isLoading, error, data } = db.useQuery({
+    profiles: {
+      $: {
+        where: {
+          "user.id": user.id,
+        },
+      },
+    },
     expenses: {
       $: {
         where: {
@@ -95,6 +110,7 @@ export function DashboardOverview() {
   });
 
   // Calculate totals
+  const profile = data?.profiles?.[0];
   const expenses = data?.expenses || [];
   const incomeSources = data?.income_sources || [];
   const debts = data?.debts || [];
@@ -236,10 +252,12 @@ export function DashboardOverview() {
             totalIncome={totalIncome}
             totalExpenses={totalExpenses}
             monthlySavings={savingsData.monthlySavings}
+            userCurrency={profile?.currency}
+            userLocale={profile?.locale}
           />
         </TabsContent>
         <TabsContent value="debts" className="border-0">
-          <DebtsAlertCard debts={debtsData} isLoading={isLoading} />
+          <DebtsAlertCard debts={debtsData} isLoading={isLoading} userCurrency={profile?.currency} userLocale={profile?.locale} />
         </TabsContent>
         <TabsContent value="savings" className="border-0">
           <SavingsProgressCard
@@ -248,9 +266,20 @@ export function DashboardOverview() {
             totalTarget={savingsData.totalTarget}
             goalsCount={savingsData.goalsCount}
             isLoading={isLoading}
+            userCurrency={profile?.currency}
+            userLocale={profile?.locale}
           />
         </TabsContent>
       </Tabs>
+
+      {/* Metrics Insights Tabs */}
+      <DashboardMetricsTabs
+        expenses={expenses}
+        debts={debts}
+        savingsGoals={savingsGoals}
+        userCurrency={profile?.currency}
+        userLocale={profile?.locale}
+      />
 
       {/* Link to Detailed Summary */}
       <div className="flex justify-center pt-4">
