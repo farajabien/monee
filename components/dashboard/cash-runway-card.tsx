@@ -124,14 +124,14 @@ export function CashRunwayCard({
   return (
     <Item variant="outline" className={`h-full border-0 ${itemClass}`}>
       <ItemContent className="space-y-4 w-full">
-        {/* Income vs Expenses */}
-        <div className="grid grid-cols-2 gap-3">
+        {/* Income, Expenses, Balance - Grid of 3 */}
+        <div className="grid grid-cols-3 gap-3">
           <div className="space-y-1">
             <div className="flex items-center gap-1 text-xs text-muted-foreground">
               <ArrowUpCircle className="h-3 w-3 text-green-600 dark:text-green-400" />
               Income
             </div>
-            <div className="text-lg font-semibold text-green-600 dark:text-green-400">
+            <div className="text-base font-semibold text-green-600 dark:text-green-400">
               {formatCurrency(totalIncome)}
             </div>
           </div>
@@ -140,8 +140,17 @@ export function CashRunwayCard({
               <ArrowDownCircle className="h-3 w-3 text-red-600 dark:text-red-400" />
               Expenses
             </div>
-            <div className="text-lg font-semibold text-red-600 dark:text-red-400">
+            <div className="text-base font-semibold text-red-600 dark:text-red-400">
               {formatCurrency(totalExpenses)}
+            </div>
+          </div>
+          <div className="space-y-1">
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              <span className="text-sm">💰</span>
+              Balance
+            </div>
+            <div className="text-base font-semibold">
+              {formatCurrency(currentCash)}
             </div>
           </div>
         </div>
