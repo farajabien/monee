@@ -32,19 +32,19 @@ export default function LandingPage() {
       icon: Wallet,
       title: "Quick Expense Tracking",
       description:
-        "Log expenses manually in seconds with smart categorization. Simple, fast, and builds the habit.",
+        "Log expenses manually or import from M-Pesa statements. Smart auto-categorization learns your spending patterns.",
     },
     {
       icon: TrendingUp,
-      title: "Income vs Expenses",
+      title: "Income Management",
       description:
-        "Track multiple income sources, set payday dates, and see your monthly balance at a glance.",
+        "Track multiple income sources with payday scheduling. See your monthly cash flow and balance at a glance.",
     },
     {
       icon: CreditCard,
-      title: "Debt Management",
+      title: "Advanced Debt Tracking",
       description:
-        "Track all debts, set monthly payments, and see your progress toward being debt-free.",
+        "Manage one-time debts, interest-push plans, and amortizing loans with payment schedules and progress tracking.",
     },
     {
       icon: BarChart3,
@@ -54,21 +54,21 @@ export default function LandingPage() {
     },
     {
       icon: Calendar,
-      title: "Daily Check-In Ritual",
+      title: "Recurring Transactions",
       description:
-        "A gentle 2-minute evening routine to log your day's expenses. Build awareness, not guilt.",
+        "Set up recurring expenses with reminders. Mark as paid with one tap and track payment history automatically.",
     },
     {
       icon: BarChart3,
-      title: "Rich Analytics",
+      title: "Powerful Analytics",
       description:
-        "See where your money goes by category, recipient, and time period. No spreadsheets needed.",
+        "Category breakdowns, spending trends, recipient tracking, and cash flow analysis. All your data at a glance.",
     },
     {
       icon: Smartphone,
-      title: "M-Pesa Import (Optional)",
+      title: "Free M-Pesa Analyzer",
       description:
-        "Want to bulk-clean old transactions? Upload M-Pesa statements. Great for catching up, not required daily.",
+        "Try our free statement analyzer before signing up. Upload PDF or paste SMS to see instant spending insights.",
     },
     {
       icon: Shield,
@@ -170,21 +170,30 @@ export default function LandingPage() {
           <div className="grid md:grid-cols-2 gap-12 items-center">
             {/* Left: Text Content */}
             <div className="space-y-8 text-center md:text-left">
-              <div className="flex items-center gap-2 justify-center md:justify-start">
+              <div className="flex flex-wrap items-center gap-2 justify-center md:justify-start">
                 <BetaBadge variant="gradient" size="sm" />
                 <Badge variant="secondary" className="w-fit">
                   <Zap className="h-3 w-3 mr-1" />
                   Built for Real Life in Kenya 🇰🇪
                 </Badge>
+                <Link href="/settings?tab=feedback">
+                  <Badge 
+                    variant="outline" 
+                    className="cursor-pointer border-primary/50 bg-primary/5 hover:bg-primary/10 transition-colors"
+                  >
+                    <FlaskConical className="h-3 w-3 mr-1" />
+                    Beta Testers Needed - Submit Feedback
+                  </Badge>
+                </Link>
               </div>
               <h1 className="text-4xl md:text-6xl font-bold tracking-tight">
                 Your Money,{" "}
                 <span className="text-primary">Finally in One Place</span>
               </h1>
               <p className="text-xl text-muted-foreground">
-                Stop wondering where your money goes. MONEE helps you track
-                expenses, manage debts, save smarter, and turns personal finance
-                into a mindful daily ritual.
+                Track expenses in seconds, manage debts with progress tracking,
+                crush savings goals, and see where every shilling goes. All your
+                financial data organized with smart categorization and analytics.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
@@ -236,17 +245,17 @@ export default function LandingPage() {
       <section className="container mx-auto px-4 py-16">
         <div className="max-w-3xl mx-auto text-center space-y-6">
           <h2 className="text-3xl md:text-4xl font-bold">
-            We All Have the Same Problem
+            Stop Juggling Spreadsheets
           </h2>
           <p className="text-lg text-muted-foreground">
-            You <em>think</em> you know where your money goes. Until the end of
-            the month, when it&apos;s gone — and you&apos;re left wondering what
-            happened.
+            Most people buy 5-6 different spreadsheets just to manage their money:
+            budget tracker, debt calculator, savings planner, expense tracker. 
+            That&apos;s KSh 3,500+ for files that don&apos;t sync or talk to each other.
           </p>
           <p className="text-lg">
-            <strong>MONEE</strong> helps you finally <em>see</em> your financial
-            reality — clearly, gently, and honestly. Track expenses in seconds,
-            manage debts, build savings, and understand your spending patterns.
+            <strong>MONEE</strong> replaces them all for just KSh 999. One app,
+            lifetime access, automatic sync across devices, and real-time insights
+            into your complete financial picture.
           </p>
         </div>
       </section>
@@ -291,12 +300,12 @@ export default function LandingPage() {
                 <BetaBadge variant="gradient" size="lg" />
               </div>
               <h2 className="text-2xl md:text-3xl font-bold">
-                Join Our Beta Testing Community
+                Help Shape the Future of MONEE
               </h2>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                We&apos;re in beta – join our first users testing and shaping
-                the app. Your feedback directly influences MONEE&apos;s
-                development.
+                We&apos;ve just completed major updates: profile-based organization,
+                recurring transactions, advanced debt tracking, and more. Test the
+                new features and help us make MONEE even better.
               </p>
               <div className="grid md:grid-cols-3 gap-6 pt-4">
                 <div className="space-y-2">
