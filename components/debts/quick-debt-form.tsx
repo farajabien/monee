@@ -15,7 +15,17 @@ interface QuickDebtFormProps {
 }
 
 export function QuickDebtForm({ onSuccess, debt }: QuickDebtFormProps) {
-  const user = db.useUser();
+  const { user } = db.useAuth();
+  
+  // Fetch profile
+  const { data } = db.useQuery({
+    profiles: {
+      $: {
+        where: { "user.id": user?.id || "" },
+      },
+    },
+  });
+  const profile = data?.profiles?.[0];
   const [name, setName] = useState("");
   const [totalAmount, setTotalAmount] = useState<string>("");
   const [monthlyPaymentAmount, setMonthlyPaymentAmount] = useState<string>("");
@@ -55,7 +65,7 @@ export function QuickDebtForm({ onSuccess, debt }: QuickDebtFormProps) {
       } else {
         // Create new debt
         await db.transact(
-          db.tx.debts[id()].update(debtData).link({ profile: user.id })
+          db.tx.debts[id()].update(debtData).link({ profile: profile?.id || "" })
         );
         toast.success("Debt added successfully!");
       }

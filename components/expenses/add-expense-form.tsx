@@ -64,7 +64,7 @@ import type { Expense, Category } from "@/types";
 
 export default function AddExpenseForm() {
   // Track user actions for flagged duplicates
-  const user = db.useUser();
+  const { user } = db.useAuth();
   const [messages, setMessages] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedCategory, setSelectedCategory] =
@@ -341,7 +341,7 @@ export default function AddExpenseForm() {
                 mpesaReference: parsed.reference,
                 createdAt: Date.now(),
               })
-              .link({ profile: user.id })
+              .link({ profile: profile?.id || "" })
           );
         } catch (error) {
           console.error("Failed to parse message:", message, error);

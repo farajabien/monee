@@ -22,7 +22,7 @@ interface QuickExpenseFormProps {
 }
 
 export function QuickExpenseForm({ onSuccess }: QuickExpenseFormProps) {
-  const user = db.useUser();
+  const { user } = db.useAuth();
   const [amount, setAmount] = useState<string>("");
   const [recipient, setRecipient] = useState<string>("");
   const [selectedCategory, setSelectedCategory] =
@@ -33,18 +33,18 @@ export function QuickExpenseForm({ onSuccess }: QuickExpenseFormProps) {
   const [showAddCategoryDialog, setShowAddCategoryDialog] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Fetch categories
-  const { data: categoriesData } = db.useQuery({
-    categories: {
+  // Fetch profile and categories
+  const { data } = db.useQuery({
+    profiles: {
       $: {
-        where: { "profile.user.id": user.id },
-        order: { name: "asc" },
+        where: { "user.id": user?.id || "" },
       },
+      categories: {},
     },
   });
-
-  const categories: Category[] = (categoriesData?.categories || []).filter(
-    (category) => category.isActive !== false
+  const profile = data?.profiles?.[0];
+  const categories: Category[] = (profile?.categories || []).filter(
+    (c) => c.isActive !== false
   );
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -67,7 +67,7 @@ export function QuickExpenseForm({ onSuccess }: QuickExpenseFormProps) {
       };
 
       await db.transact(
-        db.tx.expenses[id()].update(expenseData).link({ profile: user.id })
+        db.tx.expenses[id()].update(expenseData).link({ profile: profile?.id || "" })
       );
 
       toast.success("Expense added successfully!");

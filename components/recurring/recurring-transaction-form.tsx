@@ -29,7 +29,17 @@ export function RecurringTransactionForm({
   onCancel,
   categories = [],
 }: RecurringTransactionFormProps) {
-  const user = db.useUser();
+  const { user } = db.useAuth();
+  
+  // Fetch profile
+  const { data } = db.useQuery({
+    profiles: {
+      $: {
+        where: { "user.id": user?.id || "" },
+      },
+    },
+  });
+  const profile = data?.profiles?.[0];
   const [name, setName] = useState("");
   const [amount, setAmount] = useState<string>("");
   const [recipient, setRecipient] = useState("");
@@ -98,7 +108,7 @@ export function RecurringTransactionForm({
         await db.transact(
           db.tx.recurring_transactions[id()]
             .update(transactionData)
-            .link({ profile: user.id })
+            .link({ profile: profile?.id || "" })
         );
       }
 

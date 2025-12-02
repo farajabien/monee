@@ -101,7 +101,7 @@ export function SavingsGoalForm({
               isCompleted: false,
               createdAt,
             })
-            .link({ user: profileId })
+            .link({ profile: profileId })
         );
         toast.success("Savings goal created!");
       }

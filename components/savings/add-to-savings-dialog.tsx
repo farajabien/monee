@@ -45,11 +45,21 @@ export function AddToSavingsDialog({
   open,
   onOpenChange,
 }: AddToSavingsDialogProps) {
-  const user = db.useUser();
+  const { user } = db.useAuth();
   const form = useForm<AddToSavingsFormData>({
     resolver: zodResolver(addToSavingsSchema),
     defaultValues: { amount: 0 },
   });
+
+  // Fetch profile
+  const { data } = db.useQuery({
+    profiles: {
+      $: {
+        where: { "user.id": user?.id || "" },
+      },
+    },
+  });
+  const profile = data?.profiles?.[0];
 
   async function onSubmit(values: AddToSavingsFormData) {
     const { amount } = values;
@@ -71,18 +81,20 @@ export function AddToSavingsDialog({
           })
           .link({ goal: goal.id }),
         // Record as expense for cash flow tracking
-        tx.expenses[crypto.randomUUID()]
-          .update({
-            amount,
-            recipient: `Savings: ${goal.name}`,
-            date: now,
-            category: "Savings",
-            rawMessage: "",
-            parsedData: {},
-            notes: `Contribution to ${goal.name}`,
-            createdAt: now,
-          })
-          .link({ user: user.id }),
+        ...(profile?.id ? [
+          tx.expenses[crypto.randomUUID()]
+            .update({
+              amount,
+              recipient: `Savings: ${goal.name}`,
+              date: now,
+              category: "Savings",
+              rawMessage: "",
+              parsedData: {},
+              notes: `Contribution to ${goal.name}`,
+              createdAt: now,
+            })
+            .link({ profile: profile.id })
+        ] : []),
       ]);
 
       toast.success(`Added KES ${amount.toLocaleString()} to ${goal.name}`);

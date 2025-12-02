@@ -38,7 +38,7 @@ export function RecipientManager({
   onCategoryAssigned,
   compact = false,
 }: RecipientManagerProps) {
-  const user = db.useUser();
+  const { user } = db.useAuth();
   const [showSheet, setShowSheet] = useState(false);
   const [nickname, setNickname] = useState("");
   const [selectedCategory, setSelectedCategory] = useState(
@@ -48,17 +48,26 @@ export function RecipientManager({
   const [isSaving, setIsSaving] = useState(false);
   const [showAddCategoryDialog, setShowAddCategoryDialog] = useState(false);
 
-  // Fetch existing recipient data
+  // Fetch existing recipient data and profile
   const { data: recipientsData } = db.useQuery({
     recipients: {
       $: {
         where: {
-          "profile.user.id": user.id,
+          "profile.user.id": user?.id || "",
           originalName: recipientName,
         },
       },
     },
   });
+
+  const { data: profileData } = db.useQuery({
+    profiles: {
+      $: {
+        where: { "user.id": user?.id || "" },
+      },
+    },
+  });
+  const profile = profileData?.profiles?.[0];
 
   const existingRecipient = recipientsData?.recipients?.[0];
 
@@ -66,7 +75,7 @@ export function RecipientManager({
   const { data: categoriesData } = db.useQuery({
     categories: {
       $: {
-        where: { "profile.user.id": user.id },
+        where: { "profile.user.id": user?.id || "" },
         order: { name: "asc" },
       },
     },
@@ -127,7 +136,7 @@ export function RecipientManager({
               createdAt: now,
               updatedAt: now,
             })
-            .link({ profile: user.id }),
+            .link({ profile: profile?.id || "" }),
         ]);
       }
 

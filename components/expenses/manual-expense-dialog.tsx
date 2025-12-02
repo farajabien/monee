@@ -37,7 +37,7 @@ export function ManualExpenseDialog({
   open,
   onOpenChange,
 }: ManualExpenseDialogProps) {
-  const user = db.useUser();
+  const { user } = db.useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [amount, setAmount] = useState<string>("");
   const [recipient, setRecipient] = useState<string>("");
@@ -127,7 +127,7 @@ export function ManualExpenseDialog({
       };
 
       await db.transact(
-        db.tx.expenses[id()].update(expenseData).link({ profile: user.id })
+        db.tx.expenses[id()].update(expenseData).link({ profile: profile?.id || "" })
       );
 
       // Reset form

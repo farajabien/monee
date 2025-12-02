@@ -27,7 +27,17 @@ export function IncomeSourceForm({
   onSuccess,
   onCancel,
 }: IncomeSourceFormProps) {
-  const user = db.useUser();
+  const { user } = db.useAuth();
+  
+  // Fetch profile
+  const { data } = db.useQuery({
+    profiles: {
+      $: {
+        where: { "user.id": user?.id || "" },
+      },
+    },
+  });
+  const profile = data?.profiles?.[0];
   const [name, setName] = useState("");
   const [amount, setAmount] = useState<string>("");
   const [paydayDay, setPaydayDay] = useState<number>(1);
@@ -71,7 +81,7 @@ export function IncomeSourceForm({
         await db.transact(
           db.tx.income_sources[id()]
             .update(incomeData)
-            .link({ profile: user.id })
+            .link({ profile: profile?.id || "" })
         );
       }
 
