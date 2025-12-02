@@ -112,11 +112,11 @@ async function auditProfileLinkedEntity(
 
   try {
     // Query all records of this entity type
-    // Note: InstantDB Admin API has different query syntax
+    // Note: InstantDB Admin API returns data directly, not wrapped
     const query = { [entityType]: { profile: {} } };
-    const { data } = (await adminDb.query(query)) as QueryResult;
+    const response = (await adminDb.query(query)) as QueryResult;
 
-    const records = data[entityType] || [];
+    const records = response[entityType] || [];
     result.totalRecords = records.length;
 
     console.log(`  Found ${records.length} ${entityType} records`);
@@ -189,9 +189,9 @@ async function auditBudgets(): Promise<AuditResult> {
 
   try {
     const query = { budgets: { profile: {}, category: {} } };
-    const { data } = (await adminDb.query(query)) as QueryResult;
+    const response = (await adminDb.query(query)) as QueryResult;
 
-    const records = data.budgets || [];
+    const records = response.budgets || [];
     result.totalRecords = records.length;
 
     console.log(`  Found ${records.length} budget records`);
@@ -264,9 +264,9 @@ async function auditParentLinkedEntity(
 
   try {
     const query = { [entityType]: { [parentType]: {} } };
-    const { data } = (await adminDb.query(query)) as QueryResult;
+    const response = (await adminDb.query(query)) as QueryResult;
 
-    const records = data[entityType] || [];
+    const records = response[entityType] || [];
     result.totalRecords = records.length;
 
     console.log(`  Found ${records.length} ${entityType} records`);
@@ -322,8 +322,8 @@ async function inferProfileForOrphanedEntity(
   try {
     // Get the orphaned entity
     const query = { [entityType]: { $: { where: { id: entityId } } } };
-    const { data } = (await adminDb.query(query)) as QueryResult;
-    const entity = data[entityType]?.[0];
+    const response = (await adminDb.query(query)) as QueryResult;
+    const entity = response[entityType]?.[0];
 
     if (!entity || !entity.createdAt) {
       return null;
@@ -331,10 +331,10 @@ async function inferProfileForOrphanedEntity(
 
     // Get all profiles
     const profileQuery = { profiles: { user: {} } };
-    const { data: profileData } = (await adminDb.query(
+    const profileResponse = (await adminDb.query(
       profileQuery
     )) as QueryResult;
-    const profiles = profileData.profiles || [];
+    const profiles = profileResponse.profiles || [];
 
     if (profiles.length === 0) {
       return null;
