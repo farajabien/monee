@@ -56,8 +56,9 @@ export function UnifiedAddModal({
   const [frequency, setFrequency] = useState("monthly"); // Income
   const [debtName, setDebtName] = useState(""); // Debt
   const [debtType, setDebtType] = useState<DebtType>("one-time"); // Debt
-  const [interestRate, setInterestRate] = useState(""); // Debt
-  const [compoundingFrequency, setCompoundingFrequency] = useState<CompoundingFrequency>("monthly"); // Debt
+  const [interestRate, setInterestRate] = useState("0"); // Debt
+  const [interestCalcType, setInterestCalcType] = useState<"monthly" | "yearly" | "total">("yearly"); // Debt
+  const [paymentDueDay, setPaymentDueDay] = useState("1"); // Debt
   const [monthlyPayment, setMonthlyPayment] = useState(""); // Debt
   const [savingsName, setSavingsName] = useState(""); // Savings
   const [targetAmount, setTargetAmount] = useState(""); // Savings
@@ -110,8 +111,9 @@ export function UnifiedAddModal({
     setFrequency("monthly");
     setDebtName("");
     setDebtType("one-time");
-    setInterestRate("");
-    setCompoundingFrequency("monthly");
+    setInterestRate("0");
+    setInterestCalcType("yearly");
+    setPaymentDueDay("1");
     setMonthlyPayment("");
     setSavingsName("");
     setTargetAmount("");
@@ -232,18 +234,22 @@ export function UnifiedAddModal({
             return;
           }
 
-          if (debtType !== "one-time" && !interestRate) {
-            toast.error("Please enter an interest rate for this debt type");
+          if (debtType === "amortizing" && !monthlyPayment) {
+            toast.error("Please enter a monthly payment amount for amortizing loans");
             setIsSubmitting(false);
             return;
           }
 
-          const parsedInterestRate = interestRate
-            ? parseFloat(interestRate)
-            : 0;
-          const parsedMonthlyPayment = monthlyPayment
-            ? parseFloat(monthlyPayment)
-            : parsedAmount * 0.1;
+          let parsedInterestRate = parseFloat(interestRate || "0");
+          
+          // Convert interest rate based on calculation type
+          if (parsedInterestRate > 0) {
+            if (interestCalcType === "monthly") {
+              parsedInterestRate = parsedInterestRate * 12;
+            }
+          }
+          
+          const hasInterest = parsedInterestRate > 0;
 
           await db.transact([
             db.tx.debts[id()]
@@ -251,11 +257,11 @@ export function UnifiedAddModal({
                 name: debtName,
                 totalAmount: parsedAmount,
                 currentBalance: parsedAmount,
-                monthlyPaymentAmount: parsedMonthlyPayment,
                 debtType,
                 interestRate: parsedInterestRate,
-                compoundingFrequency: debtType === "one-time" ? undefined : compoundingFrequency,
-                paymentDueDay: 1,
+                paymentDueDay: hasInterest ? parseInt(paymentDueDay || "1") : 0,
+                monthlyPaymentAmount: debtType === "amortizing" ? parseFloat(monthlyPayment || "0") : 0,
+                compoundingFrequency: hasInterest ? "monthly" : undefined,
                 createdAt: now,
               })
               .link({ profile: profile.id }),
@@ -622,9 +628,9 @@ export function UnifiedAddModal({
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="one-time">One-Time (No Interest)</SelectItem>
+                      <SelectItem value="one-time">One-Time</SelectItem>
                       <SelectItem value="interest-push">Interest-Push</SelectItem>
-                      <SelectItem value="amortizing">Amortizing (Loan)</SelectItem>
+                      <SelectItem value="amortizing">Amortizing</SelectItem>
                     </SelectContent>
                   </Select>
                   <p className="text-xs text-muted-foreground">
@@ -632,49 +638,65 @@ export function UnifiedAddModal({
                   </p>
                 </div>
 
-                {debtType !== "one-time" && (
-                  <>
-                    <div className="space-y-2">
-                      <Label htmlFor="interest-rate">Annual Interest Rate (%)</Label>
-                      <Input
-                        id="interest-rate"
-                        type="number"
-                        step="0.01"
-                        placeholder="12.5"
-                        value={interestRate}
-                        onChange={(e) => setInterestRate(e.target.value)}
-                      />
-                    </div>
+                <div className="space-y-2">
+                  <Label htmlFor="interest-rate">Interest Rate (%)</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="interest-rate"
+                      type="number"
+                      step="0.01"
+                      placeholder="0"
+                      value={interestRate}
+                      onChange={(e) => setInterestRate(e.target.value)}
+                      className="flex-1"
+                    />
+                    <Select value={interestCalcType} onValueChange={(value) => setInterestCalcType(value as "monthly" | "yearly" | "total")}>
+                      <SelectTrigger className="w-[120px]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="monthly">Per Month</SelectItem>
+                        <SelectItem value="yearly">Per Year</SelectItem>
+                        <SelectItem value="total">On Total</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Enter 0 for no interest
+                  </p>
+                </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="compounding-modal">Compounding Frequency</Label>
-                      <Select value={compoundingFrequency} onValueChange={(value) => setCompoundingFrequency(value as CompoundingFrequency)}>
-                        <SelectTrigger id="compounding-modal">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="monthly">Monthly</SelectItem>
-                          <SelectItem value="quarterly">Quarterly</SelectItem>
-                          <SelectItem value="annually">Annually</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </>
+                {parseFloat(interestRate || "0") > 0 && (
+                  <div className="space-y-2">
+                    <Label htmlFor="payment-due-day-modal">Payment Due Day (1-31)</Label>
+                    <Input
+                      id="payment-due-day-modal"
+                      type="number"
+                      min="1"
+                      max="31"
+                      placeholder="1"
+                      value={paymentDueDay}
+                      onChange={(e) => setPaymentDueDay(e.target.value)}
+                    />
+                  </div>
                 )}
 
-                <div className="space-y-2">
-                  <Label htmlFor="monthly-payment">
-                    Monthly Payment (Optional)
-                  </Label>
-                  <Input
-                    id="monthly-payment"
-                    type="number"
-                    step="0.01"
-                    placeholder="Leave blank for 10% of amount"
-                    value={monthlyPayment}
-                    onChange={(e) => setMonthlyPayment(e.target.value)}
-                  />
-                </div>
+                {debtType === "amortizing" && (
+                  <div className="space-y-2">
+                    <Label htmlFor="monthly-payment">Monthly Payment Amount</Label>
+                    <Input
+                      id="monthly-payment"
+                      type="number"
+                      step="0.01"
+                      placeholder="5000"
+                      value={monthlyPayment}
+                      onChange={(e) => setMonthlyPayment(e.target.value)}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Amount you'll pay each month
+                    </p>
+                  </div>
+                )}
               </TabsContent>
 
               {/* SAVINGS TAB */}
