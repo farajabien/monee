@@ -149,26 +149,6 @@ export function CashFlowHealthCard({
           </div>
         </div>
 
-        {/* Remaining Balance - Hero Metric */}
-        <div className="py-3 px-4 rounded-lg bg-muted/50 border-2 border-muted">
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">
-                  Available Balance
-                </span>
-                <DisciplineIcon className={`h-4 w-4 ${disciplineColorClass}`} />
-              </div>
-              <div className={`text-3xl font-bold ${balanceColorClass}`}>
-                {formatCurrency(remainingBalance)}
-              </div>
-              <div className="text-xs text-muted-foreground">
-                {percentageSpent.toFixed(0)}% of income spent
-              </div>
-            </div>
-          </div>
-        </div>
-
         {/* Daily Allowance - Prominent Display */}
         <div className="py-3 px-4 rounded-lg bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30">
           <div className="space-y-2">

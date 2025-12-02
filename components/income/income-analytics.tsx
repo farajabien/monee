@@ -220,60 +220,53 @@ export function IncomeAnalytics() {
 
   return (
     <div className="space-y-6">
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Monthly Income
-            </CardTitle>
-            <TrendingUp className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              KSh {totalMonthlyIncome.toLocaleString()}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {incomeSources.length} active source
-              {incomeSources.length !== 1 ? "s" : ""}
-            </p>
-          </CardContent>
-        </Card>
+      {/* Summary Metrics - Horizontal Grid */}
+      <div className="grid grid-cols-3 gap-2 sm:gap-4">
+        <div className="bg-card rounded-lg border p-3 sm:p-4">
+          <div className="flex items-center justify-between mb-1">
+            <p className="text-xs text-muted-foreground">Monthly Income</p>
+            <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-green-600" />
+          </div>
+          <p className="text-base sm:text-xl font-bold">
+            KSh {(totalMonthlyIncome / 1000).toFixed(0)}k
+          </p>
+          <p className="text-[10px] sm:text-xs text-muted-foreground">
+            {incomeSources.length} source{incomeSources.length !== 1 ? "s" : ""}
+          </p>
+        </div>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Next Payday</CardTitle>
-            <Calendar className="h-4 w-4 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {nextPayday
-                ? nextPayday.toLocaleDateString("en-US", {
-                    month: "short",
-                    day: "numeric",
-                  })
-                : "Not set"}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {daysUntilPayday !== null
-                ? `${daysUntilPayday} day${daysUntilPayday !== 1 ? "s" : ""}`
-                : "Add payday to income source"}
-            </p>
-          </CardContent>
-        </Card>
+        <div className="bg-card rounded-lg border p-3 sm:p-4">
+          <div className="flex items-center justify-between mb-1">
+            <p className="text-xs text-muted-foreground">Next Payday</p>
+            <Calendar className="h-3 w-3 sm:h-4 sm:w-4 text-primary" />
+          </div>
+          <p className="text-base sm:text-xl font-bold">
+            {nextPayday
+              ? nextPayday.toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                })
+              : "Not set"}
+          </p>
+          <p className="text-[10px] sm:text-xs text-muted-foreground">
+            {daysUntilPayday !== null
+              ? `${daysUntilPayday} day${daysUntilPayday !== 1 ? "s" : ""}`
+              : "Add payday"}
+          </p>
+        </div>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Daily Average</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              KSh {Math.round(totalMonthlyIncome / 30).toLocaleString()}
-            </div>
-            <p className="text-xs text-muted-foreground">Per day estimate</p>
-          </CardContent>
-        </Card>
+        <div className="bg-card rounded-lg border p-3 sm:p-4">
+          <div className="flex items-center justify-between mb-1">
+            <p className="text-xs text-muted-foreground">Daily Average</p>
+            <DollarSign className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
+          </div>
+          <p className="text-base sm:text-xl font-bold">
+            KSh {(Math.round(totalMonthlyIncome / 30) / 1000).toFixed(1)}k
+          </p>
+          <p className="text-[10px] sm:text-xs text-muted-foreground">
+            Per day estimate
+          </p>
+        </div>
       </div>
 
       {/* Tabs for Analytics */}
