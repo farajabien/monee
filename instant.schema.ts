@@ -69,6 +69,7 @@ const _schema = i.schema({
     income_sources: i.entity({
       name: i.string().indexed(),
       amount: i.number().indexed(),
+      frequency: i.string().indexed(),
       paydayDay: i.number(),
       paydayMonth: i.number().optional(),
       isActive: i.boolean(),
@@ -116,7 +117,7 @@ const _schema = i.schema({
     }),
     savings_contributions: i.entity({
       amount: i.number().indexed(),
-      contributionDate: i.number().indexed(),
+      date: i.number().indexed(),
       notes: i.string().optional(),
       createdAt: i.number().indexed(),
     }),
@@ -216,7 +217,11 @@ const _schema = i.schema({
     },
     recurringTransactionExpenses: {
       forward: { on: "expenses", has: "one", label: "recurringTransaction" },
-      reverse: { on: "recurring_transactions", has: "many", label: "linkedExpenses" },
+      reverse: {
+        on: "recurring_transactions",
+        has: "many",
+        label: "linkedExpenses",
+      },
     },
     profileFeedback: {
       forward: { on: "feedback", has: "one", label: "user" },

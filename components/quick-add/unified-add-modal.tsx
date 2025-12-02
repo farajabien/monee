@@ -61,6 +61,11 @@ export function UnifiedAddModal({
 
   // Fetch data
   const { data } = db.useQuery({
+    profiles: {
+      $: {
+        where: { id: user.id },
+      },
+    },
     categories: {
       $: {
         where: { "user.id": user.id, isActive: true },
@@ -80,6 +85,7 @@ export function UnifiedAddModal({
     },
   });
 
+  const profile = data?.profiles?.[0];
   const categories: Category[] = data?.categories || [];
   const savedRecipients: Recipient[] = data?.recipients || [];
   const expenses = data?.expenses || [];
@@ -168,6 +174,7 @@ export function UnifiedAddModal({
               .update({
                 name: sourceName,
                 amount: parsedAmount,
+                frequency: frequency,
                 isActive: true,
                 createdAt: now,
               })
@@ -210,8 +217,10 @@ export function UnifiedAddModal({
             toast.error("Please enter a target amount");
             return;
           }
-          await db.transact(
-            db.tx.savings_goals[id()]
+
+          const goalId = id();
+          await db.transact([
+            db.tx.savings_goals[goalId]
               .update({
                 name: savingsName,
                 targetAmount: parseFloat(targetAmount),
@@ -220,8 +229,21 @@ export function UnifiedAddModal({
                 isCompleted: false,
                 createdAt: now,
               })
-              .link({ user: user.id })
-          );
+              .link({ user: user.id }),
+            // Add initial contribution if amount > 0
+            ...(parsedAmount > 0
+              ? [
+                  db.tx.savings_contributions[id()]
+                    .update({
+                      amount: parsedAmount,
+                      date: now,
+                      notes: "Initial contribution",
+                      createdAt: now,
+                    })
+                    .link({ goal: goalId }),
+                ]
+              : []),
+          ]);
           toast.success("Savings goal added successfully");
           break;
 
@@ -231,6 +253,15 @@ export function UnifiedAddModal({
             return;
           }
           const currentDate = new Date();
+          const selectedCategoryObj = categories.find(
+            (c) => c.name === selectedCategory
+          );
+
+          if (!selectedCategoryObj) {
+            toast.error("Category not found");
+            return;
+          }
+
           await db.transact(
             db.tx.budgets[id()]
               .update({
@@ -240,8 +271,7 @@ export function UnifiedAddModal({
               })
               .link({
                 user: user.id,
-                category: categories.find((c) => c.name === selectedCategory)
-                  ?.id,
+                category: selectedCategoryObj.id,
               })
           );
           toast.success("Budget added successfully");
@@ -285,7 +315,11 @@ export function UnifiedAddModal({
             <form onSubmit={handleSubmit} className="space-y-4 pt-4">
               {/* Common: Amount */}
               <div className="space-y-2">
-                <Label htmlFor="amount">Amount (KES)</Label>
+                <Label htmlFor="amount">
+                  {activeTab === "savings"
+                    ? "Initial Contribution (KES)"
+                    : "Amount (KES)"}
+                </Label>
                 <Input
                   id="amount"
                   type="number"
@@ -515,7 +549,8 @@ export function UnifiedAddModal({
                 </div>
 
                 <p className="text-xs text-muted-foreground">
-                  Amount will be set as initial contribution
+                  Initial contribution will be recorded if amount is greater
+                  than 0
                 </p>
               </TabsContent>
 
