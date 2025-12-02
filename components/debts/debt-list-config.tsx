@@ -6,26 +6,9 @@
 
 import type { ListConfig, FilterConfig } from "@/types/list-config";
 import type { DebtWithUser } from "@/types";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import {
-  TrendingDown,
-  CheckCircle,
-  Clock,
-  Calendar,
-  ArrowRight,
-} from "lucide-react";
+import { TrendingDown, Clock } from "lucide-react";
 import db from "@/lib/db";
-
-// Helper functions
-const formatAmount = (amount: number) => {
-  return new Intl.NumberFormat("en-KE", {
-    style: "currency",
-    currency: "KES",
-    minimumFractionDigits: 0,
-  }).format(amount);
-};
 
 const formatCompactAmount = (amount: number) => {
   if (amount >= 1000000) return `💰${(amount / 1000000).toFixed(1)}M`;
@@ -315,6 +298,29 @@ export const createDebtListConfig = (
 
         {/* Action buttons */}
         <div className="flex gap-1">
+          {!isPaidOff && actions.customActions && actions.customActions[0] && (
+            <button
+              onClick={() => actions.customActions![0].onClick(item)}
+              className="p-2 hover:bg-accent rounded bg-green-50 dark:bg-green-950 text-green-600 dark:text-green-400"
+              aria-label="Pay"
+              title="Record Payment"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M9 11l3 3L22 4" />
+                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+              </svg>
+            </button>
+          )}
           {actions.onEdit && (
             <button
               onClick={actions.onEdit}
@@ -373,6 +379,13 @@ export const createDebtListConfig = (
     delete: async (id: string) => {
       await db.transact(db.tx.debts[id].delete());
     },
+    custom: [
+      {
+        label: "Record Payment",
+        onClick: (item: DebtWithUser) => onRecordPayment(item),
+        condition: (item: DebtWithUser) => item.currentBalance > 0,
+      },
+    ],
   },
 
   // Data transformation

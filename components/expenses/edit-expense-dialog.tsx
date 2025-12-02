@@ -21,8 +21,9 @@ import {
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import { AddCategoryDialog } from "@/components/categories/add-category-dialog";
-import type { Expense, Category } from "@/types";
+import type { Expense, Category, RecurringFrequency } from "@/types";
 
 interface EditExpenseDialogProps {
   open: boolean;
@@ -40,6 +41,10 @@ export function EditExpenseDialog({
   const [amount, setAmount] = useState<string>("");
   const [recipient, setRecipient] = useState<string>("");
   const [notes, setNotes] = useState<string>("");
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [recurringFrequency, setRecurringFrequency] = useState<RecurringFrequency>("monthly");
+  const [nextDueDate, setNextDueDate] = useState(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
+  const [reminderDays, setReminderDays] = useState("3");
   const [showAddCategoryDialog, setShowAddCategoryDialog] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -70,6 +75,7 @@ export function EditExpenseDialog({
       setAmount(expense.amount.toString());
       setRecipient(expense.recipient || "");
       setNotes(expense.notes || "");
+      setIsRecurring(expense.isRecurring || false);
     }
   }, [expense]);
 
@@ -91,6 +97,7 @@ export function EditExpenseDialog({
           amount: parsedAmount,
           recipient: recipient.trim() || "Unknown",
           notes: notes.trim() || undefined,
+          isRecurring: isRecurring,
         })
       );
       onOpenChange(false);
@@ -181,6 +188,60 @@ export function EditExpenseDialog({
                 </Button>
               </div>
             </div>
+
+            <div className="flex items-center justify-between py-2">
+              <Label htmlFor="recurring-toggle" className="text-sm font-medium">
+                Recurring Expense
+              </Label>
+              <Switch
+                id="recurring-toggle"
+                checked={isRecurring}
+                onCheckedChange={setIsRecurring}
+              />
+            </div>
+
+            {isRecurring && (
+              <div className="space-y-4 p-4 border rounded-lg bg-muted/50">
+                <div className="space-y-2">
+                  <Label htmlFor="recurring-frequency">Frequency</Label>
+                  <Select value={recurringFrequency} onValueChange={(value) => setRecurringFrequency(value as RecurringFrequency)}>
+                    <SelectTrigger id="recurring-frequency">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="weekly">Weekly</SelectItem>
+                      <SelectItem value="biweekly">Bi-weekly</SelectItem>
+                      <SelectItem value="monthly">Monthly</SelectItem>
+                      <SelectItem value="quarterly">Quarterly</SelectItem>
+                      <SelectItem value="annually">Annually</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="next-due-date">Next Due Date</Label>
+                  <Input
+                    id="next-due-date"
+                    type="date"
+                    value={nextDueDate}
+                    onChange={(e) => setNextDueDate(e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="reminder-days">Reminder (days before)</Label>
+                  <Input
+                    id="reminder-days"
+                    type="number"
+                    placeholder="3"
+                    value={reminderDays}
+                    onChange={(e) => setReminderDays(e.target.value)}
+                    min="0"
+                    max="30"
+                  />
+                </div>
+              </div>
+            )}
 
             <div className="space-y-2">
               <Label htmlFor="notes">Notes (Optional)</Label>
