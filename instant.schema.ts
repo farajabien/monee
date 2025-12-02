@@ -118,6 +118,7 @@ const _schema = i.schema({
     savings_contributions: i.entity({
       amount: i.number().indexed(),
       date: i.number().indexed(),
+      contributionDate: i.number().indexed(),
       notes: i.string().optional(),
       createdAt: i.number().indexed(),
     }),

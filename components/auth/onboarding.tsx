@@ -384,6 +384,7 @@ export default function Onboarding() {
             .update({
               name: source.name,
               amount: parseFloat(source.amount),
+              frequency: source.isIrregular ? "irregular" : "monthly",
               paydayDay: source.paydayDay ? parseInt(source.paydayDay) : 0,
               paydayMonth: source.paydayMonth
                 ? parseInt(source.paydayMonth)

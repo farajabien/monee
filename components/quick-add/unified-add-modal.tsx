@@ -141,9 +141,10 @@ export function UnifiedAddModal({
 
           if (!finalRecipient) {
             toast.error("Please select or enter a recipient");
+            setIsSubmitting(false);
             return;
           }
-          await db.transact(
+          await db.transact([
             db.tx.expenses[id()]
               .update({
                 amount: parsedAmount,
@@ -159,17 +160,18 @@ export function UnifiedAddModal({
                 },
                 createdAt: now,
               })
-              .link({ user: user.id })
-          );
+              .link({ user: profile?.id }),
+          ]);
           toast.success("Expense added successfully");
           break;
 
         case "income":
           if (!sourceName) {
             toast.error("Please enter a source name");
+            setIsSubmitting(false);
             return;
           }
-          await db.transact(
+          await db.transact([
             db.tx.income_sources[id()]
               .update({
                 name: sourceName,
@@ -178,17 +180,18 @@ export function UnifiedAddModal({
                 isActive: true,
                 createdAt: now,
               })
-              .link({ user: user.id })
-          );
+              .link({ user: profile?.id }),
+          ]);
           toast.success("Income source added successfully");
           break;
 
         case "debt":
           if (!debtName) {
             toast.error("Please enter a debt name");
+            setIsSubmitting(false);
             return;
           }
-          await db.transact(
+          await db.transact([
             db.tx.debts[id()]
               .update({
                 name: debtName,
@@ -203,18 +206,20 @@ export function UnifiedAddModal({
                 paymentDueDay: 1,
                 createdAt: now,
               })
-              .link({ user: user.id })
-          );
+              .link({ user: profile?.id }),
+          ]);
           toast.success("Debt added successfully");
           break;
 
         case "savings":
           if (!savingsName) {
             toast.error("Please enter a goal name");
+            setIsSubmitting(false);
             return;
           }
           if (!targetAmount) {
             toast.error("Please enter a target amount");
+            setIsSubmitting(false);
             return;
           }
 
@@ -229,7 +234,7 @@ export function UnifiedAddModal({
                 isCompleted: false,
                 createdAt: now,
               })
-              .link({ user: user.id }),
+              .link({ user: profile?.id }),
             // Add initial contribution if amount > 0
             ...(parsedAmount > 0
               ? [
@@ -250,6 +255,7 @@ export function UnifiedAddModal({
         case "budget":
           if (!selectedCategory) {
             toast.error("Please select a category");
+            setIsSubmitting(false);
             return;
           }
           const currentDate = new Date();
@@ -259,10 +265,11 @@ export function UnifiedAddModal({
 
           if (!selectedCategoryObj) {
             toast.error("Category not found");
+            setIsSubmitting(false);
             return;
           }
 
-          await db.transact(
+          await db.transact([
             db.tx.budgets[id()]
               .update({
                 amount: parsedAmount,
@@ -270,10 +277,10 @@ export function UnifiedAddModal({
                 year: currentDate.getFullYear(),
               })
               .link({
-                user: user.id,
+                user: profile?.id,
                 category: selectedCategoryObj.id,
-              })
-          );
+              }),
+          ]);
           toast.success("Budget added successfully");
           break;
       }
