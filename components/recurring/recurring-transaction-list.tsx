@@ -102,7 +102,7 @@ export function RecurringTransactionList() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="">
         <div>
           <h2 className="text-2xl font-bold">Recurring Transactions</h2>
           <p className="text-sm text-muted-foreground">
@@ -126,8 +126,9 @@ export function RecurringTransactionList() {
               No recurring transactions yet
             </h3>
             <p className="text-sm text-muted-foreground text-center max-w-md mb-4">
-              Add your recurring payments like rent, subscriptions, and utilities
-              to automatically match them with your M-PESA transactions.
+              Add your recurring payments like rent, subscriptions, and
+              utilities to automatically match them with your M-PESA
+              transactions.
             </p>
             <Button onClick={() => setShowDialog(true)}>
               <Plus className="h-4 w-4 mr-2" />
@@ -249,7 +250,9 @@ function TransactionCard({
             </CardDescription>
           </div>
           <div className="text-right">
-            <p className="text-xl font-bold">{formatCurrency(transaction.amount)}</p>
+            <p className="text-xl font-bold">
+              {formatCurrency(transaction.amount)}
+            </p>
             <p className="text-xs text-muted-foreground capitalize">
               {transaction.frequency}
             </p>
@@ -317,15 +320,11 @@ function TransactionCard({
               </Button>
             </div>
           ) : (
-            <div className="flex items-center gap-2 pt-2 bg-red-50 dark:bg-red-950/20 p-3 rounded-md">
+            <div className="flex items-center gap-2 pt-2 bg-destructive/10 p-3 rounded-md">
               <p className="text-sm flex-1">
                 Are you sure you want to delete this recurring transaction?
               </p>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={onCancelDelete}
-              >
+              <Button size="sm" variant="outline" onClick={onCancelDelete}>
                 Cancel
               </Button>
               <Button
