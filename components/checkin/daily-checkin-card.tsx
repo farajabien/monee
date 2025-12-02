@@ -22,52 +22,81 @@ export default function DailyCheckinCard() {
   today.setHours(0, 0, 0, 0);
   const todayTimestamp = today.getTime();
 
-  const { data: checkinData } = db.useQuery({
-    daily_checkins: {
-      $: {
-        where: {
-          "user.id": user.id,
-          date: todayTimestamp,
-        },
-      },
-    },
-  });
+  const { data: checkinData } = db.useQuery(
+    user?.id
+      ? {
+          profiles: {
+            $: {
+              where: {
+                date: todayTimestamp,
+              },
+            },
+            dailyCheckins: {
+              $: {
+                where: {
+                  "profile.date": todayTimestamp,
+                },
+              },
+            },
+          },
+        }
+      : {}
+  );
 
-  const todayCheckin = checkinData?.daily_checkins?.[0];
+  const profile = checkinData?.profiles?.[0];
+  const todayCheckin = profile?.dailyCheckins?.[0];
 
   // Get today's expenses
-  const { data: expensesData } = db.useQuery({
-    expenses: {
-      $: {
-        where: {
-          "user.id": user.id,
-          date: { $gte: todayTimestamp },
-        },
-        order: { createdAt: "desc" },
-      },
-    },
-  });
+  const { data: expensesData } = db.useQuery(
+    user?.id
+      ? {
+          profiles: {
+            $: {
+              where: {
+                "user.id": user.id,
+              },
+            },
+            expenses: {
+              $: {
+                where: {
+                  date: { $gte: todayTimestamp },
+                },
+                order: { createdAt: "desc" },
+              },
+            },
+          },
+        }
+      : {}
+  );
 
-  const todayExpenses = expensesData?.expenses || [];
+  const todayExpenses = expensesData?.profiles?.[0]?.expenses || [];
 
   // Fetch existing expenses for recipient matching
-  const { data: allExpensesData } = db.useQuery({
-    expenses: {
-      $: {
-        where: { "user.id": user.id },
-        limit: 1000, // Get enough expenses for matching
-      },
-    },
-  });
+  const { data: allExpensesData } = db.useQuery(
+    user?.id
+      ? {
+          profiles: {
+            $: {
+              where: { "user.id": user.id },
+            },
+            expenses: {
+              $: {
+                limit: 1000, // Get enough expenses for matching
+              },
+            },
+          },
+        }
+      : {}
+  );
 
   const existingExpenses: Expense[] = useMemo(
-    () => allExpensesData?.expenses || [],
+    () => allExpensesData?.profiles?.[0]?.expenses || [],
     [allExpensesData]
   );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!messages.trim()) return;
+    if (!messages.trim() || !profile) return;
 
     setIsSubmitting(true);
     try {
@@ -105,7 +134,7 @@ export default function DailyCheckinCard() {
       // Create all expenses first
       for (const t of expenses) {
         await db.transact(
-          db.tx.expenses[id()].update(t).link({ user: user.id })
+          db.tx.expenses[id()].update(t).link({ profile: profile.id })
         );
       }
 
@@ -125,7 +154,7 @@ export default function DailyCheckinCard() {
               completed: true,
               expensesCount: expenses.length,
             })
-            .link({ user: user.id })
+            .link({ profile: profile.id })
         );
       }
       setMessages("");

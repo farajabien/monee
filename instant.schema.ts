@@ -162,11 +162,11 @@ const _schema = i.schema({
       reverse: { on: "$users", has: "one", label: "profile" },
     },
     profileExpenses: {
-      forward: { on: "expenses", has: "one", label: "user" },
+      forward: { on: "expenses", has: "one", label: "profile" },
       reverse: { on: "profiles", has: "many", label: "expenses" },
     },
     profileCategories: {
-      forward: { on: "categories", has: "one", label: "user" },
+      forward: { on: "categories", has: "one", label: "profile" },
       reverse: { on: "profiles", has: "many", label: "categories" },
     },
     categoryBudgets: {
@@ -174,23 +174,23 @@ const _schema = i.schema({
       reverse: { on: "categories", has: "many", label: "budgets" },
     },
     profileBudgets: {
-      forward: { on: "budgets", has: "one", label: "user" },
+      forward: { on: "budgets", has: "one", label: "profile" },
       reverse: { on: "profiles", has: "many", label: "budgets" },
     },
     profileEltiwItems: {
-      forward: { on: "eltiw_items", has: "one", label: "user" },
+      forward: { on: "eltiw_items", has: "one", label: "profile" },
       reverse: { on: "profiles", has: "many", label: "eltiwItems" },
     },
     profileDailyCheckins: {
-      forward: { on: "daily_checkins", has: "one", label: "user" },
+      forward: { on: "daily_checkins", has: "one", label: "profile" },
       reverse: { on: "profiles", has: "many", label: "dailyCheckins" },
     },
     profileIncomeSources: {
-      forward: { on: "income_sources", has: "one", label: "user" },
+      forward: { on: "income_sources", has: "one", label: "profile" },
       reverse: { on: "profiles", has: "many", label: "incomeSources" },
     },
     profileDebts: {
-      forward: { on: "debts", has: "one", label: "user" },
+      forward: { on: "debts", has: "one", label: "profile" },
       reverse: { on: "profiles", has: "many", label: "debts" },
     },
     debtPayments: {
@@ -198,11 +198,11 @@ const _schema = i.schema({
       reverse: { on: "debts", has: "many", label: "payments" },
     },
     profileRecipients: {
-      forward: { on: "recipients", has: "one", label: "user" },
+      forward: { on: "recipients", has: "one", label: "profile" },
       reverse: { on: "profiles", has: "many", label: "recipients" },
     },
     profileSavingsGoals: {
-      forward: { on: "savings_goals", has: "one", label: "user" },
+      forward: { on: "savings_goals", has: "one", label: "profile" },
       reverse: { on: "profiles", has: "many", label: "savingsGoals" },
     },
     savingsGoalContributions: {
@@ -210,11 +210,11 @@ const _schema = i.schema({
       reverse: { on: "savings_goals", has: "many", label: "contributions" },
     },
     profileStatementExpenses: {
-      forward: { on: "statement_expenses", has: "one", label: "user" },
+      forward: { on: "statement_expenses", has: "one", label: "profile" },
       reverse: { on: "profiles", has: "many", label: "statementExpenses" },
     },
     profileRecurringTransactions: {
-      forward: { on: "recurring_transactions", has: "one", label: "user" },
+      forward: { on: "recurring_transactions", has: "one", label: "profile" },
       reverse: { on: "profiles", has: "many", label: "recurringTransactions" },
     },
     recurringTransactionExpenses: {
@@ -226,7 +226,7 @@ const _schema = i.schema({
       },
     },
     profileFeedback: {
-      forward: { on: "feedback", has: "one", label: "user" },
+      forward: { on: "feedback", has: "one", label: "profile" },
       reverse: { on: "profiles", has: "many", label: "feedback" },
     },
   },

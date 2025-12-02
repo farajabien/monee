@@ -114,7 +114,7 @@ export function UnifiedAddModal({
       return;
     }
 
-    if (!user?.id) {
+    if (!user?.id || !profile?.id) {
       toast.error("User not found. Please try again.");
       return;
     }
@@ -153,7 +153,7 @@ export function UnifiedAddModal({
                 },
                 createdAt: now,
               })
-              .link({ user: user.id }),
+              .link({ profile: profile.id }),
           ]);
           toast.success("Expense added successfully");
           break;
@@ -174,7 +174,7 @@ export function UnifiedAddModal({
                 paydayDay: 1,
                 createdAt: now,
               })
-              .link({ user: user.id }),
+              .link({ profile: profile.id }),
           ]);
           toast.success("Income source added successfully");
           break;
@@ -204,7 +204,7 @@ export function UnifiedAddModal({
                 paymentDueDay: 1,
                 createdAt: now,
               })
-              .link({ user: user.id }),
+              .link({ profile: profile.id }),
           ]);
           toast.success("Debt added successfully");
           break;
@@ -232,7 +232,7 @@ export function UnifiedAddModal({
                 isCompleted: false,
                 createdAt: now,
               })
-              .link({ user: user.id }),
+              .link({ profile: profile.id }),
             // Add initial contribution if amount > 0
             ...(parsedAmount > 0
               ? [
@@ -275,7 +275,7 @@ export function UnifiedAddModal({
                 month: currentDate.getMonth() + 1,
                 year: currentDate.getFullYear(),
               })
-              .link({ category: selectedCategoryObj.id, user: user.id }),
+              .link({ category: selectedCategoryObj.id, profile: profile.id }),
           ]);
           toast.success("Budget added successfully");
           break;
@@ -304,7 +304,9 @@ export function UnifiedAddModal({
           }}
         >
           <DialogHeader>
-            <DialogTitle>Add New</DialogTitle>
+            <DialogTitle>
+              Add New {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
+            </DialogTitle>
           </DialogHeader>
 
           <Tabs

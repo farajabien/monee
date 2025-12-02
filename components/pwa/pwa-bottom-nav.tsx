@@ -6,7 +6,6 @@ import { usePathname, useSearchParams } from "next/navigation";
 import {
   Home,
   CreditCard,
-  Users,
   TrendingUp,
   MoreHorizontal,
   Settings,
@@ -14,7 +13,6 @@ import {
   Wallet,
   X,
   LogOut,
-  Repeat,
 } from "lucide-react";
 import {
   AlertDialog,

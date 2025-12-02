@@ -60,18 +60,18 @@ export function ManualExpenseDialog({
   const { data } = db.useQuery({
     categories: {
       $: {
-        where: { "user.id": user.id },
+        where: { "profile.user.id": user.id },
         order: { name: "asc" },
       },
     },
     recipients: {
       $: {
-        where: { "user.id": user.id },
+        where: { "profile.user.id": user.id },
       },
     },
     expenses: {
       $: {
-        where: { "user.id": user.id },
+        where: { "profile.user.id": user.id },
       },
     },
   });
@@ -90,7 +90,9 @@ export function ManualExpenseDialog({
 
   // Helper to get display name (nickname or original)
   const getDisplayName = (originalName: string) => {
-    const recipient = savedRecipients.find((r) => r.originalName === originalName);
+    const recipient = savedRecipients.find(
+      (r) => r.originalName === originalName
+    );
     return recipient?.nickname || originalName;
   };
 
@@ -125,7 +127,7 @@ export function ManualExpenseDialog({
       };
 
       await db.transact(
-        db.tx.expenses[id()].update(expenseData).link({ user: user.id })
+        db.tx.expenses[id()].update(expenseData).link({ profile: user.id })
       );
 
       // Reset form
@@ -310,20 +312,28 @@ export function ManualExpenseDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="mpesa-reference" className="flex items-center gap-2">
+              <Label
+                htmlFor="mpesa-reference"
+                className="flex items-center gap-2"
+              >
                 M-PESA Reference Code
-                <span className="text-xs font-normal text-muted-foreground">(Recommended)</span>
+                <span className="text-xs font-normal text-muted-foreground">
+                  (Recommended)
+                </span>
               </Label>
               <Input
                 id="mpesa-reference"
                 type="text"
                 placeholder="e.g., TKJPNAJ1D1"
                 value={mpesaReference}
-                onChange={(e) => setMpesaReference(e.target.value.toUpperCase())}
+                onChange={(e) =>
+                  setMpesaReference(e.target.value.toUpperCase())
+                }
                 maxLength={20}
               />
               <p className="text-xs text-muted-foreground">
-                Enter the M-PESA transaction code to prevent duplicate entries when importing statements
+                Enter the M-PESA transaction code to prevent duplicate entries
+                when importing statements
               </p>
             </div>
 

@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import db from "@/lib/db";
 
-import { BudgetList } from "@/components/budgets/budget-list";
 import CategoryList from "@/components/categories/category-list";
 import { DashboardOverview } from "@/components/dashboard/dashboard-overview";
 import { DebtList } from "@/components/debts/debt-list";

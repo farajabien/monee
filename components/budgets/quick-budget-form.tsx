@@ -32,23 +32,28 @@ export function QuickBudgetForm({ onSuccess }: QuickBudgetFormProps) {
   const [showAddCategoryDialog, setShowAddCategoryDialog] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Fetch categories
-  const { data: categoriesData } = db.useQuery({
-    categories: {
+  // Fetch profile and categories
+  const { data } = db.useQuery({
+    profiles: {
       $: {
         where: { "user.id": user.id },
-        order: { name: "asc" },
+      },
+      categories: {
+        $: {
+          order: { name: "asc" },
+        },
       },
     },
   });
 
-  const categories: Category[] = (categoriesData?.categories || []).filter(
+  const profile = data?.profiles?.[0];
+  const categories: Category[] = (profile?.categories || []).filter(
     (category) => category.isActive !== false
   );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedCategoryId || !amount) {
+    if (!selectedCategoryId || !amount || !profile) {
       toast.error("Please select a category and enter an amount");
       return;
     }
@@ -64,7 +69,7 @@ export function QuickBudgetForm({ onSuccess }: QuickBudgetFormProps) {
       await db.transact(
         db.tx.budgets[id()]
           .update(budgetData)
-          .link({ category: selectedCategoryId, user: user.id })
+          .link({ category: selectedCategoryId, profile: profile.id })
       );
 
       toast.success("Budget added successfully!");
@@ -84,10 +89,13 @@ export function QuickBudgetForm({ onSuccess }: QuickBudgetFormProps) {
     }
   };
 
-  const monthName = new Date(currentYear, currentMonth - 1).toLocaleDateString("en-US", {
-    month: "long",
-    year: "numeric",
-  });
+  const monthName = new Date(currentYear, currentMonth - 1).toLocaleDateString(
+    "en-US",
+    {
+      month: "long",
+      year: "numeric",
+    }
+  );
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 p-4">
@@ -98,7 +106,10 @@ export function QuickBudgetForm({ onSuccess }: QuickBudgetFormProps) {
       <div className="space-y-2">
         <Label htmlFor="category">Category</Label>
         <div className="flex gap-2">
-          <Select value={selectedCategoryId} onValueChange={setSelectedCategoryId}>
+          <Select
+            value={selectedCategoryId}
+            onValueChange={setSelectedCategoryId}
+          >
             <SelectTrigger className="flex-1" id="category">
               <SelectValue placeholder="Select category" />
             </SelectTrigger>

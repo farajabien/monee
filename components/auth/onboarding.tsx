@@ -353,7 +353,7 @@ export default function Onboarding() {
           const categoryId = id();
           return db.tx.categories[categoryId]
             .update(cat)
-            .link({ user: profile.id });
+            .link({ profile: profile.id });
         });
 
         if (txs.length > 0) {
@@ -398,7 +398,7 @@ export default function Onboarding() {
               isActive: true,
               createdAt: Date.now(),
             })
-            .link({ user: profile.id });
+            .link({ profile: profile.id });
         });
 
         await db.transact(txs);
@@ -432,7 +432,7 @@ export default function Onboarding() {
                 parsedData: {},
                 createdAt: Date.now(),
               })
-              .link({ user: profile.id });
+              .link({ profile: profile.id });
           });
 
           await db.transact(txs);
@@ -501,7 +501,7 @@ export default function Onboarding() {
 
             return db.tx.debts[debtId]
               .update(debtData)
-              .link({ user: profile.id });
+              .link({ profile: profile.id });
           });
 
           await db.transact(txs);
@@ -540,7 +540,7 @@ export default function Onboarding() {
                 isCompleted: false,
                 createdAt: Date.now(),
               })
-              .link({ user: profile.id });
+              .link({ profile: profile.id });
           });
 
           await db.transact(txs);

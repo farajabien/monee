@@ -55,7 +55,7 @@ export function QuickDebtForm({ onSuccess, debt }: QuickDebtFormProps) {
       } else {
         // Create new debt
         await db.transact(
-          db.tx.debts[id()].update(debtData).link({ user: user.id })
+          db.tx.debts[id()].update(debtData).link({ profile: user.id })
         );
         toast.success("Debt added successfully!");
       }

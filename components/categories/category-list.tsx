@@ -99,7 +99,7 @@ export default function CategoryList() {
   };
 
   const handleSubmit = async () => {
-    if (!name.trim()) return;
+    if (!name.trim() || !profile) return;
 
     await db.transact(
       db.tx.categories[id()]
@@ -109,7 +109,7 @@ export default function CategoryList() {
           icon: "",
           isActive: true,
         })
-        .link({ user: user.id })
+        .link({ profile: profile.id })
     );
 
     handleModalChange(false);
@@ -123,7 +123,7 @@ export default function CategoryList() {
           isActive: nextState,
         })
       );
-    } else if (nextState) {
+    } else if (nextState && profile) {
       // Create new category for this user (from template)
       await db.transact(
         db.tx.categories[id()]
@@ -133,7 +133,7 @@ export default function CategoryList() {
             icon: "",
             isActive: true,
           })
-          .link({ user: user.id })
+          .link({ profile: profile.id })
       );
     }
   };

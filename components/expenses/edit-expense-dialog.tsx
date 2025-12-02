@@ -35,7 +35,7 @@ export function EditExpenseDialog({
   onOpenChange,
   expense,
 }: EditExpenseDialogProps) {
-  const { user } = db.useAuth();
+  const user = db.useUser();
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [amount, setAmount] = useState<string>("");
   const [recipient, setRecipient] = useState<string>("");
@@ -43,28 +43,22 @@ export function EditExpenseDialog({
   const [showAddCategoryDialog, setShowAddCategoryDialog] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Fetch user profile
-  const { data: profileData } = db.useQuery({
+  // Fetch profile and categories
+  const { data } = db.useQuery({
     profiles: {
       $: {
-        where: { "user.id": user?.id },
+        where: { "user.id": user.id },
+      },
+      categories: {
+        $: {
+          order: { name: "asc" },
+        },
       },
     },
   });
 
-  const profile = profileData?.profiles?.[0];
-
-  // Fetch categories
-  const { data: categoriesData } = db.useQuery({
-    categories: {
-      $: {
-        where: { "user.id": profile?.id },
-        order: { name: "asc" },
-      },
-    },
-  });
-
-  const categories: Category[] = (categoriesData?.categories || []).filter(
+  const profile = data?.profiles?.[0];
+  const categories: Category[] = (profile?.categories || []).filter(
     (category) =>
       category.isActive !== false || category.name === selectedCategory
   );

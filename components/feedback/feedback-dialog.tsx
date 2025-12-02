@@ -45,9 +45,22 @@ interface FeedbackDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-type FeedbackType = "Bug" | "Feature" | "Suggestion" | "UI/UX" | "Performance" | "General";
+type FeedbackType =
+  | "Bug"
+  | "Feature"
+  | "Suggestion"
+  | "UI/UX"
+  | "Performance"
+  | "General";
 type Priority = "Low" | "Medium" | "High";
-type AffectedArea = "Expenses" | "Debts" | "Savings" | "Income" | "Dashboard" | "Settings" | "Other";
+type AffectedArea =
+  | "Expenses"
+  | "Debts"
+  | "Savings"
+  | "Income"
+  | "Dashboard"
+  | "Settings"
+  | "Other";
 
 const FEEDBACK_TYPES = [
   {
@@ -235,7 +248,7 @@ export function FeedbackDialog({ open, onOpenChange }: FeedbackDialogProps) {
           userEmail: userEmail || undefined,
           createdAt: Date.now(),
         }),
-        db.tx.feedback[feedbackId].link({ user: profile.id }),
+        db.tx.feedback[feedbackId].link({ profile: profile.id }),
       ]);
 
       toast.success("Thank you for your feedback!", {
@@ -257,7 +270,9 @@ export function FeedbackDialog({ open, onOpenChange }: FeedbackDialogProps) {
       return (
         <div className="space-y-4">
           <div className="text-center mb-6">
-            <h3 className="text-lg font-semibold mb-2">What would you like to share?</h3>
+            <h3 className="text-lg font-semibold mb-2">
+              What would you like to share?
+            </h3>
             <p className="text-sm text-muted-foreground">
               Select the type that best describes your feedback
             </p>
@@ -346,9 +361,17 @@ export function FeedbackDialog({ open, onOpenChange }: FeedbackDialogProps) {
           {feedbackType !== "General" && (
             <div className="space-y-2">
               <Label htmlFor="affectedArea">
-                Which area is affected? <span className="text-muted-foreground text-xs">(Optional)</span>
+                Which area is affected?{" "}
+                <span className="text-muted-foreground text-xs">
+                  (Optional)
+                </span>
               </Label>
-              <Select value={affectedArea} onValueChange={(value) => setAffectedArea(value as AffectedArea)}>
+              <Select
+                value={affectedArea}
+                onValueChange={(value) =>
+                  setAffectedArea(value as AffectedArea)
+                }
+              >
                 <SelectTrigger id="affectedArea" className="h-11">
                   <SelectValue placeholder="Select area..." />
                 </SelectTrigger>
@@ -379,7 +402,10 @@ export function FeedbackDialog({ open, onOpenChange }: FeedbackDialogProps) {
             {/* Priority */}
             <div className="space-y-3">
               <Label>Priority *</Label>
-              <RadioGroup value={priority} onValueChange={(value) => setPriority(value as Priority)}>
+              <RadioGroup
+                value={priority}
+                onValueChange={(value) => setPriority(value as Priority)}
+              >
                 <div className="grid grid-cols-3 gap-2">
                   <Label
                     htmlFor="low"
@@ -402,7 +428,11 @@ export function FeedbackDialog({ open, onOpenChange }: FeedbackDialogProps) {
                         : "border-muted hover:border-primary/30"
                     )}
                   >
-                    <RadioGroupItem value="Medium" id="medium" className="sr-only" />
+                    <RadioGroupItem
+                      value="Medium"
+                      id="medium"
+                      className="sr-only"
+                    />
                     <span className="text-sm font-medium">Medium</span>
                   </Label>
                   <Label
@@ -414,7 +444,11 @@ export function FeedbackDialog({ open, onOpenChange }: FeedbackDialogProps) {
                         : "border-muted hover:border-primary/30"
                     )}
                   >
-                    <RadioGroupItem value="High" id="high" className="sr-only" />
+                    <RadioGroupItem
+                      value="High"
+                      id="high"
+                      className="sr-only"
+                    />
                     <span className="text-sm font-medium">High</span>
                   </Label>
                 </div>
@@ -424,7 +458,10 @@ export function FeedbackDialog({ open, onOpenChange }: FeedbackDialogProps) {
             {/* Steps to reproduce */}
             <div className="space-y-2">
               <Label htmlFor="stepsToReproduce">
-                Steps to reproduce <span className="text-muted-foreground text-xs">(Optional)</span>
+                Steps to reproduce{" "}
+                <span className="text-muted-foreground text-xs">
+                  (Optional)
+                </span>
               </Label>
               <Textarea
                 id="stepsToReproduce"
@@ -452,7 +489,8 @@ export function FeedbackDialog({ open, onOpenChange }: FeedbackDialogProps) {
 
           <div className="space-y-2">
             <Label htmlFor="name">
-              Name <span className="text-muted-foreground text-xs">(Optional)</span>
+              Name{" "}
+              <span className="text-muted-foreground text-xs">(Optional)</span>
             </Label>
             <Input
               id="name"
@@ -462,7 +500,7 @@ export function FeedbackDialog({ open, onOpenChange }: FeedbackDialogProps) {
               className="h-11"
             />
             <p className="text-xs text-muted-foreground">
-              We'll only use this to follow up on your feedback
+              We&apos;ll only use this to follow up on your feedback
             </p>
           </div>
         </div>
@@ -483,7 +521,8 @@ export function FeedbackDialog({ open, onOpenChange }: FeedbackDialogProps) {
 
           <div className="space-y-2">
             <Label htmlFor="name">
-              Name <span className="text-muted-foreground text-xs">(Optional)</span>
+              Name{" "}
+              <span className="text-muted-foreground text-xs">(Optional)</span>
             </Label>
             <Input
               id="name"
@@ -493,7 +532,7 @@ export function FeedbackDialog({ open, onOpenChange }: FeedbackDialogProps) {
               className="h-11"
             />
             <p className="text-xs text-muted-foreground">
-              We'll only use this to follow up on your feedback
+              We&apos;ll only use this to follow up on your feedback
             </p>
           </div>
         </div>

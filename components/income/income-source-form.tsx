@@ -69,7 +69,9 @@ export function IncomeSourceForm({
       } else {
         // Create new income source
         await db.transact(
-          db.tx.income_sources[id()].update(incomeData).link({ user: user.id })
+          db.tx.income_sources[id()]
+            .update(incomeData)
+            .link({ profile: user.id })
         );
       }
 

@@ -1,12 +1,27 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import db from "@/lib/db";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { DebtWithUser } from "@/types";
+
+type Debt = {
+  id: string;
+  createdAt: number;
+  name: string;
+  totalAmount: number;
+  currentBalance: number;
+  monthlyPaymentAmount: number;
+  paymentDueDay: number;
+  deadline?: number;
+  interestRate?: number;
+  pushMonthsPlan?: number;
+  pushMonthsCompleted?: number;
+  lastInterestPaymentDate?: number;
+  interestAccrued?: number;
+};
 
 export function DebtProgress() {
   const user = db.useUser();
@@ -17,11 +32,15 @@ export function DebtProgress() {
   const monthEnd = new Date(currentYear, currentMonth, 0, 23, 59, 59).getTime();
 
   const { isLoading, error, data } = db.useQuery({
-    debts: {
+    profiles: {
       $: {
         where: { "user.id": user.id },
       },
-      user: {},
+      debts: {
+        $: {
+          where: { "profile.user.id": user.id },
+        },
+      },
     },
     debt_payments: {
       $: {
@@ -29,14 +48,20 @@ export function DebtProgress() {
           paymentDate: { $gte: monthStart, $lte: monthEnd },
         },
       },
-      debt: {},
+      debt: {
+        $: {
+          where: { "profile.user.id": user.id },
+        },
+      },
     },
   });
 
+  const profile = data?.profiles?.[0];
+  const debts = useMemo(() => profile?.debts || [], [profile?.debts]);
+
   const totalDebt = useMemo(
-    () =>
-      (data?.debts || []).reduce((sum, debt) => sum + debt.currentBalance, 0),
-    [data?.debts]
+    () => debts.reduce((sum, debt) => sum + debt.currentBalance, 0),
+    [debts]
   );
 
   const totalMonthlyPayments = useMemo(
@@ -48,8 +73,6 @@ export function DebtProgress() {
     [data?.debt_payments]
   );
 
-  const debts: DebtWithUser[] = data?.debts || [];
-
   const formatAmount = (amount: number) => {
     return new Intl.NumberFormat("en-KE", {
       style: "currency",
@@ -58,34 +81,30 @@ export function DebtProgress() {
     }).format(amount);
   };
 
-  const calculateTotalPaid = (debt: DebtWithUser) => {
+  const calculateTotalPaid = (debt: Debt) => {
     return debt.totalAmount - debt.currentBalance;
   };
 
-  const calculatePayoffMonths = (debt: DebtWithUser) => {
+  const calculatePayoffMonths = (debt: Debt) => {
     if (debt.monthlyPaymentAmount === 0) return null;
     return Math.ceil(debt.currentBalance / debt.monthlyPaymentAmount);
   };
 
   if (isLoading) {
     return (
-      <Card>
-        <CardContent className="p-6">
-          <div className="text-center text-muted-foreground">
-            Loading debt progress...
-          </div>
-        </CardContent>
-      </Card>
+      <div className="p-6">
+        <div className="text-center text-muted-foreground">
+          Loading debt progress...
+        </div>
+      </div>
     );
   }
 
   if (error) {
     return (
-      <Card>
-        <CardContent className="p-6">
-          <div className="text-center text-red-500">Error: {error.message}</div>
-        </CardContent>
-      </Card>
+      <div className="p-6">
+        <div className="text-center text-red-500">Error: {error.message}</div>
+      </div>
     );
   }
 

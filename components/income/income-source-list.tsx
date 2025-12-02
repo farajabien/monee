@@ -37,11 +37,11 @@ export function IncomeSourceList() {
   });
 
   const profile = data?.profiles?.[0];
-  const incomeSources: IncomeSourceWithUser[] = useMemo(() => {
+  const incomeSources = useMemo(() => {
     // Add user reference for compatibility with full profile data
     return (profile?.incomeSources || []).map((source) => ({
       ...source,
-      user: profile
+      profile: profile
         ? {
             id: profile.id,
             handle: profile.handle,
@@ -53,8 +53,8 @@ export function IncomeSourceList() {
             locale: profile.locale,
           }
         : undefined,
-    }));
-  }, [profile?.incomeSources, profile]);
+    })) as IncomeSourceWithUser[];
+  }, [profile]);
 
   const { formatCurrency } = useCurrency(profile?.currency, profile?.locale);
 

@@ -13,7 +13,6 @@ import { useListData } from "@/hooks/use-list-data";
 import { useListActions } from "@/hooks/use-list-actions";
 import { ListMetrics } from "@/components/custom/list-metrics";
 import { DataViewControls } from "@/components/ui/data-view-controls";
-import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -45,7 +44,7 @@ interface UnifiedListContainerProps<T> {
   onEditingChange?: (item: T | null) => void;
 }
 
-export function UnifiedListContainer<T>({
+export function UnifiedListContainer<T extends Record<string, unknown>>({
   config,
   data,
   editDialog: EditDialog,
@@ -149,15 +148,7 @@ export function UnifiedListContainer<T>({
       title?: string;
       handle?: string;
     };
-    return (
-      item.name ||
-      item.title ||
-      item.handle ||
-      item.name ||
-      item.title ||
-      item.handle ||
-      ""
-    );
+    return item.name || item.title || item.handle || "";
   }, [deletingItem]);
 
   return (

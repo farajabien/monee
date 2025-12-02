@@ -53,7 +53,7 @@ export function RecipientManager({
     recipients: {
       $: {
         where: {
-          "user.id": user.id,
+          "profile.user.id": user.id,
           originalName: recipientName,
         },
       },
@@ -66,7 +66,7 @@ export function RecipientManager({
   const { data: categoriesData } = db.useQuery({
     categories: {
       $: {
-        where: { "user.id": user.id },
+        where: { "profile.user.id": user.id },
         order: { name: "asc" },
       },
     },
@@ -127,7 +127,7 @@ export function RecipientManager({
               createdAt: now,
               updatedAt: now,
             })
-            .link({ user: user.id }),
+            .link({ profile: user.id }),
         ]);
       }
 

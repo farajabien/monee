@@ -121,7 +121,7 @@ export function DebtPaymentForm({ debt, onSuccess }: DebtPaymentFormProps) {
             },
             createdAt: Date.now(),
           })
-          .link({ user: debt.user?.id || "" }),
+          .link({ profile: debt.profile?.id || "" }),
       ]);
 
       // Update debt based on payment type

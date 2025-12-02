@@ -6,7 +6,7 @@ import { UnifiedListContainer } from "@/components/custom/unified-list-container
 import { BudgetForm } from "./budget-form";
 import { SteppedFormModal } from "@/components/stepped-form-modal";
 import { createBudgetListConfig } from "./budget-list-config";
-import type { BudgetWithRelations } from "@/types";
+import type { Budget, BudgetWithRelations } from "@/types";
 import { useCurrency } from "@/hooks/use-currency";
 
 export function BudgetList() {
@@ -37,24 +37,9 @@ export function BudgetList() {
   });
 
   const profile = data?.profiles?.[0];
-  const budgets: BudgetWithRelations[] = useMemo(() => {
-    // Add user reference for compatibility with full profile data
-    return (profile?.budgets || []).map((budget) => ({
-      ...budget,
-      user: profile
-        ? {
-            id: profile.id,
-            handle: profile.handle,
-            monthlyBudget: profile.monthlyBudget,
-            createdAt: profile.createdAt,
-            onboardingCompleted: profile.onboardingCompleted,
-            onboardingStep: profile.onboardingStep,
-            currency: profile.currency,
-            locale: profile.locale,
-          }
-        : undefined,
-    }));
-  }, [profile?.budgets, profile]);
+  const budgets = useMemo(() => {
+    return (profile?.budgets || []) as BudgetWithRelations[];
+  }, [profile?.budgets]);
 
   const currency = profile?.currency;
   const locale = profile?.locale;

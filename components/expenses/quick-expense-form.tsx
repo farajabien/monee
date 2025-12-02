@@ -25,7 +25,8 @@ export function QuickExpenseForm({ onSuccess }: QuickExpenseFormProps) {
   const user = db.useUser();
   const [amount, setAmount] = useState<string>("");
   const [recipient, setRecipient] = useState<string>("");
-  const [selectedCategory, setSelectedCategory] = useState<string>("Uncategorized");
+  const [selectedCategory, setSelectedCategory] =
+    useState<string>("Uncategorized");
   const [expenseDate, setExpenseDate] = useState<string>(
     new Date().toISOString().split("T")[0]
   );
@@ -36,7 +37,7 @@ export function QuickExpenseForm({ onSuccess }: QuickExpenseFormProps) {
   const { data: categoriesData } = db.useQuery({
     categories: {
       $: {
-        where: { "user.id": user.id },
+        where: { "profile.user.id": user.id },
         order: { name: "asc" },
       },
     },
@@ -66,7 +67,7 @@ export function QuickExpenseForm({ onSuccess }: QuickExpenseFormProps) {
       };
 
       await db.transact(
-        db.tx.expenses[id()].update(expenseData).link({ user: user.id })
+        db.tx.expenses[id()].update(expenseData).link({ profile: user.id })
       );
 
       toast.success("Expense added successfully!");

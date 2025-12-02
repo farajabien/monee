@@ -16,7 +16,7 @@ import { QuickDebtForm } from "./quick-debt-form";
 import { DebtProgress } from "./debt-progress";
 import { DebtAnalytics } from "./debt-analytics";
 import { createDebtListConfig } from "./debt-list-config";
-import type { DebtWithUser } from "@/types";
+import type { Debt, DebtWithUser } from "@/types";
 import { toast } from "sonner";
 
 export function DebtList() {
@@ -42,24 +42,22 @@ export function DebtList() {
   });
 
   const profile = data?.profiles?.[0];
-  const debts: DebtWithUser[] = useMemo(() => {
-    // Add user reference to debts for compatibility with full profile data
-    return (profile?.debts || []).map((debt) => ({
+  const debts = useMemo(() => {
+    if (!profile) return [];
+    return (profile.debts || []).map((debt) => ({
       ...debt,
-      user: profile
-        ? {
-            id: profile.id,
-            handle: profile.handle,
-            monthlyBudget: profile.monthlyBudget,
-            createdAt: profile.createdAt,
-            onboardingCompleted: profile.onboardingCompleted,
-            onboardingStep: profile.onboardingStep,
-            currency: profile.currency,
-            locale: profile.locale,
-          }
-        : undefined,
-    }));
-  }, [profile?.debts, profile]);
+      profile: {
+        id: profile.id,
+        handle: profile.handle,
+        monthlyBudget: profile.monthlyBudget,
+        createdAt: profile.createdAt,
+        onboardingCompleted: profile.onboardingCompleted,
+        onboardingStep: profile.onboardingStep,
+        currency: profile.currency,
+        locale: profile.locale,
+      },
+    })) as DebtWithUser[];
+  }, [profile]);
 
   const handleRecordPayment = useCallback((debt: DebtWithUser) => {
     setSelectedDebtForPayment(debt);
@@ -70,74 +68,77 @@ export function DebtList() {
     setEditingDebt(debt);
   }, []);
 
-  const handleQuickPush = useCallback(async (debt: DebtWithUser) => {
-    if (!debt.interestRate || debt.currentBalance === 0) {
-      toast.error("Cannot push debt", {
-        description:
-          "This debt doesn't have an interest rate or is already paid off.",
-      });
-      return;
-    }
+  const handleQuickPush = useCallback(
+    async (debt: DebtWithUser) => {
+      if (!debt.interestRate || debt.currentBalance === 0) {
+        toast.error("Cannot push debt", {
+          description:
+            "This debt doesn't have an interest rate or is already paid off.",
+        });
+        return;
+      }
 
-    try {
-      const now = Date.now();
-      const monthlyInterest =
-        (debt.currentBalance * debt.interestRate) / 100 / 12;
+      try {
+        const now = Date.now();
+        const monthlyInterest =
+          (debt.currentBalance * debt.interestRate) / 100 / 12;
 
-      const paymentId = id();
-      const expenseId = id();
+        const paymentId = id();
+        const expenseId = id();
 
-      await db.transact([
-        db.tx.debt_payments[paymentId]
-          .update({
-            amount: monthlyInterest,
-            paymentDate: now,
-            paymentType: "interest_only",
-            interestAmount: monthlyInterest,
-            principalAmount: 0,
-            createdAt: now,
-          })
-          .link({ debt: debt.id }),
-        db.tx.expenses[expenseId]
-          .update({
-            amount: monthlyInterest,
-            recipient: `Debt Payment - ${debt.name}`,
-            date: now,
-            category: "Debt Payment",
-            rawMessage: `Interest payment of Ksh ${monthlyInterest.toLocaleString()} for ${
-              debt.name
-            } (Quick Push)`,
-            parsedData: {
-              type: "debt_payment",
-              debtId: debt.id,
-              debtName: debt.name,
+        await db.transact([
+          db.tx.debt_payments[paymentId]
+            .update({
+              amount: monthlyInterest,
+              paymentDate: now,
               paymentType: "interest_only",
               interestAmount: monthlyInterest,
               principalAmount: 0,
-            },
-            createdAt: now,
+              createdAt: now,
+            })
+            .link({ debt: debt.id }),
+          db.tx.expenses[expenseId]
+            .update({
+              amount: monthlyInterest,
+              recipient: `Debt Payment - ${debt.name}`,
+              date: now,
+              category: "Debt Payment",
+              rawMessage: `Interest payment of Ksh ${monthlyInterest.toLocaleString()} for ${
+                debt.name
+              } (Quick Push)`,
+              parsedData: {
+                type: "debt_payment",
+                debtId: debt.id,
+                debtName: debt.name,
+                paymentType: "interest_only",
+                interestAmount: monthlyInterest,
+                principalAmount: 0,
+              },
+              createdAt: now,
+            })
+            .link({ profile: profile?.id || "" }),
+        ]);
+
+        await db.transact(
+          db.tx.debts[debt.id].update({
+            pushMonthsCompleted: (debt.pushMonthsCompleted || 0) + 1,
+            lastInterestPaymentDate: now,
+            interestAccrued: (debt.interestAccrued || 0) + monthlyInterest,
           })
-          .link({ user: debt.user?.id || "" }),
-      ]);
+        );
 
-      await db.transact(
-        db.tx.debts[debt.id].update({
-          pushMonthsCompleted: (debt.pushMonthsCompleted || 0) + 1,
-          lastInterestPaymentDate: now,
-          interestAccrued: (debt.interestAccrued || 0) + monthlyInterest,
-        })
-      );
-
-      toast.success("Payment recorded", {
-        description: `Interest payment of Ksh ${monthlyInterest.toLocaleString()} recorded. Debt pushed to next month.`,
-      });
-    } catch (error) {
-      console.error("Error recording quick push:", error);
-      toast.error("Failed to record payment", {
-        description: "Please try again.",
-      });
-    }
-  }, []);
+        toast.success("Payment recorded", {
+          description: `Interest payment of Ksh ${monthlyInterest.toLocaleString()} recorded. Debt pushed to next month.`,
+        });
+      } catch (error) {
+        console.error("Error recording quick push:", error);
+        toast.error("Failed to record payment", {
+          description: "Please try again.",
+        });
+      }
+    },
+    [profile]
+  );
 
   // Create configuration with callbacks
   const config = useMemo(

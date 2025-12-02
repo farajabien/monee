@@ -98,7 +98,7 @@ export function RecurringTransactionForm({
         await db.transact(
           db.tx.recurring_transactions[id()]
             .update(transactionData)
-            .link({ user: user.id })
+            .link({ profile: user.id })
         );
       }
 
@@ -256,10 +256,7 @@ export function RecurringTransactionForm({
           checked={isActive}
           onCheckedChange={(checked) => setIsActive(checked as boolean)}
         />
-        <Label
-          htmlFor="active"
-          className="text-sm font-normal cursor-pointer"
-        >
+        <Label htmlFor="active" className="text-sm font-normal cursor-pointer">
           Active (Enable automatic matching for this transaction)
         </Label>
       </div>

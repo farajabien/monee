@@ -29,17 +29,22 @@ export function BudgetForm({ budget, onSuccess, onCancel }: BudgetFormProps) {
   const [year, setYear] = useState<number>(new Date().getFullYear());
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Fetch categories
-  const { data: categoriesData } = db.useQuery({
-    categories: {
+  // Fetch profile and categories
+  const { data } = db.useQuery({
+    profiles: {
       $: {
         where: { "user.id": user.id },
-        order: { name: "asc" },
+      },
+      categories: {
+        $: {
+          order: { name: "asc" },
+        },
       },
     },
   });
 
-  const categories: Category[] = (categoriesData?.categories || []).filter(
+  const profile = data?.profiles?.[0];
+  const categories: Category[] = (profile?.categories || []).filter(
     (category) =>
       category.isActive !== false || category.id === selectedCategoryId
   );
@@ -56,7 +61,7 @@ export function BudgetForm({ budget, onSuccess, onCancel }: BudgetFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedCategoryId || !amount) return;
+    if (!selectedCategoryId || !amount || !profile) return;
 
     setIsSubmitting(true);
     try {
@@ -68,15 +73,13 @@ export function BudgetForm({ budget, onSuccess, onCancel }: BudgetFormProps) {
 
       if (budget) {
         // Update existing budget
-        await db.transact(
-          db.tx.budgets[budget.id].update(budgetData)
-        );
+        await db.transact(db.tx.budgets[budget.id].update(budgetData));
       } else {
         // Create new budget
         await db.transact(
           db.tx.budgets[id()]
             .update(budgetData)
-            .link({ category: selectedCategoryId, user: user.id })
+            .link({ category: selectedCategoryId, profile: profile.id })
         );
       }
 
@@ -147,7 +150,9 @@ export function BudgetForm({ budget, onSuccess, onCancel }: BudgetFormProps) {
             id="budget-year"
             type="number"
             value={year}
-            onChange={(e) => setYear(parseInt(e.target.value, 10) || new Date().getFullYear())}
+            onChange={(e) =>
+              setYear(parseInt(e.target.value, 10) || new Date().getFullYear())
+            }
             min={2020}
             max={2100}
           />
@@ -174,11 +179,17 @@ export function BudgetForm({ budget, onSuccess, onCancel }: BudgetFormProps) {
             Cancel
           </Button>
         )}
-        <Button type="submit" disabled={isSubmitting || !selectedCategoryId || !amount}>
-          {isSubmitting ? "Saving..." : budget ? "Update Budget" : "Create Budget"}
+        <Button
+          type="submit"
+          disabled={isSubmitting || !selectedCategoryId || !amount}
+        >
+          {isSubmitting
+            ? "Saving..."
+            : budget
+            ? "Update Budget"
+            : "Create Budget"}
         </Button>
       </div>
     </form>
   );
 }
-

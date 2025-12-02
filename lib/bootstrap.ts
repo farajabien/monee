@@ -224,13 +224,19 @@ export const DEFAULT_CATEGORIES = [
   },
 ];
 
-export async function ensureDefaultCategories(userId: string) {
+export async function ensureDefaultCategories(profileId: string) {
   try {
     const { data } = await db.useQuery({
-      categories: { $: { where: { "user.id": userId } } },
+      profiles: {
+        $: {
+          where: { id: profileId },
+        },
+        categories: {},
+      },
     });
 
-    const existingCategories = data?.categories || [];
+    const profile = data?.profiles?.[0];
+    const existingCategories = profile?.categories || [];
     const existingCategoryNames = new Set(
       existingCategories.map((c: Category) => c.name)
     );
@@ -241,7 +247,9 @@ export async function ensureDefaultCategories(userId: string) {
 
     if (missingCategories.length > 0) {
       const transactions = missingCategories.map((category) =>
-        db.tx.categories[id()].update({ ...category }).link({ user: userId })
+        db.tx.categories[id()]
+          .update({ ...category })
+          .link({ profile: profileId })
       );
       await db.transact(transactions);
       console.log("Created missing default categories:", missingCategories);

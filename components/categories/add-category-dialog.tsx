@@ -79,7 +79,7 @@ export function AddCategoryDialog({
             isActive: true,
             createdAt: Date.now(),
           })
-          .link({ user: profile.id })
+          .link({ profile: profile.id })
       );
 
       if (onCategoryCreated) {
