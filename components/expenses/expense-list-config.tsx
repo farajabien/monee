@@ -5,7 +5,7 @@
  */
 
 import type { ListConfig } from "@/types/list-config";
-import type { Expense } from "@/types";
+import type { Expense, Recipient } from "@/types";
 import { Badge } from "@/components/ui/badge";
 import { Calendar } from "lucide-react";
 import db from "@/lib/db";
@@ -21,13 +21,13 @@ const formatDate = (timestamp: number) => {
   });
 };
 
-const getDisplayName = (originalName: string, recipients: any[]) => {
+const getDisplayName = (originalName: string, recipients: Recipient[]) => {
   const recipient = recipients.find((r) => r.originalName === originalName);
   return recipient?.nickname || originalName;
 };
 
 export const createExpenseListConfig = (
-  recipients: any[],
+  recipients: Recipient[],
   formatAmount: (amount: number) => string
 ): ListConfig<Expense> => ({
   // Identity
@@ -93,7 +93,10 @@ export const createExpenseListConfig = (
     const displayName = getDisplayName(item.recipient || "", recipients);
 
     return (
-      <div key={item.id} className="flex items-center justify-between p-4 border rounded-lg">
+      <div
+        key={item.id}
+        className="flex items-center justify-between p-4 border rounded-lg"
+      >
         <div className="flex items-center gap-3 flex-1">
           <Badge variant="outline" className="text-xs">
             #{index + 1}
@@ -162,7 +165,6 @@ export const createExpenseListConfig = (
       </div>
     );
   },
-
 
   // Actions
   actions: {

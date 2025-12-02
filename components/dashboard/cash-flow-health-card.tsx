@@ -161,7 +161,8 @@ export function CashFlowHealthCard({
           </div>
           {dailyAllowance > 0 ? (
             <p className="text-[10px] text-blue-700/70 dark:text-blue-300/70 mt-1">
-              Stay disciplined to grow your balance
+              You can spend up to {formatCurrency(dailyAllowance)} per day for
+              the rest of the month.
             </p>
           ) : (
             <p className="text-[10px] text-red-600 dark:text-red-400 mt-1">
