@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import db from "@/lib/db";
 import { UnifiedListContainer } from "@/components/custom/unified-list-container";
 import { BudgetForm } from "./budget-form";
@@ -24,39 +24,63 @@ export function BudgetList() {
       $: {
         where: { "user.id": user.id },
       },
-    },
-    budgets: {
-      $: {
-        where: {
-          "user.id": user.id,
-          month: currentMonth,
-          year: currentYear,
+      budgets: {
+        $: {
+          where: {
+            month: currentMonth,
+            year: currentYear,
+          },
         },
+        category: {},
       },
-      category: {},
-      user: {},
     },
   });
 
   const profile = data?.profiles?.[0];
-  const budgets: BudgetWithRelations[] = data?.budgets || [];
+  const budgets: BudgetWithRelations[] = useMemo(() => {
+    // Add user reference for compatibility with full profile data
+    return (profile?.budgets || []).map((budget) => ({
+      ...budget,
+      user: profile
+        ? {
+            id: profile.id,
+            handle: profile.handle,
+            monthlyBudget: profile.monthlyBudget,
+            createdAt: profile.createdAt,
+            onboardingCompleted: profile.onboardingCompleted,
+            onboardingStep: profile.onboardingStep,
+            currency: profile.currency,
+            locale: profile.locale,
+          }
+        : undefined,
+    }));
+  }, [profile?.budgets, profile]);
 
-  const { formatCurrency } = useCurrency(profile?.currency, profile?.locale);
+  const currency = profile?.currency;
+  const locale = profile?.locale;
+  const { formatCurrency } = useCurrency(currency, locale);
+
+  // Extract edit handler to useCallback
+  const handleEdit = useCallback(async (item: BudgetWithRelations) => {
+    setEditingBudget(item);
+    setShowAddDialog(true);
+  }, []);
 
   // Create configuration with edit handler
   const config = useMemo(() => {
-    const baseConfig = createBudgetListConfig(currentMonth, currentYear, formatCurrency);
+    const baseConfig = createBudgetListConfig(
+      currentMonth,
+      currentYear,
+      formatCurrency
+    );
     return {
       ...baseConfig,
       actions: {
         ...baseConfig.actions,
-        edit: async (item: BudgetWithRelations) => {
-          setEditingBudget(item);
-          setShowAddDialog(true);
-        },
+        edit: handleEdit,
       },
     };
-  }, [currentMonth, currentYear, formatCurrency]);
+  }, [currentMonth, currentYear, formatCurrency, handleEdit]);
 
   return (
     <div className="space-y-4">

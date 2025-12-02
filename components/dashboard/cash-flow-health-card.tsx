@@ -1,0 +1,267 @@
+"use client";
+
+import { Item, ItemContent, ItemHeader, ItemTitle } from "@/components/ui/item";
+import {
+  Heart,
+  TrendingUp,
+  TrendingDown,
+  Minus,
+  ArrowUpCircle,
+  ArrowDownCircle,
+  Wallet,
+  Calendar,
+} from "lucide-react";
+import type { CashFlowHealthData } from "@/lib/cash-flow-health-calculator";
+import { useCurrency } from "@/hooks/use-currency";
+
+interface CashFlowHealthCardProps {
+  healthData: CashFlowHealthData | null;
+  isLoading?: boolean;
+  userCurrency?: string;
+  userLocale?: string;
+}
+
+export function CashFlowHealthCard({
+  healthData,
+  isLoading = false,
+  userCurrency,
+  userLocale,
+}: CashFlowHealthCardProps) {
+  const { formatCurrency } = useCurrency(userCurrency, userLocale);
+
+  if (isLoading) {
+    return (
+      <Item variant="outline" className="h-full border-0">
+        <ItemHeader className="sr-only">
+          <ItemTitle>
+            <Heart className="h-4 w-4" />
+            Cash Flow Health
+          </ItemTitle>
+        </ItemHeader>
+        <ItemContent>
+          <div className="animate-pulse space-y-3 w-full">
+            <div className="h-8 bg-muted rounded w-3/4"></div>
+            <div className="h-6 bg-muted rounded w-full"></div>
+            <div className="h-4 bg-muted rounded w-1/2"></div>
+          </div>
+        </ItemContent>
+      </Item>
+    );
+  }
+
+  // No health data case (no income sources set up)
+  if (!healthData || healthData.totalIncome === 0) {
+    return (
+      <Item variant="muted" className="h-full border-0">
+        <ItemContent>
+          <div className="text-center py-4 w-full">
+            <p className="text-sm text-muted-foreground">
+              Set up your income sources to see your cash flow health
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Track your financial health in real-time!
+            </p>
+          </div>
+        </ItemContent>
+      </Item>
+    );
+  }
+
+  const {
+    totalIncome,
+    totalExpenses,
+    remainingBalance,
+    dailyAllowance,
+    healthStatus,
+    disciplineIndicator,
+    statusColor,
+    percentageSpent,
+    daysElapsed,
+    averageDailySpend,
+  } = healthData;
+
+  // Determine item styling based on status
+  const itemClass =
+    statusColor === "success"
+      ? " bg-green-50/50 dark:bg-green-950/20"
+      : statusColor === "warning"
+      ? " bg-yellow-50/50 dark:bg-yellow-950/20"
+      : " bg-red-50/50 dark:bg-red-950/20";
+
+  // Get discipline icon
+  const DisciplineIcon =
+    disciplineIndicator === "up"
+      ? TrendingUp
+      : disciplineIndicator === "down"
+      ? TrendingDown
+      : Minus;
+
+  const disciplineColorClass =
+    disciplineIndicator === "up"
+      ? "text-green-600 dark:text-green-400"
+      : disciplineIndicator === "down"
+      ? "text-red-600 dark:text-red-400"
+      : "text-muted-foreground";
+
+  // Determine balance color based on health status
+  const balanceColorClass =
+    healthStatus === "healthy"
+      ? "text-green-600 dark:text-green-400"
+      : healthStatus === "caution"
+      ? "text-yellow-600 dark:text-yellow-400"
+      : "text-red-600 dark:text-red-400";
+
+  // Calculate days remaining in month
+  const daysRemaining = 30 - daysElapsed;
+
+  return (
+    <Item variant="outline" className={`h-full border-0 ${itemClass}`}>
+      <ItemContent className="space-y-4 w-full">
+        {/* Income, Expenses, Balance - Grid of 3 */}
+        <div className="grid grid-cols-3 gap-3">
+          <div className="space-y-1">
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              <ArrowUpCircle className="h-3 w-3 text-green-600 dark:text-green-400" />
+              Income
+            </div>
+            <div className="text-base font-semibold text-green-600 dark:text-green-400">
+              {formatCurrency(totalIncome)}
+            </div>
+          </div>
+          <div className="space-y-1">
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              <ArrowDownCircle className="h-3 w-3 text-red-600 dark:text-red-400" />
+              Expenses
+            </div>
+            <div className="text-base font-semibold text-red-600 dark:text-red-400">
+              {formatCurrency(totalExpenses)}
+            </div>
+          </div>
+          <div className="space-y-1">
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              <Wallet className="h-3 w-3" />
+              Balance
+            </div>
+            <div className={`text-base font-semibold ${balanceColorClass}`}>
+              {formatCurrency(remainingBalance)}
+            </div>
+          </div>
+        </div>
+
+        {/* Remaining Balance - Hero Metric */}
+        <div className="py-3 px-4 rounded-lg bg-muted/50 border-2 border-muted">
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">
+                  Available Balance
+                </span>
+                <DisciplineIcon className={`h-4 w-4 ${disciplineColorClass}`} />
+              </div>
+              <div className={`text-3xl font-bold ${balanceColorClass}`}>
+                {formatCurrency(remainingBalance)}
+              </div>
+              <div className="text-xs text-muted-foreground">
+                {percentageSpent.toFixed(0)}% of income spent
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Daily Allowance - Prominent Display */}
+        <div className="py-3 px-4 rounded-lg bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+              <span className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                Daily Spending Allowance
+              </span>
+            </div>
+            <div className="flex items-baseline gap-2">
+              <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                {dailyAllowance > 0 ? formatCurrency(dailyAllowance) : formatCurrency(0)}
+              </span>
+              <span className="text-xs text-blue-700 dark:text-blue-300">
+                per day (30-day avg)
+              </span>
+            </div>
+            {dailyAllowance > 0 ? (
+              <p className="text-xs text-blue-800 dark:text-blue-200">
+                If you stay disciplined, your balance will keep growing!
+              </p>
+            ) : (
+              <p className="text-xs text-red-600 dark:text-red-400">
+                You&apos;ve exceeded your monthly budget. Time to review expenses.
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Average Daily Spend & Days Elapsed */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1">
+            <span className="text-xs text-muted-foreground">Daily Average</span>
+            <div className="text-base font-semibold">
+              {formatCurrency(averageDailySpend)}
+            </div>
+            <div className="text-xs text-muted-foreground">
+              over {daysElapsed} day{daysElapsed !== 1 ? "s" : ""}
+            </div>
+          </div>
+          <div className="space-y-1">
+            <span className="text-xs text-muted-foreground">Days Left</span>
+            <div className="text-base font-semibold">
+              {daysRemaining} day{daysRemaining !== 1 ? "s" : ""}
+            </div>
+            <div className="text-xs text-muted-foreground">in this month</div>
+          </div>
+        </div>
+
+        {/* Health Status Message */}
+        <div className="pt-2">
+          <div
+            className={`text-sm font-medium ${
+              healthStatus === "critical"
+                ? "text-red-600 dark:text-red-400"
+                : healthStatus === "caution"
+                ? "text-yellow-600 dark:text-yellow-400"
+                : "text-green-600 dark:text-green-400"
+            }`}
+          >
+            {healthStatus === "critical" ? (
+              <>
+                🚨 {remainingBalance < 0 ? (
+                  <>
+                    You&apos;ve overspent by{" "}
+                    <span className="font-bold">
+                      {formatCurrency(Math.abs(remainingBalance))}
+                    </span>
+                    . Review your expenses!
+                  </>
+                ) : (
+                  <>
+                    You&apos;ve spent {percentageSpent.toFixed(0)}% of your income.
+                    Be very careful!
+                  </>
+                )}
+              </>
+            ) : healthStatus === "caution" ? (
+              <>
+                ⚠️ You&apos;ve used {percentageSpent.toFixed(0)}% of your income.
+                Spend carefully!
+              </>
+            ) : (
+              <>
+                ✅ Great job! You have{" "}
+                <span className="font-bold">
+                  {formatCurrency(remainingBalance)}
+                </span>{" "}
+                left with {daysRemaining} days to go.
+              </>
+            )}
+          </div>
+        </div>
+      </ItemContent>
+    </Item>
+  );
+}

@@ -28,23 +28,18 @@ export function RecipientList() {
       $: {
         where: { "user.id": user.id },
       },
-    },
-    recipients: {
-      $: {
-        where: { "user.id": user.id },
-        order: { updatedAt: "desc" },
+      recipients: {
+        $: {
+          order: { updatedAt: "desc" },
+        },
       },
-    },
-    expenses: {
-      $: {
-        where: { "user.id": user.id },
-      },
+      expenses: {},
     },
   });
 
   const profile = data?.profiles?.[0];
-  const savedRecipients = data?.recipients || [];
-  const expenses = data?.expenses || [];
+  const savedRecipients = profile?.recipients || [];
+  const expenses = profile?.expenses || [];
 
   const { formatCurrency } = useCurrency(profile?.currency, profile?.locale);
 

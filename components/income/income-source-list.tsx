@@ -27,18 +27,33 @@ export function IncomeSourceList() {
       $: {
         where: { "user.id": user.id },
       },
-    },
-    income_sources: {
-      $: {
-        where: { "user.id": user.id },
-        order: { createdAt: "desc" },
+      incomeSources: {
+        $: {
+          order: { createdAt: "desc" },
+        },
       },
-      user: {},
     },
   });
 
   const profile = data?.profiles?.[0];
-  const incomeSources: IncomeSourceWithUser[] = data?.income_sources || [];
+  const incomeSources: IncomeSourceWithUser[] = useMemo(() => {
+    // Add user reference for compatibility with full profile data
+    return (profile?.incomeSources || []).map((source) => ({
+      ...source,
+      user: profile
+        ? {
+            id: profile.id,
+            handle: profile.handle,
+            monthlyBudget: profile.monthlyBudget,
+            createdAt: profile.createdAt,
+            onboardingCompleted: profile.onboardingCompleted,
+            onboardingStep: profile.onboardingStep,
+            currency: profile.currency,
+            locale: profile.locale,
+          }
+        : undefined,
+    }));
+  }, [profile?.incomeSources, profile]);
 
   const { formatCurrency } = useCurrency(profile?.currency, profile?.locale);
 

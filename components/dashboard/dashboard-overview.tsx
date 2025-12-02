@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import dynamic from "next/dynamic";
 import db from "@/lib/db";
 import { calculateCashRunway } from "@/lib/cash-runway-calculator";
+import { calculateCashFlowHealth } from "@/lib/cash-flow-health-calculator";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
@@ -34,6 +35,14 @@ const CashRunwayCard = dynamic(
   { ssr: false }
 );
 
+const CashFlowHealthCard = dynamic(
+  () =>
+    import("./cash-flow-health-card").then((mod) => ({
+      default: mod.CashFlowHealthCard,
+    })),
+  { ssr: false }
+);
+
 const DashboardMetricsTabs = dynamic(
   () =>
     import("./dashboard-metrics-tabs").then((mod) => ({
@@ -58,7 +67,7 @@ export function DashboardOverview() {
   const monthStartTs = monthStart.getTime();
   const monthEndTs = monthEnd.getTime();
 
-  // Query all required data
+  // Query all required data through profile relationships
   const { isLoading, error, data } = db.useQuery({
     profiles: {
       $: {
@@ -66,43 +75,36 @@ export function DashboardOverview() {
           "user.id": user.id,
         },
       },
-    },
-    expenses: {
-      $: {
-        where: {
-          "user.id": user.id,
-          date: { $gte: monthStartTs, $lte: monthEndTs },
-        },
-      },
-    },
-    income_sources: {
-      $: {
-        where: { "user.id": user.id, isActive: true },
-      },
-    },
-    debts: {
-      $: {
-        where: { "user.id": user.id },
-      },
-    },
-    debt_payments: {
-      $: {
-        where: {
-          paymentDate: { $gte: monthStartTs, $lte: monthEndTs },
-        },
-      },
-      debt: {
-        user: {},
-      },
-    },
-    savings_goals: {
-      $: {
-        where: { "user.id": user.id, isCompleted: false },
-      },
-      contributions: {
+      expenses: {
         $: {
           where: {
-            contributionDate: { $gte: monthStartTs, $lte: monthEndTs },
+            date: { $gte: monthStartTs, $lte: monthEndTs },
+          },
+        },
+      },
+      incomeSources: {
+        $: {
+          where: { isActive: true },
+        },
+      },
+      debts: {
+        payments: {
+          $: {
+            where: {
+              paymentDate: { $gte: monthStartTs, $lte: monthEndTs },
+            },
+          },
+        },
+      },
+      savingsGoals: {
+        $: {
+          where: { isCompleted: false },
+        },
+        contributions: {
+          $: {
+            where: {
+              contributionDate: { $gte: monthStartTs, $lte: monthEndTs },
+            },
           },
         },
       },
@@ -111,11 +113,18 @@ export function DashboardOverview() {
 
   // Calculate totals
   const profile = data?.profiles?.[0];
-  const expenses = data?.expenses || [];
-  const incomeSources = data?.income_sources || [];
-  const debts = data?.debts || [];
-  const debtPayments = data?.debt_payments || [];
-  const savingsGoals = data?.savings_goals || [];
+  const expenses = profile?.expenses || [];
+  const incomeSources = profile?.incomeSources || [];
+  const debts = profile?.debts || [];
+  const savingsGoals = profile?.savingsGoals || [];
+
+  // Flatten debt payments from all debts
+  const debtPayments = debts.flatMap((debt) =>
+    (debt.payments || []).map((payment) => ({
+      ...payment,
+      debt: { id: debt.id, user: { id: profile?.id } }
+    }))
+  );
 
   // Income vs Expenses calculations
   const totalIncome = useMemo(() => {
@@ -130,11 +139,9 @@ export function DashboardOverview() {
 
   const totalExpenses = useMemo(() => {
     const expenseTotal = expenses.reduce((sum, e) => sum + e.amount, 0);
-    const debtPaymentTotal = debtPayments
-      .filter((p) => p.debt?.user?.id === user.id)
-      .reduce((sum, p) => sum + p.amount, 0);
+    const debtPaymentTotal = debtPayments.reduce((sum, p) => sum + p.amount, 0);
     return expenseTotal + debtPaymentTotal;
-  }, [expenses, debtPayments, user.id]);
+  }, [expenses, debtPayments]);
 
   // Debts data
   const debtsData = useMemo(() => {
@@ -212,15 +219,25 @@ export function DashboardOverview() {
     return calculateCashRunway({
       incomeSources,
       expenses,
-      debtPayments: debtPayments
-        .filter((p) => p.debt?.user?.id === user.id)
-        .map((p) => ({
-          amount: p.amount,
-          paymentDate: p.paymentDate,
-        })),
+      debtPayments: debtPayments.map((p) => ({
+        amount: p.amount,
+        paymentDate: p.paymentDate,
+      })),
       currentDate: now,
     });
-  }, [incomeSources, expenses, debtPayments, user.id, now]);
+  }, [incomeSources, expenses, debtPayments, now]);
+
+  // Cash flow health calculation
+  const cashFlowHealthData = useMemo(() => {
+    // Require at least income sources to show cash flow health
+    if (!incomeSources.length) return null;
+
+    return calculateCashFlowHealth({
+      incomeSources,
+      expenses, // Note: excludes debt payments per user requirement
+      currentDate: now,
+    });
+  }, [incomeSources, expenses, now]);
 
   if (error) {
     return (
@@ -233,10 +250,13 @@ export function DashboardOverview() {
   return (
     <div className="space-y-6">
       {/* Dashboard Cards as Tabs */}
-      <Tabs defaultValue="runway" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 mb-4 border-0">
+      <Tabs defaultValue="health" className="w-full">
+        <TabsList className="grid w-full grid-cols-4 mb-4 border-0">
+          <TabsTrigger value="health" className="border-0">
+            Cash Flow
+          </TabsTrigger>
           <TabsTrigger value="runway" className="border-0">
-            Cash Runway
+            Runway
           </TabsTrigger>
           <TabsTrigger value="debts" className="border-0">
             Debts
@@ -245,6 +265,14 @@ export function DashboardOverview() {
             Savings
           </TabsTrigger>
         </TabsList>
+        <TabsContent value="health" className="border-0">
+          <CashFlowHealthCard
+            healthData={cashFlowHealthData}
+            isLoading={isLoading}
+            userCurrency={profile?.currency}
+            userLocale={profile?.locale}
+          />
+        </TabsContent>
         <TabsContent value="runway" className="border-0">
           <CashRunwayCard
             runwayData={cashRunwayData}

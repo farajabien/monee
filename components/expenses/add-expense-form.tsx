@@ -308,6 +308,7 @@ export default function AddExpenseForm() {
                 category: match.category,
                 rawMessage: message,
                 parsedData: parsed,
+                mpesaReference: parsed.reference,
                 // updatedAt: Date.now(), // Remove if not in schema
               })
             );
@@ -338,6 +339,7 @@ export default function AddExpenseForm() {
                 category,
                 rawMessage: message,
                 parsedData: parsed,
+                mpesaReference: parsed.reference,
                 createdAt: Date.now(),
               })
               .link({ user: user.id })

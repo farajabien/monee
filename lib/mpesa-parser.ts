@@ -48,6 +48,13 @@ export function parseMpesaMessage(message: string): ParsedExpenseData {
   let recipient: string | undefined;
   let dateStr: string | undefined;
   let timeStr: string | undefined;
+  let mpesaReference: string | undefined;
+
+  // Extract M-Pesa reference code if present (e.g., TKJPNAJ1D1)
+  const referenceMatch = trimmed.match(/^([A-Z0-9]{8,12})\s+Confirmed/i);
+  if (referenceMatch) {
+    mpesaReference = referenceMatch[1].toUpperCase();
+  }
 
   if ((match = trimmed.match(mshwariTransferPattern))) {
     expenseType = "receive";
@@ -101,7 +108,7 @@ export function parseMpesaMessage(message: string): ParsedExpenseData {
       return {
         amount,
         expenseType: "send",
-        reference: trimmed.substring(0, 100),
+        reference: mpesaReference || trimmed.substring(0, 100),
         timestamp: Date.now(),
       };
     }
@@ -230,6 +237,6 @@ export function parseMpesaMessage(message: string): ParsedExpenseData {
     expenseType,
     balance,
     timestamp,
-    reference: trimmed.substring(0, 100),
+    reference: mpesaReference || trimmed.substring(0, 100),
   };
 }

@@ -24,21 +24,31 @@ export function SavingsGoalList() {
     useState<SavingsGoalWithContributions | null>(null);
 
   const { isLoading, error, data } = db.useQuery({
-    savings_goals: {
+    profiles: {
       $: {
         where: {
           "user.id": user.id,
         },
-        order: {
-          createdAt: "desc",
-        },
       },
-      contributions: {},
-      user: {},
+      savingsGoals: {
+        $: {
+          order: {
+            createdAt: "desc",
+          },
+        },
+        contributions: {},
+      },
     },
   });
 
-  const savingsGoals = data?.savings_goals || [];
+  const profile = data?.profiles?.[0];
+  const savingsGoals = useMemo(() => {
+    // Add user reference for compatibility
+    return (profile?.savingsGoals || []).map(goal => ({
+      ...goal,
+      user: { id: profile?.id }
+    }));
+  }, [profile?.savingsGoals, profile?.id]);
 
   const handleAddMoney = useCallback((goal: SavingsGoalWithContributions) => {
     setSelectedGoal(goal);

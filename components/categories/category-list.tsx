@@ -55,15 +55,20 @@ export default function CategoryList() {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const { data } = db.useQuery({
-    categories: {
+    profiles: {
       $: {
         where: { "user.id": user.id },
-        order: { name: "asc" },
+      },
+      categories: {
+        $: {
+          order: { name: "asc" },
+        },
       },
     },
   });
 
-  const userCategories = data?.categories || [];
+  const profile = data?.profiles?.[0];
+  const userCategories = profile?.categories || [];
   const displayCategories = getDisplayCategories(userCategories);
 
   const resetForm = () => {

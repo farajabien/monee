@@ -14,6 +14,7 @@ import {
   Wallet,
   X,
   LogOut,
+  Repeat,
 } from "lucide-react";
 import {
   AlertDialog,
@@ -103,6 +104,12 @@ export function PWABottomNav() {
       label: "Income",
       icon: TrendingUp,
       href: "/dashboard?tab=income",
+    },
+    {
+      value: "recurring",
+      label: "Recurring",
+      icon: Repeat,
+      href: "/dashboard?tab=recurring",
     },
     {
       value: "categories",

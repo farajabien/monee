@@ -29,16 +29,37 @@ export function DebtList() {
     "overview" | "timeline" | "breakdown"
   >("overview");
   const { data } = db.useQuery({
-    debts: {
+    profiles: {
       $: {
         where: { "user.id": user.id },
-        order: { createdAt: "desc" },
       },
-      user: {},
+      debts: {
+        $: {
+          order: { createdAt: "desc" },
+        },
+      },
     },
   });
 
-  const debts: DebtWithUser[] = useMemo(() => data?.debts || [], [data?.debts]);
+  const profile = data?.profiles?.[0];
+  const debts: DebtWithUser[] = useMemo(() => {
+    // Add user reference to debts for compatibility with full profile data
+    return (profile?.debts || []).map((debt) => ({
+      ...debt,
+      user: profile
+        ? {
+            id: profile.id,
+            handle: profile.handle,
+            monthlyBudget: profile.monthlyBudget,
+            createdAt: profile.createdAt,
+            onboardingCompleted: profile.onboardingCompleted,
+            onboardingStep: profile.onboardingStep,
+            currency: profile.currency,
+            locale: profile.locale,
+          }
+        : undefined,
+    }));
+  }, [profile?.debts, profile]);
 
   const handleRecordPayment = useCallback((debt: DebtWithUser) => {
     setSelectedDebtForPayment(debt);

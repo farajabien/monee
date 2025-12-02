@@ -31,6 +31,8 @@ const _schema = i.schema({
       rawMessage: i.string(),
       parsedData: i.json(),
       notes: i.string().optional(),
+      mpesaReference: i.string().optional().indexed(),
+      linkedRecurringId: i.string().optional().indexed(),
       createdAt: i.number().indexed(),
     }),
     categories: i.entity({
@@ -127,6 +129,18 @@ const _schema = i.schema({
       isProcessed: i.boolean(),
       createdAt: i.number().indexed(),
     }),
+    recurring_transactions: i.entity({
+      name: i.string().indexed(),
+      amount: i.number().indexed(),
+      recipient: i.string().indexed(),
+      category: i.string(),
+      frequency: i.string().indexed(),
+      paybillNumber: i.string().optional().indexed(),
+      tillNumber: i.string().optional().indexed(),
+      accountNumber: i.string().optional(),
+      isActive: i.boolean(),
+      createdAt: i.number().indexed(),
+    }),
     feedback: i.entity({
       feedbackType: i.string().indexed(), // Bug | Feature | Suggestion | UI/UX | Performance | General
       feedbackText: i.string(),
@@ -195,6 +209,14 @@ const _schema = i.schema({
     profileStatementExpenses: {
       forward: { on: "statement_expenses", has: "one", label: "user" },
       reverse: { on: "profiles", has: "many", label: "statementExpenses" },
+    },
+    profileRecurringTransactions: {
+      forward: { on: "recurring_transactions", has: "one", label: "user" },
+      reverse: { on: "profiles", has: "many", label: "recurringTransactions" },
+    },
+    recurringTransactionExpenses: {
+      forward: { on: "expenses", has: "one", label: "recurringTransaction" },
+      reverse: { on: "recurring_transactions", has: "many", label: "linkedExpenses" },
     },
     profileFeedback: {
       forward: { on: "feedback", has: "one", label: "user" },

@@ -30,6 +30,7 @@ import {
   getLocaleForCurrency,
 } from "@/lib/currency-utils";
 import { DEFAULT_CATEGORIES } from "@/lib/bootstrap";
+import { toast } from "sonner";
 
 const EMOJI_OPTIONS = [
   "🎯",
@@ -111,6 +112,7 @@ export default function Onboarding() {
   const [showAddCategoryDialog, setShowAddCategoryDialog] = useState(false);
   const [isCreatingProfile, setIsCreatingProfile] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [autoSaving, setAutoSaving] = useState(false);
 
   // Create profile if it doesn't exist
   useEffect(() => {
@@ -286,24 +288,45 @@ export default function Onboarding() {
     setSavingsGoals(updated);
   };
 
+  const handleCurrencyChange = async (currency: string) => {
+    setSelectedCurrency(currency);
+    if (!profile) return;
+
+    setAutoSaving(true);
+    try {
+      await db.transact(
+        db.tx.profiles[profile.id].update({
+          currency: currency,
+          locale: getLocaleForCurrency(currency),
+        })
+      );
+    } catch (error) {
+      console.error("Failed to auto-save currency:", error);
+    } finally {
+      setAutoSaving(false);
+    }
+  };
+
   const handleNext = async () => {
     setIsSaving(true);
+    const savingToast = toast.loading("Saving...");
     try {
       if (step === 1) {
-        // Save currency preference
+        // Currency is already auto-saved, just update onboarding step
         await db.transact(
           db.tx.profiles[profile.id].update({
-            currency: selectedCurrency,
-            locale: getLocaleForCurrency(selectedCurrency),
             onboardingStep: "categories",
           })
         );
 
+        toast.success("Currency saved!", { id: savingToast });
         setStep(2);
       } else if (step === 2) {
         // Validate at least one category is selected
         if (selectedCategories.length === 0) {
-          alert("Please select at least one category");
+          toast.error("Please select at least one category", {
+            id: savingToast,
+          });
           setIsSaving(false);
           return;
         }
@@ -338,6 +361,7 @@ export default function Onboarding() {
           })
         );
 
+        toast.success("Categories saved!", { id: savingToast });
         setStep(3);
       } else if (step === 3) {
         // Validate at least one income source
@@ -346,7 +370,9 @@ export default function Onboarding() {
         );
 
         if (validIncomeSources.length === 0) {
-          alert("Please add at least one income source");
+          toast.error("Please add at least one income source", {
+            id: savingToast,
+          });
           setIsSaving(false);
           return;
         }
@@ -377,6 +403,7 @@ export default function Onboarding() {
           })
         );
 
+        toast.success("Income sources saved!", { id: savingToast });
         setStep(4);
       } else if (step === 4) {
         // Save recurring expenses (optional)
@@ -411,6 +438,12 @@ export default function Onboarding() {
           })
         );
 
+        toast.success(
+          validRecurringExpenses.length > 0
+            ? "Recurring expenses saved!"
+            : "Moving to debts...",
+          { id: savingToast }
+        );
         setStep(5);
       } else if (step === 5) {
         // Save debts (optional)
@@ -421,29 +454,41 @@ export default function Onboarding() {
         if (validDebts.length > 0) {
           const txs = validDebts.map((debt) => {
             const debtId = id();
-            const debtData = {
+            const debtData: {
+              name: string;
+              totalAmount: number;
+              currentBalance: number;
+              monthlyPaymentAmount: number;
+              paymentDueDay: number;
+              interestRate?: number;
+              deadline?: number;
+              createdAt: number;
+            } = {
               name: debt.name,
               totalAmount: parseFloat(debt.totalAmount),
               currentBalance: debt.currentBalance
                 ? parseFloat(debt.currentBalance)
                 : parseFloat(debt.totalAmount),
-              monthlyPaymentAmount: debt.monthlyPaymentAmount
+              monthlyPaymentAmount: debt.isOneTimePayment
+                ? 0 // One-time payments don't have monthly payments
+                : debt.monthlyPaymentAmount
                 ? parseFloat(debt.monthlyPaymentAmount)
                 : 0,
-              paymentDueDay: debt.paymentDueDay
+              paymentDueDay: debt.isOneTimePayment
+                ? 0 // One-time payments don't have due day
+                : debt.paymentDueDay
                 ? parseInt(debt.paymentDueDay)
                 : 1,
-              interestRate: debt.interestRate
-                ? parseFloat(debt.interestRate)
-                : undefined,
-              deadline: debt.dueDate
-                ? new Date(debt.dueDate).getTime()
-                : undefined,
               createdAt: Date.now(),
             };
 
-            // Add deadline for one-time payments
-            if (debt.isOneTimePayment && debt.dueDate) {
+            // Add interest rate if provided
+            if (debt.interestRate) {
+              debtData.interestRate = parseFloat(debt.interestRate);
+            }
+
+            // Add deadline for one-time payments or any debt with a due date
+            if (debt.dueDate) {
               debtData.deadline = new Date(debt.dueDate).getTime();
             }
 
@@ -453,6 +498,9 @@ export default function Onboarding() {
           });
 
           await db.transact(txs);
+          console.log(
+            `Saved ${validDebts.length} debts for profile ${profile.id}`
+          );
         }
 
         // Update onboarding step
@@ -462,6 +510,10 @@ export default function Onboarding() {
           })
         );
 
+        toast.success(
+          validDebts.length > 0 ? "Debts saved!" : "Moving to savings goals...",
+          { id: savingToast }
+        );
         setStep(6);
       } else if (step === 6) {
         // Save savings goals (optional)
@@ -495,11 +547,14 @@ export default function Onboarding() {
           })
         );
 
+        toast.success("Setup complete! Welcome to Monee! 🎉", {
+          id: savingToast,
+        });
         router.push("/dashboard");
       }
     } catch (error) {
       console.error("Onboarding save error:", error);
-      alert("Failed to save. Please try again.");
+      toast.error("Failed to save. Please try again.", { id: savingToast });
     } finally {
       setIsSaving(false);
     }
@@ -595,12 +650,13 @@ export default function Onboarding() {
                     {getAllCurrencies().map((curr) => (
                       <button
                         key={curr.code}
-                        onClick={() => setSelectedCurrency(curr.code)}
+                        onClick={() => handleCurrencyChange(curr.code)}
+                        disabled={autoSaving}
                         className={`flex items-center gap-3 p-4 rounded-lg border-2 transition-all ${
                           selectedCurrency === curr.code
                             ? "border-primary bg-primary/5"
                             : "border-muted hover:border-muted-foreground/50"
-                        }`}
+                        } ${autoSaving ? "opacity-50 cursor-not-allowed" : ""}`}
                       >
                         <div className="flex flex-col items-start flex-1">
                           <span className="font-medium text-lg">
@@ -907,6 +963,14 @@ export default function Onboarding() {
                     Track your debts to stay on top of payments and interest.
                     This is optional but helps with financial planning.
                   </p>
+                  <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900 rounded-md p-3 mt-2">
+                    <p className="text-sm text-blue-900 dark:text-blue-100">
+                      <strong>💡 Tip:</strong> Toggle &quot;One-time
+                      Payment&quot; for informal debts (friend loans, family
+                      debts) that you&apos;ll pay back in full on a specific
+                      date.
+                    </p>
+                  </div>
                   <div className="space-y-4 mt-6">
                     {debts.length === 0 ? (
                       <div className="text-center py-8 text-muted-foreground">
@@ -921,20 +985,33 @@ export default function Onboarding() {
                           <div className="space-y-2">
                             <Label>Debt Name</Label>
                             <Input
-                              placeholder="e.g., Car Loan, Friend Loan"
+                              placeholder="e.g., Car Loan, Friend Loan, Credit Card"
                               value={debt.name}
                               onChange={(e) =>
                                 updateDebt(index, "name", e.target.value)
                               }
                             />
                           </div>
-                          <div className="flex items-center justify-between">
-                            <Label>One-time Payment (e.g., friend debt)</Label>
+                          <div className="flex items-center justify-between p-3 bg-muted/50 rounded-md">
+                            <div className="space-y-0.5">
+                              <Label className="text-sm font-semibold">
+                                One-time Payment
+                              </Label>
+                              <p className="text-xs text-muted-foreground">
+                                Pay in full by a specific date (friends,
+                                informal loans)
+                              </p>
+                            </div>
                             <Switch
                               checked={debt.isOneTimePayment}
-                              onCheckedChange={(checked) =>
-                                updateDebt(index, "isOneTimePayment", checked)
-                              }
+                              onCheckedChange={(checked) => {
+                                updateDebt(index, "isOneTimePayment", checked);
+                                // Clear monthly fields when switching to one-time
+                                if (checked) {
+                                  updateDebt(index, "monthlyPaymentAmount", "");
+                                  updateDebt(index, "paymentDueDay", "");
+                                }
+                              }}
                             />
                           </div>
                           <div className="grid grid-cols-2 gap-3">
@@ -970,15 +1047,21 @@ export default function Onboarding() {
                             </div>
                           </div>
                           {debt.isOneTimePayment ? (
-                            <div className="space-y-2">
-                              <Label>Due Date (Optional)</Label>
+                            <div className="space-y-2 p-3 bg-blue-50/50 dark:bg-blue-950/10 rounded-md border border-blue-200/50 dark:border-blue-900/50">
+                              <Label className="text-blue-900 dark:text-blue-100">
+                                When will you pay this in full?
+                              </Label>
                               <Input
                                 type="date"
                                 value={debt.dueDate || ""}
                                 onChange={(e) =>
                                   updateDebt(index, "dueDate", e.target.value)
                                 }
+                                className="bg-white dark:bg-slate-950"
                               />
+                              <p className="text-xs text-blue-700 dark:text-blue-300">
+                                Optional: Set a target date to pay off this debt
+                              </p>
                             </div>
                           ) : (
                             <div className="grid grid-cols-2 gap-3">
@@ -1021,7 +1104,11 @@ export default function Onboarding() {
                             <Input
                               type="number"
                               step="0.1"
-                              placeholder="5.5"
+                              placeholder={
+                                debt.isOneTimePayment
+                                  ? "0 (most friend loans are interest-free)"
+                                  : "5.5"
+                              }
                               value={debt.interestRate}
                               onChange={(e) =>
                                 updateDebt(

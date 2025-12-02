@@ -8,13 +8,9 @@ export async function extractTextFromPDF(file: File): Promise<string> {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    // Initialize parser with buffer data
+    // Parse PDF using pdf-parse v2
     const parser = new PDFParse({ data: buffer });
-
-    // Extract text from all pages
     const result = await parser.getText();
-
-    // Clean up resources
     await parser.destroy();
 
     return result.text;

@@ -310,17 +310,21 @@ export function ManualExpenseDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="mpesa-reference">
-                Mpesa Reference (Optional)
+              <Label htmlFor="mpesa-reference" className="flex items-center gap-2">
+                M-PESA Reference Code
+                <span className="text-xs font-normal text-muted-foreground">(Recommended)</span>
               </Label>
               <Input
                 id="mpesa-reference"
                 type="text"
-                placeholder="e.g. TKLPNAO4DP"
+                placeholder="e.g., TKJPNAJ1D1"
                 value={mpesaReference}
-                onChange={(e) => setMpesaReference(e.target.value)}
+                onChange={(e) => setMpesaReference(e.target.value.toUpperCase())}
                 maxLength={20}
               />
+              <p className="text-xs text-muted-foreground">
+                Enter the M-PESA transaction code to prevent duplicate entries when importing statements
+              </p>
             </div>
 
             <DialogFooter>

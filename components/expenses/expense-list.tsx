@@ -59,24 +59,19 @@ export default function ExpenseList() {
       $: {
         where: { "user.id": user.id },
       },
-    },
-    expenses: {
-      $: {
-        where: { "user.id": user.id },
-        order: { createdAt: "desc" },
-        limit: 50,
+      expenses: {
+        $: {
+          order: { createdAt: "desc" },
+          limit: 50,
+        },
       },
-    },
-    recipients: {
-      $: {
-        where: { "user.id": user.id },
-      },
+      recipients: {},
     },
   });
 
   const profile = data?.profiles?.[0];
-  const expenses = useMemo(() => data?.expenses || [], [data?.expenses]);
-  const recipients = useMemo(() => data?.recipients || [], [data?.recipients]);
+  const expenses = useMemo(() => profile?.expenses || [], [profile?.expenses]);
+  const recipients = useMemo(() => profile?.recipients || [], [profile?.recipients]);
 
   const { formatCurrency } = useCurrency(profile?.currency, profile?.locale);
 

@@ -13,6 +13,7 @@ import ExpenseList from "@/components/expenses/expense-list";
 import { IncomeSourceList } from "@/components/income/income-source-list";
 import { PWABottomNav } from "@/components/pwa/pwa-bottom-nav";
 import SavingsPage from "@/components/savings/savings-page";
+import { RecurringTransactionList } from "@/components/recurring/recurring-transaction-list";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UnifiedAddModal } from "@/components/quick-add/unified-add-modal";
 import { Button } from "@/components/ui/button";
@@ -78,6 +79,7 @@ export default function HomeClient() {
       {activeTab === "debts" && <DebtList />}
       {activeTab === "savings" && <SavingsPage />}
       {activeTab === "categories" && <CategoryList />}
+      {activeTab === "recurring" && <RecurringTransactionList />}
 
       {/* Floating Add Button - only show on list tabs */}
       {activeTab !== "overview" && (
