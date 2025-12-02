@@ -152,16 +152,13 @@ export function CashFlowHealthCard({
         {/* Daily Allowance - Prominent Display */}
         <div className="py-3 px-4 rounded-lg bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30">
           <div className="space-y-2">
-            <div className="flex items-baseline gap-2">
+            <p className="text-xs text-blue-800 dark:text-blue-200">
+              You can spend up to{" "}
               <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                {dailyAllowance > 0
-                  ? formatCurrency(dailyAllowance)
-                  : formatCurrency(0)}
+                {formatCurrency(dailyAllowance)}
               </span>
-              <span className="text-xs text-blue-700 dark:text-blue-300">
-                per day (30-day avg)
-              </span>
-            </div>
+              per day (30-day avg)
+            </p>
             {dailyAllowance > 0 ? (
               <p className="text-xs text-blue-800 dark:text-blue-200">
                 If you stay disciplined, your balance will keep growing!
