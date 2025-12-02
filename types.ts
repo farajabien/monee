@@ -38,14 +38,6 @@ export type BudgetWithRelations = InstaQLEntity<
   { category: object; profile: object }
 >;
 
-// ELTIW Item types
-export type EltiwItem = InstaQLEntity<typeof schema, "eltiw_items">;
-export type EltiwItemWithUser = InstaQLEntity<
-  typeof schema,
-  "eltiw_items",
-  { profile: object }
->;
-
 // Daily Check-in types
 export type DailyCheckin = InstaQLEntity<typeof schema, "daily_checkins">;
 export type DailyCheckinWithUser = InstaQLEntity<
@@ -118,17 +110,6 @@ export type RecurringTransaction = InstaQLEntity<
 export type RecurringTransactionWithUser = InstaQLEntity<
   typeof schema,
   "recurring_transactions",
-  { profile: object }
->;
-
-// Statement Expense types
-export type StatementExpense = InstaQLEntity<
-  typeof schema,
-  "statement_expenses"
->;
-export type StatementExpenseWithUser = InstaQLEntity<
-  typeof schema,
-  "statement_expenses",
   { profile: object }
 >;
 

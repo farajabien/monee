@@ -77,7 +77,6 @@ export default function SettingsClient() {
       expenses: {},
       categories: {},
       budgets: {},
-      eltiwItems: {},
       dailyCheckins: {},
       incomeSources: {},
       debts: {
@@ -201,7 +200,6 @@ export default function SettingsClient() {
         expenses: profile.expenses || [],
         categories: profile.categories || [],
         budgets: profile.budgets || [],
-        eltiwItems: profile.eltiwItems || [],
         dailyCheckins: profile.dailyCheckins || [],
         incomeSources: profile.incomeSources || [],
         debts:
@@ -322,13 +320,6 @@ export default function SettingsClient() {
       if (profile.budgets) {
         profile.budgets.forEach((budget) => {
           transactions.push(db.tx.budgets[budget.id].delete());
-        });
-      }
-
-      // Delete all eltiw items
-      if (profile.eltiwItems) {
-        profile.eltiwItems.forEach((item) => {
-          transactions.push(db.tx.eltiw_items[item.id].delete());
         });
       }
 

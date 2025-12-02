@@ -50,19 +50,6 @@ const _schema = i.schema({
       month: i.number().indexed(),
       year: i.number().indexed(),
     }),
-    eltiw_items: i.entity({
-      name: i.string(),
-      amount: i.number().indexed(),
-      reason: i.string().optional(),
-      link: i.string().optional(),
-      source: i.string().optional().indexed(),
-      sourceEmoji: i.string().optional(),
-      category: i.string().optional().indexed(),
-      deadline: i.number().optional().indexed(),
-      gotIt: i.boolean(),
-      gotItDate: i.number().optional(),
-      createdAt: i.number().indexed(),
-    }),
     daily_checkins: i.entity({
       date: i.number().unique().indexed(),
       completed: i.boolean(),
@@ -126,15 +113,6 @@ const _schema = i.schema({
       notes: i.string().optional(),
       createdAt: i.number().indexed(),
     }),
-    statement_expenses: i.entity({
-      amount: i.number().indexed(),
-      recipient: i.string().indexed(),
-      timestamp: i.number().indexed(),
-      description: i.string(),
-      category: i.string().optional().indexed(),
-      isProcessed: i.boolean(),
-      createdAt: i.number().indexed(),
-    }),
     recurring_transactions: i.entity({
       name: i.string().indexed(),
       amount: i.number().indexed(),
@@ -185,10 +163,6 @@ const _schema = i.schema({
       forward: { on: "budgets", has: "one", label: "profile" },
       reverse: { on: "profiles", has: "many", label: "budgets" },
     },
-    profileEltiwItems: {
-      forward: { on: "eltiw_items", has: "one", label: "profile" },
-      reverse: { on: "profiles", has: "many", label: "eltiwItems" },
-    },
     profileDailyCheckins: {
       forward: { on: "daily_checkins", has: "one", label: "profile" },
       reverse: { on: "profiles", has: "many", label: "dailyCheckins" },
@@ -216,10 +190,6 @@ const _schema = i.schema({
     savingsGoalContributions: {
       forward: { on: "savings_contributions", has: "one", label: "goal" },
       reverse: { on: "savings_goals", has: "many", label: "contributions" },
-    },
-    profileStatementExpenses: {
-      forward: { on: "statement_expenses", has: "one", label: "profile" },
-      reverse: { on: "profiles", has: "many", label: "statementExpenses" },
     },
     profileRecurringTransactions: {
       forward: { on: "recurring_transactions", has: "one", label: "profile" },
