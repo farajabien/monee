@@ -74,18 +74,18 @@ export function ManualExpenseDialog({
     },
     categories: {
       $: {
-        where: { "profile.user.id": user.id },
+        where: { "profile.user.id":user?.id || "" },
         order: { name: "asc" },
       },
     },
     recipients: {
       $: {
-        where: { "profile.user.id": user.id },
+        where: { "profile.user.id":user?.id || "" },
       },
     },
     expenses: {
       $: {
-        where: { "profile.user.id": user.id },
+        where: { "profile.user.id":user?.id || "" },
       },
     },
   });

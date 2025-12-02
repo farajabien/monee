@@ -86,13 +86,13 @@ export default function AddExpenseForm() {
   const { data: expensesData } = db.useQuery({
     expenses: {
       $: {
-        where: { "profile.user.id": user.id },
+        where: { "profile.user.id": user?.id },
         limit: 1000,
       },
     },
     recipients: {
       $: {
-        where: { "profile.user.id": user.id },
+        where: { "profile.user.id": user?.id },
       },
     },
   });
@@ -114,7 +114,7 @@ export default function AddExpenseForm() {
   const { data: categoriesData } = db.useQuery({
     categories: {
       $: {
-        where: { "profile.user.id": user.id },
+        where: { "profile.user.id": user?.id },
         order: { name: "asc" },
       },
     },
@@ -341,7 +341,7 @@ export default function AddExpenseForm() {
                 mpesaReference: parsed.reference,
                 createdAt: Date.now(),
               })
-              .link({ profile: profile?.id || "" })
+              .link({ profile: user?.id || "" })
           );
         } catch (error) {
           console.error("Failed to parse message:", message, error);
