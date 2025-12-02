@@ -37,6 +37,8 @@ export function QuickDebtForm({ onSuccess, debt }: QuickDebtFormProps) {
   const [name, setName] = useState("");
   const [totalAmount, setTotalAmount] = useState<string>("");
   const [monthlyPaymentAmount, setMonthlyPaymentAmount] = useState<string>("");
+  const [paymentDueDay, setPaymentDueDay] = useState<string>("1");
+  const [deadline, setDeadline] = useState<string>("");
   const [debtType, setDebtType] = useState<DebtType>("one-time");
   const [interestRate, setInterestRate] = useState<string>("");
   const [compoundingFrequency, setCompoundingFrequency] = useState<CompoundingFrequency>("monthly");
@@ -48,6 +50,8 @@ export function QuickDebtForm({ onSuccess, debt }: QuickDebtFormProps) {
       setName(debt.name || "");
       setTotalAmount(debt.totalAmount?.toString() || "");
       setMonthlyPaymentAmount(debt.monthlyPaymentAmount?.toString() || "");
+      setPaymentDueDay(debt.paymentDueDay?.toString() || "1");
+      setDeadline(debt.deadline ? new Date(debt.deadline).toISOString().split('T')[0] : "");
       setDebtType((debt.debtType as DebtType) || "one-time");
       setInterestRate(debt.interestRate?.toString() || "");
       setCompoundingFrequency((debt.compoundingFrequency as CompoundingFrequency) || "monthly");
@@ -56,8 +60,14 @@ export function QuickDebtForm({ onSuccess, debt }: QuickDebtFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !totalAmount || !monthlyPaymentAmount) {
-      toast.error("Please fill in all fields");
+    if (!name.trim() || !totalAmount) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+    
+    // Validate monthly payment for non-one-time debts
+    if (debtType !== "one-time" && !monthlyPaymentAmount) {
+      toast.error("Please enter a monthly payment amount");
       return;
     }
     
@@ -69,15 +79,16 @@ export function QuickDebtForm({ onSuccess, debt }: QuickDebtFormProps) {
     setIsSubmitting(true);
     try {
       const parsedInterestRate = interestRate ? parseFloat(interestRate) : 0;
-      const debtData = {
+      const debtData: Record<string, unknown> = {
         name: name.trim(),
         totalAmount: parseFloat(totalAmount),
-        currentBalance: debt ? debt.currentBalance : parseFloat(totalAmount), // Keep existing balance when editing
-        monthlyPaymentAmount: parseFloat(monthlyPaymentAmount),
+        currentBalance: debt ? debt.currentBalance : parseFloat(totalAmount),
+        monthlyPaymentAmount: debtType === "one-time" ? 0 : parseFloat(monthlyPaymentAmount || "0"),
+        paymentDueDay: debtType === "one-time" ? 0 : parseInt(paymentDueDay || "1"),
         debtType,
         interestRate: parsedInterestRate,
         compoundingFrequency: debtType === "one-time" ? undefined : compoundingFrequency,
-        paymentDueDay: debt?.paymentDueDay || 1, // Keep existing or default to 1st of month
+        deadline: deadline ? new Date(deadline).getTime() : undefined,
         createdAt: debt?.createdAt || Date.now(),
       };
 
@@ -97,6 +108,8 @@ export function QuickDebtForm({ onSuccess, debt }: QuickDebtFormProps) {
       setName("");
       setTotalAmount("");
       setMonthlyPaymentAmount("");
+      setPaymentDueDay("1");
+      setDeadline("");
       setDebtType("one-time");
       setInterestRate("");
       setCompoundingFrequency("monthly");
@@ -139,18 +152,6 @@ export function QuickDebtForm({ onSuccess, debt }: QuickDebtFormProps) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="monthly-payment">Monthly Payment (KES)</Label>
-        <Input
-          id="monthly-payment"
-          type="number"
-          step="0.01"
-          placeholder="5000"
-          value={monthlyPaymentAmount}
-          onChange={(e) => setMonthlyPaymentAmount(e.target.value)}
-        />
-      </div>
-
-      <div className="space-y-2">
         <Label htmlFor="debt-type">Debt Type</Label>
         <Select value={debtType} onValueChange={(value) => setDebtType(value as DebtType)}>
           <SelectTrigger id="debt-type">
@@ -166,6 +167,60 @@ export function QuickDebtForm({ onSuccess, debt }: QuickDebtFormProps) {
           {getDebtTypeDescription(debtType)}
         </p>
       </div>
+
+      {/* Monthly Payment - Only for recurring debts */}
+      {debtType !== "one-time" && (
+        <div className="space-y-2">
+          <Label htmlFor="monthly-payment">Monthly Payment (KES)</Label>
+          <Input
+            id="monthly-payment"
+            type="number"
+            step="0.01"
+            placeholder="5000"
+            value={monthlyPaymentAmount}
+            onChange={(e) => setMonthlyPaymentAmount(e.target.value)}
+          />
+        </div>
+      )}
+
+      {/* Payment Due Day - Only for recurring debts */}
+      {debtType !== "one-time" && (
+        <div className="space-y-2">
+          <Label htmlFor="payment-due-day">Payment Due Day (1-31)</Label>
+          <Input
+            id="payment-due-day"
+            type="number"
+            min="1"
+            max="31"
+            placeholder="1"
+            value={paymentDueDay}
+            onChange={(e) => setPaymentDueDay(e.target.value)}
+          />
+          <p className="text-xs text-muted-foreground">
+            Day of the month when payment is due
+          </p>
+        </div>
+      )}
+
+      {/* Deadline - For one-time debts and interest-push next payment */}
+      {(debtType === "one-time" || debtType === "interest-push") && (
+        <div className="space-y-2">
+          <Label htmlFor="deadline">
+            {debtType === "one-time" ? "Payment Deadline" : "Next Payment Date"}
+          </Label>
+          <Input
+            id="deadline"
+            type="date"
+            value={deadline}
+            onChange={(e) => setDeadline(e.target.value)}
+          />
+          <p className="text-xs text-muted-foreground">
+            {debtType === "one-time" 
+              ? "When do you need to pay this debt in full?"
+              : "When is your next interest payment due?"}
+          </p>
+        </div>
+      )}
 
       {debtType !== "one-time" && (
         <div className="space-y-4 p-4 border rounded-lg bg-muted/50">
@@ -197,7 +252,8 @@ export function QuickDebtForm({ onSuccess, debt }: QuickDebtFormProps) {
         </div>
       )}
 
-      {totalAmount && monthlyPaymentAmount && (
+      {/* Payment Preview - Only for debts with monthly payments */}
+      {totalAmount && debtType !== "one-time" && monthlyPaymentAmount && (
         <div className="text-xs space-y-1 p-3 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded">
           {(() => {
             const calc = calculateDebt(
@@ -216,6 +272,19 @@ export function QuickDebtForm({ onSuccess, debt }: QuickDebtFormProps) {
               </>
             );
           })()}
+        </div>
+      )}
+
+      {/* One-time debt summary */}
+      {totalAmount && debtType === "one-time" && (
+        <div className="text-xs space-y-1 p-3 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded">
+          <div className="font-medium text-blue-900 dark:text-blue-100">One-Time Payment:</div>
+          <div className="text-blue-800 dark:text-blue-200">Amount Due: KES {parseFloat(totalAmount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+          {deadline && (
+            <div className="text-blue-800 dark:text-blue-200">
+              Due Date: {new Date(deadline).toLocaleDateString('en-KE', { year: 'numeric', month: 'long', day: 'numeric' })}
+            </div>
+          )}
         </div>
       )}
 
