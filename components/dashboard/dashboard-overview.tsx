@@ -234,7 +234,9 @@ export function DashboardOverview() {
   if (error) {
     return (
       <div className="p-6 text-center">
-        <p className="text-red-600">Error loading dashboard: {error.message}</p>
+        <p className="text-destructive">
+          Error loading dashboard: {error.message}
+        </p>
       </div>
     );
   }
@@ -243,18 +245,12 @@ export function DashboardOverview() {
     <div className="space-y-6">
       {/* Dashboard Cards as Tabs */}
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 mb-4 border-0">
-          <TabsTrigger value="overview" className="border-0">
-            Overview
-          </TabsTrigger>
-          <TabsTrigger value="debts" className="border-0">
-            Debts
-          </TabsTrigger>
-          <TabsTrigger value="savings" className="border-0">
-            Savings
-          </TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3 mb-4">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="debts">Debts</TabsTrigger>
+          <TabsTrigger value="savings">Savings</TabsTrigger>
         </TabsList>
-        <TabsContent value="overview" className="border-0">
+        <TabsContent value="overview">
           <div className="space-y-4">
             <CashFlowHealthCard
               healthData={cashFlowHealthData}
@@ -264,7 +260,7 @@ export function DashboardOverview() {
             />
           </div>
         </TabsContent>
-        <TabsContent value="debts" className="border-0">
+        <TabsContent value="debts">
           <DebtsAlertCard
             debts={debtsData}
             isLoading={isLoading}
@@ -272,7 +268,7 @@ export function DashboardOverview() {
             userLocale={profile?.locale}
           />
         </TabsContent>
-        <TabsContent value="savings" className="border-0">
+        <TabsContent value="savings">
           <SavingsProgressCard
             monthlySavings={savingsData.monthlySavings}
             totalSaved={savingsData.totalSaved}

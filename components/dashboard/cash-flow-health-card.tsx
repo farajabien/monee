@@ -84,10 +84,10 @@ export function CashFlowHealthCard({
   // Determine item styling based on status
   const itemClass =
     statusColor === "success"
-      ? " bg-green-50/50 dark:bg-green-950/20"
+      ? " bg-[hsl(var(--chart-4)/0.1)] dark:bg-[hsl(var(--chart-4)/0.1)]"
       : statusColor === "warning"
-      ? " bg-yellow-50/50 dark:bg-yellow-950/20"
-      : " bg-red-50/50 dark:bg-red-950/20";
+      ? " bg-[hsl(var(--chart-1)/0.1)] dark:bg-[hsl(var(--chart-1)/0.1)]"
+      : " bg-[hsl(var(--destructive)/0.1)] dark:bg-[hsl(var(--destructive)/0.1)]";
 
   // Get discipline icon
   const DisciplineIcon =
@@ -99,18 +99,18 @@ export function CashFlowHealthCard({
 
   const disciplineColorClass =
     disciplineIndicator === "up"
-      ? "text-green-600 dark:text-green-400"
+      ? "text-[hsl(var(--chart-4))]"
       : disciplineIndicator === "down"
-      ? "text-red-600 dark:text-red-400"
+      ? "text-[hsl(var(--destructive))]"
       : "text-muted-foreground";
 
   // Determine balance color based on health status
   const balanceColorClass =
     healthStatus === "healthy"
-      ? "text-green-600 dark:text-green-400"
+      ? "text-[hsl(var(--chart-4))]"
       : healthStatus === "caution"
-      ? "text-yellow-600 dark:text-yellow-400"
-      : "text-red-600 dark:text-red-400";
+      ? "text-[hsl(var(--chart-1))]"
+      : "text-[hsl(var(--destructive))]";
 
   // Calculate days remaining in month
   const daysRemaining = 30 - daysElapsed;
@@ -122,19 +122,19 @@ export function CashFlowHealthCard({
         <div className="grid grid-cols-3 gap-3">
           <div className="space-y-1">
             <div className="flex items-center gap-1 text-xs text-muted-foreground">
-              <ArrowUpCircle className="h-3 w-3 text-green-600 dark:text-green-400" />
+              <ArrowUpCircle className="h-3 w-3 text-[hsl(var(--chart-4))]" />
               Income
             </div>
-            <div className="text-base font-semibold text-green-600 dark:text-green-400">
+            <div className="text-base font-semibold text-[hsl(var(--chart-4))]">
               {formatCurrency(totalIncome)}
             </div>
           </div>
           <div className="space-y-1">
             <div className="flex items-center gap-1 text-xs text-muted-foreground">
-              <ArrowDownCircle className="h-3 w-3 text-red-600 dark:text-red-400" />
+              <ArrowDownCircle className="h-3 w-3 text-[hsl(var(--destructive))]" />
               Expenses
             </div>
-            <div className="text-base font-semibold text-red-600 dark:text-red-400">
+            <div className="text-base font-semibold text-[hsl(var(--destructive))]">
               {formatCurrency(totalExpenses)}
             </div>
           </div>
@@ -150,22 +150,22 @@ export function CashFlowHealthCard({
         </div>
 
         {/* Daily Allowance - Compact Display */}
-        <div className="py-2 px-3 rounded-lg bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30">
+        <div className="py-2 px-3 rounded-lg bg-gradient-to-r from-[hsl(var(--chart-2)/0.15)] to-[hsl(var(--chart-3)/0.15)]">
           <div className="flex items-baseline justify-between gap-2">
-            <span className="text-xs text-blue-800 dark:text-blue-200">
+            <span className="text-xs text-[hsl(var(--chart-2))]">
               Daily allowance:
             </span>
-            <span className="text-xl font-bold text-blue-600 dark:text-blue-400">
+            <span className="text-xl font-bold text-[hsl(var(--chart-2))]">
               {formatCurrency(dailyAllowance)}
             </span>
           </div>
           {dailyAllowance > 0 ? (
-            <p className="text-[10px] text-blue-700/70 dark:text-blue-300/70 mt-1">
+            <p className="text-[10px] text-[hsl(var(--chart-2)/0.7)] mt-1">
               You can spend up to {formatCurrency(dailyAllowance)} per day for
               the rest of the month.
             </p>
           ) : (
-            <p className="text-[10px] text-red-600 dark:text-red-400 mt-1">
+            <p className="text-[10px] text-[hsl(var(--destructive))] mt-1">
               Budget exceeded - review expenses
             </p>
           )}
@@ -196,10 +196,10 @@ export function CashFlowHealthCard({
           <div
             className={`text-sm font-medium ${
               healthStatus === "critical"
-                ? "text-red-600 dark:text-red-400"
+                ? "text-[hsl(var(--destructive))]"
                 : healthStatus === "caution"
-                ? "text-yellow-600 dark:text-yellow-400"
-                : "text-green-600 dark:text-green-400"
+                ? "text-[hsl(var(--chart-1))]"
+                : "text-[hsl(var(--chart-4))]"
             }`}
           >
             {healthStatus === "critical" ? (
