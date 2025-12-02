@@ -3,16 +3,26 @@
 import { useState } from "react";
 import db from "@/lib/db";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Clock, BarChart3, Bell, TrendingUp, Wallet, Cloud, Zap, Shield, Star } from "lucide-react";
+import {
+  Clock,
+  BarChart3,
+  Bell,
+  TrendingUp,
+  Wallet,
+  Cloud,
+  Zap,
+  Shield,
+  Star,
+} from "lucide-react";
 import { toast } from "sonner";
 import Image from "next/image";
 
@@ -156,7 +166,7 @@ export function PaywallDialog({ open, onOpenChange }: PaywallDialogProps) {
   }
 
   return (
-    <Dialog
+    <Sheet
       open={open && !hideDialog}
       onOpenChange={(newOpen) => {
         // Allow closing if trial is active
@@ -169,8 +179,9 @@ export function PaywallDialog({ open, onOpenChange }: PaywallDialogProps) {
         onOpenChange(newOpen);
       }}
     >
-      <DialogContent
-        className="max-w-2xl"
+      <SheetContent
+        side="bottom"
+        className="h-[95vh] overflow-y-auto"
         onEscapeKeyDown={(e) => {
           if (!isTrialActive) e.preventDefault();
         }}
@@ -178,38 +189,38 @@ export function PaywallDialog({ open, onOpenChange }: PaywallDialogProps) {
           if (!isTrialActive) e.preventDefault();
         }}
       >
-        <DialogHeader>
-          <DialogTitle className="text-2xl flex items-center gap-2">
+        <SheetHeader className="mb-4">
+          <SheetTitle className="text-xl flex items-center gap-2">
             <Image
               src="/AppImages/money-bag.png"
               alt="Money Bag"
-              width={24}
-              height={24}
+              width={20}
+              height={20}
             />
             {isTrialActive
               ? "Try MONEE Free for 7 Days"
               : "Unlock Lifetime Access to MONEE"}
-          </DialogTitle>
-          <DialogDescription>
+          </SheetTitle>
+          <SheetDescription className="text-xs">
             {isTrialActive
               ? `${daysRemaining} day${
                   daysRemaining !== 1 ? "s" : ""
                 } remaining in your free trial. Upgrade anytime for lifetime access.`
               : "Worth KSh 10,000-15,000. Pay once. Own forever. Best deal ever."}
-          </DialogDescription>
-        </DialogHeader>
+          </SheetDescription>
+        </SheetHeader>
 
-        <div className="space-y-6">
+        <div className="space-y-4 pb-4">
           {/* Trial Status Banner */}
           {isTrialActive && (
-            <div className="bg-gradient-to-br from-green-500/10 to-green-500/5 p-4 rounded-lg border-2 border-green-500">
-              <div className="flex items-center gap-3">
-                <Clock className="h-5 w-5 text-green-600" />
+            <div className="bg-gradient-to-br from-green-500/10 to-green-500/5 p-3 rounded-lg border-2 border-green-500">
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4 text-green-600 flex-shrink-0" />
                 <div>
-                  <p className="font-semibold text-green-700">
+                  <p className="text-sm font-semibold text-green-700">
                     Free Trial Active
                   </p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-xs text-muted-foreground">
                     {daysRemaining} day{daysRemaining !== 1 ? "s" : ""}{" "}
                     remaining • Full access to all features
                   </p>
@@ -219,28 +230,28 @@ export function PaywallDialog({ open, onOpenChange }: PaywallDialogProps) {
           )}
 
           {/* Pricing */}
-          <div className="bg-gradient-to-br from-primary/10 to-primary/5 p-6 rounded-lg border-2 border-primary">
-            <div className="flex items-center justify-between mb-4">
+          <div className="bg-gradient-to-br from-primary/10 to-primary/5 p-4 rounded-lg border-2 border-primary">
+            <div className="flex items-center justify-between mb-3">
               <div>
-                <div className="flex items-center gap-3">
-                  <span className="text-5xl font-bold text-primary">
+                <div className="flex items-center gap-2">
+                  <span className="text-3xl font-bold text-primary">
                     Ksh 999
                   </span>
                   <div className="text-left">
-                    <span className="text-2xl text-muted-foreground line-through">
+                    <span className="text-lg text-muted-foreground line-through">
                       Ksh 10,000
                     </span>
-                    <div className="text-xs text-muted-foreground">
+                    <div className="text-[10px] text-muted-foreground">
                       True Value
                     </div>
                   </div>
                 </div>
-                <Badge variant="secondary" className="mt-2">
+                <Badge variant="secondary" className="mt-2 text-xs">
                   Limited Lifetime Offer
                 </Badge>
               </div>
             </div>
-            <p className="text-sm text-muted-foreground font-semibold">
+            <p className="text-xs text-muted-foreground font-semibold">
               💳 One-time payment • No monthly fees • Lifetime access • Best
               deal ever
             </p>
@@ -248,32 +259,37 @@ export function PaywallDialog({ open, onOpenChange }: PaywallDialogProps) {
 
           {/* Features */}
           <div>
-            <h3 className="font-semibold mb-4 text-center">Everything Included:</h3>
-            <div className="grid grid-cols-1 gap-3">
+            <h3 className="text-sm font-semibold mb-3 text-center">
+              Everything Included:
+            </h3>
+            <div className="grid grid-cols-1 gap-2">
               {features.map((feature) => {
                 const Icon = feature.icon;
                 return (
                   <div
                     key={feature.text}
-                    className="flex items-start gap-3 p-2 rounded-lg hover:bg-accent/50 transition-colors"
+                    className="flex items-start gap-2 p-2 rounded-lg hover:bg-accent/50 transition-colors"
                   >
-                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                      <Icon className="h-4 w-4 text-primary" />
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
+                      <Icon className="h-3 w-3 text-primary" />
                     </div>
-                    <span className="text-sm leading-relaxed">{feature.text}</span>
+                    <span className="text-xs leading-relaxed">
+                      {feature.text}
+                    </span>
                   </div>
                 );
               })}
             </div>
-            <div className="mt-4 p-3 bg-gradient-to-r from-green-500/10 to-blue-500/10 rounded-lg border border-green-500/20">
-              <p className="text-xs text-center font-semibold">
-                🎯 Worth KSh 10,000-15,000 • Pay once, own forever • No monthly fees
+            <div className="mt-3 p-2 bg-gradient-to-r from-green-500/10 to-blue-500/10 rounded-lg border border-green-500/20">
+              <p className="text-[10px] text-center font-semibold">
+                🎯 Worth KSh 10,000-15,000 • Pay once, own forever • No monthly
+                fees
               </p>
             </div>
           </div>
         </div>
 
-        <DialogFooter className="flex-col gap-2 sm:flex-col">
+        <SheetFooter className="flex-col gap-2 sm:flex-col pb-safe">
           {isTrialActive ? (
             <>
               <Button
@@ -304,11 +320,11 @@ export function PaywallDialog({ open, onOpenChange }: PaywallDialogProps) {
               {isProcessing ? "Processing..." : "Pay Ksh 999 & Get Started"}
             </Button>
           )}
-        </DialogFooter>
-        <p className="text-xs text-center text-muted-foreground">
-          💳 Secure payment via Paystack • Worth KSh 10,000+ • Best deal ever
-        </p>
-      </DialogContent>
-    </Dialog>
+          <p className="text-[10px] text-center text-muted-foreground">
+            💳 Secure payment via Paystack • Worth KSh 10,000+ • Best deal ever
+          </p>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   );
 }
