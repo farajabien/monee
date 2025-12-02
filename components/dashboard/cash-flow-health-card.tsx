@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import type { CashFlowHealthData } from "@/lib/cash-flow-health-calculator";
 import { useCurrency } from "@/hooks/use-currency";
+import { Badge } from "../ui/badge";
 
 interface CashFlowHealthCardProps {
   healthData: CashFlowHealthData | null;
@@ -171,15 +172,11 @@ export function CashFlowHealthCard({
         {/* Daily Allowance - Prominent Display */}
         <div className="py-3 px-4 rounded-lg bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30">
           <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-              <span className="text-sm font-medium text-blue-900 dark:text-blue-100">
-                Daily Spending Allowance
-              </span>
-            </div>
             <div className="flex items-baseline gap-2">
               <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                {dailyAllowance > 0 ? formatCurrency(dailyAllowance) : formatCurrency(0)}
+                {dailyAllowance > 0
+                  ? formatCurrency(dailyAllowance)
+                  : formatCurrency(0)}
               </span>
               <span className="text-xs text-blue-700 dark:text-blue-300">
                 per day (30-day avg)
@@ -191,7 +188,8 @@ export function CashFlowHealthCard({
               </p>
             ) : (
               <p className="text-xs text-red-600 dark:text-red-400">
-                You&apos;ve exceeded your monthly budget. Time to review expenses.
+                You&apos;ve exceeded your monthly budget. Time to review
+                expenses.
               </p>
             )}
           </div>
@@ -230,7 +228,8 @@ export function CashFlowHealthCard({
           >
             {healthStatus === "critical" ? (
               <>
-                🚨 {remainingBalance < 0 ? (
+                🚨{" "}
+                {remainingBalance < 0 ? (
                   <>
                     You&apos;ve overspent by{" "}
                     <span className="font-bold">
@@ -240,22 +239,22 @@ export function CashFlowHealthCard({
                   </>
                 ) : (
                   <>
-                    You&apos;ve spent {percentageSpent.toFixed(0)}% of your income.
-                    Be very careful!
+                    You&apos;ve spent {percentageSpent.toFixed(0)}% of your
+                    income. Be very careful!
                   </>
                 )}
               </>
             ) : healthStatus === "caution" ? (
               <>
-                ⚠️ You&apos;ve used {percentageSpent.toFixed(0)}% of your income.
-                Spend carefully!
+                ⚠️ You&apos;ve used {percentageSpent.toFixed(0)}% of your
+                income. Spend carefully!
               </>
             ) : (
               <>
                 ✅ Great job! You have{" "}
-                <span className="font-bold">
+                <Badge variant="outline" className="text-xs">
                   {formatCurrency(remainingBalance)}
-                </span>{" "}
+                </Badge>{" "}
                 left with {daysRemaining} days to go.
               </>
             )}
