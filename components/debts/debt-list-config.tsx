@@ -57,6 +57,60 @@ const isDueToday = (debt: DebtWithUser) => {
   return today.getDate() === debt.paymentDueDay;
 };
 
+// Calculate the appropriate payment amount to display based on debt type
+const getPaymentDisplay = (debt: DebtWithUser) => {
+  const debtType = (debt.debtType || "one-time") as string;
+  
+  if (debtType === "one-time") {
+    // One-time: show full amount due
+    return {
+      amount: debt.currentBalance,
+      label: "Due",
+      isMonthly: false,
+    };
+  } else if (debtType === "interest-push") {
+    // Interest-push: calculate monthly interest to keep principal intact
+    const monthlyInterest = debt.interestRate 
+      ? (debt.currentBalance * debt.interestRate / 100) / 12
+      : 0;
+    return {
+      amount: monthlyInterest,
+      label: "Interest/mo",
+      isMonthly: true,
+    };
+  } else {
+    // Amortizing: show monthly payment (principal + interest)
+    return {
+      amount: debt.monthlyPaymentAmount,
+      label: "Payment/mo",
+      isMonthly: true,
+    };
+  }
+};
+
+// Get due date display based on debt type
+const getDueDateDisplay = (debt: DebtWithUser) => {
+  const debtType = (debt.debtType || "one-time") as string;
+  
+  if (debtType === "one-time" && debt.deadline) {
+    return {
+      text: formatDate(debt.deadline),
+      label: "Deadline",
+    };
+  } else if (debtType === "interest-push" && debt.deadline) {
+    return {
+      text: formatDate(debt.deadline),
+      label: "Next payment",
+    };
+  } else if (debt.paymentDueDay > 0) {
+    return {
+      text: `Day ${debt.paymentDueDay}`,
+      label: "Due",
+    };
+  }
+  return null;
+};
+
 export const createDebtListConfig = (
   onRecordPayment: (debt: DebtWithUser) => void,
   onQuickPush: (debt: DebtWithUser) => void,
@@ -159,6 +213,8 @@ export const createDebtListConfig = (
     const payoffMonths = calculatePayoffMonths(item);
     const isPaidOff = item.currentBalance === 0;
     const debtType = (item.debtType || "one-time") as string;
+    const paymentDisplay = getPaymentDisplay(item);
+    const dueDateDisplay = getDueDateDisplay(item);
 
     // Debt type badge configuration
     const getDebtTypeBadge = () => {
@@ -208,9 +264,9 @@ export const createDebtListConfig = (
                 {debtTypeBadge.icon} {debtTypeBadge.label}
               </Badge>
 
-              {/* Compact monthly payment */}
+              {/* Payment amount - varies by debt type */}
               <Badge variant="outline" className="text-[10px] px-1.5 py-0">
-                📅 {formatCompactAmount(item.monthlyPaymentAmount)}/mo
+                📅 {formatCompactAmount(paymentDisplay.amount)}{paymentDisplay.isMonthly ? "/mo" : ""}
               </Badge>
 
               {/* APR badge (if exists) */}
@@ -238,18 +294,20 @@ export const createDebtListConfig = (
               )}
             </div>
 
-            {/* Metadata line: compact due day + progress */}
+            {/* Metadata line: due date + progress */}
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <span>Due day {item.paymentDueDay}</span>
+              {dueDateDisplay && (
+                <span>{dueDateDisplay.label}: {dueDateDisplay.text}</span>
+              )}
 
-              {payoffMonths && !isPaidOff && (
+              {payoffMonths && !isPaidOff && debtType !== "one-time" && (
                 <>
                   <span>•</span>
                   <span>{payoffMonths}mo left</span>
                 </>
               )}
 
-              <span>•</span>
+              {(dueDateDisplay || (payoffMonths && !isPaidOff && debtType !== "one-time")) && <span>•</span>}
               <span>{progress.toFixed(0)}% paid</span>
             </div>
           </div>
