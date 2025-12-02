@@ -101,7 +101,9 @@ export const createSavingsGoalListConfig = (
               </Badge>
               <Badge variant="outline">{Math.round(progress)}% saved</Badge>
               {isCompleted && (
-                <Badge className="bg-green-500">✓ Goal Achieved!</Badge>
+                <Badge className="bg-green-500 dark:bg-green-600">
+                  ✓ Goal Achieved!
+                </Badge>
               )}
             </div>
 
