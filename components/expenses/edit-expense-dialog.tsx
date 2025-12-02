@@ -19,6 +19,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { AddCategoryDialog } from "@/components/categories/add-category-dialog";
 import type { Expense, Category } from "@/types";
 
@@ -33,16 +35,30 @@ export function EditExpenseDialog({
   onOpenChange,
   expense,
 }: EditExpenseDialogProps) {
-  const user = db.useUser();
+  const { user } = db.useAuth();
   const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [amount, setAmount] = useState<string>("");
+  const [recipient, setRecipient] = useState<string>("");
+  const [notes, setNotes] = useState<string>("");
   const [showAddCategoryDialog, setShowAddCategoryDialog] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Fetch user profile
+  const { data: profileData } = db.useQuery({
+    profiles: {
+      $: {
+        where: { "user.id": user?.id },
+      },
+    },
+  });
+
+  const profile = profileData?.profiles?.[0];
 
   // Fetch categories
   const { data: categoriesData } = db.useQuery({
     categories: {
       $: {
-        where: { "user.id": user.id },
+        where: { "user.id": profile?.id },
         order: { name: "asc" },
       },
     },
@@ -53,10 +69,13 @@ export function EditExpenseDialog({
       category.isActive !== false || category.name === selectedCategory
   );
 
-  // Initialize selected category when expense changes
+  // Initialize form fields when expense changes
   useEffect(() => {
     if (expense) {
       setSelectedCategory(expense.category || "Uncategorized");
+      setAmount(expense.amount.toString());
+      setRecipient(expense.recipient || "");
+      setNotes(expense.notes || "");
     }
   }, [expense]);
 
@@ -64,11 +83,20 @@ export function EditExpenseDialog({
     e.preventDefault();
     if (!expense) return;
 
+    const parsedAmount = parseFloat(amount);
+    if (isNaN(parsedAmount) || parsedAmount <= 0) {
+      alert("Please enter a valid amount");
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       await db.transact(
         db.tx.expenses[expense.id].update({
           category: selectedCategory || "Uncategorized",
+          amount: parsedAmount,
+          recipient: recipient.trim() || "Unknown",
+          notes: notes.trim() || undefined,
         })
       );
       onOpenChange(false);
@@ -94,12 +122,37 @@ export function EditExpenseDialog({
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit Expense Category</DialogTitle>
+            <DialogTitle>Edit Expense</DialogTitle>
             <DialogDescription>
-              Update the category for this expense.
+              Update the details for this expense.
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="amount">Amount</Label>
+              <Input
+                id="amount"
+                type="number"
+                step="0.01"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                placeholder="0.00"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="recipient">Recipient</Label>
+              <Input
+                id="recipient"
+                type="text"
+                value={recipient}
+                onChange={(e) => setRecipient(e.target.value)}
+                placeholder="Enter recipient name"
+                required
+              />
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="category-select">Category</Label>
               <div className="flex gap-2">
@@ -111,7 +164,13 @@ export function EditExpenseDialog({
                     <SelectValue placeholder="Select a category" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Uncategorized">Uncategorized</SelectItem>
+                    {!categories.some(
+                      (cat) => cat.name === "Uncategorized"
+                    ) && (
+                      <SelectItem value="Uncategorized">
+                        Uncategorized
+                      </SelectItem>
+                    )}
                     {categories.map((category) => (
                       <SelectItem key={category.id} value={category.name}>
                         {category.name}
@@ -128,6 +187,18 @@ export function EditExpenseDialog({
                 </Button>
               </div>
             </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="notes">Notes (Optional)</Label>
+              <Textarea
+                id="notes"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Add any additional notes..."
+                rows={3}
+              />
+            </div>
+
             <DialogFooter>
               <Button
                 type="button"
