@@ -189,18 +189,22 @@ export function UnifiedAddModal({
             setIsSubmitting(false);
             return;
           }
+
+          const parsedInterestRate = interestRate
+            ? parseFloat(interestRate)
+            : 0;
+          const parsedMonthlyPayment = monthlyPayment
+            ? parseFloat(monthlyPayment)
+            : parsedAmount * 0.1;
+
           await db.transact([
             db.tx.debts[id()]
               .update({
                 name: debtName,
                 totalAmount: parsedAmount,
                 currentBalance: parsedAmount,
-                monthlyPaymentAmount: monthlyPayment
-                  ? parseFloat(monthlyPayment)
-                  : parsedAmount * 0.1,
-                interestRate: interestRate
-                  ? parseFloat(interestRate)
-                  : undefined,
+                monthlyPaymentAmount: parsedMonthlyPayment,
+                interestRate: parsedInterestRate,
                 paymentDueDay: 1,
                 createdAt: now,
               })
@@ -334,6 +338,7 @@ export function UnifiedAddModal({
                 <Input
                   id="amount"
                   type="number"
+                  step="0.01"
                   placeholder="500"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
@@ -508,7 +513,7 @@ export function UnifiedAddModal({
                   <Input
                     id="interest-rate"
                     type="number"
-                    step="0.1"
+                    step="0.01"
                     placeholder="5.5"
                     value={interestRate}
                     onChange={(e) => setInterestRate(e.target.value)}
@@ -522,6 +527,7 @@ export function UnifiedAddModal({
                   <Input
                     id="monthly-payment"
                     type="number"
+                    step="0.01"
                     placeholder="Leave blank for 10% of amount"
                     value={monthlyPayment}
                     onChange={(e) => setMonthlyPayment(e.target.value)}
@@ -546,6 +552,7 @@ export function UnifiedAddModal({
                   <Input
                     id="target-amount"
                     type="number"
+                    step="0.01"
                     placeholder="100000"
                     value={targetAmount}
                     onChange={(e) => setTargetAmount(e.target.value)}

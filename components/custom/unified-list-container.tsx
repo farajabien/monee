@@ -31,7 +31,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { DebtWithUser } from "@/types";
 
 interface UnifiedListContainerProps<T> {
   config: ListConfig<T>;
@@ -145,8 +144,20 @@ export function UnifiedListContainer<T>({
   const deletingItemName = useMemo(() => {
     if (!deletingItem) return "";
     // Try to get name from common properties
-    const item = deletingItem as DebtWithUser;
-    return item.name || "";
+    const item = deletingItem as T & {
+      name?: string;
+      title?: string;
+      handle?: string;
+    };
+    return (
+      item.name ||
+      item.title ||
+      item.handle ||
+      item.name ||
+      item.title ||
+      item.handle ||
+      ""
+    );
   }, [deletingItem]);
 
   return (

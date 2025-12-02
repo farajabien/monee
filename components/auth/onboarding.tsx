@@ -20,6 +20,12 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import db from "@/lib/db";
 import { id } from "@instantdb/react";
 import { Check, Plus, X } from "lucide-react";
@@ -725,119 +731,151 @@ export default function Onboarding() {
                   </p>
                   <div className="space-y-4 mt-6">
                     {incomeSources.map((source, index) => (
-                      <div
+                      <Accordion
                         key={index}
-                        className="p-4 border rounded-lg space-y-3"
+                        type="single"
+                        collapsible
+                        defaultValue={`item-${index}`}
                       >
-                        <div className="space-y-2">
-                          <Label>Source Name</Label>
-                          <Input
-                            placeholder="e.g., Salary, Business"
-                            value={source.name}
-                            onChange={(e) =>
-                              updateIncomeSource(index, "name", e.target.value)
-                            }
-                          />
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <Label>Irregular Income</Label>
-                          <Switch
-                            checked={source.isIrregular}
-                            onCheckedChange={(checked) =>
-                              updateIncomeSource(index, "isIrregular", checked)
-                            }
-                          />
-                        </div>
-                        <div className="grid grid-cols-2 gap-3">
-                          <div className="space-y-2">
-                            <Label>
-                              {source.isIrregular
-                                ? "Estimated Amount"
-                                : "Amount"}
-                            </Label>
-                            <Input
-                              type="number"
-                              placeholder="50000"
-                              value={source.amount}
-                              onChange={(e) =>
-                                updateIncomeSource(
-                                  index,
-                                  "amount",
-                                  e.target.value
-                                )
-                              }
-                            />
-                          </div>
-                          {!source.isIrregular && (
-                            <div className="space-y-2">
-                              <Label>Payday</Label>
-                              <Input
-                                type="number"
-                                min="1"
-                                max="31"
-                                placeholder="25"
-                                value={source.paydayDay}
-                                onChange={(e) =>
-                                  updateIncomeSource(
-                                    index,
-                                    "paydayDay",
-                                    e.target.value
-                                  )
-                                }
-                              />
+                        <AccordionItem value={`item-${index}`}>
+                          <AccordionTrigger className="hover:no-underline">
+                            <div className="flex items-center gap-3 text-left">
+                              <span className="font-medium">
+                                {source.name || `Income Source ${index + 1}`}
+                              </span>
+                              {source.amount && (
+                                <span className="text-sm text-muted-foreground">
+                                  {selectedCurrency}{" "}
+                                  {parseFloat(source.amount).toLocaleString()}
+                                </span>
+                              )}
                             </div>
-                          )}
-                        </div>
-                        {!source.isIrregular && (
-                          <div className="space-y-2">
-                            <Label>Month (Optional)</Label>
-                            <Select
-                              value={source.paydayMonth || "none"}
-                              onValueChange={(value) =>
-                                updateIncomeSource(
-                                  index,
-                                  "paydayMonth",
-                                  value === "none" ? "" : value
-                                )
-                              }
-                            >
-                              <SelectTrigger>
-                                <SelectValue placeholder="Recurring monthly" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="none">
-                                  Recurring monthly
-                                </SelectItem>
-                                {Array.from(
-                                  { length: 12 },
-                                  (_, i) => i + 1
-                                ).map((m) => (
-                                  <SelectItem key={m} value={m.toString()}>
-                                    {new Date(2000, m - 1).toLocaleString(
-                                      "default",
-                                      {
-                                        month: "long",
+                          </AccordionTrigger>
+                          <AccordionContent>
+                            <div className="space-y-3 pt-2">
+                              <div className="space-y-2">
+                                <Label>Source Name</Label>
+                                <Input
+                                  placeholder="e.g., Salary, Business"
+                                  value={source.name}
+                                  onChange={(e) =>
+                                    updateIncomeSource(
+                                      index,
+                                      "name",
+                                      e.target.value
+                                    )
+                                  }
+                                />
+                              </div>
+                              <div className="flex items-center justify-between">
+                                <Label>Irregular Income</Label>
+                                <Switch
+                                  checked={source.isIrregular}
+                                  onCheckedChange={(checked) =>
+                                    updateIncomeSource(
+                                      index,
+                                      "isIrregular",
+                                      checked
+                                    )
+                                  }
+                                />
+                              </div>
+                              <div className="grid grid-cols-2 gap-3">
+                                <div className="space-y-2">
+                                  <Label>
+                                    {source.isIrregular
+                                      ? "Estimated Amount"
+                                      : "Amount"}
+                                  </Label>
+                                  <Input
+                                    type="number"
+                                    placeholder="50000"
+                                    value={source.amount}
+                                    onChange={(e) =>
+                                      updateIncomeSource(
+                                        index,
+                                        "amount",
+                                        e.target.value
+                                      )
+                                    }
+                                  />
+                                </div>
+                                {!source.isIrregular && (
+                                  <div className="space-y-2">
+                                    <Label>Payday</Label>
+                                    <Input
+                                      type="number"
+                                      min="1"
+                                      max="31"
+                                      placeholder="25"
+                                      value={source.paydayDay}
+                                      onChange={(e) =>
+                                        updateIncomeSource(
+                                          index,
+                                          "paydayDay",
+                                          e.target.value
+                                        )
                                       }
-                                    )}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        )}
-                        {incomeSources.length > 1 && (
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => removeIncomeSource(index)}
-                            className="w-full"
-                          >
-                            <X className="h-4 w-4 mr-2" />
-                            Remove
-                          </Button>
-                        )}
-                      </div>
+                                    />
+                                  </div>
+                                )}
+                              </div>
+                              {!source.isIrregular && (
+                                <div className="space-y-2">
+                                  <Label>Month (Optional)</Label>
+                                  <Select
+                                    value={source.paydayMonth || "none"}
+                                    onValueChange={(value) =>
+                                      updateIncomeSource(
+                                        index,
+                                        "paydayMonth",
+                                        value === "none" ? "" : value
+                                      )
+                                    }
+                                  >
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Recurring monthly" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="none">
+                                        Recurring monthly
+                                      </SelectItem>
+                                      {Array.from(
+                                        { length: 12 },
+                                        (_, i) => i + 1
+                                      ).map((m) => (
+                                        <SelectItem
+                                          key={m}
+                                          value={m.toString()}
+                                        >
+                                          {new Date(2000, m - 1).toLocaleString(
+                                            "default",
+                                            {
+                                              month: "long",
+                                            }
+                                          )}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                              )}
+                              {incomeSources.length > 1 && (
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => removeIncomeSource(index)}
+                                  className="w-full"
+                                >
+                                  <X className="h-4 w-4 mr-2" />
+                                  Remove
+                                </Button>
+                              )}
+                            </div>
+                          </AccordionContent>
+                        </AccordionItem>
+                      </Accordion>
                     ))}
                     <Button
                       type="button"
@@ -864,70 +902,90 @@ export default function Onboarding() {
                         No recurring expenses added yet
                       </div>
                     ) : (
-                      recurringExpenses.map((expense, index) => (
-                        <div
-                          key={index}
-                          className="flex gap-3 items-end p-4 border rounded-lg"
-                        >
-                          <div className="flex-1 space-y-2">
-                            <Label>Expense Name</Label>
-                            <Input
-                              placeholder="e.g., Rent, WiFi"
-                              value={expense.name}
-                              onChange={(e) =>
-                                updateRecurringExpense(
-                                  index,
-                                  "name",
-                                  e.target.value
-                                )
-                              }
-                            />
-                          </div>
-                          <div className="flex-1 space-y-2">
-                            <Label>Amount</Label>
-                            <Input
-                              type="number"
-                              placeholder="5000"
-                              value={expense.amount}
-                              onChange={(e) =>
-                                updateRecurringExpense(
-                                  index,
-                                  "amount",
-                                  e.target.value
-                                )
-                              }
-                            />
-                          </div>
-                          <div className="flex-1 space-y-2">
-                            <Label>Category</Label>
-                            <select
-                              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                              value={expense.category}
-                              onChange={(e) =>
-                                updateRecurringExpense(
-                                  index,
-                                  "category",
-                                  e.target.value
-                                )
-                              }
-                            >
-                              {selectedCategories.map((cat) => (
-                                <option key={cat} value={cat}>
-                                  {cat}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => removeRecurringExpense(index)}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      ))
+                      <Accordion type="single" collapsible>
+                        {recurringExpenses.map((expense, index) => (
+                          <AccordionItem key={index} value={`item-${index}`}>
+                            <AccordionTrigger className="hover:no-underline">
+                              <div className="flex items-center gap-3 text-left">
+                                <span className="font-medium">
+                                  {expense.name || `Expense ${index + 1}`}
+                                </span>
+                                {expense.amount && (
+                                  <span className="text-sm text-muted-foreground">
+                                    {selectedCurrency}{" "}
+                                    {parseFloat(
+                                      expense.amount
+                                    ).toLocaleString()}
+                                  </span>
+                                )}
+                              </div>
+                            </AccordionTrigger>
+                            <AccordionContent>
+                              <div className="space-y-3 pt-2">
+                                <div className="space-y-2">
+                                  <Label>Expense Name</Label>
+                                  <Input
+                                    placeholder="e.g., Rent, WiFi"
+                                    value={expense.name}
+                                    onChange={(e) =>
+                                      updateRecurringExpense(
+                                        index,
+                                        "name",
+                                        e.target.value
+                                      )
+                                    }
+                                  />
+                                </div>
+                                <div className="space-y-2">
+                                  <Label>Amount</Label>
+                                  <Input
+                                    type="number"
+                                    placeholder="5000"
+                                    value={expense.amount}
+                                    onChange={(e) =>
+                                      updateRecurringExpense(
+                                        index,
+                                        "amount",
+                                        e.target.value
+                                      )
+                                    }
+                                  />
+                                </div>
+                                <div className="space-y-2">
+                                  <Label>Category</Label>
+                                  <select
+                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                    value={expense.category}
+                                    onChange={(e) =>
+                                      updateRecurringExpense(
+                                        index,
+                                        "category",
+                                        e.target.value
+                                      )
+                                    }
+                                  >
+                                    {selectedCategories.map((cat) => (
+                                      <option key={cat} value={cat}>
+                                        {cat}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </div>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => removeRecurringExpense(index)}
+                                  className="w-full"
+                                >
+                                  <X className="h-4 w-4 mr-2" />
+                                  Remove
+                                </Button>
+                              </div>
+                            </AccordionContent>
+                          </AccordionItem>
+                        ))}
+                      </Accordion>
                     )}
                     <Button
                       type="button"
@@ -978,160 +1036,191 @@ export default function Onboarding() {
                         No debts added yet
                       </div>
                     ) : (
-                      debts.map((debt, index) => (
-                        <div
-                          key={index}
-                          className="p-4 border rounded-lg space-y-3"
-                        >
-                          <div className="space-y-2">
-                            <Label>Debt Name</Label>
-                            <Input
-                              placeholder="e.g., Car Loan, Friend Loan, Credit Card"
-                              value={debt.name}
-                              onChange={(e) =>
-                                updateDebt(index, "name", e.target.value)
-                              }
-                            />
-                          </div>
-                          <div className="flex items-center justify-between p-3 bg-muted/50 rounded-md">
-                            <div className="space-y-0.5">
-                              <Label className="text-sm font-semibold">
-                                One-time Payment
-                              </Label>
-                              <p className="text-xs text-muted-foreground">
-                                Pay in full by a specific date (friends,
-                                informal loans)
-                              </p>
-                            </div>
-                            <Switch
-                              checked={debt.isOneTimePayment}
-                              onCheckedChange={(checked) => {
-                                updateDebt(index, "isOneTimePayment", checked);
-                                // Clear monthly fields when switching to one-time
-                                if (checked) {
-                                  updateDebt(index, "monthlyPaymentAmount", "");
-                                  updateDebt(index, "paymentDueDay", "");
-                                }
-                              }}
-                            />
-                          </div>
-                          <div className="grid grid-cols-2 gap-3">
-                            <div className="space-y-2">
-                              <Label>Total Amount</Label>
-                              <Input
-                                type="number"
-                                placeholder="100000"
-                                value={debt.totalAmount}
-                                onChange={(e) =>
-                                  updateDebt(
-                                    index,
-                                    "totalAmount",
-                                    e.target.value
-                                  )
-                                }
-                              />
-                            </div>
-                            <div className="space-y-2">
-                              <Label>Current Balance</Label>
-                              <Input
-                                type="number"
-                                placeholder="80000"
-                                value={debt.currentBalance}
-                                onChange={(e) =>
-                                  updateDebt(
-                                    index,
-                                    "currentBalance",
-                                    e.target.value
-                                  )
-                                }
-                              />
-                            </div>
-                          </div>
-                          {debt.isOneTimePayment ? (
-                            <div className="space-y-2 p-3 bg-blue-50/50 dark:bg-blue-950/10 rounded-md border border-blue-200/50 dark:border-blue-900/50">
-                              <Label className="text-blue-900 dark:text-blue-100">
-                                When will you pay this in full?
-                              </Label>
-                              <Input
-                                type="date"
-                                value={debt.dueDate || ""}
-                                onChange={(e) =>
-                                  updateDebt(index, "dueDate", e.target.value)
-                                }
-                                className="bg-white dark:bg-slate-950"
-                              />
-                              <p className="text-xs text-blue-700 dark:text-blue-300">
-                                Optional: Set a target date to pay off this debt
-                              </p>
-                            </div>
-                          ) : (
-                            <div className="grid grid-cols-2 gap-3">
-                              <div className="space-y-2">
-                                <Label>Monthly Payment</Label>
-                                <Input
-                                  type="number"
-                                  placeholder="5000"
-                                  value={debt.monthlyPaymentAmount}
-                                  onChange={(e) =>
-                                    updateDebt(
-                                      index,
-                                      "monthlyPaymentAmount",
-                                      e.target.value
-                                    )
-                                  }
-                                />
+                      <Accordion type="single" collapsible>
+                        {debts.map((debt, index) => (
+                          <AccordionItem key={index} value={`item-${index}`}>
+                            <AccordionTrigger className="hover:no-underline">
+                              <div className="flex items-center gap-3 text-left">
+                                <span className="font-medium">
+                                  {debt.name || `Debt ${index + 1}`}
+                                </span>
+                                {debt.totalAmount && (
+                                  <span className="text-sm text-muted-foreground">
+                                    {selectedCurrency}{" "}
+                                    {parseFloat(
+                                      debt.totalAmount
+                                    ).toLocaleString()}
+                                  </span>
+                                )}
                               </div>
-                              <div className="space-y-2">
-                                <Label>Payment Due Day</Label>
-                                <Input
-                                  type="number"
-                                  min="1"
-                                  max="31"
-                                  placeholder="15"
-                                  value={debt.paymentDueDay}
-                                  onChange={(e) =>
-                                    updateDebt(
-                                      index,
-                                      "paymentDueDay",
-                                      e.target.value
-                                    )
-                                  }
-                                />
+                            </AccordionTrigger>
+                            <AccordionContent>
+                              <div className="space-y-3 pt-2">
+                                <div className="space-y-2">
+                                  <Label>Debt Name</Label>
+                                  <Input
+                                    placeholder="e.g., Car Loan, Friend Loan, Credit Card"
+                                    value={debt.name}
+                                    onChange={(e) =>
+                                      updateDebt(index, "name", e.target.value)
+                                    }
+                                  />
+                                </div>
+                                <div className="flex items-center justify-between p-3 bg-muted/50 rounded-md">
+                                  <div className="space-y-0.5">
+                                    <Label className="text-sm font-semibold">
+                                      One-time Payment
+                                    </Label>
+                                    <p className="text-xs text-muted-foreground">
+                                      Pay in full by a specific date (friends,
+                                      informal loans)
+                                    </p>
+                                  </div>
+                                  <Switch
+                                    checked={debt.isOneTimePayment}
+                                    onCheckedChange={(checked) => {
+                                      updateDebt(
+                                        index,
+                                        "isOneTimePayment",
+                                        checked
+                                      );
+                                      // Clear monthly fields when switching to one-time
+                                      if (checked) {
+                                        updateDebt(
+                                          index,
+                                          "monthlyPaymentAmount",
+                                          ""
+                                        );
+                                        updateDebt(index, "paymentDueDay", "");
+                                      }
+                                    }}
+                                  />
+                                </div>
+                                <div className="grid grid-cols-2 gap-3">
+                                  <div className="space-y-2">
+                                    <Label>Total Amount</Label>
+                                    <Input
+                                      type="number"
+                                      placeholder="100000"
+                                      value={debt.totalAmount}
+                                      onChange={(e) =>
+                                        updateDebt(
+                                          index,
+                                          "totalAmount",
+                                          e.target.value
+                                        )
+                                      }
+                                    />
+                                  </div>
+                                  <div className="space-y-2">
+                                    <Label>Current Balance</Label>
+                                    <Input
+                                      type="number"
+                                      placeholder="80000"
+                                      value={debt.currentBalance}
+                                      onChange={(e) =>
+                                        updateDebt(
+                                          index,
+                                          "currentBalance",
+                                          e.target.value
+                                        )
+                                      }
+                                    />
+                                  </div>
+                                </div>
+                                {debt.isOneTimePayment ? (
+                                  <div className="space-y-2 p-3 bg-blue-50/50 dark:bg-blue-950/10 rounded-md border border-blue-200/50 dark:border-blue-900/50">
+                                    <Label className="text-blue-900 dark:text-blue-100">
+                                      When will you pay this in full?
+                                    </Label>
+                                    <Input
+                                      type="date"
+                                      value={debt.dueDate || ""}
+                                      onChange={(e) =>
+                                        updateDebt(
+                                          index,
+                                          "dueDate",
+                                          e.target.value
+                                        )
+                                      }
+                                      className="bg-white dark:bg-slate-950"
+                                    />
+                                    <p className="text-xs text-blue-700 dark:text-blue-300">
+                                      Optional: Set a target date to pay off
+                                      this debt
+                                    </p>
+                                  </div>
+                                ) : (
+                                  <div className="grid grid-cols-2 gap-3">
+                                    <div className="space-y-2">
+                                      <Label>Monthly Payment</Label>
+                                      <Input
+                                        type="number"
+                                        placeholder="5000"
+                                        value={debt.monthlyPaymentAmount}
+                                        onChange={(e) =>
+                                          updateDebt(
+                                            index,
+                                            "monthlyPaymentAmount",
+                                            e.target.value
+                                          )
+                                        }
+                                      />
+                                    </div>
+                                    <div className="space-y-2">
+                                      <Label>Payment Due Day</Label>
+                                      <Input
+                                        type="number"
+                                        min="1"
+                                        max="31"
+                                        placeholder="15"
+                                        value={debt.paymentDueDay}
+                                        onChange={(e) =>
+                                          updateDebt(
+                                            index,
+                                            "paymentDueDay",
+                                            e.target.value
+                                          )
+                                        }
+                                      />
+                                    </div>
+                                  </div>
+                                )}
+                                <div className="space-y-2">
+                                  <Label>Interest Rate (%) - Optional</Label>
+                                  <Input
+                                    type="number"
+                                    step="0.1"
+                                    placeholder={
+                                      debt.isOneTimePayment
+                                        ? "0 (most friend loans are interest-free)"
+                                        : "5.5"
+                                    }
+                                    value={debt.interestRate}
+                                    onChange={(e) =>
+                                      updateDebt(
+                                        index,
+                                        "interestRate",
+                                        e.target.value
+                                      )
+                                    }
+                                  />
+                                </div>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => removeDebt(index)}
+                                  className="w-full"
+                                >
+                                  <X className="h-4 w-4 mr-2" />
+                                  Remove
+                                </Button>
                               </div>
-                            </div>
-                          )}
-                          <div className="space-y-2">
-                            <Label>Interest Rate (%) - Optional</Label>
-                            <Input
-                              type="number"
-                              step="0.1"
-                              placeholder={
-                                debt.isOneTimePayment
-                                  ? "0 (most friend loans are interest-free)"
-                                  : "5.5"
-                              }
-                              value={debt.interestRate}
-                              onChange={(e) =>
-                                updateDebt(
-                                  index,
-                                  "interestRate",
-                                  e.target.value
-                                )
-                              }
-                            />
-                          </div>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => removeDebt(index)}
-                            className="w-full"
-                          >
-                            <X className="h-4 w-4 mr-2" />
-                            Remove
-                          </Button>
-                        </div>
-                      ))
+                            </AccordionContent>
+                          </AccordionItem>
+                        ))}
+                      </Accordion>
                     )}
                     <Button
                       type="button"
@@ -1176,75 +1265,106 @@ export default function Onboarding() {
                         No savings goals added yet
                       </div>
                     ) : (
-                      savingsGoals.map((goal, index) => (
-                        <div
-                          key={index}
-                          className="flex gap-3 items-end p-4 border rounded-lg"
-                        >
-                          <div className="flex-1 space-y-2">
-                            <Label>Goal Name</Label>
-                            <Input
-                              placeholder="e.g., New Phone, Vacation"
-                              value={goal.name}
-                              onChange={(e) =>
-                                updateSavingsGoal(index, "name", e.target.value)
-                              }
-                            />
-                          </div>
-                          <div className="flex-1 space-y-2">
-                            <Label>Target Amount</Label>
-                            <Input
-                              type="number"
-                              placeholder="50000"
-                              value={goal.targetAmount}
-                              onChange={(e) =>
-                                updateSavingsGoal(
-                                  index,
-                                  "targetAmount",
-                                  e.target.value
-                                )
-                              }
-                            />
-                          </div>
-                          <div className="w-20 space-y-2">
-                            <Label>Emoji</Label>
-                            <Popover>
-                              <PopoverTrigger asChild>
-                                <Button
-                                  variant="outline"
-                                  className="w-full h-10 text-xl"
-                                >
+                      <Accordion type="single" collapsible>
+                        {savingsGoals.map((goal, index) => (
+                          <AccordionItem key={index} value={`item-${index}`}>
+                            <AccordionTrigger className="hover:no-underline">
+                              <div className="flex items-center gap-3 text-left">
+                                <span className="text-xl">
                                   {goal.emoji || "🎯"}
-                                </Button>
-                              </PopoverTrigger>
-                              <PopoverContent className="w-64 p-2">
-                                <div className="grid grid-cols-5 gap-2">
-                                  {EMOJI_OPTIONS.map((emoji) => (
-                                    <button
-                                      key={emoji}
-                                      type="button"
-                                      onClick={() =>
-                                        updateSavingsGoal(index, "emoji", emoji)
-                                      }
-                                      className="text-2xl hover:bg-muted rounded p-2 transition-colors"
-                                    >
-                                      {emoji}
-                                    </button>
-                                  ))}
+                                </span>
+                                <span className="font-medium">
+                                  {goal.name || `Goal ${index + 1}`}
+                                </span>
+                                {goal.targetAmount && (
+                                  <span className="text-sm text-muted-foreground">
+                                    {selectedCurrency}{" "}
+                                    {parseFloat(
+                                      goal.targetAmount
+                                    ).toLocaleString()}
+                                  </span>
+                                )}
+                              </div>
+                            </AccordionTrigger>
+                            <AccordionContent>
+                              <div className="space-y-3 pt-2">
+                                <div className="space-y-2">
+                                  <Label>Goal Name</Label>
+                                  <Input
+                                    placeholder="e.g., New Phone, Vacation"
+                                    value={goal.name}
+                                    onChange={(e) =>
+                                      updateSavingsGoal(
+                                        index,
+                                        "name",
+                                        e.target.value
+                                      )
+                                    }
+                                  />
                                 </div>
-                              </PopoverContent>
-                            </Popover>
-                          </div>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => removeSavingsGoal(index)}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      ))
+                                <div className="space-y-2">
+                                  <Label>Target Amount</Label>
+                                  <Input
+                                    type="number"
+                                    placeholder="50000"
+                                    value={goal.targetAmount}
+                                    onChange={(e) =>
+                                      updateSavingsGoal(
+                                        index,
+                                        "targetAmount",
+                                        e.target.value
+                                      )
+                                    }
+                                  />
+                                </div>
+                                <div className="space-y-2">
+                                  <Label>Emoji</Label>
+                                  <Popover>
+                                    <PopoverTrigger asChild>
+                                      <Button
+                                        variant="outline"
+                                        className="w-full h-10 text-xl"
+                                      >
+                                        {goal.emoji || "🎯"}
+                                      </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-64 p-2">
+                                      <div className="grid grid-cols-5 gap-2">
+                                        {EMOJI_OPTIONS.map((emoji) => (
+                                          <button
+                                            key={emoji}
+                                            type="button"
+                                            onClick={() =>
+                                              updateSavingsGoal(
+                                                index,
+                                                "emoji",
+                                                emoji
+                                              )
+                                            }
+                                            className="text-2xl hover:bg-muted rounded p-2 transition-colors"
+                                          >
+                                            {emoji}
+                                          </button>
+                                        ))}
+                                      </div>
+                                    </PopoverContent>
+                                  </Popover>
+                                </div>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => removeSavingsGoal(index)}
+                                  className="w-full"
+                                >
+                                  <X className="h-4 w-4 mr-2" />
+                                  Remove
+                                </Button>
+                              </div>
+                            </AccordionContent>
+                          </AccordionItem>
+                        ))}
+                      </Accordion>
                     )}
                     <Button
                       type="button"
