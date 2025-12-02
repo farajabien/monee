@@ -36,7 +36,7 @@ export function UnifiedAddModal({
   onOpenChange,
   defaultTab = "expense",
 }: UnifiedAddModalProps) {
-  const user = db.useUser();
+  const { user } = db.useAuth();
   const [activeTab, setActiveTab] = useState(defaultTab);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -61,32 +61,24 @@ export function UnifiedAddModal({
 
   // Fetch data
   const { data } = db.useQuery({
-    profiles: {
-      $: {
-        where: { id: user.id },
-      },
-    },
-    categories: {
-      $: {
-        where: { "user.id": user.id, isActive: true },
-        order: { name: "asc" },
-      },
-    },
+    categories: {},
     recipients: {
       $: {
-        where: { "user.id": user.id },
+        where: { userId: user?.id || "" },
       },
     },
     expenses: {
-      $: {
-        where: { "user.id": user.id },
-        limit: 100,
+      user: {
+        $: {
+          where: { id: user?.id || "" },
+        },
       },
     },
   });
 
-  const profile = data?.profiles?.[0];
-  const categories: Category[] = data?.categories || [];
+  const categories: Category[] = (data?.categories || []).filter(
+    (c) => c.isActive !== false
+  );
   const savedRecipients: Recipient[] = data?.recipients || [];
   const expenses = data?.expenses || [];
 
@@ -126,6 +118,11 @@ export function UnifiedAddModal({
       return;
     }
 
+    if (!user?.id) {
+      toast.error("User not found. Please try again.");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -160,7 +157,7 @@ export function UnifiedAddModal({
                 },
                 createdAt: now,
               })
-              .link({ user: profile?.id }),
+              .link({ user: user.id }),
           ]);
           toast.success("Expense added successfully");
           break;
@@ -178,9 +175,10 @@ export function UnifiedAddModal({
                 amount: parsedAmount,
                 frequency: frequency,
                 isActive: true,
+                paydayDay: 1,
                 createdAt: now,
               })
-              .link({ user: profile?.id }),
+              .link({ user: user.id }),
           ]);
           toast.success("Income source added successfully");
           break;
@@ -206,7 +204,7 @@ export function UnifiedAddModal({
                 paymentDueDay: 1,
                 createdAt: now,
               })
-              .link({ user: profile?.id }),
+              .link({ user: user.id }),
           ]);
           toast.success("Debt added successfully");
           break;
@@ -234,7 +232,7 @@ export function UnifiedAddModal({
                 isCompleted: false,
                 createdAt: now,
               })
-              .link({ user: profile?.id }),
+              .link({ user: user.id }),
             // Add initial contribution if amount > 0
             ...(parsedAmount > 0
               ? [
@@ -242,6 +240,7 @@ export function UnifiedAddModal({
                     .update({
                       amount: parsedAmount,
                       date: now,
+                      contributionDate: now,
                       notes: "Initial contribution",
                       createdAt: now,
                     })
@@ -263,7 +262,7 @@ export function UnifiedAddModal({
             (c) => c.name === selectedCategory
           );
 
-          if (!selectedCategoryObj) {
+          if (!selectedCategoryObj?.id) {
             toast.error("Category not found");
             setIsSubmitting(false);
             return;
@@ -276,10 +275,7 @@ export function UnifiedAddModal({
                 month: currentDate.getMonth() + 1,
                 year: currentDate.getFullYear(),
               })
-              .link({
-                user: profile?.id,
-                category: selectedCategoryObj.id,
-              }),
+              .link({ category: selectedCategoryObj.id, user: user.id }),
           ]);
           toast.success("Budget added successfully");
           break;
@@ -298,7 +294,15 @@ export function UnifiedAddModal({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="w-full max-w-md max-h-[90vh] overflow-y-auto">
+        <DialogContent
+          className="w-full max-w-md max-h-[90vh] overflow-y-auto"
+          onPointerDownOutside={(e) => {
+            // Prevent closing when clicking outside if a nested dialog is open
+            if (showAddCategoryDialog) {
+              e.preventDefault();
+            }
+          }}
+        >
           <DialogHeader>
             <DialogTitle>Add New</DialogTitle>
           </DialogHeader>
@@ -427,7 +431,10 @@ export function UnifiedAddModal({
                       <SelectContent>
                         {categories.map((cat) => (
                           <SelectItem key={cat.id} value={cat.name}>
-                            {cat.name}
+                            <span className="flex items-center gap-2">
+                              {cat.icon && <span>{cat.icon}</span>}
+                              {cat.name}
+                            </span>
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -576,7 +583,10 @@ export function UnifiedAddModal({
                       <SelectContent>
                         {categories.map((cat) => (
                           <SelectItem key={cat.id} value={cat.name}>
-                            {cat.name}
+                            <span className="flex items-center gap-2">
+                              {cat.icon && <span>{cat.icon}</span>}
+                              {cat.name}
+                            </span>
                           </SelectItem>
                         ))}
                       </SelectContent>

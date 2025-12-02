@@ -102,6 +102,7 @@ const _schema = i.schema({
       nickname: i.string().optional().indexed(),
       defaultCategory: i.string().optional(),
       notes: i.string().optional(),
+      userId: i.string().indexed(),
       createdAt: i.number().indexed(),
       updatedAt: i.number().indexed(),
     }),
