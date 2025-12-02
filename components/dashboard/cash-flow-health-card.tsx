@@ -149,27 +149,25 @@ export function CashFlowHealthCard({
           </div>
         </div>
 
-        {/* Daily Allowance - Prominent Display */}
-        <div className="py-3 px-4 rounded-lg bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30">
-          <div className="space-y-2">
-            <p className="text-xs text-blue-800 dark:text-blue-200">
-              You can spend up to{" "}
-              <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                {formatCurrency(dailyAllowance)}
-              </span>
-              per day (30-day avg)
-            </p>
-            {dailyAllowance > 0 ? (
-              <p className="text-xs text-blue-800 dark:text-blue-200">
-                If you stay disciplined, your balance will keep growing!
-              </p>
-            ) : (
-              <p className="text-xs text-red-600 dark:text-red-400">
-                You&apos;ve exceeded your monthly budget. Time to review
-                expenses.
-              </p>
-            )}
+        {/* Daily Allowance - Compact Display */}
+        <div className="py-2 px-3 rounded-lg bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30">
+          <div className="flex items-baseline justify-between gap-2">
+            <span className="text-xs text-blue-800 dark:text-blue-200">
+              Daily allowance:
+            </span>
+            <span className="text-xl font-bold text-blue-600 dark:text-blue-400">
+              {formatCurrency(dailyAllowance)}
+            </span>
           </div>
+          {dailyAllowance > 0 ? (
+            <p className="text-[10px] text-blue-700/70 dark:text-blue-300/70 mt-1">
+              Stay disciplined to grow your balance
+            </p>
+          ) : (
+            <p className="text-[10px] text-red-600 dark:text-red-400 mt-1">
+              Budget exceeded - review expenses
+            </p>
+          )}
         </div>
 
         {/* Average Daily Spend & Days Elapsed */}

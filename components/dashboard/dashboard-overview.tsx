@@ -27,14 +27,6 @@ const SavingsProgressCard = dynamic(
   { ssr: false }
 );
 
-const CashRunwayCard = dynamic(
-  () =>
-    import("./cash-runway-card").then((mod) => ({
-      default: mod.CashRunwayCard,
-    })),
-  { ssr: false }
-);
-
 const CashFlowHealthCard = dynamic(
   () =>
     import("./cash-flow-health-card").then((mod) => ({
@@ -122,7 +114,7 @@ export function DashboardOverview() {
   const debtPayments = debts.flatMap((debt) =>
     (debt.payments || []).map((payment) => ({
       ...payment,
-      debt: { id: debt.id, user: { id: profile?.id } }
+      debt: { id: debt.id, user: { id: profile?.id } },
     }))
   );
 
@@ -250,13 +242,10 @@ export function DashboardOverview() {
   return (
     <div className="space-y-6">
       {/* Dashboard Cards as Tabs */}
-      <Tabs defaultValue="health" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 mb-4 border-0">
-          <TabsTrigger value="health" className="border-0">
-            Cash Flow
-          </TabsTrigger>
-          <TabsTrigger value="runway" className="border-0">
-            Runway
+      <Tabs defaultValue="overview" className="w-full">
+        <TabsList className="grid w-full grid-cols-3 mb-4 border-0">
+          <TabsTrigger value="overview" className="border-0">
+            Overview
           </TabsTrigger>
           <TabsTrigger value="debts" className="border-0">
             Debts
@@ -265,24 +254,15 @@ export function DashboardOverview() {
             Savings
           </TabsTrigger>
         </TabsList>
-        <TabsContent value="health" className="border-0">
-          <CashFlowHealthCard
-            healthData={cashFlowHealthData}
-            isLoading={isLoading}
-            userCurrency={profile?.currency}
-            userLocale={profile?.locale}
-          />
-        </TabsContent>
-        <TabsContent value="runway" className="border-0">
-          <CashRunwayCard
-            runwayData={cashRunwayData}
-            isLoading={isLoading}
-            totalIncome={totalIncome}
-            totalExpenses={totalExpenses}
-            monthlySavings={savingsData.monthlySavings}
-            userCurrency={profile?.currency}
-            userLocale={profile?.locale}
-          />
+        <TabsContent value="overview" className="border-0">
+          <div className="space-y-4">
+            <CashFlowHealthCard
+              healthData={cashFlowHealthData}
+              isLoading={isLoading}
+              userCurrency={profile?.currency}
+              userLocale={profile?.locale}
+            />
+          </div>
         </TabsContent>
         <TabsContent value="debts" className="border-0">
           <DebtsAlertCard

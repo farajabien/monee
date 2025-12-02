@@ -29,7 +29,7 @@ const _schema = i.schema({
       category: i.string(),
       expenseType: i.string().optional().indexed(),
       rawMessage: i.string(),
-      parsedData: i.json(),
+      parsedData: i.json().optional(),
       notes: i.string().optional(),
       mpesaReference: i.string().optional().indexed(),
       linkedRecurringId: i.string().optional().indexed(),

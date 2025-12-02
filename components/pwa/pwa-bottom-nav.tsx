@@ -106,12 +106,6 @@ export function PWABottomNav() {
       href: "/dashboard?tab=income",
     },
     {
-      value: "recurring",
-      label: "Recurring",
-      icon: Repeat,
-      href: "/dashboard?tab=recurring",
-    },
-    {
       value: "categories",
       label: "Categories",
       icon: Tag,
