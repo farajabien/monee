@@ -61,26 +61,22 @@ export function UnifiedAddModal({
 
   // Fetch data
   const { data } = db.useQuery({
-    categories: {},
-    recipients: {
+    profiles: {
       $: {
-        where: { userId: user?.id || "" },
+        where: { "user.id": user?.id || "" },
       },
-    },
-    expenses: {
-      user: {
-        $: {
-          where: { id: user?.id || "" },
-        },
-      },
+      categories: {},
+      recipients: {},
+      expenses: {},
     },
   });
 
-  const categories: Category[] = (data?.categories || []).filter(
+  const profile = data?.profiles?.[0];
+  const categories: Category[] = (profile?.categories || []).filter(
     (c) => c.isActive !== false
   );
-  const savedRecipients: Recipient[] = data?.recipients || [];
-  const expenses = data?.expenses || [];
+  const savedRecipients: Recipient[] = profile?.recipients || [];
+  const expenses = profile?.expenses || [];
 
   // Get unique recipients from expenses
   const uniqueRecipients = Array.from(
