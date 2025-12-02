@@ -13,35 +13,95 @@ import {
   Upload,
   FileText,
   BarChart3,
+  Loader2,
+  AlertCircle,
 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { extractTextFromPDF } from "@/lib/pdf-utils";
+import {
+  analyzeSMSMessages,
+  analyzeStatementPDF,
+  type SpendingAnalysis,
+} from "@/lib/spending-analyzer";
 
 export default function FreeMPesaAnalyzer() {
   const [smsText, setSmsText] = useState("");
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [analyzed, setAnalyzed] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [results, setResults] = useState<SpendingAnalysis | null>(null);
 
-  // Mock analysis results - will be replaced with actual parsing logic
-  const mockResults = {
-    totalSpent: 45670,
-    totalReceived: 12500,
-    transactionCount: 34,
-    topCategory: "Shopping",
-    topSpending: 15000,
-    avgDailySpend: 1520,
-    categories: [
-      { name: "Shopping", amount: 15000, percentage: 33 },
-      { name: "Transport", amount: 8900, percentage: 19 },
-      { name: "Food & Drinks", amount: 12500, percentage: 27 },
-      { name: "Entertainment", amount: 6270, percentage: 14 },
-      { name: "Other", amount: 3000, percentage: 7 },
-    ],
+  const handleAnalyzeSMS = async () => {
+    setIsAnalyzing(true);
+    setError(null);
+
+    try {
+      const analysis = analyzeSMSMessages(smsText);
+
+      if (analysis.transactionCount === 0) {
+        setError(
+          "No valid M-Pesa transactions found. Please check your SMS messages and try again."
+        );
+        setIsAnalyzing(false);
+        return;
+      }
+
+      setResults(analysis);
+      setAnalyzed(true);
+    } catch (err) {
+      console.error("Error analyzing SMS:", err);
+      setError(
+        err instanceof Error ? err.message : "Failed to analyze SMS messages"
+      );
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
 
-  const handleAnalyze = () => {
-    // TODO: Implement actual PDF parsing and SMS parsing
-    setAnalyzed(true);
+  const handleAnalyzePDF = async () => {
+    if (!pdfFile) return;
+
+    setIsAnalyzing(true);
+    setError(null);
+
+    try {
+      // Extract text from PDF
+      const pdfText = await extractTextFromPDF(pdfFile);
+
+      if (!pdfText || pdfText.trim().length === 0) {
+        setError(
+          "Could not extract text from PDF. Please ensure it's a valid M-Pesa statement."
+        );
+        setIsAnalyzing(false);
+        return;
+      }
+
+      // Analyze the extracted text
+      const analysis = analyzeStatementPDF(pdfText);
+
+      if (analysis.transactionCount === 0) {
+        setError(
+          "No valid transactions found in the PDF. Please ensure it's a M-Pesa statement."
+        );
+        setIsAnalyzing(false);
+        return;
+      }
+
+      setResults(analysis);
+      setAnalyzed(true);
+    } catch (err) {
+      console.error("Error analyzing PDF:", err);
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Failed to analyze PDF. Please try again."
+      );
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
 
   return (
@@ -122,13 +182,22 @@ export default function FreeMPesaAnalyzer() {
                     )}
                   </div>
                   <Button
-                    onClick={handleAnalyze}
-                    disabled={!pdfFile}
+                    onClick={handleAnalyzePDF}
+                    disabled={!pdfFile || isAnalyzing}
                     size="lg"
                     className="w-full"
                   >
-                    Analyze My Spending
-                    <ArrowRight className="ml-2 h-4 w-4" />
+                    {isAnalyzing ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Analyzing...
+                      </>
+                    ) : (
+                      <>
+                        Analyze My Spending
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                      </>
+                    )}
                   </Button>
                 </TabsContent>
 
@@ -146,25 +215,48 @@ export default function FreeMPesaAnalyzer() {
                     </p>
                   </div>
                   <Button
-                    onClick={handleAnalyze}
-                    disabled={!smsText.trim()}
+                    onClick={handleAnalyzeSMS}
+                    disabled={!smsText.trim() || isAnalyzing}
                     size="lg"
                     className="w-full"
                   >
-                    Analyze My Spending
-                    <ArrowRight className="ml-2 h-4 w-4" />
+                    {isAnalyzing ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Analyzing...
+                      </>
+                    ) : (
+                      <>
+                        Analyze My Spending
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                      </>
+                    )}
                   </Button>
                 </TabsContent>
               </Tabs>
+
+              {/* Error Alert */}
+              {error && (
+                <Alert variant="destructive" className="mt-4">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
             </CardContent>
           </Card>
 
           {/* Results Section */}
-          {analyzed && (
+          {analyzed && results && (
             <div className="mt-8 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <h2 className="text-2xl font-bold text-center">
-                Your Spending Breakdown
-              </h2>
+              <div className="text-center space-y-2">
+                <h2 className="text-2xl font-bold">Your Spending Breakdown</h2>
+                <p className="text-sm text-muted-foreground">
+                  {results.dateRange.days} day
+                  {results.dateRange.days > 1 ? "s" : ""} analyzed •{" "}
+                  {new Date(results.dateRange.start).toLocaleDateString()} -{" "}
+                  {new Date(results.dateRange.end).toLocaleDateString()}
+                </p>
+              </div>
 
               {/* Summary Cards */}
               <div className="grid md:grid-cols-3 gap-4">
@@ -177,10 +269,11 @@ export default function FreeMPesaAnalyzer() {
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">
-                      KSh {mockResults.totalSpent.toLocaleString()}
+                      KSh {Math.round(results.totalSpent).toLocaleString()}
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      {mockResults.transactionCount} transactions
+                      {results.transactionCount} transaction
+                      {results.transactionCount > 1 ? "s" : ""}
                     </p>
                   </CardContent>
                 </Card>
@@ -194,7 +287,7 @@ export default function FreeMPesaAnalyzer() {
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">
-                      KSh {mockResults.avgDailySpend.toLocaleString()}
+                      KSh {Math.round(results.avgDailySpend).toLocaleString()}
                     </div>
                     <p className="text-xs text-muted-foreground">
                       Daily burn rate
@@ -211,10 +304,10 @@ export default function FreeMPesaAnalyzer() {
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">
-                      {mockResults.topCategory}
+                      {results.topCategory}
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      KSh {mockResults.topSpending.toLocaleString()}
+                      KSh {Math.round(results.topSpending).toLocaleString()}
                     </p>
                   </CardContent>
                 </Card>
@@ -226,13 +319,15 @@ export default function FreeMPesaAnalyzer() {
                   <CardTitle>Spending by Category</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {mockResults.categories.map((category) => (
+                  {results.categories.map((category) => (
                     <div key={category.name} className="space-y-2">
                       <div className="flex items-center justify-between text-sm">
-                        <span className="font-medium">{category.name}</span>
+                        <span className="font-medium">
+                          {category.name} ({category.count})
+                        </span>
                         <span className="text-muted-foreground">
-                          KSh {category.amount.toLocaleString()} (
-                          {category.percentage}%)
+                          KSh {Math.round(category.amount).toLocaleString()} (
+                          {category.percentage.toFixed(1)}%)
                         </span>
                       </div>
                       <div className="w-full bg-muted rounded-full h-2">

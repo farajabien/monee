@@ -158,6 +158,23 @@ export const createDebtListConfig = (
     const progress = calculateProgress(item);
     const payoffMonths = calculatePayoffMonths(item);
     const isPaidOff = item.currentBalance === 0;
+    const debtType = (item.debtType || "one-time") as string;
+
+    // Debt type badge configuration
+    const getDebtTypeBadge = () => {
+      switch (debtType) {
+        case "one-time":
+          return { label: "No Interest", className: "bg-gray-500", icon: "💳" };
+        case "interest-push":
+          return { label: "Interest-Push", className: "bg-orange-500", icon: "📈" };
+        case "amortizing":
+          return { label: "Amortizing", className: "bg-blue-500", icon: "🏦" };
+        default:
+          return { label: "One-Time", className: "bg-gray-500", icon: "💳" };
+      }
+    };
+
+    const debtTypeBadge = getDebtTypeBadge();
 
     return (
       <div
@@ -183,15 +200,30 @@ export const createDebtListConfig = (
 
               <span className="font-semibold text-sm">{item.name}</span>
 
+              {/* Debt Type Badge */}
+              <Badge
+                variant="default"
+                className={`text-[10px] px-1.5 py-0 ${debtTypeBadge.className}`}
+              >
+                {debtTypeBadge.icon} {debtTypeBadge.label}
+              </Badge>
+
               {/* Compact monthly payment */}
               <Badge variant="outline" className="text-[10px] px-1.5 py-0">
                 📅 {formatCompactAmount(item.monthlyPaymentAmount)}/mo
               </Badge>
 
               {/* APR badge (if exists) */}
-              {item.interestRate && (
+              {item.interestRate && item.interestRate > 0 && (
                 <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
                   {item.interestRate}% APR
+                </Badge>
+              )}
+
+              {/* Compounding frequency (for interest debts) */}
+              {item.compoundingFrequency && debtType !== "one-time" && (
+                <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                  {item.compoundingFrequency}
                 </Badge>
               )}
 

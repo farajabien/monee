@@ -21,9 +21,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { AddCategoryDialog } from "@/components/categories/add-category-dialog";
+import { Switch } from "@/components/ui/switch";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
-import type { Category, Recipient } from "@/types";
+import type { Category, Recipient, RecurringFrequency, DebtType, CompoundingFrequency } from "@/types";
+import { getDebtTypeDescription } from "@/lib/debt-calculator";
 
 interface UnifiedAddModalProps {
   open: boolean;
@@ -53,11 +55,19 @@ export function UnifiedAddModal({
   const [sourceName, setSourceName] = useState(""); // Income
   const [frequency, setFrequency] = useState("monthly"); // Income
   const [debtName, setDebtName] = useState(""); // Debt
+  const [debtType, setDebtType] = useState<DebtType>("one-time"); // Debt
   const [interestRate, setInterestRate] = useState(""); // Debt
+  const [compoundingFrequency, setCompoundingFrequency] = useState<CompoundingFrequency>("monthly"); // Debt
   const [monthlyPayment, setMonthlyPayment] = useState(""); // Debt
   const [savingsName, setSavingsName] = useState(""); // Savings
   const [targetAmount, setTargetAmount] = useState(""); // Savings
   const [deadline, setDeadline] = useState(""); // Savings
+  
+  // Recurring expense fields
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [recurringFrequency, setRecurringFrequency] = useState<RecurringFrequency>("monthly");
+  const [nextDueDate, setNextDueDate] = useState(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]);
+  const [reminderDays, setReminderDays] = useState("3");
 
   // Fetch data
   const { data } = db.useQuery({
@@ -99,11 +109,17 @@ export function UnifiedAddModal({
     setSourceName("");
     setFrequency("monthly");
     setDebtName("");
+    setDebtType("one-time");
     setInterestRate("");
+    setCompoundingFrequency("monthly");
     setMonthlyPayment("");
     setSavingsName("");
     setTargetAmount("");
     setDeadline("");
+    setIsRecurring(false);
+    setRecurringFrequency("monthly");
+    setNextDueDate(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]);
+    setReminderDays("3");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -137,8 +153,13 @@ export function UnifiedAddModal({
             setIsSubmitting(false);
             return;
           }
-          await db.transact([
-            db.tx.expenses[id()]
+          
+          const expenseId = id();
+          const recurringId = isRecurring ? id() : undefined;
+
+          // Create expense
+          await db.transact(
+            db.tx.expenses[expenseId]
               .update({
                 amount: parsedAmount,
                 recipient: finalRecipient,
@@ -151,11 +172,36 @@ export function UnifiedAddModal({
                   timestamp: new Date(date).getTime(),
                   type: "manual",
                 },
+                isRecurring: isRecurring,
+                recurringTransactionId: recurringId,
                 createdAt: now,
               })
-              .link({ profile: profile.id }),
-          ]);
-          toast.success("Expense added successfully");
+              .link({ profile: profile.id })
+          );
+
+          // If recurring, create recurring transaction record
+          if (isRecurring && recurringId) {
+            await db.transact(
+              db.tx.recurring_transactions[recurringId]
+                .update({
+                  name: finalRecipient,
+                  amount: parsedAmount,
+                  recipient: finalRecipient,
+                  category: selectedCategory || "Uncategorized",
+                  frequency: recurringFrequency,
+                  dueDate: new Date(nextDueDate).getTime(),
+                  nextDueDate: new Date(nextDueDate).getTime(),
+                  lastPaidDate: new Date(date).getTime(),
+                  reminderDays: reminderDays ? parseInt(reminderDays) : undefined,
+                  isActive: true,
+                  isPaused: false,
+                  createdAt: now,
+                })
+                .link({ profile: profile.id })
+            );
+          }
+
+          toast.success(isRecurring ? "Recurring expense added successfully" : "Expense added successfully");
           break;
 
         case "income":
@@ -186,6 +232,12 @@ export function UnifiedAddModal({
             return;
           }
 
+          if (debtType !== "one-time" && !interestRate) {
+            toast.error("Please enter an interest rate for this debt type");
+            setIsSubmitting(false);
+            return;
+          }
+
           const parsedInterestRate = interestRate
             ? parseFloat(interestRate)
             : 0;
@@ -200,7 +252,9 @@ export function UnifiedAddModal({
                 totalAmount: parsedAmount,
                 currentBalance: parsedAmount,
                 monthlyPaymentAmount: parsedMonthlyPayment,
+                debtType,
                 interestRate: parsedInterestRate,
+                compoundingFrequency: debtType === "one-time" ? undefined : compoundingFrequency,
                 paymentDueDay: 1,
                 createdAt: now,
               })
@@ -463,6 +517,61 @@ export function UnifiedAddModal({
                     onChange={(e) => setDate(e.target.value)}
                   />
                 </div>
+
+                {/* Recurring Toggle */}
+                <div className="flex items-center justify-between py-2">
+                  <Label htmlFor="recurring-toggle" className="text-sm font-medium">
+                    Recurring Expense
+                  </Label>
+                  <Switch
+                    id="recurring-toggle"
+                    checked={isRecurring}
+                    onCheckedChange={setIsRecurring}
+                  />
+                </div>
+
+                {isRecurring && (
+                  <div className="space-y-4 p-4 border rounded-lg bg-muted/50">
+                    <div className="space-y-2">
+                      <Label htmlFor="recurring-frequency">Frequency</Label>
+                      <Select value={recurringFrequency} onValueChange={(value) => setRecurringFrequency(value as RecurringFrequency)}>
+                        <SelectTrigger id="recurring-frequency">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="weekly">Weekly</SelectItem>
+                          <SelectItem value="biweekly">Bi-weekly</SelectItem>
+                          <SelectItem value="monthly">Monthly</SelectItem>
+                          <SelectItem value="quarterly">Quarterly</SelectItem>
+                          <SelectItem value="annually">Annually</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="next-due-date">Next Due Date</Label>
+                      <Input
+                        id="next-due-date"
+                        type="date"
+                        value={nextDueDate}
+                        onChange={(e) => setNextDueDate(e.target.value)}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="reminder-days">Reminder (days before)</Label>
+                      <Input
+                        id="reminder-days"
+                        type="number"
+                        placeholder="3"
+                        value={reminderDays}
+                        onChange={(e) => setReminderDays(e.target.value)}
+                        min="0"
+                        max="30"
+                      />
+                    </div>
+                  </div>
+                )}
               </TabsContent>
 
               {/* INCOME TAB */}
@@ -507,16 +616,51 @@ export function UnifiedAddModal({
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="interest-rate">Interest Rate (%)</Label>
-                  <Input
-                    id="interest-rate"
-                    type="number"
-                    step="0.01"
-                    placeholder="5.5"
-                    value={interestRate}
-                    onChange={(e) => setInterestRate(e.target.value)}
-                  />
+                  <Label htmlFor="debt-type-modal">Debt Type</Label>
+                  <Select value={debtType} onValueChange={(value) => setDebtType(value as DebtType)}>
+                    <SelectTrigger id="debt-type-modal">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="one-time">One-Time (No Interest)</SelectItem>
+                      <SelectItem value="interest-push">Interest-Push</SelectItem>
+                      <SelectItem value="amortizing">Amortizing (Loan)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    {getDebtTypeDescription(debtType)}
+                  </p>
                 </div>
+
+                {debtType !== "one-time" && (
+                  <>
+                    <div className="space-y-2">
+                      <Label htmlFor="interest-rate">Annual Interest Rate (%)</Label>
+                      <Input
+                        id="interest-rate"
+                        type="number"
+                        step="0.01"
+                        placeholder="12.5"
+                        value={interestRate}
+                        onChange={(e) => setInterestRate(e.target.value)}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="compounding-modal">Compounding Frequency</Label>
+                      <Select value={compoundingFrequency} onValueChange={(value) => setCompoundingFrequency(value as CompoundingFrequency)}>
+                        <SelectTrigger id="compounding-modal">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="monthly">Monthly</SelectItem>
+                          <SelectItem value="quarterly">Quarterly</SelectItem>
+                          <SelectItem value="annually">Annually</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </>
+                )}
 
                 <div className="space-y-2">
                   <Label htmlFor="monthly-payment">

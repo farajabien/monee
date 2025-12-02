@@ -33,6 +33,8 @@ const _schema = i.schema({
       notes: i.string().optional(),
       mpesaReference: i.string().optional().indexed(),
       linkedRecurringId: i.string().optional().indexed(),
+      isRecurring: i.boolean().optional(),
+      recurringTransactionId: i.string().optional().indexed(),
       createdAt: i.number().indexed(),
     }),
     categories: i.entity({
@@ -82,6 +84,8 @@ const _schema = i.schema({
       monthlyPaymentAmount: i.number(),
       paymentDueDay: i.number(),
       interestRate: i.number().optional(),
+      debtType: i.string().optional().indexed(), // one-time | interest-push | amortizing
+      compoundingFrequency: i.string().optional(), // monthly | quarterly | annually
       pushMonthsPlan: i.number().optional(),
       pushMonthsCompleted: i.number().optional().indexed(),
       lastInterestPaymentDate: i.number().optional().indexed(),
@@ -137,6 +141,11 @@ const _schema = i.schema({
       recipient: i.string().indexed(),
       category: i.string(),
       frequency: i.string().indexed(),
+      dueDate: i.number().optional().indexed(),
+      nextDueDate: i.number().optional().indexed(),
+      lastPaidDate: i.number().optional().indexed(),
+      reminderDays: i.number().optional(),
+      isPaused: i.boolean().optional(),
       paybillNumber: i.string().optional().indexed(),
       tillNumber: i.string().optional().indexed(),
       accountNumber: i.string().optional(),

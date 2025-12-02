@@ -23,8 +23,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { AddCategoryDialog } from "@/components/categories/add-category-dialog";
+import { Switch } from "@/components/ui/switch";
 import { Plus } from "lucide-react";
-import type { Category } from "@/types";
+import type { Category, RecurringFrequency } from "@/types";
 
 interface ManualExpenseDialogProps {
   trigger?: React.ReactNode;
@@ -52,12 +53,25 @@ export function ManualExpenseDialog({
   const [mpesaReference, setMpesaReference] = useState<string>("");
   const [showAddCategoryDialog, setShowAddCategoryDialog] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Recurring expense fields
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [frequency, setFrequency] = useState<RecurringFrequency>("monthly");
+  const [nextDueDate, setNextDueDate] = useState<string>(
+    new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]
+  );
+  const [reminderDays, setReminderDays] = useState<string>("3");
 
   const dialogOpen = open !== undefined ? open : isOpen;
   const setDialogOpen = onOpenChange !== undefined ? onOpenChange : setIsOpen;
 
-  // Fetch categories and recipients
+  // Fetch profiles, categories and recipients
   const { data } = db.useQuery({
+    profiles: {
+      $: {
+        where: { "user.id": user?.id || "" },
+      },
+    },
     categories: {
       $: {
         where: { "profile.user.id": user.id },
@@ -75,6 +89,8 @@ export function ManualExpenseDialog({
       },
     },
   });
+
+  const profile = data?.profiles?.[0];
 
   const categories: Category[] = (data?.categories || []).filter(
     (category) => category.isActive !== false
@@ -109,6 +125,10 @@ export function ManualExpenseDialog({
 
     setIsSubmitting(true);
     try {
+      const now = Date.now();
+      const expenseId = id();
+      const recurringId = isRecurring ? id() : undefined;
+
       const expenseData = {
         amount: parseFloat(amount),
         recipient: finalRecipient,
@@ -123,12 +143,37 @@ export function ManualExpenseDialog({
         },
         notes: notes.trim() || undefined,
         mpesaReference: mpesaReference.trim() || undefined,
-        createdAt: Date.now(),
+        isRecurring: isRecurring,
+        recurringTransactionId: recurringId,
+        createdAt: now,
       };
 
+      // Create expense
       await db.transact(
-        db.tx.expenses[id()].update(expenseData).link({ profile: profile?.id || "" })
+        db.tx.expenses[expenseId].update(expenseData).link({ profile: profile?.id || "" })
       );
+
+      // If recurring, create recurring transaction record
+      if (isRecurring && recurringId) {
+        await db.transact(
+          db.tx.recurring_transactions[recurringId]
+            .update({
+              name: finalRecipient,
+              amount: parseFloat(amount),
+              recipient: finalRecipient,
+              category: selectedCategory,
+              frequency,
+              dueDate: new Date(nextDueDate).getTime(),
+              nextDueDate: new Date(nextDueDate).getTime(),
+              lastPaidDate: new Date(expenseDate).getTime(),
+              reminderDays: reminderDays ? parseInt(reminderDays) : undefined,
+              isActive: true,
+              isPaused: false,
+              createdAt: now,
+            })
+            .link({ profile: profile?.id || "" })
+        );
+      }
 
       // Reset form
       setAmount("");
@@ -138,8 +183,12 @@ export function ManualExpenseDialog({
       setSelectedCategory("Uncategorized");
       setExpenseDate(new Date().toISOString().split("T")[0]);
       setNotes("");
-      setDialogOpen(false);
       setMpesaReference("");
+      setIsRecurring(false);
+      setFrequency("monthly");
+      setNextDueDate(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]);
+      setReminderDays("3");
+      setDialogOpen(false);
     } catch (error) {
       console.error("Error adding manual expense:", error);
       alert("Failed to add expense. Please try again.");
@@ -299,6 +348,60 @@ export function ManualExpenseDialog({
                 </Button>
               </div>
             </div>
+
+            <div className="flex items-center justify-between py-2">
+              <Label htmlFor="recurring-toggle" className="text-sm font-medium">
+                Recurring Expense
+              </Label>
+              <Switch
+                id="recurring-toggle"
+                checked={isRecurring}
+                onCheckedChange={setIsRecurring}
+              />
+            </div>
+
+            {isRecurring && (
+              <div className="space-y-4 p-4 border rounded-lg bg-muted/50">
+                <div className="space-y-2">
+                  <Label htmlFor="frequency">Frequency</Label>
+                  <Select value={frequency} onValueChange={(value) => setFrequency(value as RecurringFrequency)}>
+                    <SelectTrigger id="frequency">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="weekly">Weekly</SelectItem>
+                      <SelectItem value="biweekly">Bi-weekly</SelectItem>
+                      <SelectItem value="monthly">Monthly</SelectItem>
+                      <SelectItem value="quarterly">Quarterly</SelectItem>
+                      <SelectItem value="annually">Annually</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="next-due-date">Next Due Date</Label>
+                  <Input
+                    id="next-due-date"
+                    type="date"
+                    value={nextDueDate}
+                    onChange={(e) => setNextDueDate(e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="reminder-days">Reminder (days before)</Label>
+                  <Input
+                    id="reminder-days"
+                    type="number"
+                    placeholder="3"
+                    value={reminderDays}
+                    onChange={(e) => setReminderDays(e.target.value)}
+                    min="0"
+                    max="30"
+                  />
+                </div>
+              </div>
+            )}
 
             <div className="space-y-2">
               <Label htmlFor="notes">Notes (Optional)</Label>

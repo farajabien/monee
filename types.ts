@@ -1,5 +1,4 @@
-// Note: {} types are required by InstantDB for relation types
-// These lint warnings can be safely ignored
+// Note: {} types are required by InstantDB for relation types to work correctly
 import { InstaQLEntity } from "@instantdb/react";
 import schema from "./instant.schema";
 
@@ -143,6 +142,20 @@ export type FeedbackWithUser = InstaQLEntity<
 
 // Payment type enum
 export type PaymentType = "interest_only" | "principal" | "both";
+
+// Recurring frequency types
+export type RecurringFrequency = "weekly" | "biweekly" | "monthly" | "quarterly" | "annually";
+
+// Debt type enum
+export type DebtType = "one-time" | "interest-push" | "amortizing";
+
+// Compounding frequency enum
+export type CompoundingFrequency = "monthly" | "quarterly" | "annually";
+
+// Recurring transaction with linked expenses
+export interface RecurringTransactionWithPayments extends RecurringTransaction {
+  linkedExpenses?: Expense[];
+}
 
 // Parsed expense data structure
 export interface ParsedExpenseData {
