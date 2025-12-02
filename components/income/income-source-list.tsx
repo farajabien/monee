@@ -15,6 +15,7 @@ import { IncomeAnalytics } from "./income-analytics";
 import { createIncomeSourceListConfig } from "./income-source-list-config";
 import type { IncomeSourceWithUser } from "@/types";
 import { useCurrency } from "@/hooks/use-currency";
+import { toast } from "sonner";
 
 export function IncomeSourceList() {
   const user = db.useUser();
@@ -57,17 +58,30 @@ export function IncomeSourceList() {
 
   const { formatCurrency } = useCurrency(profile?.currency, profile?.locale);
 
-  // Create configuration with edit handler
+  const handleEdit = (item: IncomeSourceWithUser) => {
+    setEditingIncomeSource(item);
+    setShowDialog(true);
+  };
+
+  const handleDelete = async (item: IncomeSourceWithUser) => {
+    try {
+      await db.transact(db.tx.income_sources[item.id].delete());
+      toast.success("Income source deleted successfully");
+    } catch (error) {
+      console.error("Error deleting income source:", error);
+      toast.error("Failed to delete income source. Please try again.");
+    }
+  };
+
+  // Create configuration with edit and delete handlers
   const config = useMemo(() => {
     const baseConfig = createIncomeSourceListConfig(formatCurrency);
     return {
       ...baseConfig,
       actions: {
         ...baseConfig.actions,
-        edit: async (item: IncomeSourceWithUser) => {
-          setEditingIncomeSource(item);
-          setShowDialog(true);
-        },
+        edit: handleEdit,
+        delete: handleDelete,
       },
     };
   }, [formatCurrency]);

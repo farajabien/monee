@@ -248,7 +248,10 @@ export function UnifiedListContainer<T>({
                   ? () => handleEditWrapper(item)
                   : undefined,
                 onDelete: config.actions?.delete
-                  ? () => handleDelete(config.getItemId(item))
+                  ? () => {
+                      const itemId = config.getItemId(item);
+                      handleDelete(itemId);
+                    }
                   : undefined,
                 customActions: config.actions?.custom,
               })
