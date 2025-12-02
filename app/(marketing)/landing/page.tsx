@@ -195,10 +195,18 @@ export default function LandingPage() {
                   </Button>
                 </Link>
               </div>
-              <p className="text-sm text-muted-foreground">
-                ✨ Free to download. 7-day free trial. Then KSh 999 one-time
-                payment — true value: KSh 10,000-15,000.
-              </p>
+              <div className="flex flex-col gap-2">
+                <p className="text-sm text-muted-foreground">
+                  ✨ Free to download • 7-day free trial included
+                </p>
+                <p className="text-sm font-medium">
+                  Then just <span className="text-primary">KSh 999</span>{" "}
+                  one-time payment
+                  <span className="text-muted-foreground ml-1">
+                    (Worth KSh 10,000-15,000)
+                  </span>
+                </p>
+              </div>
             </div>
 
             {/* Right: App Screenshot */}
