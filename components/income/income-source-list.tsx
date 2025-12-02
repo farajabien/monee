@@ -63,9 +63,9 @@ export function IncomeSourceList() {
     setShowDialog(true);
   };
 
-  const handleDelete = async (item: IncomeSourceWithUser) => {
+  const handleDelete = async (id: string) => {
     try {
-      await db.transact(db.tx.income_sources[item.id].delete());
+      await db.transact(db.tx.income_sources[id].delete());
       toast.success("Income source deleted successfully");
     } catch (error) {
       console.error("Error deleting income source:", error);
