@@ -81,69 +81,80 @@ export const createSavingsGoalListConfig = (
       item.isCompleted || item.currentAmount >= item.targetAmount;
 
     return (
-      <div className="flex items-center justify-between p-4 border rounded-lg">
-        <div className="flex items-center gap-3 flex-1">
-          <Badge variant="outline" className="text-xs">
-            #{index + 1}
-          </Badge>
+      <div
+        key={item.id}
+        className="rounded-lg border bg-card hover:bg-accent/50 transition-colors"
+      >
+        <div className="p-4 space-y-3">
+          {/* Header: emoji + name + badges */}
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-1.5">
+                <span className="text-2xl">{item.emoji || "💰"}</span>
+                <h3 className="font-semibold text-base truncate">{item.name}</h3>
+              </div>
 
-          <div className="flex-1 space-y-1">
-            {/* Line 1: Name + inline badges */}
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="font-semibold">
-                {item.emoji || "💰"} {item.name}
-              </span>
-              <Badge variant="secondary">
-                {formatCurrency(item.currentAmount)}
-              </Badge>
-              <Badge variant="outline">
-                Target: {formatCurrency(item.targetAmount)}
-              </Badge>
-              <Badge variant="outline">{Math.round(progress)}% saved</Badge>
-              {isCompleted && (
-                <Badge className="bg-green-500 dark:bg-green-600">
-                  ✓ Goal Achieved!
+              {/* Inline badges */}
+              <div className="flex flex-wrap gap-1.5">
+                <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                  💵 {formatCurrency(item.currentAmount)}
                 </Badge>
-              )}
+                <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                  🎯 {formatCurrency(item.targetAmount)}
+                </Badge>
+                <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                  {Math.round(progress)}% saved
+                </Badge>
+                {isCompleted && (
+                  <Badge className="bg-green-500 dark:bg-green-600 text-[10px] px-1.5 py-0">
+                    ✓ Achieved!
+                  </Badge>
+                )}
+              </div>
             </div>
+          </div>
 
-            {/* Line 2: Metadata */}
-            <div className="flex items-center gap-3 text-sm text-muted-foreground">
+          {/* Progress bar */}
+          <div className="space-y-1">
+            <div className="h-2 bg-muted rounded-full overflow-hidden">
+              <div
+                className="h-full bg-green-500 dark:bg-green-600 transition-all duration-300"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <span>
+                {!isCompleted && `${formatCurrency(remaining)} to go`}
+                {isCompleted && "Goal reached!"}
+              </span>
               {item.deadline && (
-                <>
-                  <div className="flex items-center gap-1">
-                    <CalendarDays className="h-3 w-3" />
-                    <span>{formatDate(item.deadline)}</span>
-                  </div>
-                  <span>•</span>
-                </>
-              )}
-              {!isCompleted && (
-                <>
-                  <span>{formatCurrency(remaining)} to go</span>
-                  <span>•</span>
-                </>
-              )}
-              {item.contributions && item.contributions.length > 0 && (
-                <div className="flex items-center gap-1">
-                  <TrendingUp className="h-3 w-3" />
-                  <span>
-                    {item.contributions.length} contribution
-                    {item.contributions.length !== 1 ? "s" : ""}
-                  </span>
-                </div>
+                <span className="flex items-center gap-1">
+                  <CalendarDays className="h-3 w-3" />
+                  {formatDate(item.deadline)}
+                </span>
               )}
             </div>
           </div>
+
+          {/* Metadata */}
+          {item.contributions && item.contributions.length > 0 && (
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              <TrendingUp className="h-3 w-3" />
+              <span>
+                {item.contributions.length} contribution{item.contributions.length !== 1 ? "s" : ""}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Action buttons */}
-        <div className="flex items-center gap-1">
+        <div className="border-t p-2 flex items-center gap-1">
           {!isCompleted && (
             <Button
               variant="default"
               size="sm"
               onClick={() => onAddMoney(item)}
+              className="flex-1"
             >
               Add Money
             </Button>
@@ -153,6 +164,7 @@ export const createSavingsGoalListConfig = (
               variant="outline"
               size="sm"
               onClick={() => onMarkComplete(item.id)}
+              className="flex-1"
             >
               Mark Complete
             </Button>

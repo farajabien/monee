@@ -24,7 +24,7 @@ import { AddCategoryDialog } from "@/components/categories/add-category-dialog";
 import { Switch } from "@/components/ui/switch";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
-import type { Category, Recipient, RecurringFrequency, DebtType, CompoundingFrequency } from "@/types";
+import type { Category, Recipient, RecurringFrequency, DebtType } from "@/types";
 import { getDebtTypeDescription } from "@/lib/debt-calculator";
 
 interface UnifiedAddModalProps {
@@ -127,7 +127,8 @@ export function UnifiedAddModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!amount || parseFloat(amount) <= 0) {
+    // Validate amount (allow 0 for savings goals)
+    if (activeTab !== "savings" && (!amount || parseFloat(amount) <= 0)) {
       toast.error("Please enter a valid amount");
       return;
     }
@@ -141,7 +142,7 @@ export function UnifiedAddModal({
 
     try {
       const now = Date.now();
-      const parsedAmount = parseFloat(amount);
+      const parsedAmount = parseFloat(amount) || 0;
 
       switch (activeTab) {
         case "expense":
@@ -367,11 +368,16 @@ export function UnifiedAddModal({
                   id="amount"
                   type="number"
                   step="0.01"
-                  placeholder="500"
+                  placeholder={activeTab === "savings" ? "0 (optional)" : "500"}
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
-                  required
+                  required={activeTab !== "savings"}
                 />
+                {activeTab === "savings" && (
+                  <p className="text-xs text-muted-foreground">
+                    Optional: Leave at 0 to set goal without initial contribution
+                  </p>
+                )}
               </div>
 
               {/* EXPENSE TAB */}
@@ -665,7 +671,7 @@ export function UnifiedAddModal({
                       onChange={(e) => setMonthlyPayment(e.target.value)}
                     />
                     <p className="text-xs text-muted-foreground">
-                      Amount you'll pay each month
+                      Amount you&apos;ll pay each month
                     </p>
                   </div>
                 )}
