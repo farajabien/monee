@@ -1,19 +1,35 @@
 "use server";
 
-import { PDFParse } from "pdf-parse";
-
+/**
+ * Server-side PDF text extraction using pdfjs-dist
+ * Note: This is a server action for add-expense-form.tsx compatibility
+ */
 export async function extractTextFromPDF(file: File): Promise<string> {
   try {
-    // Convert File to ArrayBuffer
+    // Dynamic import to avoid SSR issues
+    const pdfjsLib = await import("pdfjs-dist/legacy/build/pdf.mjs");
+    
+    // Set worker source for server-side using string path
+    if (typeof window === 'undefined') {
+      // Use require.resolve to get the worker path in Node.js environment
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'pdfjs-dist/legacy/build/pdf.worker.min.mjs';
+    }
+
     const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
+    const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+    const pdf = await loadingTask.promise;
 
-    // Parse PDF using pdf-parse v2
-    const parser = new PDFParse({ data: buffer });
-    const result = await parser.getText();
-    await parser.destroy();
+    let fullText = "";
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const textContent = await page.getTextContent();
+      const pageText = textContent.items
+        .map((item: any) => item.str)
+        .join(" ");
+      fullText += pageText + "\n";
+    }
 
-    return result.text;
+    return fullText;
   } catch (error) {
     console.error("Error extracting text from PDF:", error);
     throw new Error(

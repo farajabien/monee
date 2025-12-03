@@ -16,88 +16,98 @@ export interface StatementExpense {
  * @param text The raw text content from an M-Pesa statement.
  * @returns An array of parsed expense objects matching the statement_expenses schema.
  */
-function normalizeText(input: string): string {
-  let t = input.replace(/[\t\f\r]+/g, " ");
-  // collapse multiple spaces
-  t = t.replace(/ +/g, " ");
-  // normalize common header labels
-  t = t.replace(/Withdrawn/gi, "Withdraw");
-  t = t.replace(/Transaction\s+Status/gi, "Status");
-  return t;
-}
+export function parseStatementText(text: string): StatementExpense[] {
+  const expenses: StatementExpense[] = [];
 
-function stripHeadersAndFooters(input: string): string {
-  return input
-    // table header (case-insensitive, flexible spacing)
+  // 1. Pre-processing: Clean up the text by removing headers, footers, and page markers.
+  const cleanText = text
+    .replace(/Page \d+ of \d+/g, "") // Remove "Page X of Y"
+    .replace(/Disclaimer:[\s\S]*?conditions apply/gi, "") // Remove footer
     .replace(
-      /Receipt\s+No\s+Completion\s+Time\s+Details\s+(?:Transaction\s+)?Status\s+Paid\s+In\s+Withdraw\s+Balance/gi,
-      ""
-    )
-    // page markers
-    .replace(/Page\s+\d+\s+of\s+\d+/gi, "")
-    // disclaimers
-    .replace(/Disclaimer:[\s\S]*?(?:conditions apply|Terms and Conditions)/gi, "")
-    // social/footer lines
-    .replace(/@Safaricom.*$/gmi, "");
-}
+      /Receipt No\s+Completion Time\s+Details\s+(?:Transaction )?Status\s+Paid In\s+Withdrawn\s+Balance/gi,
+      "" // Remove table headers
+    );
 
-function toAmount(val?: string): number {
-  if (!val) return 0;
-  const v = val.trim();
-  if (v === "-" || v === "" || v === "0.00") return 0;
-  // remove thousand separators
-  const num = parseFloat(v.replace(/,/g, ""));
-  return isNaN(num) ? 0 : num;
-}
+  // 2. Split the text into individual transaction lines.
+  // Each transaction reliably starts with a receipt number (e.g., "R...").
+  const transactionLines = cleanText.split(
+    /(?=R[A-Z0-9]{8,12}\s+\d{4}-\d{2}-\d{2})/
+  );
 
-function parseRow(chunk: string): StatementExpense | null {
-  const rowRe = /^(?<receipt>R[A-Z0-9]{8,12})\s+(?<date>\d{4}-\d{2}-\d{2})\s+(?<time>\d{2}:\d{2}(?::\d{2})?)\s+(?<details>.+?)\s+(?<status>COMPLETED|FAILED|PENDING)\s+(?<paidIn>[\d,]+\.\d{2}|0\.00|-)?\s+(?<withdraw>[\d,]+\.\d{2}|0\.00|-)?\s+(?<balance>[\d,]+\.\d{2})\b/i;
-  const m = chunk.match(rowRe);
-  if (!m || !m.groups) return null;
-  const { date, time, details, status, paidIn, withdraw } = m.groups as Record<string, string>;
-  const paidInNum = toAmount(paidIn);
-  const withdrawNum = toAmount(withdraw);
-  const ts = Date.parse(`${date} ${time}`);
-  const isCompleted = /COMPLETED/i.test(status);
-  if (!isCompleted) return null;
+  // 3. Process each line with a comprehensive regex.
+  for (const line of transactionLines) {
+    if (line.trim().length < 10) continue; // Skip empty or junk lines
 
-  // Determine direction: spending when Withdraw > 0, else income
-  const amount = withdrawNum > 0 ? withdrawNum : paidInNum;
-  if (amount === 0) return null;
-  
-  const recipient = details.trim();
-  return {
-    amount,
-    recipient,
-    timestamp: isNaN(ts) ? Date.now() : ts,
-    description: recipient,
-    category: undefined,
-    isProcessed: false,
-    createdAt: Date.now(),
-  };
-}
+    // This regex uses indexed capture groups to extract all parts of the transaction
+    // in one pass. It's anchored to the start and end of the line for strictness.
+    const pattern = new RegExp(
+      "^(R[A-Z0-9]{8,12})s+" +
+        "(d{4}-d{2}-d{2}s+d{2}:d{2}:d{2})s+" +
+        "([sS]+?)s+" + // Non-greedy match for details
+        "(COMPLETED|FAILED|PENDING)s+" +
+        "([d,]+.d{2})s+" +
+        "([d,]+.d{2})s+" +
+        "([d,]+.d{2})s*$", // Match until the end of the line
+      "i"
+    );
 
-export function parseStatementText(pdfText: string): StatementExpense[] {
-  if (!pdfText || pdfText.trim().length === 0) return [];
+    const match = line
+      .trim()
+      .replace(/\r\n|\n/g, " ")
+      .match(pattern);
 
-  // Pre-normalize and clean
-  const normalized = stripHeadersAndFooters(normalizeText(pdfText));
+    if (match) {
+      // Extract by index: [1]=receiptNo, [2]=completionTime, [3]=details, [4]=status, [5]=paidIn, [6]=withdrawn, [7]=balance
+      const receiptNo = match[1];
+      const completionTime = match[2];
+      const details = match[3];
+      const status = match[4];
+      const paidIn = match[5];
+      const withdrawn = match[6];
 
-  // Split by receipt + date/time anchors, keeping the anchor on each chunk
-  const parts = normalized
-    .split(/(?=R[A-Z0-9]{8,12}\s+\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}(?::\d{2})?)/)
-    .map(s => s.trim())
-    .filter(s => s.length > 0);
+      // Skip rows that are just charges for another transaction to avoid duplicates.
+      if (
+        details.match(
+          /(?:Charge|of Funds Charge|Pay Bill Charge|Pay Merchant Charge|Withdrawal Charge)/i
+        )
+      ) {
+        continue;
+      }
 
-  const rows: StatementExpense[] = [];
-  for (const part of parts) {
-    const expense = parseRow(part);
-    if (expense && expense.amount > 0) {
-      rows.push(expense);
+      // Only process completed transactions
+      if (status.toUpperCase() !== "COMPLETED") {
+        continue;
+      }
+
+      // Determine if this is a withdrawal (paid out) or deposit (paid in)
+      const isWithdrawal = parseFloat(withdrawn.replace(/,/g, "")) > 0;
+      const amount = isWithdrawal
+        ? parseFloat(withdrawn.replace(/,/g, ""))
+        : parseFloat(paidIn.replace(/,/g, ""));
+
+      // Parse the completion time to Unix timestamp
+      // Format: "2022-11-24 14:30:15"
+      const timestamp = new Date(completionTime).getTime();
+
+      // Sanitize details string to use as recipient
+      const recipient = details.replace(/\s+/g, " ").trim();
+
+      // Create full description including receipt number
+      const description = `${receiptNo} - ${recipient}`;
+
+      expenses.push({
+        amount,
+        recipient,
+        timestamp,
+        description,
+        category: undefined,
+        isProcessed: false,
+        createdAt: Date.now(),
+      });
     }
   }
 
-  return rows;
+  return expenses;
 }
 
 /**

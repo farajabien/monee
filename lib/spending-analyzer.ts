@@ -285,11 +285,12 @@ function generateAnalysis(
   const categoryMap = new Map<string, { amount: number; count: number }>();
 
   for (const transaction of spendingTransactions) {
-    const existing = categoryMap.get(transaction.category) || {
+    const category = transaction.category || "Other";
+    const existing = categoryMap.get(category) || {
       amount: 0,
       count: 0,
     };
-    categoryMap.set(transaction.category, {
+    categoryMap.set(category, {
       amount: existing.amount + transaction.amount,
       count: existing.count + 1,
     });

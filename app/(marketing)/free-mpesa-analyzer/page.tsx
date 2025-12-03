@@ -1,6 +1,8 @@
 import { Badge } from "@/components/ui/badge";
-import { BarChart3 } from "lucide-react";
+import { BarChart3, BookOpen, Sparkles } from "lucide-react";
 import { MPesaAnalyzerClient } from "@/components/marketing/mpesa-analyzer-client";
+import { HowToGetStatement } from "@/components/how-to-get-statement";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export const dynamic = 'force-dynamic';
 
@@ -29,9 +31,28 @@ export default function FreeMPesaAnalyzer() {
         </div>
       </section>
 
-      {/* Analyzer Section */}
+      {/* Tabbed Interface: Analyzer vs How to Import */}
       <section className="container mx-auto px-4 py-8">
-        <MPesaAnalyzerClient />
+        <Tabs defaultValue="analyzer" className="w-full max-w-6xl mx-auto">
+          <TabsList className="grid w-full grid-cols-2 mb-8">
+            <TabsTrigger value="analyzer" className="text-lg">
+              <Sparkles className="h-4 w-4 mr-2" />
+              Start Analyzing
+            </TabsTrigger>
+            <TabsTrigger value="guide" className="text-lg">
+              <BookOpen className="h-4 w-4 mr-2" />
+              How to Import
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="analyzer" className="space-y-6">
+            <MPesaAnalyzerClient />
+          </TabsContent>
+
+          <TabsContent value="guide" className="space-y-6">
+            <HowToGetStatement />
+          </TabsContent>
+        </Tabs>
       </section>
 
       {/* How it Works */}

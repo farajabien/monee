@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense, lazy } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -24,6 +24,8 @@ import {
   Save,
   History,
   ChevronDown,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -43,6 +45,11 @@ import {
 import { toast } from "sonner";
 import Link from "next/link";
 
+// Lazy load Syncfusion PDF viewer to reduce initial bundle size
+const PdfSyncfusionExtractor = lazy(
+  () => import("@/components/marketing/pdf-syncfusion-extractor")
+);
+
 export function MPesaAnalyzerClient() {
   const [smsText, setSmsText] = useState("");
   const [pdfFile, setPdfFile] = useState<File | null>(null);
@@ -53,6 +60,8 @@ export function MPesaAnalyzerClient() {
   const [results, setResults] = useState<SpendingAnalysis | null>(null);
   const [savedAnalysesCount, setSavedAnalysesCount] = useState(0);
   const [totalAnalysesCount, setTotalAnalysesCount] = useState(847); // Social proof counter
+  const [showPdfPreview, setShowPdfPreview] = useState(false);
+  const [useSyncfusionExtractor, setUseSyncfusionExtractor] = useState(false);
 
   // Load saved analyses count on mount
   useEffect(() => {
@@ -132,15 +141,8 @@ export function MPesaAnalyzerClient() {
     }
   };
 
-  const handleAnalyzePDF = async () => {
-    if (!pdfFile) return;
-
-    setIsAnalyzing(true);
-    setError(null);
-
+  const handleTextExtracted = async (pdfText: string) => {
     try {
-      const pdfText = await extractTextFromPDF(pdfFile);
-
       if (!pdfText || pdfText.trim().length === 0) {
         setError(
           "Could not extract text from PDF. Please ensure it's a valid M-Pesa statement."
@@ -170,6 +172,32 @@ export function MPesaAnalyzerClient() {
           : "Failed to analyze PDF. Please try again."
       );
     } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  const handleAnalyzePDF = async () => {
+    if (!pdfFile) return;
+
+    setIsAnalyzing(true);
+    setError(null);
+
+    try {
+      // Use Syncfusion extractor if enabled, otherwise use pdf-utils
+      if (useSyncfusionExtractor) {
+        // The Syncfusion component will call handleTextExtracted when ready
+        return;
+      }
+
+      const pdfText = await extractTextFromPDF(pdfFile);
+      await handleTextExtracted(pdfText);
+    } catch (err) {
+      console.error("Error analyzing PDF:", err);
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Failed to analyze PDF. Please try again."
+      );
       setIsAnalyzing(false);
     }
   };
@@ -218,6 +246,7 @@ export function MPesaAnalyzerClient() {
                   onChange={(e) => {
                     if (e.target.files?.[0]) {
                       setPdfFile(e.target.files[0]);
+                      setShowPdfPreview(false);
                     }
                   }}
                   className="hidden"
@@ -229,11 +258,59 @@ export function MPesaAnalyzerClient() {
                   </Button>
                 </label>
                 {pdfFile && (
-                  <p className="text-sm text-primary">
-                    Selected: {pdfFile.name}
-                  </p>
+                  <div className="space-y-3">
+                    <p className="text-sm text-primary">
+                      Selected: {pdfFile.name}
+                    </p>
+                    <div className="flex gap-2 justify-center">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowPdfPreview(!showPdfPreview)}
+                      >
+                        {showPdfPreview ? (
+                          <>
+                            <EyeOff className="mr-2 h-4 w-4" />
+                            Hide Preview
+                          </>
+                        ) : (
+                          <>
+                            <Eye className="mr-2 h-4 w-4" />
+                            Show Preview
+                          </>
+                        )}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setUseSyncfusionExtractor(!useSyncfusionExtractor)}
+                      >
+                        {useSyncfusionExtractor ? "📄 Standard" : "🚀 Enhanced"}
+                      </Button>
+                    </div>
+                  </div>
                 )}
               </div>
+              
+              {/* PDF Preview */}
+              {pdfFile && showPdfPreview && (
+                <div className="border rounded-lg overflow-hidden" style={{ height: "500px" }}>
+                  <Suspense
+                    fallback={
+                      <div className="flex items-center justify-center h-full">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                      </div>
+                    }
+                  >
+                    <PdfSyncfusionExtractor
+                      file={pdfFile}
+                      onTextExtracted={useSyncfusionExtractor && isAnalyzing ? handleTextExtracted : () => {}}
+                      hidden={false}
+                    />
+                  </Suspense>
+                </div>
+              )}
+              
               <Button
                 onClick={handleAnalyzePDF}
                 disabled={!pdfFile || isAnalyzing}
