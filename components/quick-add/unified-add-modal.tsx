@@ -559,6 +559,7 @@ export function UnifiedAddModal({
                     placeholder="e.g., Salary, Freelance"
                     value={sourceName}
                     onChange={(e) => setSourceName(e.target.value)}
+                    required
                   />
                 </div>
 
@@ -588,6 +589,7 @@ export function UnifiedAddModal({
                     placeholder="e.g., Student Loan, Credit Card"
                     value={debtName}
                     onChange={(e) => setDebtName(e.target.value)}
+                    required
                   />
                 </div>
 
@@ -678,6 +680,7 @@ export function UnifiedAddModal({
                     placeholder="e.g., Emergency Fund, Vacation"
                     value={savingsName}
                     onChange={(e) => setSavingsName(e.target.value)}
+                    required
                   />
                 </div>
 
@@ -690,6 +693,7 @@ export function UnifiedAddModal({
                     placeholder="100000"
                     value={targetAmount}
                     onChange={(e) => setTargetAmount(e.target.value)}
+                    required
                   />
                 </div>
 
