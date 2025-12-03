@@ -462,6 +462,91 @@ export default function SettingsClient() {
               </div>
             </ItemContent>
           </Item>
+
+          <Item>
+            <ItemHeader>
+              <ItemTitle>Your Stats</ItemTitle>
+              <ItemDescription>
+                Overview of your financial activity
+              </ItemDescription>
+            </ItemHeader>
+            <ItemContent className="space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">
+                  Total Expenses
+                </span>
+                <span className="font-semibold">
+                  {profile.expenses?.length || 0} transactions
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">
+                  Active Categories
+                </span>
+                <span className="font-semibold">
+                  {profile.categories?.filter((c) => c.isActive !== false)
+                    .length || 0}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">
+                  Savings Goals
+                </span>
+                <span className="font-semibold">
+                  {profile.savingsGoals?.length || 0}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">
+                  Active Debts
+                </span>
+                <span className="font-semibold">
+                  {profile.debts?.length || 0}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">
+                  Income Sources
+                </span>
+                <span className="font-semibold">
+                  {profile.incomeSources?.filter((i) => i.isActive).length ||
+                    0}
+                </span>
+              </div>
+            </ItemContent>
+          </Item>
+
+          <Item>
+            <ItemHeader>
+              <ItemTitle>Give Feedback</ItemTitle>
+              <ItemDescription>
+                Your feedback shapes the app
+              </ItemDescription>
+            </ItemHeader>
+            <ItemContent className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Your feedback shapes the app. Share your thoughts here, or
+                update it anytime.
+              </p>
+              {profile.feedback && profile.feedback.length > 0 && (
+                <div className="p-3 bg-muted rounded-lg text-sm">
+                  <p className="text-muted-foreground">
+                    Last feedback:{" "}
+                    {new Date(
+                      profile.feedback[profile.feedback.length - 1].createdAt
+                    ).toLocaleDateString("en-KE")}
+                  </p>
+                </div>
+              )}
+              <Button
+                className="w-full"
+                onClick={() => setShowFeedbackDialog(true)}
+              >
+                <MessageSquare className="h-4 w-4 mr-2" />
+                Share Feedback
+              </Button>
+            </ItemContent>
+          </Item>
         </TabsContent>
 
         {/* Notification Settings */}
@@ -471,192 +556,70 @@ export default function SettingsClient() {
 
         {/* Profile Settings */}
         <TabsContent value="profile" className="space-y-4">
-          <Accordion type="single" collapsible className="w-full space-y-4">
-            <AccordionItem value="profile-info">
-              <Item>
-                <ItemHeader>
-                  <AccordionTrigger className="hover:no-underline">
-                    <div className="flex items-center gap-2">
-                      <User className="h-5 w-5" />
-                      <div className="text-left">
-                        <ItemTitle>Profile Information</ItemTitle>
-                        <ItemDescription>
-                          Update your personal details
-                        </ItemDescription>
-                      </div>
-                    </div>
-                  </AccordionTrigger>
-                </ItemHeader>
-                <AccordionContent>
-                  <ItemContent className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="handle">
-                        <User className="h-4 w-4 inline mr-2" />
-                        Handle
-                      </Label>
-                      <Input
-                        id="handle"
-                        value={profile.handle || ""}
-                        onChange={(e) =>
-                          handleProfileUpdate("handle", e.target.value)
-                        }
-                        placeholder="Your handle"
-                      />
-                    </div>
+          <Item>
+            <ItemHeader>
+              <ItemTitle>Profile Information</ItemTitle>
+              <ItemDescription>
+                Update your personal details
+              </ItemDescription>
+            </ItemHeader>
+            <ItemContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="handle">
+                  <User className="h-4 w-4 inline mr-2" />
+                  Handle
+                </Label>
+                <Input
+                  id="handle"
+                  value={profile.handle || ""}
+                  onChange={(e) =>
+                    handleProfileUpdate("handle", e.target.value)
+                  }
+                  placeholder="Your handle"
+                />
+              </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="email">
-                        <Mail className="h-4 w-4 inline mr-2" />
-                        Email
-                      </Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        value={user?.email || ""}
-                        disabled
-                        className="bg-muted"
-                      />
-                      <p className="text-xs text-muted-foreground">
-                        Email cannot be changed
-                      </p>
-                    </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">
+                  <Mail className="h-4 w-4 inline mr-2" />
+                  Email
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={user?.email || ""}
+                  disabled
+                  className="bg-muted"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Email cannot be changed
+                </p>
+              </div>
 
-                    <div className="space-y-2">
-                      <Label>
-                        <Calendar className="h-4 w-4 inline mr-2" />
-                        Member Since
-                      </Label>
-                      <Input
-                        value={
-                          profile.createdAt
-                            ? new Date(profile.createdAt).toLocaleDateString(
-                                "en-KE",
-                                {
-                                  year: "numeric",
-                                  month: "long",
-                                  day: "numeric",
-                                }
-                              )
-                            : "Unknown"
-                        }
-                        disabled
-                        className="bg-muted"
-                      />
-                    </div>
-                  </ItemContent>
-                </AccordionContent>
-              </Item>
-            </AccordionItem>
-
-            <AccordionItem value="stats">
-              <Item>
-                <ItemHeader>
-                  <AccordionTrigger className="hover:no-underline">
-                    <div className="flex items-center gap-2">
-                      <TrendingUp className="h-5 w-5" />
-                      <div className="text-left">
-                        <ItemTitle>Your Stats</ItemTitle>
-                        <ItemDescription>
-                          Overview of your financial activity
-                        </ItemDescription>
-                      </div>
-                    </div>
-                  </AccordionTrigger>
-                </ItemHeader>
-                <AccordionContent>
-                  <ItemContent className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">
-                        Total Expenses
-                      </span>
-                      <span className="font-semibold">
-                        {profile.expenses?.length || 0} transactions
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">
-                        Active Categories
-                      </span>
-                      <span className="font-semibold">
-                        {profile.categories?.filter((c) => c.isActive !== false)
-                          .length || 0}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">
-                        Savings Goals
-                      </span>
-                      <span className="font-semibold">
-                        {profile.savingsGoals?.length || 0}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">
-                        Active Debts
-                      </span>
-                      <span className="font-semibold">
-                        {profile.debts?.length || 0}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">
-                        Income Sources
-                      </span>
-                      <span className="font-semibold">
-                        {profile.incomeSources?.filter((i) => i.isActive)
-                          .length || 0}
-                      </span>
-                    </div>
-                  </ItemContent>
-                </AccordionContent>
-              </Item>
-            </AccordionItem>
-
-            <AccordionItem value="feedback">
-              <Item>
-                <ItemHeader>
-                  <AccordionTrigger className="hover:no-underline">
-                    <div className="flex items-center gap-2">
-                      <MessageSquare className="h-5 w-5" />
-                      <div className="text-left">
-                        <ItemTitle>Give Feedback</ItemTitle>
-                        <ItemDescription>
-                          Your feedback shapes the app
-                        </ItemDescription>
-                      </div>
-                    </div>
-                  </AccordionTrigger>
-                </ItemHeader>
-                <AccordionContent>
-                  <ItemContent className="space-y-4">
-                    <p className="text-sm text-muted-foreground">
-                      Your feedback shapes the app. Share your thoughts here, or
-                      update it anytime.
-                    </p>
-                    {profile.feedback && profile.feedback.length > 0 && (
-                      <div className="p-3 bg-muted rounded-lg text-sm">
-                        <p className="text-muted-foreground">
-                          Last feedback:{" "}
-                          {new Date(
-                            profile.feedback[
-                              profile.feedback.length - 1
-                            ].createdAt
-                          ).toLocaleDateString("en-KE")}
-                        </p>
-                      </div>
-                    )}
-                    <Button
-                      className="w-full"
-                      onClick={() => setShowFeedbackDialog(true)}
-                    >
-                      <MessageSquare className="h-4 w-4 mr-2" />
-                      Share Feedback
-                    </Button>
-                  </ItemContent>
-                </AccordionContent>
-              </Item>
-            </AccordionItem>
-          </Accordion>
+              <div className="space-y-2">
+                <Label>
+                  <Calendar className="h-4 w-4 inline mr-2" />
+                  Member Since
+                </Label>
+                <Input
+                  value={
+                    profile.createdAt
+                      ? new Date(profile.createdAt).toLocaleDateString(
+                          "en-KE",
+                          {
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                          }
+                        )
+                      : "Unknown"
+                  }
+                  disabled
+                  className="bg-muted"
+                />
+              </div>
+            </ItemContent>
+          </Item>
         </TabsContent>
 
         {/* Account Settings */}
