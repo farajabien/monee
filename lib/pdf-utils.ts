@@ -1,14 +1,9 @@
+"use client";
+
 /**
- * Client-side PDF text extraction utilities using pdfjs-dist
- * This works in the browser without needing server-side processing
+ * Client-only PDF text extraction utilities using pdfjs-dist legacy build
+ * Avoids SSR DOM APIs and configures a matching worker in-scope.
  */
-
-import * as pdfjsLib from "pdfjs-dist";
-
-// Initialize PDF.js worker
-if (typeof window !== "undefined") {
-  pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
-}
 
 /**
  * Extracts text content from a PDF file in the browser
@@ -17,6 +12,17 @@ if (typeof window !== "undefined") {
  */
 export async function extractTextFromPDF(file: File): Promise<string> {
   try {
+    // Dynamically import pdf.js legacy build to avoid DOMMatrix issues
+    const pdfjsLib = await import("pdfjs-dist/legacy/build/pdf.mjs");
+
+    // Configure worker to legacy build, in the same scope
+    if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
+        "pdfjs-dist/legacy/build/pdf.worker.min.mjs",
+        import.meta.url
+      ).toString();
+    }
+
     // Convert file to ArrayBuffer
     const arrayBuffer = await file.arrayBuffer();
 

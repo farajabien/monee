@@ -1,12 +1,25 @@
 import { parseMpesaMessage } from "./mpesa-parser";
 import { parseStatementText } from "./statement-parser";
 import type { ParsedExpenseData } from "@/types";
+import { categorizeTransaction as smartCategorize } from "./transaction-categorizer";
 
 export interface SpendingCategory {
   name: string;
   amount: number;
   percentage: number;
   count: number;
+}
+
+export interface RecipientSpending {
+  recipient: string;          // Original display name
+  normalizedName: string;     // For grouping/comparison
+  totalAmount: number;
+  transactionCount: number;
+  percentage: number;         // % of total spending
+  averageAmount: number;
+  categories: string[];       // All categories used
+  primaryCategory?: string;   // Most common category (optional)
+  transactions: ParsedTransaction[];
 }
 
 export interface SpendingAnalysis {
@@ -25,13 +38,19 @@ export interface SpendingAnalysis {
     end: number;
     days: number;
   };
+  // Recipient-focused fields
+  recipients: RecipientSpending[];  // Sorted by totalAmount desc
+  topRecipient: string;             // Recipient with highest spending
+  topRecipientSpending: number;
+  uniqueRecipientCount: number;
 }
 
 export interface ParsedTransaction {
   amount: number;
-  recipient?: string;
+  recipient: string;              // Required - display name
+  normalizedRecipient: string;    // For grouping
   type: "spend" | "receive";
-  category: string;
+  category?: string;              // Optional - can be assigned later
   timestamp: number;
   description: string;
 }
@@ -39,86 +58,53 @@ export interface ParsedTransaction {
 /**
  * Basic category matching rules based on recipient/merchant names
  */
-const CATEGORY_RULES: Record<string, string[]> = {
-  "Transport": [
-    "uber",
-    "bolt",
-    "matatu",
-    "taxi",
-    "boda",
-    "kenya bus",
-    "shuttle",
-    "train",
-    "fuel",
-    "petrol",
-    "station",
-  ],
-  "Food & Drinks": [
-    "restaurant",
-    "cafe",
-    "coffee",
-    "pizza",
-    "kfc",
-    "chicken",
-    "burger",
-    "food",
-    "hotel",
-    "bar",
-    "pub",
-    "supermarket",
-    "grocery",
-    "naivas",
-    "carrefour",
-    "quickmart",
-  ],
-  "Shopping": [
-    "shop",
-    "store",
-    "market",
-    "mall",
-    "jumia",
-    "amazon",
-    "fashion",
-    "clothing",
-    "electronics",
-  ],
-  "Entertainment": [
-    "cinema",
-    "movie",
-    "netflix",
-    "showmax",
-    "spotify",
-    "dstv",
-    "game",
-    "betting",
-    "sportpesa",
-    "betika",
-  ],
-  "Utilities": [
-    "kplc",
-    "kenya power",
-    "water",
-    "nairobi water",
-    "internet",
-    "safaricom",
-    "airtel",
-    "telkom",
-    "airtime",
-    "data",
-  ],
-  "Health": [
-    "hospital",
-    "clinic",
-    "pharmacy",
-    "doctor",
-    "medical",
-    "health",
-  ],
-  "Withdraw": ["agent", "withdraw", "atm"],
-};
+
+
+/**
+ * Normalize recipient name for grouping and comparison
+ */
+function normalizeRecipient(name: string): string {
+  return name
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, " ")        // Collapse spaces
+    .replace(/\b0?\d{9,10}\b/g, "") // Remove phone numbers
+    .replace(/^mpesa\s+/i, "")   // Remove M-Pesa prefix
+    .replace(/\s*-\s*\d+$/, "")  // Remove trailing numbers
+    .trim();
+}
+
+/**
+ * Clean recipient name for display
+ */
+function cleanRecipientName(recipient: string | undefined): string {
+  if (!recipient || recipient.trim() === "") {
+    return "Unknown";
+  }
+  
+  let cleaned = recipient.trim();
+  
+  // Remove M-Pesa transaction codes (e.g., TKJPNAJ1D1)
+  cleaned = cleaned.replace(/^[A-Z0-9]{8,12}\s+/i, "");
+  
+  // Remove "Confirmed" prefix
+  cleaned = cleaned.replace(/^Confirmed[:.\s]+/i, "");
+  
+  // Remove "sent to" or "paid to" prefixes
+  cleaned = cleaned.replace(/^(sent to|paid to)\s+/i, "");
+  
+  // Clean up M-Pesa specific terms
+  cleaned = cleaned.replace(/M-PESA\s+/gi, "");
+  
+  // Remove extra whitespace
+  cleaned = cleaned.replace(/\s+/g, " ").trim();
+  
+  return cleaned || "Unknown";
+}
 
 /**
  * Categorizes a transaction based on recipient name and type
+ * Uses the advanced transaction-categorizer for better accuracy
  */
 function categorizeTransaction(
   recipient: string | undefined,
@@ -132,16 +118,17 @@ function categorizeTransaction(
   // If no recipient, categorize as "Other"
   if (!recipient) return "Other";
 
-  const recipientLower = recipient.toLowerCase();
-
-  // Check category rules
-  for (const [category, keywords] of Object.entries(CATEGORY_RULES)) {
-    if (keywords.some((keyword) => recipientLower.includes(keyword))) {
-      return category;
-    }
+  // Use smart categorizer
+  const result = smartCategorize(recipient, "");
+  
+  // If confidence is high enough, use the category
+  if (result.category && result.confidence > 0.3) {
+    return result.category;
   }
 
-  // Check for common patterns
+  // Fallback to simple patterns
+  const recipientLower = recipient.toLowerCase();
+  
   if (recipientLower.includes("pay") || recipientLower.includes("bill")) {
     return "Bills";
   }
@@ -180,9 +167,12 @@ export function analyzeSMSMessages(smsText: string): SpendingAnalysis {
         parsed.expenseType === "receive" || parsed.expenseType === "deposit";
       const isSpend = !isReceive;
 
+      const cleanedRecipient = cleanRecipientName(parsed.recipient);
+      
       const transaction: ParsedTransaction = {
         amount: parsed.amount,
-        recipient: parsed.recipient,
+        recipient: cleanedRecipient,
+        normalizedRecipient: normalizeRecipient(cleanedRecipient),
         type: isReceive ? "receive" : "spend",
         category: categorizeTransaction(parsed.recipient, parsed.expenseType),
         timestamp: parsed.timestamp || Date.now(),
@@ -222,9 +212,12 @@ export function analyzeStatementPDF(pdfText: string): SpendingAnalysis {
       expense.recipient.toLowerCase().includes("deposit") ||
       expense.recipient.toLowerCase().includes("m-shwari transfer");
 
+    const cleanedRecipient = cleanRecipientName(expense.recipient);
+    
     const transaction: ParsedTransaction = {
       amount: expense.amount,
-      recipient: expense.recipient,
+      recipient: cleanedRecipient,
+      normalizedRecipient: normalizeRecipient(cleanedRecipient),
       type: isReceive ? "receive" : "spend",
       category: categorizeTransaction(
         expense.recipient,
@@ -271,6 +264,10 @@ function generateAnalysis(
         end: Date.now(),
         days: 0,
       },
+      recipients: [],
+      topRecipient: "None",
+      topRecipientSpending: 0,
+      uniqueRecipientCount: 0,
     };
   }
 
@@ -321,6 +318,72 @@ function generateAnalysis(
       ? totalSpent / spendingTransactions.length
       : 0;
 
+  // Group by recipient (only spending transactions)
+  const recipientMap = new Map<string, {
+    displayName: string;
+    amount: number;
+    count: number;
+    categories: Set<string>;
+    transactions: ParsedTransaction[];
+  }>();
+
+  for (const transaction of spendingTransactions) {
+    const normalized = transaction.normalizedRecipient;
+    const existing = recipientMap.get(normalized);
+    
+    if (existing) {
+      existing.amount += transaction.amount;
+      existing.count += 1;
+      if (transaction.category) {
+        existing.categories.add(transaction.category);
+      }
+      existing.transactions.push(transaction);
+    } else {
+      recipientMap.set(normalized, {
+        displayName: transaction.recipient,
+        amount: transaction.amount,
+        count: 1,
+        categories: transaction.category ? new Set([transaction.category]) : new Set(),
+        transactions: [transaction],
+      });
+    }
+  }
+
+  // Convert to array and calculate recipient stats
+  const recipients: RecipientSpending[] = Array.from(recipientMap.entries())
+    .map(([normalized, data]) => {
+      // Determine primary category (most common)
+      const categoryCounts = new Map<string, number>();
+      data.transactions.forEach(t => {
+        if (t.category) {
+          categoryCounts.set(t.category, (categoryCounts.get(t.category) || 0) + 1);
+        }
+      });
+      
+      const primaryCategory = categoryCounts.size > 0
+        ? Array.from(categoryCounts.entries())
+            .sort((a, b) => b[1] - a[1])[0][0]
+        : undefined;
+
+      return {
+        recipient: data.displayName,
+        normalizedName: normalized,
+        totalAmount: data.amount,
+        transactionCount: data.count,
+        percentage: totalSpent > 0 ? (data.amount / totalSpent) * 100 : 0,
+        averageAmount: data.amount / data.count,
+        categories: Array.from(data.categories),
+        primaryCategory,
+        transactions: data.transactions.sort((a, b) => b.timestamp - a.timestamp),
+      };
+    })
+    .sort((a, b) => b.totalAmount - a.totalAmount);
+
+  // Find top recipient
+  const topRecipient = recipients.length > 0 ? recipients[0].recipient : "None";
+  const topRecipientSpending = recipients.length > 0 ? recipients[0].totalAmount : 0;
+  const uniqueRecipientCount = recipients.length;
+
   return {
     totalSpent,
     totalReceived,
@@ -337,5 +400,10 @@ function generateAnalysis(
       end: endDate,
       days: daysDiff,
     },
+    // Recipient-focused data
+    recipients,
+    topRecipient,
+    topRecipientSpending,
+    uniqueRecipientCount,
   };
 }

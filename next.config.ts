@@ -4,6 +4,14 @@ const nextConfig: NextConfig = {
   experimental: {
     browserDebugInfoInTerminal: true,
   },
+  // Add empty turbopack config to silence the warning
+  turbopack: {},
+  webpack: (config) => {
+    // Handle pdfjs-dist worker
+    config.resolve.alias.canvas = false;
+    
+    return config;
+  },
   async headers() {
     return [
       {

@@ -243,20 +243,133 @@ export default function LandingPage() {
 
       {/* Problem Section */}
       <section className="container mx-auto px-4 py-16">
-        <div className="max-w-3xl mx-auto text-center space-y-6">
-          <h2 className="text-3xl md:text-4xl font-bold">
+        <div className="max-w-4xl mx-auto space-y-8">
+          <h2 className="text-3xl md:text-4xl font-bold text-center">
             Stop Juggling Spreadsheets
           </h2>
-          <p className="text-lg text-muted-foreground">
-            Most people buy 5-6 different spreadsheets just to manage their money:
-            budget tracker, debt calculator, savings planner, expense tracker. 
-            That&apos;s KSh 3,500+ for files that don&apos;t sync or talk to each other.
-          </p>
-          <p className="text-lg">
-            <strong>MONEE</strong> replaces them all for just KSh 999. One app,
-            lifetime access, automatic sync across devices, and real-time insights
-            into your complete financial picture.
-          </p>
+          
+          <Card className="border-2">
+            <CardContent className="p-6 md:p-8 space-y-6">
+              <div className="space-y-4">
+                <p className="text-lg text-muted-foreground">
+                  Most people buy 5-6 different spreadsheets just to manage their money:
+                </p>
+                
+                <div className="grid sm:grid-cols-2 gap-3">
+                  {[
+                    { name: "Budget Tracker", price: "KSh 500" },
+                    { name: "Debt Calculator", price: "KSh 700" },
+                    { name: "Savings Planner", price: "KSh 600" },
+                    { name: "Expense Tracker", price: "KSh 800" },
+                    { name: "Income Tracker", price: "KSh 500" },
+                    { name: "Category Manager", price: "KSh 395" },
+                  ].map((item, i) => (
+                    <div
+                      key={i}
+                      className="flex items-center justify-between p-3 rounded-lg border bg-muted/50"
+                    >
+                      <span className="text-sm font-medium">{item.name}</span>
+                      <span className="text-sm text-muted-foreground">
+                        {item.price}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                
+                <div className="pt-3 border-t">
+                  <div className="flex items-center justify-between text-lg font-semibold">
+                    <span>Total Cost:</span>
+                    <span className="text-destructive">KSh 3,495+</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    ...and they don&apos;t sync or talk to each other
+                  </p>
+                </div>
+              </div>
+
+              <div className="pt-4 border-t space-y-3">
+                <div className="flex items-center gap-2">
+                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                    <CheckCircle2 className="h-5 w-5 text-primary" />
+                  </div>
+                  <p className="text-lg">
+                    <strong className="text-primary">MONEE</strong> replaces them all for just{" "}
+                    <strong className="text-primary">KSh 999</strong>
+                  </p>
+                </div>
+                <div className="pl-12 space-y-2">
+                  <div className="flex items-start gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-green-600 mt-0.5 shrink-0" />
+                    <span className="text-sm">One app with everything included</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-green-600 mt-0.5 shrink-0" />
+                    <span className="text-sm">Lifetime access, no subscriptions</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-green-600 mt-0.5 shrink-0" />
+                    <span className="text-sm">Automatic sync across all devices</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-green-600 mt-0.5 shrink-0" />
+                    <span className="text-sm">Real-time insights into your complete financial picture</span>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+
+      {/* Free Analyzer CTA */}
+      <section className="container mx-auto px-4 py-16">
+        <div className="max-w-4xl mx-auto">
+          <Card className="border-2 border-primary/30 bg-gradient-to-br from-primary/10 via-background to-blue-500/10">
+            <CardContent className="p-8 md:p-12 space-y-6">
+              <div className="text-center space-y-4">
+                <Badge variant="secondary" className="text-base">
+                  <BarChart3 className="h-4 w-4 mr-2" />
+                  Free Tool • No Login Required
+                </Badge>
+                <h2 className="text-3xl md:text-4xl font-bold">
+                  It&apos;s Monday. Where Did Your Weekend Money Go?
+                </h2>
+                <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                  Stop guessing. Upload your M-Pesa statement or paste SMS messages
+                  from the last 3 days, 7 days, or full month. Get instant insights
+                  into who you&apos;re spending with most.
+                </p>
+              </div>
+
+              <div className="grid md:grid-cols-3 gap-4 pt-4">
+                <div className="text-center space-y-2">
+                  <div className="text-3xl font-bold text-primary">0 min</div>
+                  <p className="text-sm text-muted-foreground">Setup time required</p>
+                </div>
+                <div className="text-center space-y-2">
+                  <div className="text-3xl font-bold text-primary">100%</div>
+                  <p className="text-sm text-muted-foreground">Free forever</p>
+                </div>
+                <div className="text-center space-y-2">
+                  <div className="text-3xl font-bold text-primary">30 sec</div>
+                  <p className="text-sm text-muted-foreground">To see results</p>
+                </div>
+              </div>
+
+              <div className="pt-6 flex flex-col sm:flex-row gap-4 justify-center">
+                <Link href="/free-mpesa-analyzer">
+                  <Button size="lg" className="w-full sm:w-auto">
+                    Analyze Your Spending Now - Free
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </Link>
+              </div>
+
+              <p className="text-xs text-center text-muted-foreground">
+                ✨ No signup • No credit card • Private (data stays in your browser)
+              </p>
+            </CardContent>
+          </Card>
         </div>
       </section>
 
