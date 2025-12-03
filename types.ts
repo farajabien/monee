@@ -26,18 +26,6 @@ export type CategoryWithUser = InstaQLEntity<
   { profile: object }
 >;
 
-// Budget types
-export type Budget = InstaQLEntity<
-  typeof schema,
-  "budgets",
-  { category: object; profile: object }
->;
-export type BudgetWithRelations = InstaQLEntity<
-  typeof schema,
-  "budgets",
-  { category: object; profile: object }
->;
-
 // Daily Check-in types
 export type DailyCheckin = InstaQLEntity<typeof schema, "daily_checkins">;
 export type DailyCheckinWithUser = InstaQLEntity<

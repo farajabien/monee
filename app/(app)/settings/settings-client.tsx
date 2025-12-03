@@ -76,7 +76,6 @@ export default function SettingsClient() {
     profiles: {
       expenses: {},
       categories: {},
-      budgets: {},
       dailyCheckins: {},
       incomeSources: {},
       debts: {
@@ -189,7 +188,6 @@ export default function SettingsClient() {
       const exportData = {
         profile: {
           handle: profile.handle,
-          monthlyBudget: profile.monthlyBudget,
           createdAt: profile.createdAt,
         },
         user: {
@@ -199,7 +197,6 @@ export default function SettingsClient() {
         },
         expenses: profile.expenses || [],
         categories: profile.categories || [],
-        budgets: profile.budgets || [],
         dailyCheckins: profile.dailyCheckins || [],
         incomeSources: profile.incomeSources || [],
         debts:
@@ -316,12 +313,7 @@ export default function SettingsClient() {
         });
       }
 
-      // Delete all budgets
-      if (profile.budgets) {
-        profile.budgets.forEach((budget) => {
-          transactions.push(db.tx.budgets[budget.id].delete());
-        });
-      }
+
 
       // Delete all daily checkins
       if (profile.dailyCheckins) {
@@ -526,28 +518,6 @@ export default function SettingsClient() {
                       />
                       <p className="text-xs text-muted-foreground">
                         Email cannot be changed
-                      </p>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="monthlyBudget">
-                        <span className="inline mr-2">💰</span>
-                        Monthly Budget (KES)
-                      </Label>
-                      <Input
-                        id="monthlyBudget"
-                        type="number"
-                        value={profile.monthlyBudget || 0}
-                        onChange={(e) =>
-                          handleProfileUpdate(
-                            "monthlyBudget",
-                            Number(e.target.value)
-                          )
-                        }
-                        placeholder="50000"
-                      />
-                      <p className="text-xs text-muted-foreground">
-                        Your total monthly budget across all categories
                       </p>
                     </div>
 
@@ -831,7 +801,7 @@ export default function SettingsClient() {
                         </p>
                         <ul className="list-disc list-inside space-y-1">
                           <li>All expenses and transactions</li>
-                          <li>Categories and budgets</li>
+                          <li>Categories</li>
                           <li>Savings goals and contributions</li>
                           <li>Debts and payment history</li>
                           <li>Income sources</li>

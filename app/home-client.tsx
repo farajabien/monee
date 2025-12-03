@@ -102,8 +102,6 @@ export default function HomeClient() {
             ? "debt"
             : activeTab === "savings"
             ? "savings"
-            : activeTab === "budgets"
-            ? "budget"
             : "expense"
         }
       />

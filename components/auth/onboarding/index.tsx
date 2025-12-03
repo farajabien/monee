@@ -68,7 +68,6 @@ export default function OnboardingFlow() {
             db.tx.profiles[profileId]
               .update({
                 handle: user.email?.split("@")[0] || "user",
-                monthlyBudget: 0,
                 createdAt: Date.now(),
                 onboardingCompleted: false,
                 onboardingStep: "currency",

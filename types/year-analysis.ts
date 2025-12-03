@@ -1,4 +1,4 @@
-import type { Expense, Category, Budget, Debt } from "@/types";
+import type { Expense, Category, Debt } from "@/types";
 
 /**
  * Parsed expense data structure from SMS/PDF
@@ -107,7 +107,6 @@ export interface YearAnalysisOptions {
   // Include achievements data (for app analyzer)
   includeAchievements?: {
     categories: Category[];
-    budgets: Budget[];
     debts: Debt[];
   };
   // Group by expense type or category

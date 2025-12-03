@@ -30,7 +30,7 @@ import { getDebtTypeDescription } from "@/lib/debt-calculator";
 interface UnifiedAddModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  defaultTab?: "expense" | "income" | "debt" | "savings" | "budget";
+  defaultTab?: "expense" | "income" | "debt" | "savings";
 }
 
 export function UnifiedAddModal({
@@ -310,35 +310,6 @@ export function UnifiedAddModal({
           ]);
           toast.success("Savings goal added successfully");
           break;
-
-        case "budget":
-          if (!selectedCategory) {
-            toast.error("Please select a category");
-            setIsSubmitting(false);
-            return;
-          }
-          const currentDate = new Date();
-          const selectedCategoryObj = categories.find(
-            (c) => c.name === selectedCategory
-          );
-
-          if (!selectedCategoryObj?.id) {
-            toast.error("Category not found");
-            setIsSubmitting(false);
-            return;
-          }
-
-          await db.transact([
-            db.tx.budgets[id()]
-              .update({
-                amount: parsedAmount,
-                month: currentDate.getMonth() + 1,
-                year: currentDate.getFullYear(),
-              })
-              .link({ category: selectedCategoryObj.id, profile: profile.id }),
-          ]);
-          toast.success("Budget added successfully");
-          break;
       }
 
       resetForm();
@@ -373,16 +344,15 @@ export function UnifiedAddModal({
             value={activeTab}
             onValueChange={(v) =>
               setActiveTab(
-                v as "expense" | "income" | "debt" | "savings" | "budget"
+                v as "expense" | "income" | "debt" | "savings"
               )
             }
           >
-            <TabsList className="grid w-full grid-cols-5">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="expense">Expense</TabsTrigger>
               <TabsTrigger value="income">Income</TabsTrigger>
               <TabsTrigger value="debt">Debt</TabsTrigger>
               <TabsTrigger value="savings">Savings</TabsTrigger>
-              <TabsTrigger value="budget">Budget</TabsTrigger>
             </TabsList>
 
             <form onSubmit={handleSubmit} className="space-y-4 pt-4">
@@ -736,49 +706,6 @@ export function UnifiedAddModal({
                 <p className="text-xs text-muted-foreground">
                   Initial contribution will be recorded if amount is greater
                   than 0
-                </p>
-              </TabsContent>
-
-              {/* BUDGET TAB */}
-              <TabsContent value="budget" className="space-y-4 mt-0">
-                <div className="space-y-2">
-                  <Label htmlFor="budget-category">Category</Label>
-                  <div className="flex gap-2">
-                    <Select
-                      value={selectedCategory}
-                      onValueChange={setSelectedCategory}
-                    >
-                      <SelectTrigger id="budget-category" className="flex-1">
-                        <SelectValue placeholder="Select category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categories.map((cat) => (
-                          <SelectItem key={cat.id} value={cat.name}>
-                            <span className="flex items-center gap-2">
-                              {cat.icon && <span>{cat.icon}</span>}
-                              {cat.name}
-                            </span>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="icon"
-                      onClick={() => setShowAddCategoryDialog(true)}
-                    >
-                      <Plus className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-
-                <p className="text-xs text-muted-foreground">
-                  Budget will be created for{" "}
-                  {new Date().toLocaleString("default", {
-                    month: "long",
-                    year: "numeric",
-                  })}
                 </p>
               </TabsContent>
 
