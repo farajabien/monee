@@ -7,8 +7,7 @@ import { calculateCashRunway } from "@/lib/cash-runway-calculator";
 import { calculateCashFlowHealth } from "@/lib/cash-flow-health-calculator";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MoneeDashboardMetric } from "@/components/custom/monee-cards";
-import { DollarSign, TrendingUp, PieChart, Target } from "lucide-react";
+
 import { useCurrency } from "@/hooks/use-currency";
 
 // Dynamically import heavy components to avoid chunk loading issues

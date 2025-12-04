@@ -23,6 +23,7 @@ interface MoneeCardProps {
   secondaryValue?: string;
   secondaryLabel?: string;
   showActions?: boolean;
+  formattedAmount?: string;
 }
 
 export function MoneeCard({
@@ -36,6 +37,7 @@ export function MoneeCard({
   secondaryValue,
   secondaryLabel,
   showActions = true,
+  formattedAmount,
 }: MoneeCardProps) {
   const amountColor = {
     expense: "text-red-600 dark:text-red-400",
@@ -43,6 +45,9 @@ export function MoneeCard({
     debt: "text-orange-600 dark:text-orange-400",
     savings: "text-blue-600 dark:text-blue-400",
   }[type];
+
+  const displayAmount = formattedAmount || 
+    (typeof amount === "number" ? amount.toLocaleString() : amount);
 
   return (
     <div className="group relative">
@@ -54,21 +59,19 @@ export function MoneeCard({
             <div className="flex items-baseline gap-2 mb-1">
               <span
                 className={cn(
-                  "text-base font-bold tabular-nums leading-tight",
+                  "text-sm sm:text-base font-bold tabular-nums leading-tight",
                   amountColor
                 )}
               >
-                {typeof amount === "number"
-                  ? `Ksh ${amount.toLocaleString()}`
-                  : `Ksh ${amount}`}
+                {displayAmount}
               </span>
-              <span className="text-xs font-medium text-foreground truncate">
+              <span className="text-[11px] sm:text-xs font-medium text-foreground truncate">
                 {name}
               </span>
             </div>
 
             {/* Metadata Row */}
-            <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+            <div className="flex items-center gap-1.5 text-[9px] sm:text-[10px] text-muted-foreground">
               <span className="px-1.5 py-0.5 bg-muted rounded text-muted-foreground">
                 {category}
               </span>
@@ -77,7 +80,7 @@ export function MoneeCard({
 
             {/* Secondary Value if provided */}
             {secondaryValue && (
-              <div className="mt-1 text-[10px] text-muted-foreground">
+              <div className="mt-1 text-[9px] sm:text-[10px] text-muted-foreground">
                 <span>{secondaryLabel}:</span>
                 <span className="font-medium ml-1">{secondaryValue}</span>
               </div>
@@ -143,11 +146,11 @@ export function MoneeDashboardMetric({
     <div className="bg-card border border-border rounded-lg p-3">
       <div className="flex items-center gap-1.5 mb-1.5">
         {Icon && <Icon className={cn("h-3.5 w-3.5", colorClasses)} />}
-        <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
+        <p className="text-[9px] sm:text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
           {label}
         </p>
       </div>
-      <p className="text-xl font-bold tabular-nums leading-tight">{value}</p>
+      <p className="text-lg sm:text-xl font-bold tabular-nums leading-tight">{value}</p>
     </div>
   );
 }
@@ -166,10 +169,10 @@ export function MoneeListHeader({
       <div>
         <h2 className="text-sm font-semibold text-foreground">{title}</h2>
         {total && (
-          <p className="text-[10px] text-muted-foreground mt-0.5">{total}</p>
+          <p className="text-[9px] sm:text-[10px] text-muted-foreground mt-0.5">{total}</p>
         )}
       </div>
-      <span className="text-[10px] font-medium text-muted-foreground bg-muted px-2 py-0.5 rounded">
+      <span className="text-[9px] sm:text-[10px] font-medium text-muted-foreground bg-muted px-2 py-0.5 rounded">
         {count} items
       </span>
     </div>

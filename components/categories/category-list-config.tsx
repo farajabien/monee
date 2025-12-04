@@ -56,24 +56,16 @@ export const createCategoryListConfig = (
   emptyMessageFiltered: "No categories found matching your filters",
   searchPlaceholder: "Search categories...",
 
-  // Filters & Sort
+  // Filters & Sort - SIMPLIFIED FOR MOBILE
   filters: [
     {
       key: "status",
       label: "Status",
       type: "select",
       options: [
+        { value: "all", label: "All" },
         { value: "active", label: "Active" },
         { value: "inactive", label: "Inactive" },
-      ],
-    },
-    {
-      key: "type",
-      label: "Type",
-      type: "select",
-      options: [
-        { value: "system", label: "System" },
-        { value: "custom", label: "Custom" },
       ],
     },
   ] as FilterConfig[],
@@ -85,7 +77,7 @@ export const createCategoryListConfig = (
   defaultSort: "name-asc",
   searchFields: ["name"],
 
-  // Metrics
+  // Metrics - COMPACT FOR MOBILE
   metrics: [
     {
       key: "total",
@@ -96,12 +88,6 @@ export const createCategoryListConfig = (
     {
       key: "active",
       label: "Active",
-      type: "count",
-      icon: ToggleLeft,
-    },
-    {
-      key: "inactive",
-      label: "Inactive",
       type: "count",
       icon: ToggleLeft,
     },
@@ -186,14 +172,6 @@ export const createCategoryListConfig = (
       const active = item.isActive !== false;
       if (statusFilter === "active" && !active) return false;
       if (statusFilter === "inactive" && active) return false;
-    }
-
-    // Apply type filter
-    const typeFilter = filters.type;
-    if (typeFilter && typeFilter !== "all") {
-      const system = isSystemCategory(item);
-      if (typeFilter === "system" && !system) return false;
-      if (typeFilter === "custom" && system) return false;
     }
 
     // Apply search
