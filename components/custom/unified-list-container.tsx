@@ -42,6 +42,7 @@ interface UnifiedListContainerProps<T> {
     item: T | null;
   }>;
   additionalFilters?: React.ReactNode; // For custom filters like month selector
+  headerActions?: React.ReactNode; // For custom actions like import buttons
   editingItem?: T | null;
   onEditingChange?: (item: T | null) => void;
 }
@@ -51,6 +52,7 @@ export function UnifiedListContainer<T extends Record<string, unknown>>({
   data,
   editDialog: EditDialog,
   additionalFilters,
+  headerActions,
   editingItem: externalEditingItem,
   onEditingChange,
 }: UnifiedListContainerProps<T>) {
@@ -169,32 +171,41 @@ export function UnifiedListContainer<T extends Record<string, unknown>>({
           </div>
         )}
 
-        {/* Controls */}
-        <DataViewControls
-          viewMode={viewMode}
-          onViewModeChange={setViewMode}
-          availableViews={config.availableViews}
-          searchValue={searchQuery}
-          onSearchChange={setSearchQuery}
-          searchPlaceholder={config.searchPlaceholder}
-          sortValue={sortBy}
-          onSortChange={setSortBy}
-          sortOptions={config.sortOptions}
-          filterValue={primaryFilterValue}
-          onFilterChange={
-            primaryFilter
-              ? (value) => handleFilterChange(primaryFilter.key, value)
-              : undefined
-          }
-          filterOptions={
-            primaryFilter?.options
-              ? [{ value: "all", label: "All" }, ...primaryFilter.options]
-              : undefined
-          }
-          filterLabel={primaryFilter?.label}
-          totalCount={data.length}
-          filteredCount={filteredData.length}
-        />
+        {/* Controls and Header Actions */}
+        <div className="flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-between">
+          <div className="flex-1 min-w-0">
+            <DataViewControls
+              viewMode={viewMode}
+              onViewModeChange={setViewMode}
+              availableViews={config.availableViews}
+              searchValue={searchQuery}
+              onSearchChange={setSearchQuery}
+              searchPlaceholder={config.searchPlaceholder}
+              sortValue={sortBy}
+              onSortChange={setSortBy}
+              sortOptions={config.sortOptions}
+              filterValue={primaryFilterValue}
+              onFilterChange={
+                primaryFilter
+                  ? (value) => handleFilterChange(primaryFilter.key, value)
+                  : undefined
+              }
+              filterOptions={
+                primaryFilter?.options
+                  ? [{ value: "all", label: "All" }, ...primaryFilter.options]
+                  : undefined
+              }
+              filterLabel={primaryFilter?.label}
+              totalCount={data.length}
+              filteredCount={filteredData.length}
+            />
+          </div>
+          {headerActions && (
+            <div className="flex-shrink-0">
+              {headerActions}
+            </div>
+          )}
+        </div>
 
         {/* Additional filters (if any) */}
         {config.filters && config.filters.length > 1 && (

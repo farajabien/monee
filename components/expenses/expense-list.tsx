@@ -5,8 +5,11 @@ import db from "@/lib/db";
 import { UnifiedListContainer } from "@/components/custom/unified-list-container";
 import { EditExpenseDialog } from "./edit-expense-dialog";
 import { createExpenseListConfig } from "./expense-list-config";
+import { ExpenseImportOrchestrator } from "./expense-import-orchestrator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RecipientList } from "@/components/recipients/recipient-list";
+import { id } from "@instantdb/react";
+import { toast } from "sonner";
 import {
   ChartContainer,
   ChartTooltip,
@@ -26,7 +29,7 @@ import {
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, RepeatIcon } from "lucide-react";
 import type { Expense } from "@/types";
 import { useCurrency } from "@/hooks/use-currency";
 
@@ -66,6 +69,7 @@ export default function ExpenseList() {
         },
       },
       recipients: {},
+      recurring_transactions: {},
     },
   });
 
@@ -75,14 +79,75 @@ export default function ExpenseList() {
     () => profile?.recipients || [],
     [profile?.recipients]
   );
+  const recurringTransactions = useMemo(
+    () => profile?.recurring_transactions || [],
+    [profile?.recurring_transactions]
+  );
 
   const { formatCurrency } = useCurrency(profile?.currency, profile?.locale);
 
+  // Get all available categories from existing expenses
+  const categories = useMemo(() => {
+    const cats = new Set(expenses.map((e) => e.category).filter(Boolean));
+    return Array.from(cats);
+  }, [expenses]);
+
+  // Handle saving imported expenses
+  const handleSaveExpenses = async (
+    importedExpenses: Array<Expense & { id?: string }>
+  ) => {
+    if (!profile?.id) {
+      toast.error("Profile not found");
+      return;
+    }
+
+    try {
+      const txs = importedExpenses.map((expense) => {
+        const expenseId = expense.id || id();
+        return db.tx.expenses[expenseId]
+          .update(expense)
+          .link({ profile: profile.id });
+      });
+
+      await db.transact(txs);
+      toast.success(`Successfully imported ${importedExpenses.length} expenses`);
+    } catch (error) {
+      console.error("Failed to save expenses:", error);
+      throw error;
+    }
+  };
+
   // Create configuration with recipients for display name resolution
-  const config = useMemo(
-    () => createExpenseListConfig(recipients, formatCurrency),
-    [recipients, formatCurrency]
-  );
+  const config = useMemo(() => {
+    // Add recurring indicator to card rendering
+    const baseConfig = createExpenseListConfig(recipients, formatCurrency);
+    
+    // Override renderListItem to add recurring indicator
+    const originalRenderListItem = baseConfig.renderListItem;
+    baseConfig.renderListItem = (item, index, actions) => {
+      const isRecurring = item.isRecurring || item.linkedRecurringId;
+      const originalCard = originalRenderListItem(item, index, actions);
+      
+      // Add recurring badge to the card
+      if (isRecurring) {
+        return (
+          <div className="relative">
+            {originalCard}
+            <div className="absolute top-2 left-2 z-10">
+              <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs font-medium">
+                <RepeatIcon className="h-3 w-3" />
+                <span>Recurring</span>
+              </div>
+            </div>
+          </div>
+        );
+      }
+      
+      return originalCard;
+    };
+
+    return baseConfig;
+  }, [recipients, formatCurrency]);
 
   // Analytics calculations
   const analytics = useMemo(() => {
@@ -197,6 +262,16 @@ export default function ExpenseList() {
           config={config}
           data={expenses}
           editDialog={EditExpenseDialogAdapter}
+          headerActions={
+            profile ? (
+              <ExpenseImportOrchestrator
+                existingExpenses={expenses}
+                recurringExpenses={recurringTransactions}
+                categories={categories}
+                onSaveExpenses={handleSaveExpenses}
+              />
+            ) : null
+          }
         />
       </div>
     );
