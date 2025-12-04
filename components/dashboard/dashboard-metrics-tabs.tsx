@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   ChartContainer,
   ChartTooltip,
@@ -264,28 +263,13 @@ export function DashboardMetricsTabs({
   };
 
   return (
-    <Tabs defaultValue="spending" className="w-full">
-      <TabsList className="grid w-full grid-cols-4">
-        <TabsTrigger value="spending" className="text-xs">
-          <PieChartIcon className="size-3 mr-1" />
-          Spending
-        </TabsTrigger>
-        <TabsTrigger value="top" className="text-xs">
-          <BarChart3 className="size-3 mr-1" />
-          Top 5
-        </TabsTrigger>
-        <TabsTrigger value="debts" className="text-xs">
-          <Target className="size-3 mr-1" />
-          Debts
-        </TabsTrigger>
-        <TabsTrigger value="savings" className="text-xs">
-          <Wallet className="size-3 mr-1" />
-          Savings
-        </TabsTrigger>
-      </TabsList>
-
-      {/* Spending Breakdown - Pie Chart */}
-      <TabsContent value="spending" className="p-4 space-y-3">
+    <div className="space-y-6">
+      {/* Section 1: Spending Breakdown */}
+      <div className="space-y-3">
+        <h3 className="text-sm font-semibold flex items-center gap-2">
+          <PieChartIcon className="h-4 w-4" />
+          Spending Breakdown
+        </h3>
         {categoryData.length > 0 ? (
           <>
             <div className="flex justify-end mb-2">
@@ -362,10 +346,14 @@ export function DashboardMetricsTabs({
             No spending data yet
           </div>
         )}
-      </TabsContent>
+      </div>
 
-      {/* Top 5 Expenses - Bar Chart */}
-      <TabsContent value="top" className="p-4">
+      {/* Section 2: Top 5 Expenses */}
+      <div className="space-y-3">
+        <h3 className="text-sm font-semibold flex items-center gap-2">
+          <BarChart3 className="h-4 w-4" />
+          Top 5 Expenses
+        </h3>
         {topExpenses.length > 0 ? (
           <>
             <div className="flex justify-end mb-2">
@@ -408,10 +396,14 @@ export function DashboardMetricsTabs({
             No expenses yet
           </div>
         )}
-      </TabsContent>
+      </div>
 
-      {/* Debts Progress */}
-      <TabsContent value="debts" className="p-4 space-y-3">
+      {/* Section 3: Debts Progress */}
+      <div className="space-y-3">
+        <h3 className="text-sm font-semibold flex items-center gap-2">
+          <Target className="h-4 w-4" />
+          Debt Progress
+        </h3>
         {debtsData.length > 0 ? (
           <>
             <div className="flex justify-end mb-2">
@@ -451,10 +443,14 @@ export function DashboardMetricsTabs({
             No debts tracked yet
           </div>
         )}
-      </TabsContent>
+      </div>
 
-      {/* Savings Progress */}
-      <TabsContent value="savings" className="p-4 space-y-3">
+      {/* Section 4: Savings Progress */}
+      <div className="space-y-3">
+        <h3 className="text-sm font-semibold flex items-center gap-2">
+          <Wallet className="h-4 w-4" />
+          Savings Progress
+        </h3>
         {savingsData.length > 0 ? (
           <>
             <div className="flex justify-end mb-2">
@@ -494,7 +490,7 @@ export function DashboardMetricsTabs({
             No savings goals yet
           </div>
         )}
-      </TabsContent>
-    </Tabs>
+      </div>
+    </div>
   );
 }

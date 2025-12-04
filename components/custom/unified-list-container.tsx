@@ -88,7 +88,6 @@ export function UnifiedListContainer<T extends Record<string, unknown>>({
     handleEdit,
     handleDelete,
     confirmDelete,
-    cancelEdit,
     cancelDelete,
     setIsEditDialogOpen,
   } = useListActions<T>({
@@ -164,17 +163,10 @@ export function UnifiedListContainer<T extends Record<string, unknown>>({
 
       {/* Main container */}
       <div className="space-y-4 w-full">
-        {/* Header with title and additional filters */}
-        {(config.title || additionalFilters) && (
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            {config.title && (
-              <h2 className="text-lg font-semibold tracking-tight">
-                {config.title}
-              </h2>
-            )}
-            {additionalFilters && (
-              <div className="flex-shrink-0">{additionalFilters}</div>
-            )}
+        {/* Additional filters if provided */}
+        {additionalFilters && (
+          <div className="flex items-center justify-end">
+            <div className="flex-shrink-0">{additionalFilters}</div>
           </div>
         )}
 

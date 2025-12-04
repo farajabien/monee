@@ -3,13 +3,21 @@
 import { useState, useMemo } from "react";
 import db from "@/lib/db";
 import { UnifiedListContainer } from "@/components/custom/unified-list-container";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { TrendingUp } from "lucide-react";
 import { IncomeSourceForm } from "./income-source-form";
 import { IncomeAnalytics } from "./income-analytics";
 import { createIncomeSourceListConfig } from "./income-source-list-config";
@@ -88,21 +96,32 @@ export function IncomeSourceList() {
 
   return (
     <div className="space-y-4">
-      <Tabs defaultValue="list" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 mb-4">
-          <TabsTrigger value="list">All Sources</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
-        </TabsList>
-        <TabsContent value="list">
-          <UnifiedListContainer<IncomeSourceWithUser>
-            config={config}
-            data={incomeSources}
-          />
-        </TabsContent>
-        <TabsContent value="analytics">
-          <IncomeAnalytics />
-        </TabsContent>
-      </Tabs>
+      {/* Header with analytics button */}
+      <div className="flex items-center justify-end">
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button variant="outline" size="sm" className="h-8">
+              <TrendingUp className="h-4 w-4 mr-2" />
+              <span className="hidden sm:inline">Analytics</span>
+              <span className="sm:hidden">Stats</span>
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="bottom" className="h-[85vh] overflow-y-auto">
+            <SheetHeader>
+              <SheetTitle>Income Analytics</SheetTitle>
+            </SheetHeader>
+            <div className="mt-4">
+              <IncomeAnalytics />
+            </div>
+          </SheetContent>
+        </Sheet>
+      </div>
+
+      {/* Main content */}
+      <UnifiedListContainer<IncomeSourceWithUser>
+        config={config}
+        data={incomeSources}
+      />
 
       {/* Dialog for add/edit income source */}
       <Dialog

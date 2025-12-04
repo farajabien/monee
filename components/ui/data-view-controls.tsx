@@ -1,6 +1,6 @@
 "use client";
 
-import { Search, Grid3x3, List, SlidersHorizontal } from "lucide-react";
+import { Search, Grid3x3, List, Table, SlidersHorizontal } from "lucide-react";
 import { Button } from "./button";
 import { Input } from "./input";
 import {
@@ -126,6 +126,16 @@ export function DataViewControls({
                 className="h-8 px-2"
               >
                 <List className="h-4 w-4" />
+              </Button>
+            )}
+            {availableViews && availableViews.includes("table") && (
+              <Button
+                variant={viewMode === "table" ? "secondary" : "ghost"}
+                size="sm"
+                onClick={() => onViewModeChange("table")}
+                className="h-8 px-2"
+              >
+                <Table className="h-4 w-4" />
               </Button>
             )}
             {availableViews && availableViews.includes("grid") && (

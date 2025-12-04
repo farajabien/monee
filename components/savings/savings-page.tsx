@@ -1,24 +1,46 @@
 "use client";
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { BarChart3 } from "lucide-react";
 import { SavingsGoalList } from "./savings-goal-list";
 import { SavingsAnalytics } from "./savings-analytics";
 
 export default function SavingsPage() {
+  const [analyticsOpen, setAnalyticsOpen] = useState(false);
+
   return (
-    <div className="space-y-6">
-      <Tabs defaultValue="list" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 mb-4">
-          <TabsTrigger value="list">All Goals</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
-        </TabsList>
-        <TabsContent value="list">
-          <SavingsGoalList />
-        </TabsContent>
-        <TabsContent value="analytics">
-          <SavingsAnalytics />
-        </TabsContent>
-      </Tabs>
+    <div className="space-y-4">
+      {/* Header with analytics button */}
+      <div className="flex items-center justify-end">
+        <Sheet open={analyticsOpen} onOpenChange={setAnalyticsOpen}>
+          <SheetTrigger asChild>
+            <Button variant="outline" size="sm" className="h-8">
+              <BarChart3 className="h-4 w-4 mr-2" />
+              <span className="hidden sm:inline">Analytics</span>
+              <span className="sm:hidden">Stats</span>
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="bottom" className="h-[85vh] overflow-y-auto">
+            <SheetHeader>
+              <SheetTitle>Savings Analytics</SheetTitle>
+            </SheetHeader>
+            <div className="mt-4">
+              <SavingsAnalytics />
+            </div>
+          </SheetContent>
+        </Sheet>
+      </div>
+
+      {/* Main content */}
+      <SavingsGoalList />
     </div>
   );
 }

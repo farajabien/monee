@@ -5,11 +5,14 @@ import dynamic from "next/dynamic";
 import db from "@/lib/db";
 import { calculateCashRunway } from "@/lib/cash-runway-calculator";
 import { calculateCashFlowHealth } from "@/lib/cash-flow-health-calculator";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { ArrowRight, TrendingUp, CreditCard, PiggyBank } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselPrevious,
+  CarouselNext,
+} from "@/components/ui/carousel";
 
 // Dynamically import heavy components to avoid chunk loading issues
 const DebtsAlertCard = dynamic(
@@ -245,53 +248,42 @@ export function DashboardOverview() {
 
   return (
     <div className="space-y-6">
-      {/* Dashboard Cards in Tabs */}
-      <Tabs defaultValue="cashflow" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="cashflow">
-            <TrendingUp className="h-4 w-4 mr-2" />
-            Cash Flow
-          </TabsTrigger>
-          <TabsTrigger value="debts">
-            <CreditCard className="h-4 w-4 mr-2" />
-            Debts
-          </TabsTrigger>
-          <TabsTrigger value="savings">
-            <PiggyBank className="h-4 w-4 mr-2" />
-            Savings
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="cashflow">
-          <CashFlowHealthCard
-            healthData={cashFlowHealthData}
-            isLoading={isLoading}
-            userCurrency={profile?.currency}
-            userLocale={profile?.locale}
-          />
-        </TabsContent>
-
-        <TabsContent value="debts">
-          <DebtsAlertCard
-            debts={debtsData}
-            isLoading={isLoading}
-            userCurrency={profile?.currency}
-            userLocale={profile?.locale}
-          />
-        </TabsContent>
-
-        <TabsContent value="savings">
-          <SavingsProgressCard
-            monthlySavings={savingsData.monthlySavings}
-            totalSaved={savingsData.totalSaved}
-            totalTarget={savingsData.totalTarget}
-            goalsCount={savingsData.goalsCount}
-            isLoading={isLoading}
-            userCurrency={profile?.currency}
-            userLocale={profile?.locale}
-          />
-        </TabsContent>
-      </Tabs>
+      {/* Dashboard Cards Carousel */}
+      <Carousel className="w-full" opts={{ align: "start", loop: true }}>
+        <CarouselContent>
+          <CarouselItem>
+            <CashFlowHealthCard
+              healthData={cashFlowHealthData}
+              isLoading={isLoading}
+              userCurrency={profile?.currency}
+              userLocale={profile?.locale}
+            />
+          </CarouselItem>
+          <CarouselItem>
+            <DebtsAlertCard
+              debts={debtsData}
+              isLoading={isLoading}
+              userCurrency={profile?.currency}
+              userLocale={profile?.locale}
+            />
+          </CarouselItem>
+          <CarouselItem>
+            <SavingsProgressCard
+              monthlySavings={savingsData.monthlySavings}
+              totalSaved={savingsData.totalSaved}
+              totalTarget={savingsData.totalTarget}
+              goalsCount={savingsData.goalsCount}
+              isLoading={isLoading}
+              userCurrency={profile?.currency}
+              userLocale={profile?.locale}
+            />
+          </CarouselItem>
+        </CarouselContent>
+        <div className="flex justify-center gap-4 mt-4">
+          <CarouselPrevious className="relative left-0 translate-x-0" />
+          <CarouselNext className="relative right-0 translate-x-0" />
+        </div>
+      </Carousel>
 
       {/* Metrics Insights Tabs */}
       <DashboardMetricsTabs

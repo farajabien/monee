@@ -58,20 +58,7 @@ export default function HomeClient() {
         </div>
       )}
       {activeTab === "income" && <IncomeSourceList />}
-      {activeTab === "expenses" && (
-        <Tabs defaultValue="list" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-2">
-            <TabsTrigger value="list">All Expenses</TabsTrigger>
-            <TabsTrigger value="import">Import SMS/PDF</TabsTrigger>
-          </TabsList>
-          <TabsContent value="list">
-            <ExpenseList />
-          </TabsContent>
-          <TabsContent value="import">
-            <AddExpenseForm />
-          </TabsContent>
-        </Tabs>
-      )}
+      {activeTab === "expenses" && <ExpenseList />}
       {activeTab === "debts" && <DebtList />}
       {activeTab === "savings" && <SavingsPage />}
       {activeTab === "categories" && <CategoryList />}
