@@ -153,46 +153,46 @@ export function ExpenseImportValidation({
 
   return (
     <div className="space-y-4">
-      {/* Stats Header */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {/* Stats Header - Compact Grid */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total Expenses
+          <CardHeader className="pb-1 pt-3">
+            <CardTitle className="text-xs font-medium text-muted-foreground">
+              Total
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{stats.total}</p>
+          <CardContent className="pb-3">
+            <p className="text-xl font-bold">{stats.total}</p>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Pending Review
+        <Card className="border-yellow-200 bg-yellow-50/50">
+          <CardHeader className="pb-1 pt-3">
+            <CardTitle className="text-xs font-medium text-yellow-700">
+              Pending
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold text-yellow-600">{stats.pending}</p>
+          <CardContent className="pb-3">
+            <p className="text-xl font-bold text-yellow-600">{stats.pending}</p>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
+        <Card className="border-green-200 bg-green-50/50">
+          <CardHeader className="pb-1 pt-3">
+            <CardTitle className="text-xs font-medium text-green-700">
               Accepted
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold text-green-600">{stats.accepted}</p>
+          <CardContent className="pb-3">
+            <p className="text-xl font-bold text-green-600">{stats.accepted}</p>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
+        <Card className="border-red-200 bg-red-50/50">
+          <CardHeader className="pb-1 pt-3">
+            <CardTitle className="text-xs font-medium text-red-700">
               Rejected
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold text-red-600">{stats.rejected}</p>
+          <CardContent className="pb-3">
+            <p className="text-xl font-bold text-red-600">{stats.rejected}</p>
           </CardContent>
         </Card>
       </div>
@@ -249,13 +249,12 @@ export function ExpenseImportValidation({
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-12"></TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Recipient</TableHead>
-                  <TableHead>Category</TableHead>
-                  <TableHead>Recurring</TableHead>
-                  <TableHead>Confidence</TableHead>
-                  <TableHead>Actions</TableHead>
+                  <TableHead className="min-w-[100px]">Amount</TableHead>
+                  <TableHead className="min-w-[180px]">Recipient</TableHead>
+                  <TableHead className="min-w-[120px]">Category</TableHead>
+                  <TableHead className="min-w-[100px]">Recurring</TableHead>
+                  <TableHead className="min-w-[100px]">Confidence</TableHead>
+                  <TableHead className="min-w-[120px]">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -286,13 +285,6 @@ export function ExpenseImportValidation({
                         )}
                       </TableCell>
 
-                      {/* Date */}
-                      <TableCell className="text-sm">
-                        {row.parsed.timestamp
-                          ? new Date(row.parsed.timestamp).toLocaleDateString()
-                          : "N/A"}
-                      </TableCell>
-
                       {/* Amount */}
                       <TableCell>
                         {isEditing && editValues ? (
@@ -305,35 +297,48 @@ export function ExpenseImportValidation({
                             className="h-8 w-24"
                           />
                         ) : (
-                          <span className="font-semibold">
-                            KSh {(row.overrides?.amount || row.parsed.amount).toLocaleString()}
-                          </span>
+                          <div className="space-y-0.5">
+                            <p className="font-semibold text-sm">
+                              KSh {(row.overrides?.amount || row.parsed.amount).toLocaleString()}
+                            </p>
+                            {row.parsed.timestamp && (
+                              <p className="text-[10px] text-muted-foreground">
+                                {new Date(row.parsed.timestamp).toLocaleDateString('en-US', { 
+                                  month: 'short', 
+                                  day: 'numeric' 
+                                })}
+                              </p>
+                            )}
+                          </div>
                         )}
                       </TableCell>
 
                       {/* Recipient */}
-                      <TableCell>
+                      <TableCell className="max-w-[200px]">
                         {isEditing && editValues ? (
                           <Input
                             value={editValues.recipient ?? ""}
                             onChange={(e) =>
                               setEditValues({ ...editValues, recipient: e.target.value })
                             }
-                            className="h-8 w-40"
+                            className="h-8"
                           />
                         ) : (
-                          <div>
-                            <p className="font-medium">
+                          <div className="space-y-0.5">
+                            <p className="font-medium text-sm leading-tight">
                               {row.overrides?.recipient || row.recipientMatch.recipientName}
                             </p>
                             {row.parsed.phoneNumber && (
-                              <p className="text-xs text-muted-foreground">
+                              <p className="text-xs text-muted-foreground font-mono">
                                 {row.parsed.phoneNumber}
                               </p>
                             )}
                             {row.recipientMatch.matchedBy !== "none" && (
-                              <Badge variant="outline" className="mt-1 text-xs">
-                                {row.recipientMatch.matchedBy}
+                              <Badge variant="outline" className="mt-1 text-[10px] py-0 h-4">
+                                {row.recipientMatch.matchedBy === "phone-exact" ? "📞 Exact" : 
+                                 row.recipientMatch.matchedBy === "phone-partial" ? "📞 Partial" :
+                                 row.recipientMatch.matchedBy === "name-fuzzy" ? "🔤 Name" : 
+                                 row.recipientMatch.matchedBy}
                               </Badge>
                             )}
                           </div>
