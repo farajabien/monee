@@ -110,7 +110,9 @@ export default function ExpenseList() {
       });
 
       await db.transact(txs);
-      toast.success(`Successfully imported ${importedExpenses.length} expenses`);
+      toast.success(
+        `Successfully imported ${importedExpenses.length} expenses`
+      );
     } catch (error) {
       console.error("Failed to save expenses:", error);
       throw error;
@@ -121,19 +123,19 @@ export default function ExpenseList() {
   const config = useMemo(() => {
     // Add recurring indicator to card rendering
     const baseConfig = createExpenseListConfig(recipients, formatCurrency);
-    
+
     // Override renderListItem to add recurring indicator
     const originalRenderListItem = baseConfig.renderListItem;
     baseConfig.renderListItem = (item, index, actions) => {
       const isRecurring = item.isRecurring || item.linkedRecurringId;
       const originalCard = originalRenderListItem(item, index, actions);
-      
+
       // Add recurring badge to the card
       if (isRecurring) {
         return (
           <div className="relative">
             {originalCard}
-            <div className="absolute top-2 left-2 z-10">
+            <div className="absolute top-2 right-2 z-10">
               <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs font-medium">
                 <RepeatIcon className="h-3 w-3" />
                 <span>Recurring</span>
@@ -142,7 +144,7 @@ export default function ExpenseList() {
           </div>
         );
       }
-      
+
       return originalCard;
     };
 

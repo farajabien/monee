@@ -5,18 +5,12 @@ import React from "react";
 import { id } from "@instantdb/react";
 import db from "@/lib/db";
 import { Button } from "@/components/ui/button";
+import { ButtonGroup } from "@/components/ui/button-group";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import type { DebtWithUser, PaymentType } from "@/types";
+import type { DebtWithUser } from "@/types";
 
 interface DebtPaymentFormProps {
   debt: DebtWithUser;
@@ -24,54 +18,48 @@ interface DebtPaymentFormProps {
 }
 
 export function DebtPaymentForm({ debt, onSuccess }: DebtPaymentFormProps) {
-  const [paymentType, setPaymentType] = useState<PaymentType>("principal");
   const [amount, setAmount] = useState<string>("");
-  const [interestAmount, setInterestAmount] = useState<string>("");
-  const [principalAmount, setPrincipalAmount] = useState<string>("");
   const [paymentDate, setPaymentDate] = useState<string>(
     new Date().toISOString().split("T")[0]
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Calculate monthly interest
-  const monthlyInterest =
-    debt.interestRate && debt.currentBalance
-      ? debt.currentBalance * (debt.interestRate / 100)
-      : 0;
+  // Calculate suggested amounts based on debt type
+  const suggestedAmounts = React.useMemo(() => {
+    const amounts: number[] = [];
 
-  // Auto-calculate amounts based on payment type
-  const updateAmounts = (type: PaymentType) => {
-    if (type === "interest_only") {
-      setInterestAmount(monthlyInterest.toFixed(2));
-      setPrincipalAmount("0");
-      setAmount(monthlyInterest.toFixed(2));
-    } else if (type === "principal") {
-      setInterestAmount("0");
-      setPrincipalAmount(debt.monthlyPaymentAmount.toString());
-      setAmount(debt.monthlyPaymentAmount.toString());
-    } else {
-      // both
-      setInterestAmount(monthlyInterest.toFixed(2));
-      const principal = debt.monthlyPaymentAmount - monthlyInterest;
-      setPrincipalAmount(Math.max(0, principal).toFixed(2));
-      setAmount(debt.monthlyPaymentAmount.toString());
+    // Calculate monthly interest if applicable
+    const monthlyInterest =
+      debt.interestRate && debt.currentBalance
+        ? debt.currentBalance * (debt.interestRate / 100 / 12)
+        : 0;
+
+    // For amortizing loans, suggest the monthly payment amount
+    if (debt.debtType === "amortizing" && debt.monthlyPaymentAmount > 0) {
+      amounts.push(debt.monthlyPaymentAmount);
     }
-  };
 
-  // Update amounts when payment type changes
-  const handlePaymentTypeChange = (type: PaymentType) => {
-    setPaymentType(type);
-    updateAmounts(type);
-  };
+    // If there's interest, suggest interest-only payment
+    if (monthlyInterest > 0) {
+      amounts.push(monthlyInterest);
+    }
 
-  // Initialize amounts on mount and when payment type or debt changes
-  useEffect(() => {
-    updateAmounts(paymentType);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // Suggest 25%, 50%, and 100% of remaining balance
+    if (debt.currentBalance > 0) {
+      amounts.push(debt.currentBalance * 0.25);
+      amounts.push(debt.currentBalance * 0.5);
+      amounts.push(debt.currentBalance);
+    }
+
+    // Remove duplicates and sort
+    return [...new Set(amounts)]
+      .filter((amt) => amt > 0)
+      .sort((a, b) => a - b)
+      .slice(0, 4); // Limit to 4 suggestions
   }, [
-    paymentType,
     debt.currentBalance,
     debt.interestRate,
+    debt.debtType,
     debt.monthlyPaymentAmount,
   ]);
 
@@ -82,11 +70,38 @@ export function DebtPaymentForm({ debt, onSuccess }: DebtPaymentFormProps) {
     setIsSubmitting(true);
     try {
       const paymentAmount = parseFloat(amount);
-      const interestPaid = parseFloat(interestAmount || "0");
-      const principalPaid = parseFloat(principalAmount || "0");
       const paymentTimestamp = new Date(paymentDate).getTime();
 
-      // Create payment record and expense expense
+      // Calculate monthly interest
+      const monthlyInterest =
+        debt.interestRate && debt.currentBalance
+          ? debt.currentBalance * (debt.interestRate / 100 / 12)
+          : 0;
+
+      // Determine payment breakdown
+      let interestPaid = 0;
+      let principalPaid = 0;
+
+      if (monthlyInterest > 0) {
+        // If there's interest, apply payment to interest first
+        interestPaid = Math.min(paymentAmount, monthlyInterest);
+        principalPaid = Math.max(0, paymentAmount - interestPaid);
+      } else {
+        // No interest, all goes to principal
+        principalPaid = paymentAmount;
+      }
+
+      // Determine payment type for tracking
+      let paymentType: "interest_only" | "principal" | "both";
+      if (interestPaid > 0 && principalPaid === 0) {
+        paymentType = "interest_only";
+      } else if (principalPaid > 0 && interestPaid === 0) {
+        paymentType = "principal";
+      } else {
+        paymentType = "both";
+      }
+
+      // Create payment record and expense
       const paymentId = id();
       const expenseId = id();
 
@@ -101,7 +116,7 @@ export function DebtPaymentForm({ debt, onSuccess }: DebtPaymentFormProps) {
             createdAt: Date.now(),
           })
           .link({ debt: debt.id }),
-        // Create expense expense for the debt payment
+        // Create expense for the debt payment
         db.tx.expenses[expenseId]
           .update({
             amount: paymentAmount,
@@ -110,7 +125,7 @@ export function DebtPaymentForm({ debt, onSuccess }: DebtPaymentFormProps) {
             category: "Debt Payment",
             rawMessage: `Debt payment of Ksh ${paymentAmount.toLocaleString()} for ${
               debt.name
-            } (${paymentType})`,
+            }`,
             parsedData: {
               type: "debt_payment",
               debtId: debt.id,
@@ -124,7 +139,7 @@ export function DebtPaymentForm({ debt, onSuccess }: DebtPaymentFormProps) {
           .link({ profile: debt.profile?.id || "" }),
       ]);
 
-      // Update debt based on payment type
+      // Update debt based on payment breakdown
       const debtUpdates: {
         currentBalance?: number;
         pushMonthsCompleted?: number;
@@ -138,17 +153,13 @@ export function DebtPaymentForm({ debt, onSuccess }: DebtPaymentFormProps) {
         debtUpdates.lastInterestPaymentDate = paymentTimestamp;
         debtUpdates.interestAccrued =
           (debt.interestAccrued || 0) + interestPaid;
-        // Do NOT reduce currentBalance
       } else if (paymentType === "principal") {
         // Principal only - reduce balance
         debtUpdates.currentBalance = Math.max(
           0,
           debt.currentBalance - principalPaid
         );
-        // Reset push months if paying principal
-        if (principalPaid > 0) {
-          debtUpdates.pushMonthsCompleted = 0;
-        }
+        debtUpdates.pushMonthsCompleted = 0;
       } else {
         // Both - reduce balance by principal, track interest
         debtUpdates.currentBalance = Math.max(
@@ -158,7 +169,6 @@ export function DebtPaymentForm({ debt, onSuccess }: DebtPaymentFormProps) {
         debtUpdates.interestAccrued =
           (debt.interestAccrued || 0) + interestPaid;
         debtUpdates.lastInterestPaymentDate = paymentTimestamp;
-        // Reset push months if paying principal
         if (principalPaid > 0) {
           debtUpdates.pushMonthsCompleted = 0;
         }
@@ -167,7 +177,7 @@ export function DebtPaymentForm({ debt, onSuccess }: DebtPaymentFormProps) {
       await db.transact(db.tx.debts[debt.id].update(debtUpdates));
 
       // Reset form
-      updateAmounts(paymentType);
+      setAmount("");
       setPaymentDate(new Date().toISOString().split("T")[0]);
 
       if (onSuccess) {
@@ -207,46 +217,7 @@ export function DebtPaymentForm({ debt, onSuccess }: DebtPaymentFormProps) {
       )}
 
       <div className="space-y-2">
-        <Label htmlFor="payment-type">Payment Type</Label>
-        <Select value={paymentType} onValueChange={handlePaymentTypeChange}>
-          <SelectTrigger id="payment-type">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="interest_only">
-              Interest Only (Push to Next Month)
-            </SelectItem>
-            <SelectItem value="principal">Principal Only</SelectItem>
-            <SelectItem value="both">Both Interest & Principal</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      {paymentType === "interest_only" && monthlyInterest > 0 && (
-        <Card>
-          <CardContent className="p-3">
-            <div className="text-sm space-y-1">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Monthly Interest:</span>
-                <span className="font-medium">
-                  Ksh{" "}
-                  {monthlyInterest.toLocaleString("en-KE", {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}
-                </span>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Paying this will push your debt to next month without reducing
-                principal.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      <div className="space-y-2">
-        <Label htmlFor="payment-amount">Total Payment Amount (Ksh)</Label>
+        <Label htmlFor="payment-amount">Payment Amount (Ksh)</Label>
         <Input
           id="payment-amount"
           type="number"
@@ -255,45 +226,32 @@ export function DebtPaymentForm({ debt, onSuccess }: DebtPaymentFormProps) {
           required
           min="0"
           step="0.01"
+          placeholder="Enter amount"
         />
       </div>
 
-      {paymentType === "both" && (
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="interest-amount">Interest Amount (Ksh)</Label>
-            <Input
-              id="interest-amount"
-              type="number"
-              value={interestAmount}
-              onChange={(e) => {
-                setInterestAmount(e.target.value);
-                const total =
-                  parseFloat(e.target.value || "0") +
-                  parseFloat(principalAmount || "0");
-                setAmount(total.toFixed(2));
-              }}
-              min="0"
-              step="0.01"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="principal-amount">Principal Amount (Ksh)</Label>
-            <Input
-              id="principal-amount"
-              type="number"
-              value={principalAmount}
-              onChange={(e) => {
-                setPrincipalAmount(e.target.value);
-                const total =
-                  parseFloat(interestAmount || "0") +
-                  parseFloat(e.target.value || "0");
-                setAmount(total.toFixed(2));
-              }}
-              min="0"
-              step="0.01"
-            />
-          </div>
+      {suggestedAmounts.length > 0 && (
+        <div className="space-y-2">
+          <Label className="text-sm text-muted-foreground">
+            Suggested Amounts
+          </Label>
+          <ButtonGroup className="flex-wrap">
+            {suggestedAmounts.map((suggestedAmount, index) => (
+              <Button
+                key={index}
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setAmount(suggestedAmount.toFixed(2))}
+              >
+                Ksh{" "}
+                {suggestedAmount.toLocaleString("en-KE", {
+                  minimumFractionDigits: 0,
+                  maximumFractionDigits: 0,
+                })}
+              </Button>
+            ))}
+          </ButtonGroup>
         </div>
       )}
 

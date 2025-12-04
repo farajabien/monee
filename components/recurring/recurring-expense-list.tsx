@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { id } from "@instantdb/react";
 import db from "@/lib/db";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -18,9 +17,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Check, MoreVertical, Pause, Play, Edit, AlertCircle } from "lucide-react";
+import { Check, MoreVertical, Pause, Play, Edit, AlertCircle, History } from "lucide-react";
 import { toast } from "sonner";
 import { useCurrency } from "@/hooks/use-currency";
+import { RecurringPaymentDialog } from "./recurring-payment-dialog";
+import { PaymentHistoryDialog } from "./payment-history-dialog";
 import type { RecurringTransaction } from "@/types";
 
 interface RecurringExpenseListProps {
@@ -31,6 +32,14 @@ export function RecurringExpenseList({ profileId }: RecurringExpenseListProps) {
   const { formatCurrency } = useCurrency();
   const [currentTime] = useState(() => Date.now());
   const [filterStatus, setFilterStatus] = useState<"all" | "active" | "paused">("active");
+  const [paymentDialog, setPaymentDialog] = useState<{
+    open: boolean;
+    transaction: RecurringTransaction | null;
+  }>({ open: false, transaction: null });
+  const [historyDialog, setHistoryDialog] = useState<{
+    open: boolean;
+    transaction: RecurringTransaction | null;
+  }>({ open: false, transaction: null });
 
   // Fetch recurring transactions
   const { data, isLoading } = db.useQuery({
@@ -51,68 +60,6 @@ export function RecurringExpenseList({ profileId }: RecurringExpenseListProps) {
     if (filterStatus === "paused") return t.isPaused || !t.isActive;
     return true;
   });
-
-  // Calculate next due date based on frequency
-  const calculateNextDueDate = (currentDue: number, frequency: string): number => {
-    const date = new Date(currentDue);
-    switch (frequency) {
-      case "weekly":
-        date.setDate(date.getDate() + 7);
-        break;
-      case "biweekly":
-        date.setDate(date.getDate() + 14);
-        break;
-      case "monthly":
-        date.setMonth(date.getMonth() + 1);
-        break;
-      case "quarterly":
-        date.setMonth(date.getMonth() + 3);
-        break;
-      case "annually":
-        date.setFullYear(date.getFullYear() + 1);
-        break;
-      default:
-        date.setMonth(date.getMonth() + 1);
-    }
-    return date.getTime();
-  };
-
-  // Mark as paid handler
-  const handleMarkAsPaid = async (transaction: RecurringTransaction) => {
-    try {
-      const now = Date.now();
-      const expenseId = id();
-      const nextDue = calculateNextDueDate(transaction.nextDueDate || now, transaction.frequency);
-
-      await db.transact([
-        // Create expense record
-        db.tx.expenses[expenseId]
-          .update({
-            amount: transaction.amount,
-            recipient: transaction.recipient,
-            date: now,
-            category: transaction.category,
-            rawMessage: `Recurring: ${transaction.name}`,
-            parsedData: { type: "recurring" },
-            isRecurring: true,
-            recurringTransactionId: transaction.id,
-            createdAt: now,
-          })
-          .link({ profile: profileId }),
-
-        // Update recurring transaction
-        db.tx.recurring_transactions[transaction.id].update({
-          lastPaidDate: now,
-          nextDueDate: nextDue,
-        }),
-      ]);
-
-      toast.success(`Payment recorded for ${transaction.name}`);
-    } catch (error) {
-      console.error("Error marking as paid:", error);
-      toast.error("Failed to record payment");
-    }
-  };
 
   // Toggle pause state
   const handleTogglePause = async (transaction: RecurringTransaction) => {
@@ -228,6 +175,22 @@ export function RecurringExpenseList({ profileId }: RecurringExpenseListProps) {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
+                      <DropdownMenuItem
+                        onClick={() =>
+                          setPaymentDialog({ open: true, transaction })
+                        }
+                      >
+                        <Check className="h-4 w-4 mr-2" />
+                        Record Payment
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() =>
+                          setHistoryDialog({ open: true, transaction })
+                        }
+                      >
+                        <History className="h-4 w-4 mr-2" />
+                        Payment History
+                      </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => handleTogglePause(transaction)}>
                         {transaction.isPaused ? (
                           <>
@@ -286,7 +249,7 @@ export function RecurringExpenseList({ profileId }: RecurringExpenseListProps) {
                   {/* Mark as Paid Button */}
                   {!transaction.isPaused && transaction.isActive && (
                     <Button
-                      onClick={() => handleMarkAsPaid(transaction)}
+                      onClick={() => setPaymentDialog({ open: true, transaction })}
                       className="w-full"
                       variant={overdue || dueSoon ? "default" : "outline"}
                     >
@@ -306,6 +269,27 @@ export function RecurringExpenseList({ profileId }: RecurringExpenseListProps) {
           );
         })}
       </div>
+
+      {/* Payment Dialogs */}
+      {paymentDialog.transaction && (
+        <RecurringPaymentDialog
+          open={paymentDialog.open}
+          onOpenChange={(open) =>
+            setPaymentDialog({ ...paymentDialog, open })
+          }
+          transaction={paymentDialog.transaction}
+          profileId={profileId}
+        />
+      )}
+      {historyDialog.transaction && (
+        <PaymentHistoryDialog
+          open={historyDialog.open}
+          onOpenChange={(open) =>
+            setHistoryDialog({ ...historyDialog, open })
+          }
+          transaction={historyDialog.transaction}
+        />
+      )}
     </div>
   );
 }

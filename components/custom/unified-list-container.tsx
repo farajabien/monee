@@ -172,36 +172,38 @@ export function UnifiedListContainer<T extends Record<string, unknown>>({
         )}
 
         {/* Controls and Header Actions */}
-        <div className="flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-between">
-          <div className="flex-1 min-w-0">
-            <DataViewControls
-              viewMode={viewMode}
-              onViewModeChange={setViewMode}
-              availableViews={config.availableViews}
-              searchValue={searchQuery}
-              onSearchChange={setSearchQuery}
-              searchPlaceholder={config.searchPlaceholder}
-              sortValue={sortBy}
-              onSortChange={setSortBy}
-              sortOptions={config.sortOptions}
-              filterValue={primaryFilterValue}
-              onFilterChange={
-                primaryFilter
-                  ? (value) => handleFilterChange(primaryFilter.key, value)
-                  : undefined
-              }
-              filterOptions={
-                primaryFilter?.options
-                  ? [{ value: "all", label: "All" }, ...primaryFilter.options]
-                  : undefined
-              }
-              filterLabel={primaryFilter?.label}
-              totalCount={data.length}
-              filteredCount={filteredData.length}
-            />
+        <div className="flex flex-col gap-2">
+          <div className="flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-between">
+            <div className="flex-1 min-w-0">
+              <DataViewControls
+                viewMode={viewMode}
+                onViewModeChange={setViewMode}
+                availableViews={config.availableViews}
+                searchValue={searchQuery}
+                onSearchChange={setSearchQuery}
+                searchPlaceholder={config.searchPlaceholder}
+                sortValue={sortBy}
+                onSortChange={setSortBy}
+                sortOptions={config.sortOptions}
+                filterValue={primaryFilterValue}
+                onFilterChange={
+                  primaryFilter
+                    ? (value) => handleFilterChange(primaryFilter.key, value)
+                    : undefined
+                }
+                filterOptions={
+                  primaryFilter?.options
+                    ? [{ value: "all", label: "All" }, ...primaryFilter.options]
+                    : undefined
+                }
+                filterLabel={primaryFilter?.label}
+                totalCount={data.length}
+                filteredCount={filteredData.length}
+              />
+            </div>
           </div>
           {headerActions && (
-            <div className="flex-shrink-0">
+            <div className="flex justify-end gap-2">
               {headerActions}
             </div>
           )}
@@ -283,33 +285,37 @@ export function UnifiedListContainer<T extends Record<string, unknown>>({
             ) : viewMode === "grid" && config.renderGridCard ? (
               <ScrollArea className="h-[600px] w-full">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 p-1">
-                  {filteredData.map((item, index) =>
-                    config.renderGridCard!(item, index, {
-                      onEdit: config.actions?.edit
-                        ? () => handleEditWrapper(item)
-                        : undefined,
-                      onDelete: config.actions?.delete
-                        ? () => handleDelete(config.getItemId(item))
-                        : undefined,
-                      customActions: config.actions?.custom,
-                    })
-                  )}
+                  {filteredData.map((item, index) => (
+                    <div key={config.getItemId(item)}>
+                      {config.renderGridCard!(item, index, {
+                        onEdit: config.actions?.edit
+                          ? () => handleEditWrapper(item)
+                          : undefined,
+                        onDelete: config.actions?.delete
+                          ? () => handleDelete(config.getItemId(item))
+                          : undefined,
+                        customActions: config.actions?.custom,
+                      })}
+                    </div>
+                  ))}
                 </div>
               </ScrollArea>
             ) : (
               <ScrollArea className="h-[600px] w-full">
                 <div className="space-y-1.5 p-1">
-                  {filteredData.map((item, index) =>
-                    config.renderListItem(item, index, {
-                      onEdit: config.actions?.edit
-                        ? () => handleEditWrapper(item)
-                        : undefined,
-                      onDelete: config.actions?.delete
-                        ? () => handleDelete(config.getItemId(item))
-                        : undefined,
-                      customActions: config.actions?.custom,
-                    })
-                  )}
+                  {filteredData.map((item, index) => (
+                    <div key={config.getItemId(item)}>
+                      {config.renderListItem(item, index, {
+                        onEdit: config.actions?.edit
+                          ? () => handleEditWrapper(item)
+                          : undefined,
+                        onDelete: config.actions?.delete
+                          ? () => handleDelete(config.getItemId(item))
+                          : undefined,
+                        customActions: config.actions?.custom,
+                      })}
+                    </div>
+                  ))}
                 </div>
               </ScrollArea>
             )}

@@ -66,7 +66,9 @@ export function ImportSmsDialog({
       }
 
       if (parsed.length === 0) {
-        setError("No valid M-Pesa expenses found. Please check your SMS format.");
+        setError(
+          "No valid M-Pesa expenses found. Please check your SMS format."
+        );
         setParsing(false);
         return;
       }
@@ -87,7 +89,7 @@ export function ImportSmsDialog({
     }
   };
 
-  const exampleSms = `TL4PNBUZ8H Confirmed. Ksh2,800.00 sent to STEPHEN OTIENO 0729013950 on 4/12/25 at 12:25 PM New M-PESA balance is Ksh1,045.00. Transaction cost, Ksh53.00
+  const exampleSms = `TL2PNBUD8H Confirmed. Ksh6,800.00 sent to DANIEL EXAMPLE 0712345678 on 4/12/25 at 12:25 PM New M-PESA balance is Ksh1,045.00. Transaction cost, Ksh53.00
 
 TL5QCDEF9I Confirmed. Ksh1,500.00 paid to ZUKU FIBER for account 123456 on 3/12/25 at 10:30 AM New M-PESA balance is Ksh3,545.00. Transaction cost, Ksh0.00`;
 
@@ -100,8 +102,9 @@ TL5QCDEF9I Confirmed. Ksh1,500.00 paid to ZUKU FIBER for account 123456 on 3/12/
             Import from M-Pesa SMS
           </DialogTitle>
           <DialogDescription>
-            Paste your M-Pesa transaction messages below. The system will automatically extract
-            expense details, match recipients, and suggest categories.
+            Paste your M-Pesa transaction messages below. The system will
+            automatically extract expense details, match recipients, and suggest
+            categories.
           </DialogDescription>
         </DialogHeader>
 
@@ -113,7 +116,9 @@ TL5QCDEF9I Confirmed. Ksh1,500.00 paid to ZUKU FIBER for account 123456 on 3/12/
               <strong>How to use:</strong>
               <ol className="list-decimal list-inside mt-2 space-y-1 text-sm">
                 <li>Open your Messages app and find M-Pesa SMS</li>
-                <li>Copy one or multiple messages (separate with blank lines)</li>
+                <li>
+                  Copy one or multiple messages (separate with blank lines)
+                </li>
                 <li>Paste them in the text area below</li>
                 <li>Click Import to review and validate expenses</li>
               </ol>
@@ -136,7 +141,10 @@ TL5QCDEF9I Confirmed. Ksh1,500.00 paid to ZUKU FIBER for account 123456 on 3/12/
             />
             <p className="text-xs text-muted-foreground mt-1">
               {smsText.trim()
-                ? `${smsText.split(/\n\n+|\r\n\r\n+/).filter((m) => m.trim()).length} message(s) detected`
+                ? `${
+                    smsText.split(/\n\n+|\r\n\r\n+/).filter((m) => m.trim())
+                      .length
+                  } message(s) detected`
                 : "Paste your messages here"}
             </p>
           </div>

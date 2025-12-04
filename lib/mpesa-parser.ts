@@ -20,7 +20,7 @@ export function parseMpesaMessage(message: string): ParsedExpenseData {
 
   // Pattern 1b: "TKJPNAJ1D1 Confirmed. Ksh200.00 sent to/paid to recipient on 19/11/25 at 6:32 PM. New M-PESA balance is Ksh87.48."
   // Handles both "sent to" and "paid to", optional period after recipient, optional space before "New M-PESA"
-  // Also extracts phone number: "sent to STEPHEN OTIENO 0729013950 on"
+  // Also extracts phone number: "sent to DANIEL EXAMPLE 0729013950 on"
   const confirmedSentPattern =
     /[A-Z0-9]+\s+Confirmed\.\s+Ksh([\d,]+\.?\d*)\s+(?:sent to|paid to)\s+(.+?)\s*\.?\s+on\s+(\d{2}\/\d{2}\/\d{2,4})\s+at\s+(\d{1,2}:\d{2}\s+(?:AM|PM))\.?\s*(?:New M-PESA balance is Ksh\s+([\d,]+\.?\d*))?/i;
 
@@ -223,16 +223,16 @@ export function parseMpesaMessage(message: string): ParsedExpenseData {
   }
 
   // Extract phone number from recipient string
-  // Pattern: "STEPHEN OTIENO 0729013950" or "NAME 0712345678"
+  // Pattern: "DANIEL EXAMPLE 0729013950" or "NAME 0712345678"
   let phoneNumber: string | undefined;
   if (recipient) {
     const phoneMatch = recipient.match(/(\d{10})/);
     if (phoneMatch) {
       phoneNumber = phoneMatch[1];
       // Remove phone number from recipient name
-      recipient = recipient.replace(/\s*\d{10}\s*/, '').trim();
+      recipient = recipient.replace(/\s*\d{10}\s*/, "").trim();
     }
-    
+
     // Clean up recipient name
     recipient = recipient.trim();
     // Remove any trailing periods or special characters
