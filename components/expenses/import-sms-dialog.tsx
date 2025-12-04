@@ -53,22 +53,26 @@ export function ImportSmsDialog({
         try {
           const result = parseMpesaMessage(message);
           if (result) {
-            // Only include "send" and "buy" expenses
+            // Only include "send" and "buy" expenses (not "receive", "withdraw", "deposit")
             if (result.expenseType === "send" || result.expenseType === "buy") {
               parsed.push(result);
+            } else {
+              console.log("Skipping non-expense type:", result.expenseType, message.substring(0, 50));
             }
           } else {
             failed.push(message.substring(0, 50) + "...");
           }
-        } catch {
+        } catch (err) {
+          console.error("Failed to parse message:", err, message.substring(0, 80));
           failed.push(message.substring(0, 50) + "...");
         }
       }
 
       if (parsed.length === 0) {
-        setError(
-          "No valid M-Pesa expenses found. Please check your SMS format."
-        );
+        const errorMsg = failed.length > 0 
+          ? `No valid M-Pesa expenses found. ${messages.length} message(s) detected but could not be parsed. Check the browser console for details, or try copying the SMS text exactly as shown in your Messages app.`
+          : "No valid M-Pesa expenses found. Only 'sent' and 'buy goods' transactions are imported. Received, withdraw, and deposit transactions are skipped.";
+        setError(errorMsg);
         setParsing(false);
         return;
       }

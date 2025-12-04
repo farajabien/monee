@@ -21,8 +21,9 @@ export function parseMpesaMessage(message: string): ParsedExpenseData {
   // Pattern 1b: "TKJPNAJ1D1 Confirmed. Ksh200.00 sent to/paid to recipient on 19/11/25 at 6:32 PM. New M-PESA balance is Ksh87.48."
   // Handles both "sent to" and "paid to", optional period after recipient, optional space before "New M-PESA"
   // Also extracts phone number: "sent to DANIEL EXAMPLE 0729013950 on"
+  // Fixed: Made recipient capture more flexible, handles phone numbers and names properly
   const confirmedSentPattern =
-    /[A-Z0-9]+\s+Confirmed\.\s+Ksh([\d,]+\.?\d*)\s+(?:sent to|paid to)\s+(.+?)\s*\.?\s+on\s+(\d{2}\/\d{2}\/\d{2,4})\s+at\s+(\d{1,2}:\d{2}\s+(?:AM|PM))\.?\s*(?:New M-PESA balance is Ksh\s+([\d,]+\.?\d*))?/i;
+    /[A-Z0-9]+\s+Confirmed\.\s+Ksh([\d,]+\.?\d*)\s+(?:sent to|paid to)\s+(.+?)\s+on\s+(\d{2}\/\d{2}\/\d{2,4})\s+at\s+(\d{1,2}:\d{2}\s+(?:AM|PM))[\s.]*(?:New M-?PESA balance is Ksh\s*([\d,]+\.?\d*))?/i;
 
   // Pattern 1c: M-Shwari Transfer - "TKLPNAOE55 Confirmed.Ksh450.00 transferred from M-Shwari account on 21/11/25 at 1:04 PM"
   const mshwariTransferPattern =
