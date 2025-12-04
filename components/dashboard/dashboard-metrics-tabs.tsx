@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 interface Expense {
   id: string;
@@ -263,9 +264,28 @@ export function DashboardMetricsTabs({
   };
 
   return (
-    <div className="space-y-6">
-      {/* Section 1: Spending Breakdown */}
-      <div className="space-y-3">
+    <Tabs defaultValue="spending" className="w-full">
+      <TabsList className="w-full grid grid-cols-4">
+        <TabsTrigger value="spending">
+          <PieChartIcon className="h-4 w-4" />
+          <span className="inline ">Spending</span>
+        </TabsTrigger>
+        <TabsTrigger value="expenses">
+          <BarChart3 className="h-4 w-4" />
+          <span className="inline ">Top 5</span>
+        </TabsTrigger>
+        <TabsTrigger value="debts">
+          <Target className="h-4 w-4" />
+          <span className="inline ">Debts</span>
+        </TabsTrigger>
+        <TabsTrigger value="savings">
+          <Wallet className="h-4 w-4" />
+          <span className="inline ">Savings</span>
+        </TabsTrigger>
+      </TabsList>
+
+      {/* Tab 1: Spending Breakdown */}
+      <TabsContent value="spending" className="space-y-3">
         <h3 className="text-sm font-semibold flex items-center gap-2">
           <PieChartIcon className="h-4 w-4" />
           Spending Breakdown
@@ -346,10 +366,10 @@ export function DashboardMetricsTabs({
             No spending data yet
           </div>
         )}
-      </div>
+      </TabsContent>
 
-      {/* Section 2: Top 5 Expenses */}
-      <div className="space-y-3">
+      {/* Tab 2: Top 5 Expenses */}
+      <TabsContent value="expenses" className="space-y-3">
         <h3 className="text-sm font-semibold flex items-center gap-2">
           <BarChart3 className="h-4 w-4" />
           Top 5 Expenses
@@ -396,10 +416,10 @@ export function DashboardMetricsTabs({
             No expenses yet
           </div>
         )}
-      </div>
+      </TabsContent>
 
-      {/* Section 3: Debts Progress */}
-      <div className="space-y-3">
+      {/* Tab 3: Debts Progress */}
+      <TabsContent value="debts" className="space-y-3">
         <h3 className="text-sm font-semibold flex items-center gap-2">
           <Target className="h-4 w-4" />
           Debt Progress
@@ -443,10 +463,10 @@ export function DashboardMetricsTabs({
             No debts tracked yet
           </div>
         )}
-      </div>
+      </TabsContent>
 
-      {/* Section 4: Savings Progress */}
-      <div className="space-y-3">
+      {/* Tab 4: Savings Progress */}
+      <TabsContent value="savings" className="space-y-3">
         <h3 className="text-sm font-semibold flex items-center gap-2">
           <Wallet className="h-4 w-4" />
           Savings Progress
@@ -490,7 +510,7 @@ export function DashboardMetricsTabs({
             No savings goals yet
           </div>
         )}
-      </div>
-    </div>
+      </TabsContent>
+    </Tabs>
   );
 }
