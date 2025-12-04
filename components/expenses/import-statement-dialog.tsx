@@ -120,26 +120,27 @@ export function ImportStatementDialog({
             Import from M-Pesa Statement
           </DialogTitle>
           <DialogDescription>
-            Upload your M-Pesa PDF statement to automatically import transactions. The system will
-            extract details and match recipients even with partial phone numbers.
+            Upload your M-Pesa statement PDF to automatically extract and import expenses.
           </DialogDescription>
         </DialogHeader>
 
+        {/* Instructions */}
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            <strong>How to get your M-Pesa statement:</strong>
+            <ol className="list-decimal list-inside mt-2 space-y-1 text-sm">
+              <li>Go to M-Pesa menu → My Account → M-Pesa Statement</li>
+              <li>Select the date range you want</li>
+              <li>Enter your email and request the statement</li>
+              <li>Download the PDF from your email</li>
+              <li>Upload it here for instant expense import</li>
+            </ol>
+          </AlertDescription>
+        </Alert>
+
         <div className="space-y-4">
-          {/* Instructions */}
-          <Alert>
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              <strong>How to get your M-Pesa statement:</strong>
-              <ol className="list-decimal list-inside mt-2 space-y-1 text-sm">
-                <li>Go to M-Pesa menu → My Account → M-Pesa Statement</li>
-                <li>Select the date range you want</li>
-                <li>Enter your email and request the statement</li>
-                <li>Download the PDF from your email</li>
-                <li>Upload it here for instant expense import</li>
-              </ol>
-            </AlertDescription>
-          </Alert>
+         
 
           {/* File Upload Area */}
           <div

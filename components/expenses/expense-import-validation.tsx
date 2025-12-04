@@ -1,7 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { Check, X, Edit2, AlertTriangle, CheckCircle2, XCircle } from "lucide-react";
+import {
+  Check,
+  X,
+  Edit2,
+  AlertTriangle,
+  CheckCircle2,
+  XCircle,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -59,7 +66,8 @@ export function ExpenseImportValidation({
 }: ExpenseImportValidationProps) {
   const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
   const [editingRow, setEditingRow] = useState<string | null>(null);
-  const [editValues, setEditValues] = useState<ValidationRow["overrides"]>(undefined);
+  const [editValues, setEditValues] =
+    useState<ValidationRow["overrides"]>(undefined);
 
   const toggleRowSelection = (id: string) => {
     const newSelected = new Set(selectedRows);
@@ -85,7 +93,8 @@ export function ExpenseImportValidation({
       recipient: row.overrides?.recipient || row.recipientMatch.recipientName,
       category: row.overrides?.category || row.recipientMatch.suggestedCategory,
       amount: row.overrides?.amount || row.parsed.amount,
-      recurringId: row.overrides?.recurringId || row.recurringMatch.recurringExpenseId,
+      recurringId:
+        row.overrides?.recurringId || row.recurringMatch.recurringExpenseId,
     });
   };
 
@@ -115,21 +124,30 @@ export function ExpenseImportValidation({
     switch (confidence) {
       case "high":
         return (
-          <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300">
+          <Badge
+            variant="outline"
+            className="bg-green-100 text-green-800 border-green-300"
+          >
             <CheckCircle2 className="mr-1 h-3 w-3" />
             High
           </Badge>
         );
       case "medium":
         return (
-          <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-300">
+          <Badge
+            variant="outline"
+            className="bg-yellow-100 text-yellow-800 border-yellow-300"
+          >
             <AlertTriangle className="mr-1 h-3 w-3" />
             Medium
           </Badge>
         );
       case "low":
         return (
-          <Badge variant="outline" className="bg-red-100 text-red-800 border-red-300">
+          <Badge
+            variant="outline"
+            className="bg-red-100 text-red-800 border-red-300"
+          >
             <XCircle className="mr-1 h-3 w-3" />
             Low
           </Badge>
@@ -146,9 +164,13 @@ export function ExpenseImportValidation({
     pending: pendingRows.length,
     accepted: acceptedRows.length,
     rejected: rejectedRows.length,
-    highConfidence: rows.filter((r) => r.recipientMatch.confidence === "high").length,
-    mediumConfidence: rows.filter((r) => r.recipientMatch.confidence === "medium").length,
-    lowConfidence: rows.filter((r) => r.recipientMatch.confidence === "low").length,
+    highConfidence: rows.filter((r) => r.recipientMatch.confidence === "high")
+      .length,
+    mediumConfidence: rows.filter(
+      (r) => r.recipientMatch.confidence === "medium"
+    ).length,
+    lowConfidence: rows.filter((r) => r.recipientMatch.confidence === "low")
+      .length,
   };
 
   return (
@@ -202,12 +224,16 @@ export function ExpenseImportValidation({
         <div className="flex items-center gap-2 p-4 bg-muted rounded-lg">
           <input
             type="checkbox"
-            checked={selectedRows.size === pendingRows.length && pendingRows.length > 0}
+            checked={
+              selectedRows.size === pendingRows.length && pendingRows.length > 0
+            }
             onChange={toggleAllRows}
             className="h-4 w-4 rounded border-gray-300"
           />
           <span className="text-sm font-medium">
-            {selectedRows.size > 0 ? `${selectedRows.size} selected` : "Select all"}
+            {selectedRows.size > 0
+              ? `${selectedRows.size} selected`
+              : "Select all"}
           </span>
           {selectedRows.size > 0 && (
             <>
@@ -242,26 +268,34 @@ export function ExpenseImportValidation({
       )}
 
       {/* Validation Table */}
-      <Card>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
+      <div className="rounded-md border">
+        <div className="relative w-full overflow-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[50px]"></TableHead>
+                <TableHead className="w-[120px]">Amount</TableHead>
+                <TableHead className="min-w-[200px]">Recipient</TableHead>
+                <TableHead className="w-[140px]">Category</TableHead>
+                <TableHead className="w-[140px]">Recurring</TableHead>
+                <TableHead className="w-[120px]">Confidence</TableHead>
+                <TableHead className="w-[140px]">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {rows.length === 0 ? (
                 <TableRow>
-                  <TableHead className="w-12"></TableHead>
-                  <TableHead className="min-w-[100px]">Amount</TableHead>
-                  <TableHead className="min-w-[180px]">Recipient</TableHead>
-                  <TableHead className="min-w-[120px]">Category</TableHead>
-                  <TableHead className="min-w-[100px]">Recurring</TableHead>
-                  <TableHead className="min-w-[100px]">Confidence</TableHead>
-                  <TableHead className="min-w-[120px]">Actions</TableHead>
+                  <TableCell colSpan={7} className="h-24 text-center">
+                    No expenses to validate.
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {rows.map((row) => {
+              ) : (
+                rows.map((row) => {
                   const isEditing = editingRow === row.id;
                   const isPending = row.status === "pending";
-                  const confidenceColor = getConfidenceColor(row.recipientMatch.confidence);
+                  const confidenceColor = getConfidenceColor(
+                    row.recipientMatch.confidence
+                  );
 
                   return (
                     <TableRow
@@ -292,20 +326,28 @@ export function ExpenseImportValidation({
                             type="number"
                             value={editValues.amount ?? 0}
                             onChange={(e) =>
-                              setEditValues({ ...editValues, amount: parseFloat(e.target.value) })
+                              setEditValues({
+                                ...editValues,
+                                amount: parseFloat(e.target.value),
+                              })
                             }
-                            className="h-8 w-24"
+                            className="h-8 w-full"
                           />
                         ) : (
                           <div className="space-y-0.5">
-                            <p className="font-semibold text-sm">
-                              KSh {(row.overrides?.amount || row.parsed.amount).toLocaleString()}
+                            <p className="font-semibold text-sm whitespace-nowrap">
+                              KSh{" "}
+                              {(
+                                row.overrides?.amount || row.parsed.amount
+                              ).toLocaleString()}
                             </p>
                             {row.parsed.timestamp && (
-                              <p className="text-[10px] text-muted-foreground">
-                                {new Date(row.parsed.timestamp).toLocaleDateString('en-US', { 
-                                  month: 'short', 
-                                  day: 'numeric' 
+                              <p className="text-[10px] text-muted-foreground whitespace-nowrap">
+                                {new Date(
+                                  row.parsed.timestamp
+                                ).toLocaleDateString("en-US", {
+                                  month: "short",
+                                  day: "numeric",
                                 })}
                               </p>
                             )}
@@ -314,19 +356,23 @@ export function ExpenseImportValidation({
                       </TableCell>
 
                       {/* Recipient */}
-                      <TableCell className="max-w-[200px]">
+                      <TableCell>
                         {isEditing && editValues ? (
                           <Input
                             value={editValues.recipient ?? ""}
                             onChange={(e) =>
-                              setEditValues({ ...editValues, recipient: e.target.value })
+                              setEditValues({
+                                ...editValues,
+                                recipient: e.target.value,
+                              })
                             }
-                            className="h-8"
+                            className="h-8 w-full"
                           />
                         ) : (
                           <div className="space-y-0.5">
-                            <p className="font-medium text-sm leading-tight">
-                              {row.overrides?.recipient || row.recipientMatch.recipientName}
+                            <p className="font-medium text-sm leading-tight break-words">
+                              {row.overrides?.recipient ||
+                                row.recipientMatch.recipientName}
                             </p>
                             {row.parsed.phoneNumber && (
                               <p className="text-xs text-muted-foreground font-mono">
@@ -334,11 +380,19 @@ export function ExpenseImportValidation({
                               </p>
                             )}
                             {row.recipientMatch.matchedBy !== "none" && (
-                              <Badge variant="outline" className="mt-1 text-[10px] py-0 h-4">
-                                {row.recipientMatch.matchedBy === "phone-exact" ? "📞 Exact" : 
-                                 row.recipientMatch.matchedBy === "phone-partial" ? "📞 Partial" :
-                                 row.recipientMatch.matchedBy === "name-fuzzy" ? "🔤 Name" : 
-                                 row.recipientMatch.matchedBy}
+                              <Badge
+                                variant="outline"
+                                className="mt-1 text-[10px] py-0 h-4"
+                              >
+                                {row.recipientMatch.matchedBy === "phone-exact"
+                                  ? "📞 Exact"
+                                  : row.recipientMatch.matchedBy ===
+                                    "phone-partial"
+                                  ? "📞 Partial"
+                                  : row.recipientMatch.matchedBy ===
+                                    "name-fuzzy"
+                                  ? "🔤 Name"
+                                  : row.recipientMatch.matchedBy}
                               </Badge>
                             )}
                           </div>
@@ -354,7 +408,7 @@ export function ExpenseImportValidation({
                               setEditValues({ ...editValues, category: value })
                             }
                           >
-                            <SelectTrigger className="h-8 w-32">
+                            <SelectTrigger className="h-8 w-full">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -367,14 +421,17 @@ export function ExpenseImportValidation({
                           </Select>
                         ) : (
                           <div>
-                            <p className="text-sm">
+                            <p className="text-sm break-words">
                               {row.overrides?.category ||
                                 row.recipientMatch.suggestedCategory ||
                                 "Uncategorized"}
                             </p>
                             {row.recipientMatch.categoryConfidence && (
                               <p className="text-xs text-muted-foreground">
-                                {Math.round(row.recipientMatch.categoryConfidence)}% confident
+                                {Math.round(
+                                  row.recipientMatch.categoryConfidence
+                                )}
+                                % confident
                               </p>
                             )}
                           </div>
@@ -393,7 +450,9 @@ export function ExpenseImportValidation({
                             </p>
                           </div>
                         ) : (
-                          <span className="text-xs text-muted-foreground">No match</span>
+                          <span className="text-xs text-muted-foreground">
+                            No match
+                          </span>
                         )}
                       </TableCell>
 
@@ -452,24 +511,27 @@ export function ExpenseImportValidation({
                           </div>
                         ) : (
                           <Badge variant="outline">
-                            {row.status === "accepted" ? "Accepted" : "Rejected"}
+                            {row.status === "accepted"
+                              ? "Accepted"
+                              : "Rejected"}
                           </Badge>
                         )}
                       </TableCell>
                     </TableRow>
                   );
-                })}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
+                })
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
 
       {/* Save Button */}
       {(acceptedRows.length > 0 || rejectedRows.length > 0) && (
         <div className="flex justify-end gap-2">
           <Button onClick={onSave} size="lg" className="min-w-32">
-            Save {acceptedRows.length} Expense{acceptedRows.length !== 1 ? "s" : ""}
+            Save {acceptedRows.length} Expense
+            {acceptedRows.length !== 1 ? "s" : ""}
           </Button>
         </div>
       )}

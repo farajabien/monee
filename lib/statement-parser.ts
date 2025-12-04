@@ -10,103 +10,156 @@ export interface StatementExpense {
 
 /**
  * Parses M-Pesa statement text (from PDF or copy-paste) into structured data.
- * This version uses a robust regex to parse each line atomically,
- * improving reliability over the previous index-based method.
+ * Updated to match actual M-Pesa statement format with table structure:
+ * Receipt No | Completion Time | Details | Transaction Status | Paid In | Withdraw | Balance
  *
  * @param text The raw text content from an M-Pesa statement.
- * @returns An array of parsed expense objects matching the statement_expenses schema.
+ * @returns An array of parsed expense objects.
  */
 export function parseStatementText(text: string): StatementExpense[] {
   const expenses: StatementExpense[] = [];
 
-  // 1. Pre-processing: Clean up the text by removing headers, footers, and page markers.
+  console.log("[Statement Parser] Starting parse. Text length:", text.length);
+  console.log("[Statement Parser] First 200 chars:", text.substring(0, 200));
+
+  // Clean up the text - but keep the transaction data!
   const cleanText = text
-    .replace(/Page \d+ of \d+/g, "") // Remove "Page X of Y"
-    .replace(/Disclaimer:[\s\S]*?conditions apply/gi, "") // Remove footer
-    .replace(
-      /Receipt No\s+Completion Time\s+Details\s+(?:Transaction )?Status\s+Paid In\s+Withdrawn\s+Balance/gi,
-      "" // Remove table headers
-    );
+    .replace(/Page \d+ of \d+/g, "")
+    .replace(/Disclaimer:[\s\S]*?conditions apply/gi, "")
+    .replace(/Twitter:.*?conditions apply/gi, "")
+    .replace(/MPESA FULL STATEMENT/g, "")
+    .replace(/Customer Name:.*?\n/g, "")
+    .replace(/Mobile Number:.*?\n/g, "")
+    .replace(/Date of Statement:.*?\n/g, "")
+    .replace(/Statement Period:.*?\n/g, "")
+    .replace(/SUMMARY[\s\S]*?(?=DETAILED STATEMENT|Receipt No)/i, "") // Only remove summary section, not transaction data
+    .replace(/DETAILED STATEMENT/gi, "")
+    .replace(/TRANSACTION TYPE\s+PAID IN\s+PAID OUT[\s\S]*?TOTAL:/gi, "") // Remove summary table from first page
+    .replace(/Receipt No\s+Completion Time\s+Details\s+Transaction Status\s+Paid [Ii]n\s+Withdraw\s+Balance/gi, ""); // Remove table headers
 
-  // 2. Split the text into individual transaction lines.
-  // Each transaction reliably starts with a receipt number (e.g., "R...").
-  const transactionLines = cleanText.split(
-    /(?=R[A-Z0-9]{8,12}\s+\d{4}-\d{2}-\d{2})/
-  );
+  console.log("[Statement Parser] After cleaning, length:", cleanText.length);
+  console.log("[Statement Parser] Sample cleaned text:", cleanText.substring(0, 500));
 
-  // 3. Process each line with a comprehensive regex.
-  for (const line of transactionLines) {
-    if (line.trim().length < 10) continue; // Skip empty or junk lines
-
-    // This regex uses indexed capture groups to extract all parts of the transaction
-    // in one pass. It's anchored to the start and end of the line for strictness.
-    const pattern = new RegExp(
-      "^(R[A-Z0-9]{8,12})s+" +
-        "(d{4}-d{2}-d{2}s+d{2}:d{2}:d{2})s+" +
-        "([sS]+?)s+" + // Non-greedy match for details
-        "(COMPLETED|FAILED|PENDING)s+" +
-        "([d,]+.d{2})s+" +
-        "([d,]+.d{2})s+" +
-        "([d,]+.d{2})s*$", // Match until the end of the line
-      "i"
-    );
-
-    const match = line
-      .trim()
-      .replace(/\r\n|\n/g, " ")
-      .match(pattern);
-
-    if (match) {
-      // Extract by index: [1]=receiptNo, [2]=completionTime, [3]=details, [4]=status, [5]=paidIn, [6]=withdrawn, [7]=balance
-      const receiptNo = match[1];
-      const completionTime = match[2];
-      const details = match[3];
-      const status = match[4];
-      const paidIn = match[5];
-      const withdrawn = match[6];
-
-      // Skip rows that are just charges for another transaction to avoid duplicates.
-      if (
-        details.match(
-          /(?:Charge|of Funds Charge|Pay Bill Charge|Pay Merchant Charge|Withdrawal Charge)/i
-        )
-      ) {
-        continue;
-      }
-
-      // Only process completed transactions
-      if (status.toUpperCase() !== "COMPLETED") {
-        continue;
-      }
-
-      // Determine if this is a withdrawal (paid out) or deposit (paid in)
-      const isWithdrawal = parseFloat(withdrawn.replace(/,/g, "")) > 0;
-      const amount = isWithdrawal
-        ? parseFloat(withdrawn.replace(/,/g, ""))
-        : parseFloat(paidIn.replace(/,/g, ""));
-
-      // Parse the completion time to Unix timestamp
-      // Format: "2022-11-24 14:30:15"
-      const timestamp = new Date(completionTime).getTime();
-
-      // Sanitize details string to use as recipient
-      const recipient = details.replace(/\s+/g, " ").trim();
-
-      // Create full description including receipt number
-      const description = `${receiptNo} - ${recipient}`;
-
-      expenses.push({
-        amount,
-        recipient,
-        timestamp,
-        description,
-        category: undefined,
-        isProcessed: false,
-        createdAt: Date.now(),
+  // Split by receipt number pattern since PDF extraction doesn't preserve newlines properly
+  // Receipt numbers look like: REM1760VPH, REO2BUMKYX, REL44PCYVS, etc.
+  const receiptPattern = /\b(RE[A-Z0-9]{6,12})\s+(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2})/g;
+  const transactions: Array<{ receiptNo: string; timestamp: string; text: string }> = [];
+  
+  let match;
+  let lastIndex = 0;
+  let lastReceipt: { receiptNo: string; timestamp: string; startIndex: number } | null = null;
+  
+  while ((match = receiptPattern.exec(cleanText)) !== null) {
+    if (lastReceipt) {
+      // Save the previous transaction
+      transactions.push({
+        receiptNo: lastReceipt.receiptNo,
+        timestamp: lastReceipt.timestamp,
+        text: cleanText.substring(lastReceipt.startIndex, match.index).trim()
       });
     }
+    lastReceipt = {
+      receiptNo: match[1],
+      timestamp: match[2],
+      startIndex: match.index
+    };
+  }
+  
+  // Add the last transaction
+  if (lastReceipt) {
+    transactions.push({
+      receiptNo: lastReceipt.receiptNo,
+      timestamp: lastReceipt.timestamp,
+      text: cleanText.substring(lastReceipt.startIndex).trim()
+    });
+  }
+  
+  console.log("[Statement Parser] Total transactions found:", transactions.length);
+  console.log("[Statement Parser] Sample transactions:", transactions.slice(0, 3).map(t => ({
+    receipt: t.receiptNo,
+    preview: t.text.substring(0, 80)
+  })));
+
+  // Pattern to extract transaction details
+  // Format: RECEIPT_NO TIMESTAMP Details COMPLETED/FAILED PAID_IN WITHDRAW BALANCE
+  // Example: "REM1760VPH 2023-05-22 20:23:26 Customer Transfer of Funds Charge COMPLETED 0.00 12.00 47.69"
+  
+  for (const transaction of transactions) {
+    const { receiptNo, timestamp: completionTime, text: transactionText } = transaction;
+    
+    // The text starts with receipt and timestamp, so we need to extract what comes after
+    // Pattern: RECEIPT TIMESTAMP Details STATUS PAID_IN WITHDRAW BALANCE
+    const fullPattern = new RegExp(
+      `^${receiptNo}\\s+${completionTime.replace(/[-:]/g, '\\$&')}\\s+(.+?)\\s+(COMPLETED|FAILED|PENDING)\\s+([\\d,]+\\.?\\d{0,2})\\s+([\\d,]+\\.?\\d{0,2})\\s+([\\d,]+\\.?\\d{0,2})`,
+      'i'
+    );
+    
+    const match = transactionText.match(fullPattern);
+    
+    if (!match) {
+      console.log("[Statement Parser] No match for transaction:", transactionText.substring(0, 100));
+      continue;
+    }
+    
+    const details = match[1].trim();
+    const status = match[2];
+    const paidIn = match[3];
+    const withdraw = match[4];
+    const balance = match[5];
+    
+    // Skip charge transactions to avoid duplicates
+    if (details.match(/(?:Charge|Funds Charge)\s*$/i)) {
+      continue;
+    }
+    
+    // Only process completed transactions
+    if (status.toUpperCase() !== "COMPLETED") {
+      continue;
+    }
+    
+    // Determine amount - use withdraw amount (paid out) for expenses
+    const withdrawAmount = parseFloat(withdraw.replace(/,/g, ""));
+    const paidInAmount = parseFloat(paidIn.replace(/,/g, ""));
+    
+    // Only include withdrawals (expenses), skip deposits/received money
+    if (withdrawAmount <= 0) {
+      continue;
+    }
+    
+    const amount = withdrawAmount;
+    
+    // Parse timestamp
+    const timestamp = new Date(completionTime).getTime();
+    
+    // Clean up recipient/details
+    const recipient = details
+      .replace(/\s+/g, " ")
+      .replace(/Customer Transfer (to|of Funds Charge)\s*/gi, "")
+      .replace(/Pay Bill (to|Charge)\s*/gi, "")
+      .replace(/Airtime Purchase\s*/gi, "Airtime")
+      .replace(/Merchant Payment to\s*/gi, "")
+      .replace(/M-Shwari (Withdraw|Deposit)\s*/gi, "M-Shwari")
+      .replace(/Funds received from\s*/gi, "")
+      .trim();
+    
+    const description = `${receiptNo} - ${details}`;
+    
+    expenses.push({
+      amount,
+      recipient,
+      timestamp,
+      description,
+      category: undefined,
+      isProcessed: false,
+      createdAt: Date.now(),
+    });
   }
 
+  console.log("[Statement Parser] Successfully parsed", expenses.length, "expenses");
+  if (expenses.length > 0) {
+    console.log("[Statement Parser] First expense:", expenses[0]);
+  }
+  
   return expenses;
 }
 
