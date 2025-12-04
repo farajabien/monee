@@ -41,12 +41,12 @@ export function parseStatementText(text: string): StatementExpense[] {
   console.log("[Statement Parser] Sample cleaned text:", cleanText.substring(0, 500));
 
   // Split by receipt number pattern since PDF extraction doesn't preserve newlines properly
-  // Receipt numbers look like: REM1760VPH, REO2BUMKYX, REL44PCYVS, etc.
-  const receiptPattern = /\b(RE[A-Z0-9]{6,12})\s+(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2})/g;
+  // Receipt numbers look like: REM1760VPH (2023), TKMPNAQJJV (2025), etc.
+  // Pattern: 2-3 uppercase letters followed by 6-10 alphanumeric characters
+  const receiptPattern = /\b([A-Z]{2,3}[A-Z0-9]{6,10})\s+(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2})/g;
   const transactions: Array<{ receiptNo: string; timestamp: string; text: string }> = [];
   
   let match;
-  let lastIndex = 0;
   let lastReceipt: { receiptNo: string; timestamp: string; startIndex: number } | null = null;
   
   while ((match = receiptPattern.exec(cleanText)) !== null) {
@@ -101,9 +101,9 @@ export function parseStatementText(text: string): StatementExpense[] {
     
     const details = match[1].trim();
     const status = match[2];
-    const paidIn = match[3];
+    // const paidIn = match[3]; // Not used currently
     const withdraw = match[4];
-    const balance = match[5];
+    // const balance = match[5]; // Not used currently
     
     // Skip charge transactions to avoid duplicates
     if (details.match(/(?:Charge|Funds Charge)\s*$/i)) {
@@ -117,7 +117,7 @@ export function parseStatementText(text: string): StatementExpense[] {
     
     // Determine amount - use withdraw amount (paid out) for expenses
     const withdrawAmount = parseFloat(withdraw.replace(/,/g, ""));
-    const paidInAmount = parseFloat(paidIn.replace(/,/g, ""));
+    // const paidInAmount = parseFloat(paidIn.replace(/,/g, "")); // Not used currently
     
     // Only include withdrawals (expenses), skip deposits/received money
     if (withdrawAmount <= 0) {

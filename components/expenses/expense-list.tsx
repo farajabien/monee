@@ -281,15 +281,13 @@ export default function ExpenseList() {
           data={expenses}
           editDialog={EditExpenseDialogAdapter}
           headerActions={
-            profile ? (
-              <ExpenseImportOrchestrator
-                existingExpenses={expenses}
-                recurringExpenses={recurringTransactions}
-                categories={categories}
-                onSaveExpenses={handleSaveExpenses}
-                onValidationStateChange={setShowingValidation}
-              />
-            ) : null
+            <ExpenseImportOrchestrator
+              existingExpenses={expenses}
+              recurringExpenses={recurringTransactions}
+              categories={categories}
+              onSaveExpenses={handleSaveExpenses}
+              onValidationStateChange={setShowingValidation}
+            />
           }
         />
       </div>
