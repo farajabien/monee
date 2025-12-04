@@ -27,6 +27,23 @@ import { toast } from "sonner";
 import type { Category, Recipient, RecurringFrequency, DebtType } from "@/types";
 import { getDebtTypeDescription } from "@/lib/debt-calculator";
 
+// Helper function to calculate next due date based on frequency
+function calculateNextDueDate(from: Date, frequency: string): number {
+  const date = new Date(from);
+  switch (frequency) {
+    case "weekly":
+      date.setDate(date.getDate() + 7);
+      break;
+    case "monthly":
+      date.setMonth(date.getMonth() + 1);
+      break;
+    case "quarterly":
+      date.setMonth(date.getMonth() + 3);
+      break;
+  }
+  return date.getTime();
+}
+
 interface UnifiedAddModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -63,6 +80,9 @@ export function UnifiedAddModal({
   const [savingsName, setSavingsName] = useState(""); // Savings
   const [targetAmount, setTargetAmount] = useState(""); // Savings
   const [deadline, setDeadline] = useState(""); // Savings
+  const [isRegularSavings, setIsRegularSavings] = useState(false); // Regular Savings
+  const [savingsFrequency, setSavingsFrequency] = useState("monthly"); // Regular Savings
+  const [regularSavingsAmount, setRegularSavingsAmount] = useState(""); // Regular Savings
   
   // Recurring expense fields
   const [isRecurring, setIsRecurring] = useState(false);
@@ -118,6 +138,9 @@ export function UnifiedAddModal({
     setSavingsName("");
     setTargetAmount("");
     setDeadline("");
+    setIsRegularSavings(false);
+    setSavingsFrequency("monthly");
+    setRegularSavingsAmount("");
     setIsRecurring(false);
     setRecurringFrequency("monthly");
     setNextDueDate(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]);
@@ -281,8 +304,19 @@ export function UnifiedAddModal({
             setIsSubmitting(false);
             return;
           }
+          
+          // Validation for regular savings
+          if (isRegularSavings && !regularSavingsAmount) {
+            toast.error("Please enter regular contribution amount");
+            setIsSubmitting(false);
+            return;
+          }
 
           const goalId = id();
+          const nextDue = isRegularSavings 
+            ? calculateNextDueDate(new Date(), savingsFrequency)
+            : undefined;
+            
           await db.transact([
             db.tx.savings_goals[goalId]
               .update({
@@ -292,6 +326,12 @@ export function UnifiedAddModal({
                 deadline: deadline ? new Date(deadline).getTime() : undefined,
                 isCompleted: false,
                 createdAt: now,
+                // Regular savings fields
+                isRegular: isRegularSavings,
+                frequency: isRegularSavings ? savingsFrequency : undefined,
+                regularAmount: isRegularSavings ? parseFloat(regularSavingsAmount) : undefined,
+                nextDueDate: nextDue,
+                lastContributionDate: parsedAmount > 0 ? now : undefined,
               })
               .link({ profile: profile.id }),
             // Add initial contribution if amount > 0
@@ -713,9 +753,56 @@ export function UnifiedAddModal({
                   />
                 </div>
 
+                {/* Regular Savings Toggle */}
+                <div className="flex items-center justify-between py-2 border-t">
+                  <Label htmlFor="regular-savings-toggle" className="text-sm font-medium">
+                    Regular Savings Plan
+                  </Label>
+                  <Switch
+                    id="regular-savings-toggle"
+                    checked={isRegularSavings}
+                    onCheckedChange={setIsRegularSavings}
+                  />
+                </div>
+
+                {isRegularSavings && (
+                  <div className="space-y-4 p-4 border rounded-lg bg-muted/50">
+                    <div className="space-y-2">
+                      <Label htmlFor="savings-frequency">Frequency</Label>
+                      <Select value={savingsFrequency} onValueChange={setSavingsFrequency}>
+                        <SelectTrigger id="savings-frequency">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="weekly">Weekly</SelectItem>
+                          <SelectItem value="monthly">Monthly</SelectItem>
+                          <SelectItem value="quarterly">Quarterly</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="regular-amount">Regular Contribution Amount (KES)</Label>
+                      <Input
+                        id="regular-amount"
+                        type="number"
+                        step="0.01"
+                        placeholder="5000"
+                        value={regularSavingsAmount}
+                        onChange={(e) => setRegularSavingsAmount(e.target.value)}
+                        required
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Amount you&apos;ll contribute {savingsFrequency}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
                 <p className="text-xs text-muted-foreground">
-                  Initial contribution will be recorded if amount is greater
-                  than 0
+                  {isRegularSavings 
+                    ? `You&apos;ll be reminded to contribute KES ${regularSavingsAmount || '___'} ${savingsFrequency}`
+                    : "Initial contribution will be recorded if amount is greater than 0"}
                 </p>
               </TabsContent>
 

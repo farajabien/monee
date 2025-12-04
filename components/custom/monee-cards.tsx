@@ -52,49 +52,15 @@ export function MoneeCard({
   return (
     <div className="group relative">
       <div className="bg-card border border-border rounded-md p-2.5 hover:border-primary/50 hover:shadow-sm transition-all">
-        <div className="flex items-start justify-between gap-2">
-          {/* Main Content */}
-          <div className="flex-1 min-w-0">
-            {/* Amount and Name Row */}
-            <div className="flex items-baseline gap-2 mb-1">
-              <span
-                className={cn(
-                  "text-sm sm:text-base font-bold tabular-nums leading-tight",
-                  amountColor
-                )}
-              >
-                {displayAmount}
-              </span>
-              <span className="text-[11px] sm:text-xs font-medium text-foreground truncate">
-                {name}
-              </span>
-            </div>
-
-            {/* Metadata Row */}
-            <div className="flex items-center gap-1.5 text-[9px] sm:text-[10px] text-muted-foreground">
-              <span className="px-1.5 py-0.5 bg-muted rounded text-muted-foreground">
-                {category}
-              </span>
-              <span>{date}</span>
-            </div>
-
-            {/* Secondary Value if provided */}
-            {secondaryValue && (
-              <div className="mt-1 text-[9px] sm:text-[10px] text-muted-foreground">
-                <span>{secondaryLabel}:</span>
-                <span className="font-medium ml-1">{secondaryValue}</span>
-              </div>
-            )}
-          </div>
-
-          {/* Actions Menu */}
-          {showActions && (onEdit || onDelete) && (
+        {/* Actions Menu - Top Right */}
+        {showActions && (onEdit || onDelete) && (
+          <div className="absolute top-2 right-2 z-10">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-5 w-5 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-muted"
                 >
                   <MoreVertical className="h-3.5 w-3.5" />
                 </Button>
@@ -117,6 +83,40 @@ export function MoneeCard({
                 )}
               </DropdownMenuContent>
             </DropdownMenu>
+          </div>
+        )}
+
+        {/* Main Content */}
+        <div className="flex-1 min-w-0 pr-8">
+          {/* Amount and Name Row */}
+          <div className="flex items-baseline gap-2 mb-1">
+            <span
+              className={cn(
+                "text-sm sm:text-base font-bold tabular-nums leading-tight",
+                amountColor
+              )}
+            >
+              {displayAmount}
+            </span>
+            <span className="text-[11px] sm:text-xs font-medium text-foreground truncate">
+              {name}
+            </span>
+          </div>
+
+          {/* Metadata Row */}
+          <div className="flex items-center gap-1.5 text-[9px] sm:text-[10px] text-muted-foreground">
+            <span className="px-1.5 py-0.5 bg-muted rounded text-muted-foreground">
+              {category}
+            </span>
+            <span>{date}</span>
+          </div>
+
+          {/* Secondary Value if provided */}
+          {secondaryValue && (
+            <div className="mt-1 text-[9px] sm:text-[10px] text-muted-foreground">
+              <span>{secondaryLabel}:</span>
+              <span className="font-medium ml-1">{secondaryValue}</span>
+            </div>
           )}
         </div>
       </div>

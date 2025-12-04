@@ -65,11 +65,31 @@ export function AddToSavingsDialog({
     const { amount } = values;
     const now = new Date().getTime();
 
+    // Calculate next due date for regular savings
+    const getNextDueDate = () => {
+      if (!goal.isRegular || !goal.frequency) return undefined;
+      const date = new Date();
+      switch (goal.frequency) {
+        case "weekly":
+          date.setDate(date.getDate() + 7);
+          break;
+        case "monthly":
+          date.setMonth(date.getMonth() + 1);
+          break;
+        case "quarterly":
+          date.setMonth(date.getMonth() + 3);
+          break;
+      }
+      return date.getTime();
+    };
+
     try {
       await db.transact([
         // Update goal current amount
         tx.savings_goals[goal.id].update({
           currentAmount: goal.currentAmount + amount,
+          lastContributionDate: now,
+          ...(goal.isRegular ? { nextDueDate: getNextDueDate() } : {}),
         }),
         // Create contribution record
         tx.savings_contributions[crypto.randomUUID()]

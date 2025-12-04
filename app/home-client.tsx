@@ -58,7 +58,7 @@ export default function HomeClient() {
   return (
     <>
       {/* Sticky Tab Navigation */}
-      <div className="border-b border-border sticky top-0 bg-background/95 backdrop-blur-sm z-10">
+      <div className="border-b border-border sticky top-0 bg-background/95 backdrop-blur-sm z-40">
         <div className="w-full max-w-2xl mx-auto">
           <div className="grid grid-cols-4 h-auto">
             {tabs.map((tab) => (
@@ -81,7 +81,7 @@ export default function HomeClient() {
       </div>
 
       {/* Content */}
-      <div className="w-full max-w-2xl mx-auto px-4 sm:px-6 py-6 pb-20">
+      <div className="w-full max-w-2xl mx-auto px-4 sm:px-6 py-6 pb-24 sm:pb-28">
         {activeTab === "overview" && <DashboardOverview />}
         {activeTab === "expenses" && <ExpenseList />}
         {activeTab === "income" && <IncomeSourceList />}

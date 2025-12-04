@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import db from "@/lib/db";
 import { calculateCashRunway } from "@/lib/cash-runway-calculator";
@@ -261,54 +261,66 @@ export function DashboardOverview() {
 
   return (
     <div className="space-y-6">
-      {/* Dashboard Cards - Tabs Layout */}
-      <Tabs defaultValue="cashflow" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 mb-4">
-          <TabsTrigger value="cashflow">Cash Flow</TabsTrigger>
-          <TabsTrigger value="debts">Debts</TabsTrigger>
-          <TabsTrigger value="savings">Savings</TabsTrigger>
+      {/* Dashboard Tabs */}
+      <Tabs defaultValue="overview" className="w-full">
+        <TabsList className="grid w-full grid-cols-2 mb-4">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="insights">Insights</TabsTrigger>
         </TabsList>
-        <TabsContent value="cashflow">
-          <CashFlowHealthCard
-            healthData={cashFlowHealthData}
-            isLoading={isLoading}
-            userCurrency={profile?.currency}
-            userLocale={profile?.locale}
-            totalExpenses={totalExpenses}
-            totalIncome={totalIncome}
-            debtsThisMonth={debtsThisMonth}
-            savingsProgress={savingsProgress}
-          />
+
+        {/* Overview Tab - Dashboard Cards with nested tabs */}
+        <TabsContent value="overview">
+          <Tabs defaultValue="cashflow" className="w-full">
+            <TabsList className="grid w-full grid-cols-3 mb-4">
+              <TabsTrigger value="cashflow">Cash Flow</TabsTrigger>
+              <TabsTrigger value="debts">Debts</TabsTrigger>
+              <TabsTrigger value="savings">Savings</TabsTrigger>
+            </TabsList>
+            <TabsContent value="cashflow">
+              <CashFlowHealthCard
+                healthData={cashFlowHealthData}
+                isLoading={isLoading}
+                userCurrency={profile?.currency}
+                userLocale={profile?.locale}
+                totalExpenses={totalExpenses}
+                totalIncome={totalIncome}
+                debtsThisMonth={debtsThisMonth}
+                savingsProgress={savingsProgress}
+              />
+            </TabsContent>
+            <TabsContent value="debts">
+              <DebtsAlertCard
+                debts={debtsData}
+                isLoading={isLoading}
+                userCurrency={profile?.currency}
+                userLocale={profile?.locale}
+              />
+            </TabsContent>
+            <TabsContent value="savings">
+              <SavingsProgressCard
+                monthlySavings={savingsData.monthlySavings}
+                totalSaved={savingsData.totalSaved}
+                totalTarget={savingsData.totalTarget}
+                goalsCount={savingsData.goalsCount}
+                isLoading={isLoading}
+                userCurrency={profile?.currency}
+                userLocale={profile?.locale}
+              />
+            </TabsContent>
+          </Tabs>
         </TabsContent>
-        <TabsContent value="debts">
-          <DebtsAlertCard
-            debts={debtsData}
-            isLoading={isLoading}
-            userCurrency={profile?.currency}
-            userLocale={profile?.locale}
-          />
-        </TabsContent>
-        <TabsContent value="savings">
-          <SavingsProgressCard
-            monthlySavings={savingsData.monthlySavings}
-            totalSaved={savingsData.totalSaved}
-            totalTarget={savingsData.totalTarget}
-            goalsCount={savingsData.goalsCount}
-            isLoading={isLoading}
+
+        {/* Insights Tab - Metrics Insights Sections */}
+        <TabsContent value="insights">
+          <DashboardMetricsTabs
+            expenses={expenses}
+            debts={debts}
+            savingsGoals={savingsGoals}
             userCurrency={profile?.currency}
             userLocale={profile?.locale}
           />
         </TabsContent>
       </Tabs>
-
-      {/* Metrics Insights Sections */}
-      <DashboardMetricsTabs
-        expenses={expenses}
-        debts={debts}
-        savingsGoals={savingsGoals}
-        userCurrency={profile?.currency}
-        userLocale={profile?.locale}
-      />
     </div>
   );
 }

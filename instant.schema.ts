@@ -105,6 +105,12 @@ const _schema = i.schema({
       category: i.string().optional().indexed(),
       isCompleted: i.boolean(),
       createdAt: i.number().indexed(),
+      // Regular savings fields
+      isRegular: i.boolean().optional(),
+      frequency: i.string().optional().indexed(),
+      regularAmount: i.number().optional().indexed(),
+      nextDueDate: i.number().optional().indexed(),
+      lastContributionDate: i.number().optional().indexed(),
     }),
     savings_contributions: i.entity({
       amount: i.number().indexed(),
