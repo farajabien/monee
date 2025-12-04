@@ -15,6 +15,7 @@ interface ExpenseImportOrchestratorProps {
   recurringExpenses: RecurringTransaction[];
   categories: string[];
   onSaveExpenses: (expenses: Array<Expense & { id?: string }>) => Promise<void>;
+  onValidationStateChange?: (isValidating: boolean) => void;
 }
 
 export function ExpenseImportOrchestrator({
@@ -22,6 +23,7 @@ export function ExpenseImportOrchestrator({
   recurringExpenses,
   categories,
   onSaveExpenses,
+  onValidationStateChange,
 }: ExpenseImportOrchestratorProps) {
   const [smsDialogOpen, setSmsDialogOpen] = useState(false);
   const [statementDialogOpen, setStatementDialogOpen] = useState(false);
@@ -53,6 +55,7 @@ export function ExpenseImportOrchestrator({
 
     setValidationRows(rows);
     setShowValidation(true);
+    onValidationStateChange?.(true);
   };
 
   const handleAccept = (ids: string[]) => {
@@ -110,6 +113,7 @@ export function ExpenseImportOrchestrator({
       await onSaveExpenses(expensesToSave);
       setValidationRows([]);
       setShowValidation(false);
+      onValidationStateChange?.(false);
     } catch (error) {
       console.error("Failed to save expenses:", error);
       alert("Failed to save expenses. Please try again.");
@@ -120,26 +124,29 @@ export function ExpenseImportOrchestrator({
     if (confirm("Are you sure you want to cancel? All pending imports will be lost.")) {
       setValidationRows([]);
       setShowValidation(false);
+      onValidationStateChange?.(false);
     }
   };
 
   if (showValidation && validationRows.length > 0) {
     return (
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold">Review Imported Expenses</h2>
-          <Button variant="outline" onClick={handleCancel}>
-            Cancel Import
-          </Button>
+      <div className="w-full max-w-full overflow-x-auto">
+        <div className="space-y-4 min-w-0">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold">Review Imported Expenses</h2>
+            <Button variant="outline" onClick={handleCancel}>
+              Cancel Import
+            </Button>
+          </div>
+          <ExpenseImportValidation
+            rows={validationRows}
+            categories={categories}
+            onAccept={handleAccept}
+            onReject={handleReject}
+            onEdit={handleEdit}
+            onSave={handleSave}
+          />
         </div>
-        <ExpenseImportValidation
-          rows={validationRows}
-          categories={categories}
-          onAccept={handleAccept}
-          onReject={handleReject}
-          onEdit={handleEdit}
-          onSave={handleSave}
-        />
       </div>
     );
   }

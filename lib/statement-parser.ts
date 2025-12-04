@@ -87,17 +87,15 @@ export function parseStatementText(text: string): StatementExpense[] {
   for (const transaction of transactions) {
     const { receiptNo, timestamp: completionTime, text: transactionText } = transaction;
     
-    // The text starts with receipt and timestamp, so we need to extract what comes after
-    // Pattern: RECEIPT TIMESTAMP Details STATUS PAID_IN WITHDRAW BALANCE
-    const fullPattern = new RegExp(
-      `^${receiptNo}\\s+${completionTime.replace(/[-:]/g, '\\$&')}\\s+(.+?)\\s+(COMPLETED|FAILED|PENDING)\\s+([\\d,]+\\.?\\d{0,2})\\s+([\\d,]+\\.?\\d{0,2})\\s+([\\d,]+\\.?\\d{0,2})`,
-      'i'
-    );
+    // Remove the receipt number and timestamp from the beginning to get the details
+    // The transactionText already contains the full line starting with receipt and timestamp
+    const detailsPattern = /^\S+\s+\S+\s+\S+\s+(.+?)\s+(COMPLETED|FAILED|PENDING)\s+([\d,]+\.?\d{0,2})\s+([\d,]+\.?\d{0,2})\s+([\d,]+\.?\d{0,2})/i;
     
-    const match = transactionText.match(fullPattern);
+    const match = transactionText.match(detailsPattern);
     
     if (!match) {
-      console.log("[Statement Parser] No match for transaction:", transactionText.substring(0, 100));
+      console.log("[Statement Parser] No match for transaction:", transactionText.substring(0, 150));
+      console.log("[Statement Parser] Receipt:", receiptNo, "Time:", completionTime);
       continue;
     }
     
@@ -157,7 +155,10 @@ export function parseStatementText(text: string): StatementExpense[] {
 
   console.log("[Statement Parser] Successfully parsed", expenses.length, "expenses");
   if (expenses.length > 0) {
-    console.log("[Statement Parser] First expense:", expenses[0]);
+    console.log("[Statement Parser] First 3 expenses:", expenses.slice(0, 3));
+  } else {
+    console.log("[Statement Parser] No expenses found. Total transactions processed:", transactions.length);
+    console.log("[Statement Parser] Sample transaction texts:", transactions.slice(0, 3).map(t => t.text.substring(0, 150)));
   }
   
   return expenses;

@@ -56,6 +56,7 @@ export default function ExpenseList() {
   const [analyticsView, setAnalyticsView] = useState<
     "overview" | "day" | "category" | "recipients"
   >("overview");
+  const [showingValidation, setShowingValidation] = useState(false);
 
   const { data } = db.useQuery({
     profiles: {
@@ -239,6 +240,21 @@ export default function ExpenseList() {
     return config;
   }, [analytics]);
 
+  // If showing validation, render it fullscreen (takes over entire view)
+  if (showingValidation && profile) {
+    return (
+      <div className="space-y-4 w-full">
+        <ExpenseImportOrchestrator
+          existingExpenses={expenses}
+          recurringExpenses={recurringTransactions}
+          categories={categories}
+          onSaveExpenses={handleSaveExpenses}
+          onValidationStateChange={setShowingValidation}
+        />
+      </div>
+    );
+  }
+
   // Main view navigation
   if (activeView === "list") {
     return (
@@ -271,6 +287,7 @@ export default function ExpenseList() {
                 recurringExpenses={recurringTransactions}
                 categories={categories}
                 onSaveExpenses={handleSaveExpenses}
+                onValidationStateChange={setShowingValidation}
               />
             ) : null
           }

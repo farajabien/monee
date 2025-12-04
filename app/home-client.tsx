@@ -59,7 +59,7 @@ export default function HomeClient() {
     <>
       {/* Sticky Tab Navigation */}
       <div className="border-b border-border sticky top-0 bg-background/95 backdrop-blur-sm z-40">
-        <div className="w-full max-w-2xl mx-auto">
+        <div className="w-full mx-auto">
           <div className="grid grid-cols-4 h-auto">
             {tabs.map((tab) => (
               <Link
@@ -81,18 +81,18 @@ export default function HomeClient() {
       </div>
 
       {/* Content */}
-      <div className="w-full max-w-2xl mx-auto px-4 sm:px-6 py-6 pb-24 sm:pb-28">
+      <div className="w-full mx-auto px-4 sm:px-6 py-6 pb-24 sm:pb-28 overflow-x-hidden">
         {activeTab === "overview" && <DashboardOverview />}
         {activeTab === "expenses" && <ExpenseList />}
         {activeTab === "income" && <IncomeSourceList />}
         {activeTab === "more" && (
           <div className="space-y-4">
             {/* Sub-navigation for More section */}
-            <div className="flex gap-2 border-b border-border pb-2">
+            <div className="flex gap-2 border-b border-border pb-2 overflow-x-auto">
               <Link
                 href="/dashboard?tab=more&subtab=debts"
                 className={
-                  `px-3 py-1.5 text-sm font-medium rounded-md transition-colors ` +
+                  `px-3 py-1.5 text-sm font-medium rounded-md transition-colors whitespace-nowrap ` +
                   (moreSubTab === "debts"
                     ? "bg-primary text-primary-foreground"
                     : "text-muted-foreground hover:text-foreground hover:bg-muted")
@@ -103,7 +103,7 @@ export default function HomeClient() {
               <Link
                 href="/dashboard?tab=more&subtab=savings"
                 className={
-                  `px-3 py-1.5 text-sm font-medium rounded-md transition-colors ` +
+                  `px-3 py-1.5 text-sm font-medium rounded-md transition-colors whitespace-nowrap ` +
                   (moreSubTab === "savings"
                     ? "bg-primary text-primary-foreground"
                     : "text-muted-foreground hover:text-foreground hover:bg-muted")
@@ -114,7 +114,7 @@ export default function HomeClient() {
               <Link
                 href="/dashboard?tab=more&subtab=categories"
                 className={
-                  `px-3 py-1.5 text-sm font-medium rounded-md transition-colors ` +
+                  `px-3 py-1.5 text-sm font-medium rounded-md transition-colors whitespace-nowrap ` +
                   (moreSubTab === "categories"
                     ? "bg-primary text-primary-foreground"
                     : "text-muted-foreground hover:text-foreground hover:bg-muted")
