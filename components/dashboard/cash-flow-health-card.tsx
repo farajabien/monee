@@ -1,7 +1,14 @@
 "use client";
 
 import { Item, ItemContent, ItemHeader, ItemTitle } from "@/components/ui/item";
-import { Heart, ArrowUpCircle, ArrowDownCircle, Wallet } from "lucide-react";
+import {
+  Heart,
+  ArrowUpCircle,
+  ArrowDownCircle,
+  Wallet,
+  TrendingDown,
+  Target,
+} from "lucide-react";
 import type { CashFlowHealthData } from "@/lib/cash-flow-health-calculator";
 import { useCurrency } from "@/hooks/use-currency";
 import {
@@ -15,6 +22,10 @@ interface CashFlowHealthCardProps {
   isLoading?: boolean;
   userCurrency?: string;
   userLocale?: string;
+  totalExpenses?: number;
+  totalIncome?: number;
+  debtsThisMonth?: number;
+  savingsProgress?: number;
 }
 
 export function CashFlowHealthCard({
@@ -22,6 +33,10 @@ export function CashFlowHealthCard({
   isLoading = false,
   userCurrency,
   userLocale,
+  totalExpenses,
+  totalIncome,
+  debtsThisMonth,
+  savingsProgress,
 }: CashFlowHealthCardProps) {
   const { formatCurrency } = useCurrency(userCurrency, userLocale);
 
@@ -75,8 +90,8 @@ export function CashFlowHealthCard({
   }
 
   const {
-    totalIncome,
-    totalExpenses,
+    totalIncome: healthTotalIncome,
+    totalExpenses: healthTotalExpenses,
     remainingBalance,
     dailyAllowance,
     healthStatus,
@@ -103,8 +118,13 @@ export function CashFlowHealthCard({
             <div
               className={`text-xl font-bold tabular-nums ${incomeColorClass}`}
             >
-              {formatCurrency(totalIncome)}
+              {formatCurrency(healthTotalIncome)}
             </div>
+            {totalIncome !== undefined && totalIncome !== healthTotalIncome && (
+              <div className="text-[10px] text-muted-foreground">
+                Total: {formatCurrency(totalIncome)}
+              </div>
+            )}
           </div>
           <div className="space-y-2">
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -114,8 +134,14 @@ export function CashFlowHealthCard({
             <div
               className={`text-xl font-bold tabular-nums ${expenseColorClass}`}
             >
-              {formatCurrency(totalExpenses)}
+              {formatCurrency(healthTotalExpenses)}
             </div>
+            {totalExpenses !== undefined &&
+              totalExpenses !== healthTotalExpenses && (
+                <div className="text-[10px] text-muted-foreground">
+                  Total: {formatCurrency(totalExpenses)}
+                </div>
+              )}
           </div>
           <div className="space-y-2">
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -130,6 +156,23 @@ export function CashFlowHealthCard({
           </div>
         </div>
 
+        {/* Savings Progress - Compact */}
+        {savingsProgress !== undefined && savingsProgress > 0 && (
+          <div className="rounded-lg bg-blue-50 dark:bg-blue-950/20 p-2.5">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-1.5">
+                <Target className="h-3 w-3 text-blue-600 dark:text-blue-400" />
+                <span className="text-[10px] font-medium text-blue-600 dark:text-blue-400 uppercase tracking-wide">
+                  Savings
+                </span>
+              </div>
+              <div className="text-sm font-bold tabular-nums text-blue-700 dark:text-blue-300">
+                {savingsProgress}%
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Daily Allowance with Health Status */}
         <div className="rounded-lg bg-muted/50 p-3">
           <DailyAllowanceMessage
@@ -142,6 +185,21 @@ export function CashFlowHealthCard({
             userLocale={userLocale ?? "en-US"}
           />
         </div>
+
+        {/* Debts Due This Month */}
+        {debtsThisMonth !== undefined && debtsThisMonth > 0 && (
+          <div className="rounded-lg bg-orange-50 dark:bg-orange-950/20 p-2.5">
+            <div className="flex items-center gap-1.5 mb-1">
+              <TrendingDown className="h-3 w-3 text-orange-600 dark:text-orange-400" />
+              <span className="text-[10px] font-medium text-orange-600 dark:text-orange-400 uppercase tracking-wide">
+                Debts Due
+              </span>
+            </div>
+            <div className="text-sm font-bold tabular-nums text-orange-700 dark:text-orange-300">
+              {formatCurrency(debtsThisMonth)}
+            </div>
+          </div>
+        )}
       </ItemContent>
     </Item>
   );
@@ -208,7 +266,7 @@ const DailyAllowanceMessage = ({
   if (dailyAllowance > 0) {
     return (
       <p className="text-sm font-medium leading-relaxed">
-      ✅ You can spend up to{" "}
+        ✅ You can spend up to{" "}
         <span className="font-bold tabular-nums">
           {formatCurrency(dailyAllowance)}
         </span>{" "}
@@ -216,7 +274,7 @@ const DailyAllowanceMessage = ({
         <span className={`font-bold tabular-nums ${balanceColorClass}`}>
           {formatCurrency(remainingBalance)}
         </span>{" "}
-        left for  <b>{daysRemaining}</b> days.
+        left for <b>{daysRemaining}</b> days.
       </p>
     );
   }

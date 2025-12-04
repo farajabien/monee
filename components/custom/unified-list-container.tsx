@@ -54,8 +54,8 @@ export function UnifiedListContainer<T extends Record<string, unknown>>({
   editingItem: externalEditingItem,
   onEditingChange,
 }: UnifiedListContainerProps<T>) {
-  // View state - default to table view
-  const [viewMode, setViewMode] = useState<ViewMode>("table");
+  // View state - default to list view for better mobile experience
+  const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState(config.defaultSort);
   const [filters, setFilters] = useState<FilterState>(() => {
@@ -154,14 +154,14 @@ export function UnifiedListContainer<T extends Record<string, unknown>>({
   }, [deletingItem]);
 
   return (
-    <div className="space-y-4 w-full overflow-hidden">
+    <div className="space-y-3 w-full overflow-hidden">
       {/* Metrics */}
       {config.metrics && config.metrics.length > 0 && (
         <ListMetrics metrics={config.metrics} values={metrics} />
       )}
 
       {/* Main container */}
-      <div className="space-y-4 w-full">
+      <div className="space-y-3 w-full">
         {/* Additional filters if provided */}
         {additionalFilters && (
           <div className="flex items-center justify-end">
@@ -235,8 +235,8 @@ export function UnifiedListContainer<T extends Record<string, unknown>>({
 
         {/* Empty state */}
         {filteredData.length === 0 && (
-          <div className="flex items-center justify-center py-16 px-4">
-            <div className="text-center space-y-2">
+          <div className="flex items-center justify-center py-12 px-4">
+            <div className="text-center space-y-1">
               <p className="text-sm text-muted-foreground">
                 {hasActiveFilters
                   ? config.emptyMessageFiltered ||
@@ -247,7 +247,7 @@ export function UnifiedListContainer<T extends Record<string, unknown>>({
           </div>
         )}
 
-        {/* List/Grid/Table view - Prioritize table view with scroll area */}
+        {/* List/Grid/Table view - Prioritize list view with scroll area */}
         {filteredData.length > 0 && (
           <div className="w-full overflow-hidden">
             {viewMode === "table" && config.tableColumns ? (
@@ -271,7 +271,7 @@ export function UnifiedListContainer<T extends Record<string, unknown>>({
               </ScrollArea>
             ) : viewMode === "grid" && config.renderGridCard ? (
               <ScrollArea className="h-[600px] w-full">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-1">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 p-1">
                   {filteredData.map((item, index) =>
                     config.renderGridCard!(item, index, {
                       onEdit: config.actions?.edit
@@ -287,7 +287,7 @@ export function UnifiedListContainer<T extends Record<string, unknown>>({
               </ScrollArea>
             ) : (
               <ScrollArea className="h-[600px] w-full">
-                <div className="space-y-3 p-1">
+                <div className="space-y-1.5 p-1">
                   {filteredData.map((item, index) =>
                     config.renderListItem(item, index, {
                       onEdit: config.actions?.edit

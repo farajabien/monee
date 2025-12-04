@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/select";
 import { AddCategoryDialog } from "@/components/categories/add-category-dialog";
 import { Switch } from "@/components/ui/switch";
-import { Plus } from "lucide-react";
+import { Plus, Repeat } from "lucide-react";
 import type { Category, RecurringFrequency } from "@/types";
 
 interface ManualExpenseDialogProps {
@@ -53,8 +53,9 @@ export function ManualExpenseDialog({
   const [mpesaReference, setMpesaReference] = useState<string>("");
   const [showAddCategoryDialog, setShowAddCategoryDialog] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   // Recurring expense fields
+  const [showRecurringDialog, setShowRecurringDialog] = useState(false);
   const [isRecurring, setIsRecurring] = useState(false);
   const [frequency, setFrequency] = useState<RecurringFrequency>("monthly");
   const [nextDueDate, setNextDueDate] = useState<string>(
@@ -74,18 +75,18 @@ export function ManualExpenseDialog({
     },
     categories: {
       $: {
-        where: { "profile.user.id":user?.id || "" },
+        where: { "profile.user.id": user?.id || "" },
         order: { name: "asc" },
       },
     },
     recipients: {
       $: {
-        where: { "profile.user.id":user?.id || "" },
+        where: { "profile.user.id": user?.id || "" },
       },
     },
     expenses: {
       $: {
-        where: { "profile.user.id":user?.id || "" },
+        where: { "profile.user.id": user?.id || "" },
       },
     },
   });
@@ -150,7 +151,9 @@ export function ManualExpenseDialog({
 
       // Create expense
       await db.transact(
-        db.tx.expenses[expenseId].update(expenseData).link({ profile: profile?.id || "" })
+        db.tx.expenses[expenseId]
+          .update(expenseData)
+          .link({ profile: profile?.id || "" })
       );
 
       // If recurring, create recurring transaction record
@@ -186,7 +189,11 @@ export function ManualExpenseDialog({
       setMpesaReference("");
       setIsRecurring(false);
       setFrequency("monthly");
-      setNextDueDate(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]);
+      setNextDueDate(
+        new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+          .toISOString()
+          .split("T")[0]
+      );
       setReminderDays("3");
       setDialogOpen(false);
     } catch (error) {
@@ -200,6 +207,22 @@ export function ManualExpenseDialog({
   const handleCategoryCreated = (categoryId: string, categoryName: string) => {
     setSelectedCategory(categoryName);
     setShowAddCategoryDialog(false);
+  };
+
+  const handleRecurringDialogSave = () => {
+    setShowRecurringDialog(false);
+  };
+
+  const handleRecurringDialogCancel = () => {
+    setIsRecurring(false);
+    setFrequency("monthly");
+    setNextDueDate(
+      new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+        .toISOString()
+        .split("T")[0]
+    );
+    setReminderDays("3");
+    setShowRecurringDialog(false);
   };
 
   return (
@@ -349,59 +372,40 @@ export function ManualExpenseDialog({
               </div>
             </div>
 
-            <div className="flex items-center justify-between py-2">
-              <Label htmlFor="recurring-toggle" className="text-sm font-medium">
-                Recurring Expense
-              </Label>
-              <Switch
-                id="recurring-toggle"
-                checked={isRecurring}
-                onCheckedChange={setIsRecurring}
-              />
-            </div>
-
-            {isRecurring && (
-              <div className="space-y-4 p-4 border rounded-lg bg-muted/50">
-                <div className="space-y-2">
-                  <Label htmlFor="frequency">Frequency</Label>
-                  <Select value={frequency} onValueChange={(value) => setFrequency(value as RecurringFrequency)}>
-                    <SelectTrigger id="frequency">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="weekly">Weekly</SelectItem>
-                      <SelectItem value="biweekly">Bi-weekly</SelectItem>
-                      <SelectItem value="monthly">Monthly</SelectItem>
-                      <SelectItem value="quarterly">Quarterly</SelectItem>
-                      <SelectItem value="annually">Annually</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="next-due-date">Next Due Date</Label>
-                  <Input
-                    id="next-due-date"
-                    type="date"
-                    value={nextDueDate}
-                    onChange={(e) => setNextDueDate(e.target.value)}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="reminder-days">Reminder (days before)</Label>
-                  <Input
-                    id="reminder-days"
-                    type="number"
-                    placeholder="3"
-                    value={reminderDays}
-                    onChange={(e) => setReminderDays(e.target.value)}
-                    min="0"
-                    max="30"
-                  />
-                </div>
+            <div className="flex items-center justify-between py-2 px-3 border rounded-lg bg-muted/30">
+              <div className="flex items-center gap-2">
+                <Repeat className="h-4 w-4 text-muted-foreground" />
+                <Label
+                  htmlFor="recurring-toggle"
+                  className="text-sm font-medium cursor-pointer"
+                >
+                  Recurring Expense
+                </Label>
               </div>
-            )}
+              <div className="flex items-center gap-2">
+                {isRecurring && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowRecurringDialog(true)}
+                    className="text-xs h-7"
+                  >
+                    Configure
+                  </Button>
+                )}
+                <Switch
+                  id="recurring-toggle"
+                  checked={isRecurring}
+                  onCheckedChange={(checked) => {
+                    setIsRecurring(checked);
+                    if (checked) {
+                      setShowRecurringDialog(true);
+                    }
+                  }}
+                />
+              </div>
+            </div>
 
             <div className="space-y-2">
               <Label htmlFor="notes">Notes (Optional)</Label>
@@ -454,6 +458,77 @@ export function ManualExpenseDialog({
               </Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showRecurringDialog} onOpenChange={setShowRecurringDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Configure Recurring Expense</DialogTitle>
+            <DialogDescription>
+              Set up how often this expense repeats and when you want to be
+              reminded
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="frequency">Frequency</Label>
+              <Select
+                value={frequency}
+                onValueChange={(value) =>
+                  setFrequency(value as RecurringFrequency)
+                }
+              >
+                <SelectTrigger id="frequency">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="weekly">Weekly</SelectItem>
+                  <SelectItem value="biweekly">Bi-weekly</SelectItem>
+                  <SelectItem value="monthly">Monthly</SelectItem>
+                  <SelectItem value="quarterly">Quarterly</SelectItem>
+                  <SelectItem value="annually">Annually</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="next-due-date">Next Due Date</Label>
+              <Input
+                id="next-due-date"
+                type="date"
+                value={nextDueDate}
+                onChange={(e) => setNextDueDate(e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="reminder-days">Reminder (days before)</Label>
+              <Input
+                id="reminder-days"
+                type="number"
+                placeholder="3"
+                value={reminderDays}
+                onChange={(e) => setReminderDays(e.target.value)}
+                min="0"
+                max="30"
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleRecurringDialogCancel}
+            >
+              Cancel
+            </Button>
+            <Button type="button" onClick={handleRecurringDialogSave}>
+              Save Settings
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 

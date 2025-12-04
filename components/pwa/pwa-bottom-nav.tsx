@@ -66,7 +66,7 @@ export function PWABottomNav() {
     setShowMore(false);
   };
 
-  // Main nav items (always visible) - 4 most frequent features for 1-tap access
+  // Main nav items (always visible) - synced with top tabs
   const navItems = [
     {
       value: "overview",
@@ -80,34 +80,33 @@ export function PWABottomNav() {
       icon: CreditCard,
       href: "/dashboard?tab=expenses",
     },
-
-    {
-      value: "debts",
-      label: "Debts",
-      icon: CreditCard,
-      href: "/dashboard?tab=debts",
-    },
-  ];
-
-  // Extra nav items (in More dropdown) - less frequently used features
-  const moreItems = [
-    {
-      value: "savings",
-      label: "Savings",
-      icon: Wallet,
-      href: "/dashboard?tab=savings",
-    },
     {
       value: "income",
       label: "Income",
       icon: TrendingUp,
       href: "/dashboard?tab=income",
     },
+  ];
+
+  // More dropdown items - includes More sub-tabs
+  const moreItems = [
+    {
+      value: "debts",
+      label: "Debts",
+      icon: CreditCard,
+      href: "/dashboard?tab=more&subtab=debts",
+    },
+    {
+      value: "savings",
+      label: "Savings",
+      icon: Wallet,
+      href: "/dashboard?tab=more&subtab=savings",
+    },
     {
       value: "categories",
       label: "Categories",
       icon: Tag,
-      href: "/dashboard?tab=categories",
+      href: "/dashboard?tab=more&subtab=categories",
     },
     { value: "settings", label: "Settings", icon: Settings, href: "/settings" },
     {
@@ -119,7 +118,11 @@ export function PWABottomNav() {
     },
   ];
 
-  const hasActiveMoreItem = moreItems.some((item) => activeTab === item.value);
+  // Check if we're on More tab or any of its sub-tabs
+  const moreSubTab = searchParams.get("subtab");
+  const hasActiveMoreItem = 
+    activeTab === "more" || 
+    moreItems.some((item) => item.value === moreSubTab);
 
   return (
     <>
