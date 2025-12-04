@@ -14,6 +14,7 @@ import { useListActions } from "@/hooks/use-list-actions";
 import { ListMetrics } from "@/components/custom/list-metrics";
 import { DataViewControls } from "@/components/ui/data-view-controls";
 import { DataTable } from "@/components/ui/data-table";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Select,
   SelectContent,
@@ -53,10 +54,8 @@ export function UnifiedListContainer<T extends Record<string, unknown>>({
   editingItem: externalEditingItem,
   onEditingChange,
 }: UnifiedListContainerProps<T>) {
-  // View state
-  const [viewMode, setViewMode] = useState<ViewMode>(
-    config.defaultView || config.availableViews[0] || "list"
-  );
+  // View state - default to table view
+  const [viewMode, setViewMode] = useState<ViewMode>("table");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState(config.defaultSort);
   const [filters, setFilters] = useState<FilterState>(() => {
@@ -248,54 +247,60 @@ export function UnifiedListContainer<T extends Record<string, unknown>>({
           </div>
         )}
 
-        {/* List/Grid/Table view */}
+        {/* List/Grid/Table view - Prioritize table view with scroll area */}
         {filteredData.length > 0 && (
           <div className="w-full overflow-hidden">
             {viewMode === "table" && config.tableColumns ? (
-              <div className="w-full overflow-x-auto">
-                <DataTable
-                  columns={config.tableColumns}
-                  data={filteredData}
-                  onEdit={
-                    config.actions?.edit
-                      ? (item) => handleEditWrapper(item)
-                      : undefined
-                  }
-                  onDelete={
-                    config.actions?.delete
-                      ? (id) => handleDelete(id)
-                      : undefined
-                  }
-                />
-              </div>
+              <ScrollArea className="h-[600px] w-full rounded-md border">
+                <div className="w-full">
+                  <DataTable
+                    columns={config.tableColumns}
+                    data={filteredData}
+                    onEdit={
+                      config.actions?.edit
+                        ? (item) => handleEditWrapper(item)
+                        : undefined
+                    }
+                    onDelete={
+                      config.actions?.delete
+                        ? (id) => handleDelete(id)
+                        : undefined
+                    }
+                  />
+                </div>
+              </ScrollArea>
             ) : viewMode === "grid" && config.renderGridCard ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filteredData.map((item, index) =>
-                  config.renderGridCard!(item, index, {
-                    onEdit: config.actions?.edit
-                      ? () => handleEditWrapper(item)
-                      : undefined,
-                    onDelete: config.actions?.delete
-                      ? () => handleDelete(config.getItemId(item))
-                      : undefined,
-                    customActions: config.actions?.custom,
-                  })
-                )}
-              </div>
+              <ScrollArea className="h-[600px] w-full">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-1">
+                  {filteredData.map((item, index) =>
+                    config.renderGridCard!(item, index, {
+                      onEdit: config.actions?.edit
+                        ? () => handleEditWrapper(item)
+                        : undefined,
+                      onDelete: config.actions?.delete
+                        ? () => handleDelete(config.getItemId(item))
+                        : undefined,
+                      customActions: config.actions?.custom,
+                    })
+                  )}
+                </div>
+              </ScrollArea>
             ) : (
-              <div className="space-y-3">
-                {filteredData.map((item, index) =>
-                  config.renderListItem(item, index, {
-                    onEdit: config.actions?.edit
-                      ? () => handleEditWrapper(item)
-                      : undefined,
-                    onDelete: config.actions?.delete
-                      ? () => handleDelete(config.getItemId(item))
-                      : undefined,
-                    customActions: config.actions?.custom,
-                  })
-                )}
-              </div>
+              <ScrollArea className="h-[600px] w-full">
+                <div className="space-y-3 p-1">
+                  {filteredData.map((item, index) =>
+                    config.renderListItem(item, index, {
+                      onEdit: config.actions?.edit
+                        ? () => handleEditWrapper(item)
+                        : undefined,
+                      onDelete: config.actions?.delete
+                        ? () => handleDelete(config.getItemId(item))
+                        : undefined,
+                      customActions: config.actions?.custom,
+                    })
+                  )}
+                </div>
+              </ScrollArea>
             )}
           </div>
         )}

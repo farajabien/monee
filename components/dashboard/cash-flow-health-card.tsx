@@ -208,7 +208,7 @@ const DailyAllowanceMessage = ({
   if (dailyAllowance > 0) {
     return (
       <p className="text-sm font-medium leading-relaxed">
-       You can spend up to{" "}
+      ✅ You can spend up to{" "}
         <span className="font-bold tabular-nums">
           {formatCurrency(dailyAllowance)}
         </span>{" "}
