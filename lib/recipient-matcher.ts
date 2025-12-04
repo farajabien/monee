@@ -13,8 +13,8 @@ export interface RecipientMatch {
  * Match phone numbers, handling partial matches from statements
  * 
  * Examples:
- * - "0729013950" matches "0729013950" (exact)
- * - "0729***950" matches "0729013950" (partial from statement)
+ * - "0712345678" matches "0712345678" (exact)
+ * - "0729***950" matches "0712345678" (partial from statement)
  */
 function matchPhoneNumber(
   incoming: string,

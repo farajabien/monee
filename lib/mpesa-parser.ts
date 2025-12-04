@@ -9,41 +9,45 @@ export function parseMpesaMessage(message: string): ParsedExpenseData {
     throw new Error("Invalid message: message must be a non-empty string");
   }
 
-  const trimmed = message.trim();
-  if (trimmed.length === 0) {
+  // Normalize whitespace: replace multiple spaces/newlines/tabs with single space
+  // This handles copy-paste formatting issues and SMS display inconsistencies
+  const normalized = message.trim().replace(/\s+/g, " ");
+  if (normalized.length === 0) {
     throw new Error("Invalid message: message cannot be empty");
   }
 
+  const trimmed = normalized;
+
   // Pattern 1: "You sent Ksh 500.00 to John Doe on 15/01/24 at 10:30 AM. New M-PESA balance is Ksh 1,000.00"
   const sentPattern =
-    /You sent Ksh\s+([\d,]+\.?\d*)\s+to\s+(.+?)\s+on\s+(\d{2}\/\d{2}\/\d{2,4})\s+at\s+(\d{1,2}:\d{2}\s+(?:AM|PM))[^.]*\.\s*(?:New M-PESA balance is Ksh\s+([\d,]+\.?\d*))?/i;
+    /You sent Ksh\s+([\d,]+\.?\d*)\s+to\s+(.+?)\s+on\s+(\d{1,2}\/\d{1,2}\/\d{2,4})\s+at\s+(\d{1,2}:\d{2}\s+(?:AM|PM))[^.]*\.\s*(?:New M-PESA balance is Ksh\s+([\d,]+\.?\d*))?/i;
 
   // Pattern 1b: "TKJPNAJ1D1 Confirmed. Ksh200.00 sent to/paid to recipient on 19/11/25 at 6:32 PM. New M-PESA balance is Ksh87.48."
-  // Handles both "sent to" and "paid to", optional period after recipient, optional space before "New M-PESA"
-  // Also extracts phone number: "sent to DANIEL EXAMPLE 0729013950 on"
-  // Fixed: Made recipient capture more flexible, handles phone numbers and names properly
+  // Handles both "sent to" and "paid to", handles multiple/irregular spaces, phone numbers in recipient name
+  // Examples: "sent to DANIEL EXAMPLE 0712345678 on" or "sent to STEPHEN OTIENO 0712345678 on 4/12/25 at"
+  // Fixed: Allow 1-2 digits for day/month (e.g., "4/12/25" or "04/12/25"), normalized whitespace
   const confirmedSentPattern =
-    /[A-Z0-9]+\s+Confirmed\.\s+Ksh([\d,]+\.?\d*)\s+(?:sent to|paid to)\s+(.+?)\s+on\s+(\d{2}\/\d{2}\/\d{2,4})\s+at\s+(\d{1,2}:\d{2}\s+(?:AM|PM))[\s.]*(?:New M-?PESA balance is Ksh\s*([\d,]+\.?\d*))?/i;
+    /[A-Z0-9]+\s+Confirmed\.\s+Ksh([\d,]+\.?\d*)\s+(?:sent to|paid to)\s+(.+?)\s+on\s+(\d{1,2}\/\d{1,2}\/\d{2,4})\s+at\s+(\d{1,2}:\d{2}\s+(?:AM|PM))[\s.]*(?:New M-?PESA balance is Ksh\s*([\d,]+\.?\d*))?/i;
 
   // Pattern 1c: M-Shwari Transfer - "TKLPNAOE55 Confirmed.Ksh450.00 transferred from M-Shwari account on 21/11/25 at 1:04 PM"
   const mshwariTransferPattern =
-    /[A-Z0-9]+\s+Confirmed\.?\s*Ksh([\d,]+\.?\d*)\s+transferred from M-Shwari account on\s+(\d{2}\/\d{2}\/\d{2,4})\s+at\s+(\d{1,2}:\d{2}\s+(?:AM|PM))(?:.*?M-PESA balance is Ksh\s*([.,\d]+))?/i;
+    /[A-Z0-9]+\s+Confirmed\.?\s*Ksh([\d,]+\.?\d*)\s+transferred from M-Shwari account on\s+(\d{1,2}\/\d{1,2}\/\d{2,4})\s+at\s+(\d{1,2}:\d{2}\s+(?:AM|PM))(?:.*?M-PESA balance is Ksh\s*([.,\d]+))?/i;
 
   // Pattern 2: "You received Ksh 1,000.00 from Jane Doe on 15/01/24 at 2:00 PM. New M-PESA balance is Ksh 1,500.00"
   const receivedPattern =
-    /You received Ksh\s+([\d,]+\.?\d*)\s+from\s+(.+?)\s+on\s+(\d{2}\/\d{2}\/\d{2,4})\s+at\s+(\d{1,2}:\d{2}\s+(?:AM|PM))[^.]*\.\s*(?:New M-PESA balance is Ksh\s+([\d,]+\.?\d*))?/i;
+    /You received Ksh\s+([\d,]+\.?\d*)\s+from\s+(.+?)\s+on\s+(\d{1,2}\/\d{1,2}\/\d{2,4})\s+at\s+(\d{1,2}:\d{2}\s+(?:AM|PM))[^.]*\.\s*(?:New M-PESA balance is Ksh\s+([\d,]+\.?\d*))?/i;
 
   // Pattern 3: "You bought goods worth Ksh 500.00 from Shop Name on 15/01/24 at 10:30 AM"
   const buyPattern =
-    /You bought goods worth Ksh\s+([\d,]+\.?\d*)\s+from\s+(.+?)\s+on\s+(\d{2}\/\d{2}\/\d{2,4})\s+at\s+(\d{1,2}:\d{2}\s+(?:AM|PM))/i;
+    /You bought goods worth Ksh\s+([\d,]+\.?\d*)\s+from\s+(.+?)\s+on\s+(\d{1,2}\/\d{1,2}\/\d{2,4})\s+at\s+(\d{1,2}:\d{2}\s+(?:AM|PM))/i;
 
   // Pattern 4: "You withdrew Ksh 500.00 from Agent Name on 15/01/24 at 10:30 AM"
   const withdrawPattern =
-    /You withdrew Ksh\s+([\d,]+\.?\d*)\s+from\s+(.+?)\s+on\s+(\d{2}\/\d{2}\/\d{2,4})\s+at\s+(\d{1,2}:\d{2}\s+(?:AM|PM))/i;
+    /You withdrew Ksh\s+([\d,]+\.?\d*)\s+from\s+(.+?)\s+on\s+(\d{1,2}\/\d{1,2}\/\d{2,4})\s+at\s+(\d{1,2}:\d{2}\s+(?:AM|PM))/i;
 
   // Pattern 5: "You deposited Ksh 500.00 at Agent Name on 15/01/24 at 10:30 AM"
   const depositPattern =
-    /You deposited Ksh\s+([\d,]+\.?\d*)\s+at\s+(.+?)\s+on\s+(\d{2}\/\d{2}\/\d{2,4})\s+at\s+(\d{1,2}:\d{2}\s+(?:AM|PM))/i;
+    /You deposited Ksh\s+([\d,]+\.?\d*)\s+at\s+(.+?)\s+on\s+(\d{1,2}\/\d{1,2}\/\d{2,4})\s+at\s+(\d{1,2}:\d{2}\s+(?:AM|PM))/i;
 
   let match: RegExpMatchArray | null = null;
   let expenseType: ParsedExpenseData["expenseType"] = "send";
@@ -107,6 +111,7 @@ export function parseMpesaMessage(message: string): ParsedExpenseData {
         throw new Error("Invalid amount: amount must be a positive number");
       }
 
+      console.warn("Using fallback parser - no full pattern matched:", trimmed.substring(0, 100));
       return {
         amount,
         expenseType: "send",
@@ -114,6 +119,7 @@ export function parseMpesaMessage(message: string): ParsedExpenseData {
         timestamp: Date.now(),
       };
     }
+    console.error("Failed to parse M-Pesa message. Normalized text:", trimmed.substring(0, 150));
     throw new Error(
       "Could not parse Mpesa message format: no recognizable pattern found"
     );
@@ -224,7 +230,7 @@ export function parseMpesaMessage(message: string): ParsedExpenseData {
   }
 
   // Extract phone number from recipient string
-  // Pattern: "DANIEL EXAMPLE 0729013950" or "NAME 0712345678"
+  // Pattern: "DANIEL EXAMPLE 0712345678" or "NAME 0712345678"
   let phoneNumber: string | undefined;
   if (recipient) {
     const phoneMatch = recipient.match(/(\d{10})/);
