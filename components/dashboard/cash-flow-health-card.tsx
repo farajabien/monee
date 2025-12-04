@@ -208,7 +208,7 @@ const DailyAllowanceMessage = ({
   if (dailyAllowance > 0) {
     return (
       <p className="text-sm font-medium leading-relaxed">
-        ✅ Great job! You can spend up to{" "}
+       You can spend up to{" "}
         <span className="font-bold tabular-nums">
           {formatCurrency(dailyAllowance)}
         </span>{" "}
@@ -216,7 +216,7 @@ const DailyAllowanceMessage = ({
         <span className={`font-bold tabular-nums ${balanceColorClass}`}>
           {formatCurrency(remainingBalance)}
         </span>{" "}
-        left for {daysRemaining} days.
+        left for  <b>{daysRemaining}</b> days.
       </p>
     );
   }
