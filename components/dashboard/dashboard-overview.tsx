@@ -228,8 +228,9 @@ export function DashboardOverview() {
       incomeSources,
       expenses, // Note: excludes debt payments per user requirement
       currentDate: now,
+      monthlyBudget: profile?.monthlyBudget ?? 0,
     });
-  }, [incomeSources, expenses, now]);
+  }, [incomeSources, expenses, now, profile?.monthlyBudget]);
 
   if (error) {
     return (

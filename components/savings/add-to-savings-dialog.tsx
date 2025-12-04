@@ -75,6 +75,7 @@ export function AddToSavingsDialog({
         tx.savings_contributions[crypto.randomUUID()]
           .update({
             amount,
+            date: now,
             contributionDate: now,
             notes: `Contribution to ${goal.name}`,
             createdAt: now,

@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
+import { id } from "@instantdb/react";
 import db from "@/lib/db";
 
 function randomHandle() {
@@ -14,8 +15,9 @@ function randomHandle() {
 }
 
 async function createProfile(userId: string) {
+  const profileId = id();
   await db.transact(
-    db.tx.profiles[userId]
+    db.tx.profiles[profileId]
       .update({
         handle: randomHandle(),
         monthlyBudget: 0,
@@ -31,6 +33,7 @@ export default function EnsureProfile({
   children: React.ReactNode;
 }) {
   const user = db.useUser();
+  const isCreatingRef = useRef(false);
 
   const { isLoading, data, error } = db.useQuery({
     profiles: {
@@ -41,8 +44,12 @@ export default function EnsureProfile({
   const profile = data?.profiles?.[0];
 
   useEffect(() => {
-    if (!isLoading && !profile) {
-      createProfile(user.id);
+    if (!isLoading && !profile && !isCreatingRef.current) {
+      isCreatingRef.current = true;
+      createProfile(user.id).catch((err) => {
+        console.error("Error creating profile:", err);
+        isCreatingRef.current = false;
+      });
     }
   }, [isLoading, profile, user.id]);
 

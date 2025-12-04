@@ -11,7 +11,7 @@ export interface CashFlowHealthData {
   totalIncome: number;              // Total income for current month
   totalExpenses: number;            // Total expenses for current month
   remainingBalance: number;         // Income - Expenses
-  dailyAllowance: number;           // Remaining balance / 30 days
+  dailyAllowance: number;           // Remaining balance / 30 days (budget or balance mode)
   healthStatus: 'healthy' | 'caution' | 'critical';  // Overall health
   disciplineIndicator: 'up' | 'down' | 'neutral';    // vs last month
   statusEmoji: string;              // Visual indicator
@@ -19,12 +19,15 @@ export interface CashFlowHealthData {
   percentageSpent: number;          // (Expenses / Income) * 100
   daysElapsed: number;              // Days passed in current month
   averageDailySpend: number;        // Total spent / days elapsed
+  monthlyBudget: number;            // Optional monthly budget (0 = balance mode)
+  budgetMode: 'balance' | 'budget'; // Balance mode (0 budget) or Budget mode (set budget)
 }
 
 interface CashFlowHealthInput {
   incomeSources: IncomeSource[];
   expenses: Expense[];
   currentDate?: Date;
+  monthlyBudget?: number;  // Optional: 0 = use total balance, >0 = use budget amount
 }
 
 /**
@@ -147,8 +150,21 @@ export function calculateCashFlowHealth(input: CashFlowHealthInput): CashFlowHea
   const totalExpenses = currentMonthExpenses.reduce((sum, e) => sum + e.amount, 0);
   const remainingBalance = totalIncome - totalExpenses;
 
-  // Calculate daily allowance (fixed 30 days as per user requirement)
-  const dailyAllowance = remainingBalance / 30;
+  // Determine budget mode and calculate daily allowance
+  const monthlyBudget = input.monthlyBudget ?? 0;
+  let dailyAllowance: number;
+  let budgetMode: 'balance' | 'budget';
+  
+  if (monthlyBudget > 0) {
+    // Budget mode: Calculate against set budget
+    budgetMode = 'budget';
+    const remainingBudget = monthlyBudget - totalExpenses;
+    dailyAllowance = remainingBudget / 30;
+  } else {
+    // Balance mode: Calculate against total remaining balance (default)
+    budgetMode = 'balance';
+    dailyAllowance = remainingBalance / 30;
+  }
 
   // Calculate average daily spend (based on actual days elapsed)
   const averageDailySpend = daysElapsed > 0 ? totalExpenses / daysElapsed : 0;
@@ -224,6 +240,8 @@ export function calculateCashFlowHealth(input: CashFlowHealthInput): CashFlowHea
     percentageSpent,
     daysElapsed,
     averageDailySpend,
+    monthlyBudget,
+    budgetMode,
   };
 }
 

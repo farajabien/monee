@@ -28,61 +28,58 @@ export function Step1Currency({
   const currencies = getAllCurrencies();
 
   return (
-    <div className={MOBILE_CONFIG.spacing.sectionGap}>
-      <Card className="border-2">
-        <CardHeader>
-          <div className="flex items-center gap-3">
-            <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-              <Globe className="h-6 w-6 text-primary" />
-            </div>
-            <div>
-              <CardTitle className={MOBILE_CONFIG.text.title}>
+    <div className="flex flex-col min-h-[calc(100vh-8rem)] px-4 py-6 space-y-6">
+      <Card className="border-2 shadow-sm">
+        <CardHeader className="space-y-4">
+          <div className="flex items-start gap-3">
+
+            <div className="flex-1 min-w-0">
+              <CardTitle className="text-lg sm:text-xl font-semibold leading-tight">
                 Choose Your Currency
               </CardTitle>
-              <p className={`${MOBILE_CONFIG.text.subtitle} text-muted-foreground mt-1`}>
+              <p className="text-sm text-muted-foreground mt-1.5 leading-relaxed">
                 This will be used for all your transactions
               </p>
             </div>
           </div>
         </CardHeader>
-        <CardContent className={MOBILE_CONFIG.spacing.betweenInputs}>
-          <div className="space-y-3">
-            <Label htmlFor="currency" className={MOBILE_CONFIG.text.label}>
+        <CardContent className="space-y-4">
+          <div className="space-y-2.5">
+            <Label htmlFor="currency" className="text-sm font-medium">
               Currency
             </Label>
             <Select value={selectedCurrency} onValueChange={onCurrencyChange}>
-              <SelectTrigger
-                id="currency"
-                className={`${MOBILE_CONFIG.input.text} ${MOBILE_CONFIG.touchTarget}`}
-              >
+              <SelectTrigger id="currency" className="h-12 text-base w-full">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="max-h-[300px]">
+              <SelectContent className="max-h-[280px] sm:max-h-[320px]">
                 {currencies.map((curr) => (
                   <SelectItem
                     key={curr.code}
                     value={curr.code}
-                    className={MOBILE_CONFIG.touchTarget}
+                    className="h-12 text-base cursor-pointer"
                   >
                     {curr.name} ({curr.symbol})
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            <p className={`${MOBILE_CONFIG.text.helper} text-muted-foreground`}>
+            <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
               You can change this later in settings
             </p>
           </div>
         </CardContent>
       </Card>
 
-      <Button
-        onClick={onNext}
-        size="lg"
-        className={`${MOBILE_CONFIG.button.full} ${MOBILE_CONFIG.touchTarget} w-full`}
-      >
-        Continue
-      </Button>
+      <div className="mt-auto pt-4">
+        <Button
+          onClick={onNext}
+          size="lg"
+          className="w-full h-12 text-base font-medium shadow-sm"
+        >
+          Continue
+        </Button>
+      </div>
     </div>
   );
 }

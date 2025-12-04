@@ -31,8 +31,8 @@ export default function OnboardingFlow() {
 
   // Step 3: Income
   const [incomeSources, setIncomeSources] = useState<
-    Array<{ name: string; amount: string }>
-  >([{ name: "", amount: "" }]);
+    Array<{ name: string; amount: string; frequency: string }>
+  >([{ name: "", amount: "", frequency: "monthly" }]);
 
   // Step 4: Goals
   const [savingsGoals, setSavingsGoals] = useState<
@@ -68,6 +68,7 @@ export default function OnboardingFlow() {
             db.tx.profiles[profileId]
               .update({
                 handle: user.email?.split("@")[0] || "user",
+                monthlyBudget: 0,
                 createdAt: Date.now(),
                 onboardingCompleted: false,
                 onboardingStep: "currency",
@@ -97,7 +98,9 @@ export default function OnboardingFlow() {
       <div className="flex min-h-screen items-center justify-center px-4">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto" />
-          <p className="mt-4 text-muted-foreground">Setting up your profile...</p>
+          <p className="mt-4 text-muted-foreground">
+            Setting up your profile...
+          </p>
         </div>
       </div>
     );
@@ -155,7 +158,9 @@ export default function OnboardingFlow() {
 
       const txs = categoriesToCreate.map((cat) => {
         const categoryId = id();
-        return db.tx.categories[categoryId].update(cat).link({ profile: profile.id });
+        return db.tx.categories[categoryId]
+          .update(cat)
+          .link({ profile: profile.id });
       });
 
       await db.transact(txs);
@@ -186,7 +191,7 @@ export default function OnboardingFlow() {
             .update({
               name: source.name,
               amount: parseFloat(source.amount),
-              frequency: "monthly",
+              frequency: source.frequency || "monthly",
               isActive: true,
               paydayDay: 1,
               createdAt: Date.now(),
@@ -210,7 +215,9 @@ export default function OnboardingFlow() {
 
     try {
       // Save savings goals
-      const validGoals = savingsGoals.filter((g) => g.name.trim() && g.targetAmount);
+      const validGoals = savingsGoals.filter(
+        (g) => g.name.trim() && g.targetAmount
+      );
       if (validGoals.length > 0) {
         const goalTxs = validGoals.map((goal) => {
           const goalId = id();
@@ -297,7 +304,9 @@ export default function OnboardingFlow() {
             customCategories={customCategories}
             onToggleCategory={(name) => {
               setSelectedCategories((prev) =>
-                prev.includes(name) ? prev.filter((c) => c !== name) : [...prev, name]
+                prev.includes(name)
+                  ? prev.filter((c) => c !== name)
+                  : [...prev, name]
               );
             }}
             onCategoryCreated={(categoryId, name, color) => {
@@ -319,7 +328,10 @@ export default function OnboardingFlow() {
               setIncomeSources(updated);
             }}
             onAddSource={() => {
-              setIncomeSources([...incomeSources, { name: "", amount: "" }]);
+              setIncomeSources([
+                ...incomeSources,
+                { name: "", amount: "", frequency: "monthly" },
+              ]);
             }}
             onRemoveSource={(index) => {
               setIncomeSources(incomeSources.filter((_, i) => i !== index));
@@ -340,7 +352,10 @@ export default function OnboardingFlow() {
               setSavingsGoals(updated);
             }}
             onAddGoal={() => {
-              setSavingsGoals([...savingsGoals, { name: "", targetAmount: "" }]);
+              setSavingsGoals([
+                ...savingsGoals,
+                { name: "", targetAmount: "" },
+              ]);
             }}
             onRemoveGoal={(index) => {
               setSavingsGoals(savingsGoals.filter((_, i) => i !== index));
