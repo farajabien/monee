@@ -20,6 +20,7 @@ export function parseMpesaMessage(message: string): ParsedExpenseData {
 
   // Pattern 1b: "TKJPNAJ1D1 Confirmed. Ksh200.00 sent to/paid to recipient on 19/11/25 at 6:32 PM. New M-PESA balance is Ksh87.48."
   // Handles both "sent to" and "paid to", optional period after recipient, optional space before "New M-PESA"
+  // Also extracts phone number: "sent to STEPHEN OTIENO 0729013950 on"
   const confirmedSentPattern =
     /[A-Z0-9]+\s+Confirmed\.\s+Ksh([\d,]+\.?\d*)\s+(?:sent to|paid to)\s+(.+?)\s*\.?\s+on\s+(\d{2}\/\d{2}\/\d{2,4})\s+at\s+(\d{1,2}:\d{2}\s+(?:AM|PM))\.?\s*(?:New M-PESA balance is Ksh\s+([\d,]+\.?\d*))?/i;
 
@@ -221,13 +222,35 @@ export function parseMpesaMessage(message: string): ParsedExpenseData {
     timestamp = Date.now();
   }
 
-  // Clean up recipient name
+  // Extract phone number from recipient string
+  // Pattern: "STEPHEN OTIENO 0729013950" or "NAME 0712345678"
+  let phoneNumber: string | undefined;
   if (recipient) {
+    const phoneMatch = recipient.match(/(\d{10})/);
+    if (phoneMatch) {
+      phoneNumber = phoneMatch[1];
+      // Remove phone number from recipient name
+      recipient = recipient.replace(/\s*\d{10}\s*/, '').trim();
+    }
+    
+    // Clean up recipient name
     recipient = recipient.trim();
     // Remove any trailing periods or special characters
     recipient = recipient.replace(/[.\s]+$/, "");
     if (recipient.length === 0) {
       recipient = undefined;
+    }
+  }
+
+  // Extract transaction cost
+  // Pattern: "Transaction cost, Ksh53.00" or "Transaction cost Ksh53.00"
+  let transactionCost: number | undefined;
+  const costMatch = trimmed.match(/Transaction cost,?\s*Ksh([\d,]+\.?\d*)/i);
+  if (costMatch) {
+    const costStr = costMatch[1].replace(/,/g, "");
+    const cost = parseFloat(costStr);
+    if (!isNaN(cost) && cost > 0) {
+      transactionCost = cost;
     }
   }
 
@@ -238,5 +261,7 @@ export function parseMpesaMessage(message: string): ParsedExpenseData {
     balance,
     timestamp,
     reference: mpesaReference || trimmed.substring(0, 100),
+    phoneNumber,
+    transactionCost,
   };
 }

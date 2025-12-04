@@ -134,4 +134,6 @@ export interface ParsedExpenseData {
   reference?: string;
   balance?: number;
   timestamp?: number;
+  phoneNumber?: string; // Extracted phone number from SMS (e.g., 0729013950)
+  transactionCost?: number; // Transaction fee charged by M-Pesa
 }
