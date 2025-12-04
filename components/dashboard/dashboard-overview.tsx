@@ -1,11 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import dynamic from "next/dynamic";
 import db from "@/lib/db";
 import { calculateCashRunway } from "@/lib/cash-runway-calculator";
 import { calculateCashFlowHealth } from "@/lib/cash-flow-health-calculator";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Carousel,
   CarouselContent,
@@ -13,8 +12,9 @@ import {
   CarouselPrevious,
   CarouselNext,
 } from "@/components/ui/carousel";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { TrendingUp, Wallet, AlertTriangle } from "lucide-react";
+import { MoneeDashboardMetric } from "@/components/custom/monee-cards";
+import { DollarSign, TrendingUp, PieChart, Target } from "lucide-react";
+import { useCurrency } from "@/hooks/use-currency";
 
 // Dynamically import heavy components to avoid chunk loading issues
 const DebtsAlertCard = dynamic(
@@ -51,7 +51,6 @@ const DashboardMetricsTabs = dynamic(
 
 export function DashboardOverview() {
   const user = db.useUser();
-  const [activeTab, setActiveTab] = useState("cash-flow");
 
   // Get current month boundaries
   const now = useMemo(() => new Date(), []);
@@ -116,6 +115,12 @@ export function DashboardOverview() {
   const incomeSources = profile?.incomeSources || [];
   const debts = profile?.debts || [];
   const savingsGoals = profile?.savingsGoals || [];
+
+  // Currency formatting
+  const { formatCurrencyCompact } = useCurrency(
+    profile?.currency,
+    profile?.locale
+  );
 
   // Flatten debt payments from all debts
   const debtPayments = debts.flatMap((debt) =>
@@ -210,6 +215,17 @@ export function DashboardOverview() {
     };
   }, [savingsGoals]);
 
+  // Calculate debts due this month
+  const debtsThisMonth = useMemo(() => {
+    return debtsData.reduce((sum, debt) => sum + debt.nextPaymentAmount, 0);
+  }, [debtsData]);
+
+  // Calculate savings progress percentage
+  const savingsProgress = useMemo(() => {
+    if (savingsData.totalTarget === 0) return 0;
+    return Math.round((savingsData.totalSaved / savingsData.totalTarget) * 100);
+  }, [savingsData]);
+
   // Cash runway calculation
   const cashRunwayData = useMemo(() => {
     // Require at least income sources to show cash runway
@@ -251,55 +267,100 @@ export function DashboardOverview() {
 
   return (
     <div className="space-y-6">
-      {/* Dashboard Cards Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="cash-flow" className="flex items-center gap-2">
-            <TrendingUp className="h-4 w-4" />
-            <span className="inline">Cash Flow</span>
-          </TabsTrigger>
-          <TabsTrigger value="debts" className="flex items-center gap-2">
-            <AlertTriangle className="h-4 w-4" />
-            <span className="inline">Debts</span>
-          </TabsTrigger>
-          <TabsTrigger value="savings" className="flex items-center gap-2">
-            <Wallet className="h-4 w-4" />
-            <span className="inline">Savings</span>
-          </TabsTrigger>
-        </TabsList>
+      {/* Dashboard Metrics Grid (2x2 on mobile, 4 columns on desktop) */}
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+        <MoneeDashboardMetric
+          icon={DollarSign}
+          label="Total Spent"
+          value={formatCurrencyCompact(totalExpenses)}
+          color="primary"
+        />
+        <MoneeDashboardMetric
+          icon={TrendingUp}
+          label="Total Income"
+          value={formatCurrencyCompact(totalIncome)}
+          color="accent"
+        />
+        <MoneeDashboardMetric
+          icon={PieChart}
+          label="Debts Due"
+          value={formatCurrencyCompact(debtsThisMonth)}
+          color="secondary"
+        />
+        <MoneeDashboardMetric
+          icon={Target}
+          label="Savings Progress"
+          value={`${savingsProgress}%`}
+          color="accent"
+        />
+      </div>
 
-        <TabsContent value="cash-flow" className="mt-4">
-          <CashFlowHealthCard
-            healthData={cashFlowHealthData}
-            isLoading={isLoading}
-            userCurrency={profile?.currency}
-            userLocale={profile?.locale}
-          />
-        </TabsContent>
+      {/* Dashboard Cards - Responsive: Carousel (mobile) / Grid (desktop) */}
+      {/* Mobile: Carousel */}
+      <div className="block lg:hidden">
+        <Carousel className="w-full" opts={{ align: "start", loop: true }}>
+          <CarouselContent>
+            <CarouselItem>
+              <CashFlowHealthCard
+                healthData={cashFlowHealthData}
+                isLoading={isLoading}
+                userCurrency={profile?.currency}
+                userLocale={profile?.locale}
+              />
+            </CarouselItem>
+            <CarouselItem>
+              <DebtsAlertCard
+                debts={debtsData}
+                isLoading={isLoading}
+                userCurrency={profile?.currency}
+                userLocale={profile?.locale}
+              />
+            </CarouselItem>
+            <CarouselItem>
+              <SavingsProgressCard
+                monthlySavings={savingsData.monthlySavings}
+                totalSaved={savingsData.totalSaved}
+                totalTarget={savingsData.totalTarget}
+                goalsCount={savingsData.goalsCount}
+                isLoading={isLoading}
+                userCurrency={profile?.currency}
+                userLocale={profile?.locale}
+              />
+            </CarouselItem>
+          </CarouselContent>
+          <div className="flex justify-center gap-4 mt-4">
+            <CarouselPrevious />
+            <CarouselNext />
+          </div>
+        </Carousel>
+      </div>
 
-        <TabsContent value="debts" className="mt-4">
-          <DebtsAlertCard
-            debts={debtsData}
-            isLoading={isLoading}
-            userCurrency={profile?.currency}
-            userLocale={profile?.locale}
-          />
-        </TabsContent>
+      {/* Desktop: Grid Layout */}
+      <div className="hidden lg:grid lg:grid-cols-3 gap-6">
+        <CashFlowHealthCard
+          healthData={cashFlowHealthData}
+          isLoading={isLoading}
+          userCurrency={profile?.currency}
+          userLocale={profile?.locale}
+        />
+        <DebtsAlertCard
+          debts={debtsData}
+          isLoading={isLoading}
+          userCurrency={profile?.currency}
+          userLocale={profile?.locale}
+        />
+        <SavingsProgressCard
+          monthlySavings={savingsData.monthlySavings}
+          totalSaved={savingsData.totalSaved}
+          totalTarget={savingsData.totalTarget}
+          goalsCount={savingsData.goalsCount}
+          isLoading={isLoading}
+          userCurrency={profile?.currency}
+          userLocale={profile?.locale}
+        />
+      </div>
 
-        <TabsContent value="savings" className="mt-4">
-          <SavingsProgressCard
-            monthlySavings={savingsData.monthlySavings}
-            totalSaved={savingsData.totalSaved}
-            totalTarget={savingsData.totalTarget}
-            goalsCount={savingsData.goalsCount}
-            isLoading={isLoading}
-            userCurrency={profile?.currency}
-            userLocale={profile?.locale}
-          />
-        </TabsContent>
-      </Tabs>
-
-      {/* Metrics Insights Tabs */}
+      {/* Metrics Insights Sections */}
       <DashboardMetricsTabs
         expenses={expenses}
         debts={debts}

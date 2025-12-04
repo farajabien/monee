@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import Link from "next/link";
 import db from "@/lib/db";
 
 import CategoryList from "@/components/categories/category-list";
@@ -18,9 +19,7 @@ import { UnifiedAddModal } from "@/components/quick-add/unified-add-modal";
 export default function HomeClient() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const tabFromUrl = searchParams.get("tab") || "overview";
-  const activeTab = tabFromUrl;
-  const [showAddModal, setShowAddModal] = useState(false);
+  const activeTab = searchParams.get("tab") || "overview";
 
   const { isLoading, error, data } = db.useQuery({ profiles: {} });
 
@@ -50,37 +49,62 @@ export default function HomeClient() {
     );
   }
 
-  return (
-    <div className="mx-auto max-w-md p-3 sm:p-4 md:p-6 pb-20 md:pb-0">
-      {activeTab === "overview" && (
-        <div className="space-y-6">
-          <DashboardOverview />
-        </div>
-      )}
-      {activeTab === "income" && <IncomeSourceList />}
-      {activeTab === "expenses" && <ExpenseList />}
-      {activeTab === "debts" && <DebtList />}
-      {activeTab === "savings" && <SavingsPage />}
-      {activeTab === "categories" && <CategoryList />}
+  // Tab configuration
+  const tabs = [
+    { value: "overview", label: "Overview" },
+    { value: "expenses", label: "Expenses" },
+    { value: "income", label: "Income" },
+    { value: "more", label: "More" },
+  ];
 
-      {/* Unified Add Modal */}
-      <UnifiedAddModal
-        open={showAddModal}
-        onOpenChange={setShowAddModal}
-        defaultTab={
-          activeTab === "expenses"
-            ? "expense"
-            : activeTab === "income"
-            ? "income"
-            : activeTab === "debts"
-            ? "debt"
-            : activeTab === "savings"
-            ? "savings"
-            : "expense"
-        }
-      />
+  return (
+    <>
+      {/* Header */}
+      <div className="bg-gradient-to-b from-primary/5 to-transparent border-b border-border">
+        <div className="w-full max-w-2xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
+          <h1 className="text-2xl sm:text-3xl font-bold">MONEE</h1>
+          <p className="text-sm text-muted-foreground">Your money, finally in one place</p>
+        </div>
+      </div>
+
+      {/* Sticky Tab Navigation */}
+      <div className="border-b border-border sticky top-0 bg-background/95 backdrop-blur-sm z-10">
+        <div className="w-full max-w-2xl mx-auto">
+          <div className="grid grid-cols-4 h-auto">
+            {tabs.map((tab) => (
+              <Link
+                key={tab.value}
+                href={`/dashboard?tab=${tab.value}`}
+                className={
+                  `flex items-center justify-center py-3 text-xs sm:text-sm font-medium ` +
+                  `border-b-2 transition-colors ` +
+                  (activeTab === tab.value
+                    ? "border-primary text-primary"
+                    : "border-transparent text-muted-foreground hover:text-foreground")
+                }
+              >
+                {tab.label}
+              </Link>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="w-full max-w-2xl mx-auto px-4 sm:px-6 py-6 pb-20">
+        {activeTab === "overview" && <DashboardOverview />}
+        {activeTab === "expenses" && <ExpenseList />}
+        {activeTab === "income" && <IncomeSourceList />}
+        {activeTab === "more" && (
+          <div className="space-y-8">
+            <DebtList />
+            <SavingsPage />
+            <CategoryList />
+          </div>
+        )}
+      </div>
 
       <PWABottomNav />
-    </div>
+    </>
   );
 }
