@@ -69,7 +69,7 @@ export default function ExpenseList() {
         },
       },
       recipients: {},
-      recurring_transactions: {},
+      recurringTransactions: {},
     },
   });
 
@@ -80,8 +80,8 @@ export default function ExpenseList() {
     [profile?.recipients]
   );
   const recurringTransactions = useMemo(
-    () => profile?.recurring_transactions || [],
-    [profile?.recurring_transactions]
+    () => profile?.recurringTransactions || [],
+    [profile?.recurringTransactions]
   );
 
   const { formatCurrency } = useCurrency(profile?.currency, profile?.locale);
