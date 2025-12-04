@@ -43,6 +43,42 @@ export const MOBILE_CONFIG = {
   },
 };
 
+/**
+ * Mobile-First Configuration for Lists and Metrics
+ * Optimized for compact display with all essential information
+ */
+export const MOBILE_LIST_CONFIG = {
+  // Metric card grids - mobile-first responsive
+  metricGrid: 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-3',
+  metricCard: 'bg-card rounded-lg border p-3 sm:p-4',
+  metricLabel: 'text-xs text-muted-foreground mb-1',
+  metricValue: 'text-xl sm:text-2xl font-bold',
+  metricHelper: 'text-xs text-muted-foreground mt-1',
+  metricIcon: 'h-5 w-5 sm:h-4 sm:w-4',
+  
+  // Compact metric cards - icon above value on mobile
+  compactMetric: {
+    container: 'flex flex-col items-center text-center sm:items-start sm:text-left',
+    iconWrapper: 'mb-2 sm:mb-0 sm:mr-2',
+    labelValue: 'space-y-1',
+  },
+  
+  // List item styling
+  listItem: 'p-3 gap-3 rounded-lg border',
+  listBadge: 'text-xs px-2 py-0.5',
+  listIcon: 'h-4 w-4',
+  
+  // Card component overrides for compact layouts
+  card: {
+    compact: 'gap-3 py-3',
+    cardHeader: 'px-4 pb-2',
+    cardContent: 'px-4',
+  },
+  
+  // Responsive tab lists
+  tabsList: 'grid w-full grid-cols-[repeat(auto-fit,minmax(90px,1fr))]',
+};
+
 export const STEP_CONFIG = {
   // Simplified 4-step flow
   steps: [

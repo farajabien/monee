@@ -7,7 +7,8 @@ import { calculateCashRunway } from "@/lib/cash-runway-calculator";
 import { calculateCashFlowHealth } from "@/lib/cash-flow-health-calculator";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, TrendingUp, CreditCard, PiggyBank } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 // Dynamically import heavy components to avoid chunk loading issues
@@ -244,23 +245,32 @@ export function DashboardOverview() {
 
   return (
     <div className="space-y-6">
-      {/* Dashboard Cards as Tabs */}
-      <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 mb-4">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="debts">Debts</TabsTrigger>
-          <TabsTrigger value="savings">Savings</TabsTrigger>
+      {/* Dashboard Cards in Tabs */}
+      <Tabs defaultValue="cashflow" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="cashflow">
+            <TrendingUp className="h-4 w-4 mr-2" />
+            Cash Flow
+          </TabsTrigger>
+          <TabsTrigger value="debts">
+            <CreditCard className="h-4 w-4 mr-2" />
+            Debts
+          </TabsTrigger>
+          <TabsTrigger value="savings">
+            <PiggyBank className="h-4 w-4 mr-2" />
+            Savings
+          </TabsTrigger>
         </TabsList>
-        <TabsContent value="overview">
-          <div className="space-y-4">
-            <CashFlowHealthCard
-              healthData={cashFlowHealthData}
-              isLoading={isLoading}
-              userCurrency={profile?.currency}
-              userLocale={profile?.locale}
-            />
-          </div>
+
+        <TabsContent value="cashflow">
+          <CashFlowHealthCard
+            healthData={cashFlowHealthData}
+            isLoading={isLoading}
+            userCurrency={profile?.currency}
+            userLocale={profile?.locale}
+          />
         </TabsContent>
+
         <TabsContent value="debts">
           <DebtsAlertCard
             debts={debtsData}
@@ -269,6 +279,7 @@ export function DashboardOverview() {
             userLocale={profile?.locale}
           />
         </TabsContent>
+
         <TabsContent value="savings">
           <SavingsProgressCard
             monthlySavings={savingsData.monthlySavings}

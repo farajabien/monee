@@ -97,7 +97,7 @@ export const createIncomeSourceListConfig = (
   // Rendering Functions
   renderListItem: (item: IncomeSourceWithUser, index: number, actions) => {
     return (
-      <div key={item.id} className="flex items-center justify-between p-4 border rounded-lg">
+      <div key={item.id} className="flex items-center justify-between p-3 border rounded-lg">
         <div className="flex items-center gap-3 flex-1">
           <Badge variant="outline" className="text-xs">
             #{index + 1}

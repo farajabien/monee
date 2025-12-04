@@ -56,9 +56,9 @@ export function DataViewControls({
 
   return (
     <div className="space-y-2">
-      <div className="flex flex-row gap-2 overflow-x-auto pb-1">
+      <div className="flex flex-wrap gap-2">
         {/* Search */}
-        <div className="relative flex-1 min-w-[200px]">
+        <div className="relative flex-1 min-w-[140px] max-w-full sm:min-w-[200px]">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder={searchPlaceholder}
@@ -70,7 +70,7 @@ export function DataViewControls({
 
         {/* Sort */}
         <Select value={sortValue} onValueChange={onSortChange}>
-          <SelectTrigger className="w-[180px] flex-shrink-0">
+          <SelectTrigger className="w-[140px] sm:w-[160px]">
             <SelectValue placeholder="Sort by..." />
           </SelectTrigger>
           <SelectContent>
@@ -85,7 +85,7 @@ export function DataViewControls({
         {/* Basic Filter */}
         {filterOptions && onFilterChange && (
           <Select value={filterValue || "all"} onValueChange={onFilterChange}>
-            <SelectTrigger className="w-[150px] flex-shrink-0">
+            <SelectTrigger className="w-[120px] sm:w-[140px]">
               <SelectValue placeholder={filterLabel} />
             </SelectTrigger>
             <SelectContent>
@@ -102,7 +102,7 @@ export function DataViewControls({
         {hasAdvancedFilters && (
           <Popover>
             <PopoverTrigger asChild>
-              <Button variant="outline" size="icon">
+              <Button variant="outline" size="icon" className="shrink-0">
                 <SlidersHorizontal className="h-4 w-4" />
               </Button>
             </PopoverTrigger>
@@ -117,7 +117,7 @@ export function DataViewControls({
 
         {/* View Mode Toggle */}
         {viewMode && onViewModeChange && (
-          <div className="flex gap-1 border rounded-md p-1">
+          <div className="flex gap-1 border rounded-md p-1 shrink-0">
             {availableViews && availableViews.includes("list") && (
               <Button
                 variant={viewMode === "list" ? "secondary" : "ghost"}

@@ -96,7 +96,7 @@ export function StandardGridCard({
           <div className="flex items-center justify-between mb-2">
             <Badge
               variant={badge.variant || "outline"}
-              className={badge.className || "text-[10px] px-1.5 py-0"}
+              className={badge.className || "text-xs px-1.5 py-0.5"}
             >
               {badge.label}
             </Badge>

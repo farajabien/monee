@@ -20,7 +20,7 @@ import {
   CartesianGrid,
   ResponsiveContainer,
 } from "recharts";
-import { CreditCard, ChevronLeft } from "lucide-react";
+import { CreditCard, ChevronLeft, TrendingDown, CheckCircle2, Calendar } from "lucide-react";
 import db from "@/lib/db";
 import { useCurrency } from "@/hooks/use-currency";
 import { CategoryBreakdown } from "@/components/charts/category-breakdown";
@@ -308,53 +308,41 @@ export function DebtAnalytics({ onBack }: DebtAnalyticsProps) {
       </Tabs>
 
       {analyticsView === "overview" && (
-        <div className="grid grid-cols-2 gap-3">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-xs font-medium text-muted-foreground">
-                Remaining Debt
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-xl font-bold">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="bg-card rounded-lg border p-3">
+            <div className="flex flex-col items-center text-center">
+              <TrendingDown className="h-5 w-5 text-destructive mb-2" />
+              <p className="text-xs text-muted-foreground mb-1">Remaining</p>
+              <p className="text-lg font-bold leading-tight">
                 {formatCurrency(remainingDebt)}
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-xs font-medium text-muted-foreground">
-                Total Paid
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-xl font-bold">
+              </p>
+            </div>
+          </div>
+          <div className="bg-card rounded-lg border p-3">
+            <div className="flex flex-col items-center text-center">
+              <CheckCircle2 className="h-5 w-5 text-green-600 mb-2" />
+              <p className="text-xs text-muted-foreground mb-1">Paid</p>
+              <p className="text-lg font-bold leading-tight">
                 {formatCurrency(totalPaid)}
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-xs font-medium text-muted-foreground">
-                Avg Monthly
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-xl font-bold">
+              </p>
+            </div>
+          </div>
+          <div className="bg-card rounded-lg border p-3">
+            <div className="flex flex-col items-center text-center">
+              <Calendar className="h-5 w-5 text-muted-foreground mb-2" />
+              <p className="text-xs text-muted-foreground mb-1">Avg Mo.</p>
+              <p className="text-lg font-bold leading-tight">
                 {formatCurrency(avgMonthlyPayment)}
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-xs font-medium text-muted-foreground">
-                Active Debts
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-xl font-bold">{debts.length}</div>
-            </CardContent>
-          </Card>
+              </p>
+            </div>
+          </div>
+          <div className="bg-card rounded-lg border p-3">
+            <div className="flex flex-col items-center text-center">
+              <CreditCard className="h-5 w-5 text-primary mb-2" />
+              <p className="text-xs text-muted-foreground mb-1">Active</p>
+              <p className="text-lg font-bold leading-tight">{debts.length}</p>
+            </div>
+          </div>
         </div>
       )}
 

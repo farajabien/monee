@@ -220,52 +220,52 @@ export function IncomeAnalytics() {
 
   return (
     <div className="space-y-6">
-      {/* Summary Metrics - Horizontal Grid */}
-      <div className="grid grid-cols-3 gap-2 sm:gap-4">
-        <div className="bg-card rounded-lg border p-3 sm:p-4">
-          <div className="flex items-center justify-between mb-1">
-            <p className="text-xs text-muted-foreground">Monthly Income</p>
-            <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-green-600" />
+      {/* Summary Metrics - Mobile-First Grid */}
+      <div className="grid grid-cols-3 gap-3 sm:gap-4">
+        <div className="bg-card rounded-lg border p-3">
+          <div className="flex flex-col items-center text-center">
+            <TrendingUp className="h-5 w-5 text-green-600 mb-2" />
+            <p className="text-xs text-muted-foreground mb-1">Monthly</p>
+            <p className="text-lg font-bold leading-tight">
+              KSh {(totalMonthlyIncome / 1000).toFixed(1)}K
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              {incomeSources.length} source{incomeSources.length !== 1 ? "s" : ""}
+            </p>
           </div>
-          <p className="text-base sm:text-xl font-bold">
-            KSh {(totalMonthlyIncome / 1000).toFixed(0)}k
-          </p>
-          <p className="text-[10px] sm:text-xs text-muted-foreground">
-            {incomeSources.length} source{incomeSources.length !== 1 ? "s" : ""}
-          </p>
         </div>
 
-        <div className="bg-card rounded-lg border p-3 sm:p-4">
-          <div className="flex items-center justify-between mb-1">
-            <p className="text-xs text-muted-foreground">Next Payday</p>
-            <Calendar className="h-3 w-3 sm:h-4 sm:w-4 text-primary" />
+        <div className="bg-card rounded-lg border p-3">
+          <div className="flex flex-col items-center text-center">
+            <Calendar className="h-5 w-5 text-primary mb-2" />
+            <p className="text-xs text-muted-foreground mb-1">Payday</p>
+            <p className="text-lg font-bold leading-tight">
+              {nextPayday
+                ? nextPayday.toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                  })
+                : "Not set"}
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              {daysUntilPayday !== null
+                ? `${daysUntilPayday} day${daysUntilPayday !== 1 ? "s" : ""}`
+                : "Add payday"}
+            </p>
           </div>
-          <p className="text-base sm:text-xl font-bold">
-            {nextPayday
-              ? nextPayday.toLocaleDateString("en-US", {
-                  month: "short",
-                  day: "numeric",
-                })
-              : "Not set"}
-          </p>
-          <p className="text-[10px] sm:text-xs text-muted-foreground">
-            {daysUntilPayday !== null
-              ? `${daysUntilPayday} day${daysUntilPayday !== 1 ? "s" : ""}`
-              : "Add payday"}
-          </p>
         </div>
 
-        <div className="bg-card rounded-lg border p-3 sm:p-4">
-          <div className="flex items-center justify-between mb-1">
-            <p className="text-xs text-muted-foreground">Daily Average</p>
-            <DollarSign className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
+        <div className="bg-card rounded-lg border p-3">
+          <div className="flex flex-col items-center text-center">
+            <DollarSign className="h-5 w-5 text-muted-foreground mb-2" />
+            <p className="text-xs text-muted-foreground mb-1">Daily Avg</p>
+            <p className="text-lg font-bold leading-tight">
+              KSh {(Math.round(totalMonthlyIncome / 30) / 1000).toFixed(1)}K
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Per day
+            </p>
           </div>
-          <p className="text-base sm:text-xl font-bold">
-            KSh {(Math.round(totalMonthlyIncome / 30) / 1000).toFixed(1)}k
-          </p>
-          <p className="text-[10px] sm:text-xs text-muted-foreground">
-            Per day estimate
-          </p>
         </div>
       </div>
 

@@ -6,9 +6,19 @@
 
 import type { ListConfig, FilterConfig } from "@/types/list-config";
 import type { DebtWithUser } from "@/types";
+import { TrendingDown, Clock, Calendar, Percent, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { UnifiedItemCard } from "@/components/ui/unified-item-card";
 import { Badge } from "@/components/ui/badge";
-import { TrendingDown, Clock } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ColumnDef } from "@tanstack/react-table";
 import db from "@/lib/db";
+import { formatCurrency } from "@/lib/currency-utils";
 
 const formatCompactAmount = (amount: number) => {
   if (amount >= 1000000) return `💰${(amount / 1000000).toFixed(1)}M`;
@@ -187,8 +197,112 @@ export const createDebtListConfig = (
   },
 
   // Views
-  availableViews: ["list"],
+  availableViews: ["list", "table"],
   defaultView: "list",
+
+  // Table columns
+  tableColumns: [
+    {
+      accessorKey: "name",
+      header: "Debt Name",
+      cell: ({ row }) => {
+        return <div className="font-medium">{row.original.name}</div>;
+      },
+    },
+    {
+      accessorKey: "debtType",
+      header: "Type",
+      cell: ({ row }) => {
+        const type = row.original.debtType || "one-time";
+        const icon = type === "credit-card" ? "💳" : type === "loan" ? "📈" : "🏦";
+        return (
+          <Badge variant="outline" className="text-xs">
+            {icon} {type.replace("-", " ")}
+          </Badge>
+        );
+      },
+    },
+    {
+      accessorKey: "currentBalance",
+      header: () => <div className="text-right">Balance</div>,
+      cell: ({ row }) => {
+        return (
+          <div className="text-right font-semibold text-red-600 dark:text-red-400">
+            {formatCompactAmount(row.original.currentBalance)}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "monthlyPaymentAmount",
+      header: () => <div className="text-right">Monthly Payment</div>,
+      cell: ({ row }) => {
+        return (
+          <div className="text-right text-sm">
+            {formatCompactAmount(row.original.monthlyPaymentAmount || 0)}
+          </div>
+        );
+      },
+    },
+    {
+      id: "progress",
+      header: "Progress",
+      cell: ({ row }) => {
+        const progress = calculateProgress(row.original);
+        return (
+          <div className="flex items-center gap-2">
+            <div className="w-20 h-2 bg-muted rounded-full overflow-hidden">
+              <div
+                className="h-full bg-green-600"
+                style={{ width: `${Math.min(progress, 100)}%` }}
+              />
+            </div>
+            <span className="text-xs text-muted-foreground">
+              {progress.toFixed(0)}%
+            </span>
+          </div>
+        );
+      },
+    },
+    {
+      id: "actions",
+      cell: ({ row, table }) => {
+        const debt = row.original;
+        const meta = table.options.meta as {
+          onEdit?: (item: DebtWithUser) => void;
+          onDelete?: (id: string) => void;
+        };
+
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Open menu</span>
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {meta?.onEdit && (
+                <DropdownMenuItem onClick={() => meta.onEdit!(debt)}>
+                  <Pencil className="h-4 w-4 mr-2" />
+                  Edit
+                </DropdownMenuItem>
+              )}
+              {meta?.onDelete && (
+                <DropdownMenuItem
+                  onClick={() => meta.onDelete!(debt.id)}
+                  className="text-destructive"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
+      },
+    },
+  ] as ColumnDef<DebtWithUser>[],
 
   // Rendering Functions
   renderListItem: (item: DebtWithUser, index: number, actions) => {
@@ -199,175 +313,89 @@ export const createDebtListConfig = (
     const paymentDisplay = getPaymentDisplay(item);
     const dueDateDisplay = getDueDateDisplay(item);
 
-    // Debt type badge configuration
-    const getDebtTypeBadge = () => {
+    // Debt type configuration
+    const getDebtTypeInfo = () => {
       switch (debtType) {
         case "one-time":
-          return { label: "No Interest", className: "bg-gray-500", icon: "💳" };
+          return { label: "No Interest", icon: "💳" };
         case "interest-push":
-          return { label: "Interest-Push", className: "bg-orange-500", icon: "📈" };
+          return { label: "Interest-Push", icon: "📈" };
         case "amortizing":
-          return { label: "Amortizing", className: "bg-blue-500", icon: "🏦" };
+          return { label: "Amortizing", icon: "🏦" };
         default:
-          return { label: "One-Time", className: "bg-gray-500", icon: "💳" };
+          return { label: "One-Time", icon: "💳" };
       }
     };
 
-    const debtTypeBadge = getDebtTypeBadge();
+    const debtTypeInfo = getDebtTypeInfo();
+
+    // Build badges array
+    const badges = [
+      { label: `${debtTypeInfo.icon} ${debtTypeInfo.label}`, variant: "secondary" as const },
+      {
+        label: `${formatCompactAmount(paymentDisplay.amount)}${paymentDisplay.isMonthly ? "/mo" : ""}`,
+        icon: "📅",
+        variant: "outline" as const,
+      },
+    ];
+
+    if (item.interestRate && item.interestRate > 0) {
+      badges.push({ label: `${item.interestRate}% APR`, icon: "📊", variant: "outline" as const });
+    }
+
+    if (isPaidOff) {
+      badges.push({ label: "✓ Paid Off", icon: "✅", variant: "outline" as const });
+    }
+
+    // Build metadata
+    const metadata = [];
+    if (dueDateDisplay) {
+      metadata.push({
+        icon: <Calendar className="h-3.5 w-3.5" />,
+        text: `${dueDateDisplay.label}: ${dueDateDisplay.text}`,
+      });
+    }
+    if (payoffMonths && !isPaidOff && debtType !== "one-time") {
+      metadata.push({
+        icon: <Clock className="h-3.5 w-3.5" />,
+        text: `${payoffMonths}mo left`,
+      });
+    }
+    metadata.push({
+      icon: <Percent className="h-3.5 w-3.5" />,
+      text: `${progress.toFixed(0)}% paid`,
+    });
 
     return (
-      <div
+      <UnifiedItemCard
         key={item.id}
-        className="flex items-center justify-between p-3 border rounded-lg"
-      >
-        <div className="flex items-center gap-2 flex-1">
-          {/* Index badge */}
-          <Badge variant="outline" className="text-[10px] px-1.5 py-0">
-            #{index + 1}
-          </Badge>
-
-          <div className="flex-1 space-y-0.5">
-            {/* Main line: Amount first, then name + other badges */}
-            <div className="flex flex-wrap items-center gap-1.5">
-              {/* Compact balance - SHOWN FIRST */}
-              <Badge
-                variant="default"
-                className="text-xs px-2 py-0.5 font-bold bg-primary"
-              >
-                {formatCompactAmount(item.currentBalance)}
-              </Badge>
-
-              <span className="font-semibold text-sm">{item.name}</span>
-
-              {/* Debt Type Badge */}
-              <Badge
-                variant="default"
-                className={`text-[10px] px-1.5 py-0 ${debtTypeBadge.className}`}
-              >
-                {debtTypeBadge.icon} {debtTypeBadge.label}
-              </Badge>
-
-              {/* Payment amount - varies by debt type */}
-              <Badge variant="outline" className="text-[10px] px-1.5 py-0">
-                📅 {formatCompactAmount(paymentDisplay.amount)}{paymentDisplay.isMonthly ? "/mo" : ""}
-              </Badge>
-
-              {/* APR badge (if exists) */}
-              {item.interestRate && item.interestRate > 0 && (
-                <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
-                  {item.interestRate}% APR
-                </Badge>
-              )}
-
-              {/* Compounding frequency (for interest debts) */}
-              {item.compoundingFrequency && debtType !== "one-time" && (
-                <Badge variant="outline" className="text-[10px] px-1.5 py-0">
-                  {item.compoundingFrequency}
-                </Badge>
-              )}
-
-              {/* Paid off badge */}
-              {isPaidOff && (
-                <Badge
-                  variant="default"
-                  className="bg-green-500 text-[10px] px-1.5 py-0"
-                >
-                  ✓ Paid
-                </Badge>
-              )}
-            </div>
-
-            {/* Metadata line: due date + progress */}
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              {dueDateDisplay && (
-                <span>{dueDateDisplay.label}: {dueDateDisplay.text}</span>
-              )}
-
-              {payoffMonths && !isPaidOff && debtType !== "one-time" && (
-                <>
-                  <span>•</span>
-                  <span>{payoffMonths}mo left</span>
-                </>
-              )}
-
-              {(dueDateDisplay || (payoffMonths && !isPaidOff && debtType !== "one-time")) && <span>•</span>}
-              <span>{progress.toFixed(0)}% paid</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Action buttons */}
-        <div className="flex gap-1">
-          {!isPaidOff && actions.customActions && actions.customActions[0] && (
-            <button
-              onClick={() => actions.customActions![0].onClick(item)}
-              className="p-2 hover:bg-accent rounded bg-green-50 dark:bg-green-950 text-green-600 dark:text-green-400"
-              aria-label="Pay"
-              title="Record Payment"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M9 11l3 3L22 4" />
-                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
-              </svg>
-            </button>
-          )}
-          {actions.onEdit && (
-            <button
-              onClick={actions.onEdit}
-              className="p-2 hover:bg-accent rounded"
-              aria-label="Edit"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
-                <path d="m15 5 4 4" />
-              </svg>
-            </button>
-          )}
-          {actions.onDelete && (
-            <button
-              onClick={actions.onDelete}
-              className="p-2 hover:bg-destructive/10 text-destructive rounded"
-              aria-label="Delete"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M3 6h18" />
-                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
-                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
-              </svg>
-            </button>
-          )}
-        </div>
-      </div>
+        index={index}
+        primaryBadge={{
+          value: formatCompactAmount(item.currentBalance),
+          variant: "default",
+          className: "text-xs px-2 py-0.5 font-semibold bg-green-600 text-white",
+        }}
+        title={item.name}
+        badges={badges}
+        metadata={metadata}
+        progress={{
+          value: progress,
+          label: `${formatCompactAmount(item.totalAmount - item.currentBalance)} paid`,
+          secondaryLabel: `${formatCompactAmount(item.currentBalance)} remaining`,
+          color: "#16a34a", // green-600
+        }}
+        actions={{
+          onEdit: actions.onEdit,
+          onDelete: actions.onDelete,
+          onPrimaryAction: !isPaidOff && actions.customActions?.[0]
+            ? {
+                label: "Record Payment",
+                onClick: () => actions.customActions![0].onClick(item),
+                variant: "success",
+              }
+            : undefined,
+        }}
+      />
     );
   },
 

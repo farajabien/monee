@@ -1,11 +1,12 @@
 "use client";
 
 import { Item, ItemContent } from "@/components/ui/item";
-import { AlertCircle, ArrowRight } from "lucide-react";
+import { AlertCircle, ArrowRight, Wallet } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useMemo } from "react";
 import { useCurrency } from "@/hooks/use-currency";
+import { getExpenseColor } from "@/lib/dashboard-colors";
 
 interface DebtInfo {
   id: string;
@@ -92,58 +93,59 @@ export function DebtsAlertCard({
   const daysUntilPayment = nextPayment
     ? getDaysUntil(nextPayment.nextPaymentDate)
     : null;
-  const isUrgent = daysUntilPayment !== null && daysUntilPayment <= 7;
 
-  const itemClass = isUrgent
-    ? "border-0 bg-orange-50/50 dark:bg-orange-950/20"
-    : "border-0";
+  const expenseColorClass = getExpenseColor();
 
   return (
-    <Item variant="outline" className={`h-full ${itemClass}`}>
-      <ItemContent className="space-y-4 w-full">
-        {/* Next Payment Due */}
-        <div className="space-y-2">
-          <div className="text-xs text-muted-foreground">Next Payment</div>
-          <div className="space-y-1">
-            <div className="text-xl font-bold text-orange-600 dark:text-orange-400">
+    <Item variant="outline" className="h-full border-0">
+      <ItemContent className="space-y-5 w-full">
+        {/* Total Owed, Next Payment, Due Date - Grid of 3 */}
+        <div className="grid grid-cols-3 gap-4">
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <Wallet className="h-3.5 w-3.5" />
+              <span>Total Owed</span>
+            </div>
+            <div className={`text-base font-bold tabular-nums ${expenseColorClass}`}>
+              {formatAmount(totalOwed)}
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <AlertCircle className="h-3.5 w-3.5" />
+              <span>Next Payment</span>
+            </div>
+            <div className="text-base font-bold tabular-nums">
               {formatAmount(nextPayment?.nextPaymentAmount ?? 0)}
             </div>
-            <div className="text-sm">
-              <span className="text-muted-foreground">Due:</span>{" "}
-              <span className="font-medium">
-                {formatDate(nextPayment?.nextPaymentDate ?? 0)}
-              </span>
+          </div>
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <ArrowRight className="h-3.5 w-3.5" />
+              <span>Due Date</span>
             </div>
-            {daysUntilPayment !== null && (
-              <div className="text-xs text-muted-foreground">
-                {daysUntilPayment === 0
-                  ? "Due today!"
-                  : daysUntilPayment === 1
-                  ? "Due tomorrow"
-                  : `${daysUntilPayment} days away`}
-              </div>
-            )}
+            <div className="text-sm font-semibold leading-tight">
+              {nextPayment ? formatDate(nextPayment.nextPaymentDate) : "—"}
+            </div>
           </div>
         </div>
 
-        {/* Total Owed */}
-        <div className="space-y-1">
-          <div className="text-xs text-muted-foreground">Total Owed</div>
-          <div className="text-lg font-semibold">
-            {formatAmount(totalOwed ?? 0)}
-          </div>
-          <div className="text-xs text-muted-foreground">
-            Across {debts.length} debt{debts.length !== 1 ? "s" : ""}
-          </div>
+        {/* Additional Context */}
+        <div className="text-sm text-muted-foreground">
+          {daysUntilPayment !== null ? (
+            <>
+              {daysUntilPayment === 0
+                ? "⚠️ Payment due today!"
+                : daysUntilPayment === 1
+                ? "⚠️ Payment due tomorrow"
+                : daysUntilPayment <= 7
+                ? `⚠️ Payment due in ${daysUntilPayment} days`
+                : `Next payment in ${daysUntilPayment} days`}
+            </>
+          ) : (
+            `Tracking ${debts.length} debt${debts.length !== 1 ? "s" : ""}`
+          )}
         </div>
-
-        {/* Action Button */}
-        <Link href="/dashboard?tab=debts" className="block">
-          <Button variant="outline" size="sm" className="w-full border-0">
-            View All Debts
-            <ArrowRight className="h-3 w-3 ml-2" />
-          </Button>
-        </Link>
       </ItemContent>
     </Item>
   );

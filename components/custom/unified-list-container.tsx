@@ -8,11 +8,12 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import type { ListConfig, FilterState } from "@/types/list-config";
+import type { ListConfig, FilterState, ViewMode } from "@/types/list-config";
 import { useListData } from "@/hooks/use-list-data";
 import { useListActions } from "@/hooks/use-list-actions";
 import { ListMetrics } from "@/components/custom/list-metrics";
 import { DataViewControls } from "@/components/ui/data-view-controls";
+import { DataTable } from "@/components/ui/data-table";
 import {
   Select,
   SelectContent,
@@ -53,6 +54,9 @@ export function UnifiedListContainer<T extends Record<string, unknown>>({
   onEditingChange,
 }: UnifiedListContainerProps<T>) {
   // View state
+  const [viewMode, setViewMode] = useState<ViewMode>(
+    config.defaultView || config.availableViews[0] || "list"
+  );
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState(config.defaultSort);
   const [filters, setFilters] = useState<FilterState>(() => {
@@ -152,22 +156,33 @@ export function UnifiedListContainer<T extends Record<string, unknown>>({
   }, [deletingItem]);
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4 w-full overflow-hidden">
       {/* Metrics */}
       {config.metrics && config.metrics.length > 0 && (
         <ListMetrics metrics={config.metrics} values={metrics} />
       )}
 
       {/* Main container */}
-      <div className="space-y-3">
+      <div className="space-y-4 w-full">
         {/* Header with title and additional filters */}
-        <div className="flex items-center justify-between">
-          <div className="font-semibold text-lg">{config.title}</div>
-          {additionalFilters}
-        </div>
+        {(config.title || additionalFilters) && (
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            {config.title && (
+              <h2 className="text-lg font-semibold tracking-tight">
+                {config.title}
+              </h2>
+            )}
+            {additionalFilters && (
+              <div className="flex-shrink-0">{additionalFilters}</div>
+            )}
+          </div>
+        )}
 
         {/* Controls */}
         <DataViewControls
+          viewMode={viewMode}
+          onViewModeChange={setViewMode}
+          availableViews={config.availableViews}
           searchValue={searchQuery}
           onSearchChange={setSearchQuery}
           searchPlaceholder={config.searchPlaceholder}
@@ -203,7 +218,7 @@ export function UnifiedListContainer<T extends Record<string, unknown>>({
                       handleFilterChange(filter.key, value)
                     }
                   >
-                    <SelectTrigger className="w-[160px] h-8 text-xs">
+                    <SelectTrigger className="w-[140px] h-9 text-sm">
                       <SelectValue placeholder={filter.label} />
                     </SelectTrigger>
                     <SelectContent>
@@ -212,7 +227,7 @@ export function UnifiedListContainer<T extends Record<string, unknown>>({
                         <SelectItem
                           key={option.value}
                           value={option.value}
-                          className="text-xs"
+                          className="text-sm"
                         >
                           {option.label}
                         </SelectItem>
@@ -229,31 +244,66 @@ export function UnifiedListContainer<T extends Record<string, unknown>>({
 
         {/* Empty state */}
         {filteredData.length === 0 && (
-          <div className="text-center text-muted-foreground py-12">
-            {hasActiveFilters ? (
-              <p className="text-sm">
-                {config.emptyMessageFiltered ||
-                  "No items found matching your filters"}
+          <div className="flex items-center justify-center py-16 px-4">
+            <div className="text-center space-y-2">
+              <p className="text-sm text-muted-foreground">
+                {hasActiveFilters
+                  ? config.emptyMessageFiltered ||
+                    "No items found matching your filters"
+                  : config.emptyMessage}
               </p>
-            ) : (
-              <p className="text-sm">{config.emptyMessage}</p>
-            )}
+            </div>
           </div>
         )}
 
-        {/* List view */}
+        {/* List/Grid/Table view */}
         {filteredData.length > 0 && (
-          <div className="space-y-2">
-            {filteredData.map((item, index) =>
-              config.renderListItem(item, index, {
-                onEdit: config.actions?.edit
-                  ? () => handleEditWrapper(item)
-                  : undefined,
-                onDelete: config.actions?.delete
-                  ? () => handleDelete(config.getItemId(item))
-                  : undefined,
-                customActions: config.actions?.custom,
-              })
+          <div className="w-full overflow-hidden">
+            {viewMode === "table" && config.tableColumns ? (
+              <div className="w-full overflow-x-auto">
+                <DataTable
+                  columns={config.tableColumns}
+                  data={filteredData}
+                  onEdit={
+                    config.actions?.edit
+                      ? (item) => handleEditWrapper(item)
+                      : undefined
+                  }
+                  onDelete={
+                    config.actions?.delete
+                      ? (id) => handleDelete(id)
+                      : undefined
+                  }
+                />
+              </div>
+            ) : viewMode === "grid" && config.renderGridCard ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filteredData.map((item, index) =>
+                  config.renderGridCard!(item, index, {
+                    onEdit: config.actions?.edit
+                      ? () => handleEditWrapper(item)
+                      : undefined,
+                    onDelete: config.actions?.delete
+                      ? () => handleDelete(config.getItemId(item))
+                      : undefined,
+                    customActions: config.actions?.custom,
+                  })
+                )}
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {filteredData.map((item, index) =>
+                  config.renderListItem(item, index, {
+                    onEdit: config.actions?.edit
+                      ? () => handleEditWrapper(item)
+                      : undefined,
+                    onDelete: config.actions?.delete
+                      ? () => handleDelete(config.getItemId(item))
+                      : undefined,
+                    customActions: config.actions?.custom,
+                  })
+                )}
+              </div>
             )}
           </div>
         )}

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Wallet, ArrowRight, TrendingUp, Target } from "lucide-react";
 import Link from "next/link";
 import { useCurrency } from "@/hooks/use-currency";
+import { getProgressColor } from "@/lib/dashboard-colors";
 
 interface SavingsProgressCardProps {
   monthlySavings: number;
@@ -79,106 +80,58 @@ export function SavingsProgressCard({
     );
   }
 
-  // Determine item styling based on progress
-  const itemClass =
-    progressPercentage >= 75
-      ? "border-0 bg-green-50/50 dark:bg-green-950/20"
-      : progressPercentage >= 50
-      ? "border-0 bg-blue-50/50 dark:bg-blue-950/20"
-      : "border-0 bg-yellow-50/50 dark:bg-yellow-950/20";
-
-  const progressColorClass =
-    progressPercentage >= 75
-      ? "text-green-600 dark:text-green-400"
-      : progressPercentage >= 50
-      ? "text-blue-600 dark:text-blue-400"
-      : "text-yellow-600 dark:text-yellow-400";
-
+  const progressColorClass = getProgressColor(progressPercentage);
   const remaining = totalTarget - totalSaved;
 
   return (
-    <Item variant="outline" className={`h-full ${itemClass}`}>
-      <ItemContent className="space-y-4 w-full">
-        {/* Monthly Savings */}
-        <div className="space-y-1">
-          <div className="text-xs text-muted-foreground">Saved This Month</div>
-          <div className={`text-3xl font-bold ${progressColorClass}`}>
-            {formatAmount(monthlySavings)}
-          </div>
-        </div>
-
-        {/* Total Saved vs Target */}
-        <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-1">
-            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-              <TrendingUp className="h-3 w-3 text-green-600 dark:text-green-400" />
-              Total Saved
+    <Item variant="outline" className="h-full border-0">
+      <ItemContent className="space-y-5 w-full">
+        {/* Total Saved, Saved This Month, Target - Grid of 3 */}
+        <div className="grid grid-cols-3 gap-4">
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <Wallet className="h-3.5 w-3.5" />
+              <span>Total Saved</span>
             </div>
-            <div className="text-lg font-semibold text-green-600 dark:text-green-400">
+            <div className="text-base font-bold tabular-nums">
               {formatAmount(totalSaved)}
             </div>
           </div>
-          <div className="space-y-1">
-            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-              <Target className="h-3 w-3 text-blue-600 dark:text-blue-400" />
-              Target
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <TrendingUp className="h-3.5 w-3.5" />
+              <span>This Month</span>
             </div>
-            <div className="text-lg font-semibold text-blue-600 dark:text-blue-400">
+            <div className={`text-base font-bold tabular-nums ${progressColorClass}`}>
+              {formatAmount(monthlySavings)}
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <Target className="h-3.5 w-3.5" />
+              <span>Target</span>
+            </div>
+            <div className="text-base font-bold tabular-nums">
               {formatAmount(totalTarget)}
             </div>
           </div>
         </div>
 
-        {/* Progress Percentage */}
-        <div className="flex items-center justify-between py-2 px-3 rounded-md bg-muted/50">
-          <span className="text-xs text-muted-foreground">Progress</span>
-          <span className={`text-2xl font-bold ${progressColorClass}`}>
+        {/* Progress Status */}
+        <div className="text-sm">
+          <span className={`font-bold ${progressColorClass}`}>
             {Math.round(progressPercentage)}%
+          </span>{" "}
+          <span className="text-muted-foreground">
+            {progressPercentage >= 100
+              ? "🎉 Goals achieved!"
+              : progressPercentage >= 75
+              ? "💪 Almost there!"
+              : progressPercentage >= 50
+              ? "📈 Halfway there!"
+              : `of target • ${formatAmount(remaining)} to go`}
           </span>
         </div>
-
-        {/* Progress Bar */}
-        <div className="space-y-2">
-          <Progress value={progressPercentage} className="h-2" />
-          <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span>
-              {goalsCount} active goal{goalsCount !== 1 ? "s" : ""}
-            </span>
-            <span>{formatAmount(remaining)} to go</span>
-          </div>
-        </div>
-
-        <div className="h-px bg-border" />
-
-        {/* Status Message */}
-        <div className="space-y-2 pt-2">
-          <div className="text-sm font-medium">
-            {progressPercentage >= 100
-              ? "🎉 Goals achieved! Time to celebrate!"
-              : progressPercentage >= 75
-              ? "💪 Almost there! Keep it up!"
-              : progressPercentage >= 50
-              ? "📈 Great progress! You're halfway there!"
-              : progressPercentage >= 25
-              ? "🌱 Good start! Keep saving consistently!"
-              : "🎯 Start strong! Every bit counts!"}
-          </div>
-          <div className={`text-xs ${progressColorClass}`}>
-            {progressPercentage >= 100
-              ? "Consider setting new savings goals!"
-              : remaining > 0
-              ? `${formatAmount(remaining)} remaining to reach your goals`
-              : "You're on track!"}
-          </div>
-        </div>
-
-        {/* Action Button */}
-        <Link href="/dashboard?tab=savings" className="block">
-          <Button variant="outline" size="sm" className="w-full border-0">
-            Add to Savings
-            <ArrowRight className="h-3 w-3 ml-2" />
-          </Button>
-        </Link>
       </ItemContent>
     </Item>
   );

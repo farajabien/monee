@@ -71,7 +71,10 @@ export default function ExpenseList() {
 
   const profile = data?.profiles?.[0];
   const expenses = useMemo(() => profile?.expenses || [], [profile?.expenses]);
-  const recipients = useMemo(() => profile?.recipients || [], [profile?.recipients]);
+  const recipients = useMemo(
+    () => profile?.recipients || [],
+    [profile?.recipients]
+  );
 
   const { formatCurrency } = useCurrency(profile?.currency, profile?.locale);
 
@@ -167,7 +170,7 @@ export default function ExpenseList() {
       };
     });
     return config;
-  }, [analytics?.categoryChartData]);
+  }, [analytics]);
 
   // Main view navigation
   if (activeView === "list") {

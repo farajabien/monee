@@ -63,7 +63,7 @@ export function StandardListItem({
             {badge && (
               <Badge
                 variant={badge.variant || "outline"}
-                className={badge.className || "text-[10px] px-1.5 py-0"}
+                className={badge.className || "text-xs px-1.5 py-0.5"}
               >
                 {badge.label}
               </Badge>
@@ -129,9 +129,9 @@ export function StandardListItem({
               return (
                 <div
                   key={idx}
-                  className="flex items-center gap-1.5 text-[10px] text-muted-foreground"
+                  className="flex items-center gap-1.5 text-xs text-muted-foreground"
                 >
-                  {Icon && <Icon className="h-3 w-3" />}
+                  {Icon && <Icon className="h-3.5 w-3.5" />}
                   <span className="font-medium">{field.label}:</span>
                   <span>{field.value}</span>
                 </div>

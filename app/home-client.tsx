@@ -14,8 +14,6 @@ import { PWABottomNav } from "@/components/pwa/pwa-bottom-nav";
 import SavingsPage from "@/components/savings/savings-page";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UnifiedAddModal } from "@/components/quick-add/unified-add-modal";
-import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
 
 export default function HomeClient() {
   const searchParams = useSearchParams();
@@ -77,17 +75,6 @@ export default function HomeClient() {
       {activeTab === "debts" && <DebtList />}
       {activeTab === "savings" && <SavingsPage />}
       {activeTab === "categories" && <CategoryList />}
-
-      {/* Floating Add Button - only show on list tabs */}
-      {activeTab !== "overview" && (
-        <Button
-          size="lg"
-          className="fixed bottom-20 right-4 md:right-6 h-14 w-14 rounded-full shadow-lg z-40"
-          onClick={() => setShowAddModal(true)}
-        >
-          <Plus className="h-6 w-6" />
-        </Button>
-      )}
 
       {/* Unified Add Modal */}
       <UnifiedAddModal

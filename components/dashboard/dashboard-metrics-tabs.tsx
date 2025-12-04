@@ -17,12 +17,9 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  ResponsiveContainer,
-  Legend,
 } from "recharts";
 import { useCurrency } from "@/hooks/use-currency";
 import {
-  TrendingUp,
   PieChartIcon,
   BarChart3,
   Target,
@@ -438,7 +435,7 @@ export function DashboardMetricsTabs({
                 </div>
                 <div className="relative h-2 bg-muted rounded-full overflow-hidden">
                   <div
-                    className="absolute top-0 left-0 h-full bg-primary transition-all"
+                    className="absolute top-0 left-0 h-full bg-muted-foreground/60 transition-all"
                     style={{ width: `${Math.min(debt.progress, 100)}%` }}
                   />
                 </div>
@@ -481,7 +478,7 @@ export function DashboardMetricsTabs({
                 </div>
                 <div className="relative h-2 bg-muted rounded-full overflow-hidden">
                   <div
-                    className="absolute top-0 left-0 h-full bg-primary transition-all"
+                    className="absolute top-0 left-0 h-full bg-muted-foreground/60 transition-all"
                     style={{ width: `${Math.min(goal.progress, 100)}%` }}
                   />
                 </div>

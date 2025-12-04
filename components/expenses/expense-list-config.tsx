@@ -6,8 +6,17 @@
 
 import type { ListConfig } from "@/types/list-config";
 import type { Expense, Recipient } from "@/types";
+import { Calendar, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { UnifiedItemCard } from "@/components/ui/unified-item-card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ColumnDef } from "@tanstack/react-table";
 import db from "@/lib/db";
 
 // Helper functions
@@ -58,12 +67,7 @@ export const createExpenseListConfig = (
       type: "currency",
       icon: "💰",
     },
-    {
-      key: "expenseCount",
-      label: "Transactions",
-      type: "count",
-      icon: Calendar,
-    },
+   
     {
       key: "avgExpense",
       label: "Avg",
@@ -85,84 +89,130 @@ export const createExpenseListConfig = (
   },
 
   // Views
-  availableViews: ["list"],
+  availableViews: ["list", "table"],
   defaultView: "list",
+
+  // Table columns
+  tableColumns: [
+    {
+      accessorKey: "date",
+      header: "Date",
+      cell: ({ row }) => {
+        const timestamp = row.original.date || row.original.createdAt;
+        return (
+          <div className="text-sm">
+            {new Date(timestamp).toLocaleDateString("en-KE", {
+              day: "numeric",
+              month: "short",
+              year: "numeric",
+            })}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "recipient",
+      header: "Recipient",
+      cell: ({ row }) => {
+        const displayName = getDisplayName(row.original.recipient || "", recipients);
+        return <div className="font-medium">{displayName}</div>;
+      },
+    },
+    {
+      accessorKey: "category",
+      header: "Category",
+      cell: ({ row }) => {
+        return row.original.category ? (
+          <Badge variant="outline" className="text-xs">
+            {row.original.category}
+          </Badge>
+        ) : (
+          <span className="text-muted-foreground text-sm">—</span>
+        );
+      },
+    },
+    {
+      accessorKey: "amount",
+      header: () => <div className="text-right">Amount</div>,
+      cell: ({ row }) => {
+        return (
+          <div className="text-right font-semibold text-red-600 dark:text-red-400">
+            {formatAmount(row.original.amount)}
+          </div>
+        );
+      },
+    },
+    {
+      id: "actions",
+      cell: ({ row, table }) => {
+        const expense = row.original;
+        const meta = table.options.meta as {
+          onEdit?: (item: Expense) => void;
+          onDelete?: (id: string) => void;
+        };
+
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Open menu</span>
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {meta?.onEdit && (
+                <DropdownMenuItem onClick={() => meta.onEdit!(expense)}>
+                  <Pencil className="h-4 w-4 mr-2" />
+                  Edit
+                </DropdownMenuItem>
+              )}
+              {meta?.onDelete && (
+                <DropdownMenuItem
+                  onClick={() => meta.onDelete!(expense.id)}
+                  className="text-destructive"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
+      },
+    },
+  ] as ColumnDef<Expense>[],
 
   // Rendering Functions
   renderListItem: (item: Expense, index: number, actions) => {
     const displayName = getDisplayName(item.recipient || "", recipients);
 
     return (
-      <div
+      <UnifiedItemCard
         key={item.id}
-        className="flex items-center justify-between p-4 border rounded-lg"
-      >
-        <div className="flex items-center gap-3 flex-1">
-          <Badge variant="outline" className="text-xs">
-            #{index + 1}
-          </Badge>
-          <div className="flex-1 space-y-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="font-semibold">{displayName || "Unknown"}</span>
-              <Badge variant="secondary">{formatAmount(item.amount)}</Badge>
-              {item.category && (
-                <Badge variant="outline">{item.category}</Badge>
-              )}
-            </div>
-            <div className="flex items-center gap-1 text-sm text-muted-foreground">
-              <Calendar className="h-3 w-3" />
-              <span>{formatDate(item.date || item.createdAt)}</span>
-            </div>
-          </div>
-        </div>
-        <div className="flex gap-1">
-          {actions.onEdit && (
-            <button
-              onClick={actions.onEdit}
-              className="p-2 hover:bg-accent rounded"
-              aria-label="Edit"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
-                <path d="m15 5 4 4" />
-              </svg>
-            </button>
-          )}
-          {actions.onDelete && (
-            <button
-              onClick={actions.onDelete}
-              className="p-2 hover:bg-destructive/10 text-destructive rounded"
-              aria-label="Delete"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M3 6h18" />
-                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
-                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
-              </svg>
-            </button>
-          )}
-        </div>
-      </div>
+        index={index}
+        primaryBadge={{
+          value: formatAmount(item.amount),
+          variant: "destructive",
+          icon: "💸",
+          className: "text-xs px-2 py-0.5 font-semibold bg-destructive text-destructive-foreground",
+        }}
+        title={displayName || "Unknown"}
+        badges={
+          item.category
+            ? [{ label: item.category, variant: "outline" as const }]
+            : []
+        }
+        metadata={[
+          {
+            icon: <Calendar className="h-3.5 w-3.5" />,
+            text: formatDate(item.date || item.createdAt),
+          },
+        ]}
+        actions={{
+          onEdit: actions.onEdit,
+          onDelete: actions.onDelete,
+        }}
+      />
     );
   },
 
