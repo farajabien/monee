@@ -22,6 +22,7 @@ import {
   Zap,
   Shield,
   Star,
+  Check,
 } from "lucide-react";
 import { toast } from "sonner";
 import Image from "next/image";
@@ -66,14 +67,14 @@ export function PaywallDialog({ open, onOpenChange }: PaywallDialogProps) {
   const daysRemaining = Math.max(0, FREE_TRIAL_DAYS - daysSinceCreation);
 
   const features = [
-    { icon: BarChart3, text: "Visual analytics with charts for all modules" },
-    { icon: Bell, text: "Smart notifications (daily, debt, payday reminders)" },
-    { icon: TrendingUp, text: "Debt tracking with progress visualization" },
-    { icon: Wallet, text: "Savings goals with milestone celebrations" },
-    { icon: Zap, text: "Quick expense tracking (manual or optional M-Pesa)" },
-    { icon: Cloud, text: "Offline-first with cloud sync across devices" },
-    { icon: Shield, text: "Cash runway predictions & spending insights" },
-    { icon: Star, text: "Lifetime access - no monthly fees ever" },
+    { icon: BarChart3, text: "Visual analytics with charts" },
+    { icon: Bell, text: "Smart notifications & reminders" },
+    { icon: TrendingUp, text: "Debt tracking & progress" },
+    { icon: Wallet, text: "Savings goals & milestones" },
+    { icon: Zap, text: "Quick expense tracking" },
+    { icon: Cloud, text: "Cloud sync across devices" },
+    { icon: Shield, text: "Cash runway predictions" },
+    { icon: Star, text: "Lifetime access forever" },
   ];
 
   const handlePayment = async () => {
@@ -181,7 +182,7 @@ export function PaywallDialog({ open, onOpenChange }: PaywallDialogProps) {
     >
       <SheetContent
         side="bottom"
-        className="h-[95vh] overflow-y-auto"
+        className="h-[95vh] flex flex-col"
         onEscapeKeyDown={(e) => {
           if (!isTrialActive) e.preventDefault();
         }}
@@ -189,139 +190,145 @@ export function PaywallDialog({ open, onOpenChange }: PaywallDialogProps) {
           if (!isTrialActive) e.preventDefault();
         }}
       >
-        <SheetHeader className="mb-4">
-          <SheetTitle className="text-xl flex items-center gap-2">
-            <Image
-              src="/AppImages/money-bag.png"
-              alt="Money Bag"
-              width={20}
-              height={20}
-            />
-            {isTrialActive
-              ? "Try MONEE Free for 7 Days"
-              : "Unlock Lifetime Access to MONEE"}
-          </SheetTitle>
-          <SheetDescription className="text-xs">
-            {isTrialActive
-              ? `${daysRemaining} day${
-                  daysRemaining !== 1 ? "s" : ""
-                } remaining in your free trial. Upgrade anytime for lifetime access.`
-              : "Worth KSh 10,000-15,000. Pay once. Own forever. Best deal ever."}
-          </SheetDescription>
-        </SheetHeader>
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto">
+          <SheetHeader className="mb-6 sticky top-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-10 pb-4">
+            <SheetTitle className="text-2xl flex items-center gap-2">
+              <Image
+                src="/AppImages/money-bag.png"
+                alt="Money Bag"
+                width={24}
+                height={24}
+              />
+              {isTrialActive ? "Try MONEE Free" : "Unlock MONEE"}
+            </SheetTitle>
+            <SheetDescription>
+              {isTrialActive
+                ? `${daysRemaining} day${
+                    daysRemaining !== 1 ? "s" : ""
+                  } remaining in your free trial`
+                : "One-time payment. Lifetime access. No monthly fees."}
+            </SheetDescription>
+          </SheetHeader>
 
-        <div className="space-y-4 pb-4">
-          {/* Trial Status Banner */}
-          {isTrialActive && (
-            <div className="bg-gradient-to-br from-green-500/10 to-green-500/5 p-3 rounded-lg border-2 border-green-500">
-              <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4 text-green-600 flex-shrink-0" />
-                <div>
-                  <p className="text-sm font-semibold text-green-700">
-                    Free Trial Active
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {daysRemaining} day{daysRemaining !== 1 ? "s" : ""}{" "}
-                    remaining • Full access to all features
-                  </p>
+          <div className="space-y-6 pb-4">
+            {/* Trial Status Banner */}
+            {isTrialActive && (
+              <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 p-4 rounded-xl border border-green-200 dark:border-green-800">
+                <div className="flex items-center gap-3">
+                  <div className="flex-shrink-0 w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/50 flex items-center justify-center">
+                    <Clock className="h-5 w-5 text-green-600 dark:text-green-400" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-green-900 dark:text-green-100">
+                      Free Trial Active
+                    </p>
+                    <p className="text-xs text-green-700 dark:text-green-300">
+                      {daysRemaining} day{daysRemaining !== 1 ? "s" : ""} left •
+                      Full access
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Pricing */}
-          <div className="bg-gradient-to-br from-primary/10 to-primary/5 p-4 rounded-lg border-2 border-primary">
-            <div className="flex items-center justify-between mb-3">
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="text-3xl font-bold text-primary">
+            {/* Pricing Card */}
+            <div className="bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5 p-6 rounded-xl border-2 border-primary/20">
+              <div className="text-center space-y-3">
+                <div className="flex items-center justify-center gap-3">
+                  <span className="text-4xl font-bold text-primary">
                     Ksh 999
                   </span>
                   <div className="text-left">
                     <span className="text-lg text-muted-foreground line-through">
                       Ksh 10,000
                     </span>
-                    <div className="text-[10px] text-muted-foreground">
+                    <div className="text-xs text-muted-foreground">
                       True Value
                     </div>
                   </div>
                 </div>
-                <Badge variant="secondary" className="mt-2 text-xs">
-                  Limited Lifetime Offer
+                <Badge
+                  variant="secondary"
+                  className="text-xs font-semibold px-3 py-1"
+                >
+                  🔥 Limited Lifetime Offer
                 </Badge>
+                <p className="text-xs text-muted-foreground font-medium">
+                  One-time payment • No subscriptions • Own forever
+                </p>
               </div>
             </div>
-            <p className="text-xs text-muted-foreground font-semibold">
-              💳 One-time payment • No monthly fees • Lifetime access • Best
-              deal ever
-            </p>
-          </div>
 
-          {/* Features */}
-          <div>
-            <h3 className="text-sm font-semibold mb-3 text-center">
-              Everything Included:
-            </h3>
-            <div className="grid grid-cols-1 gap-2">
-              {features.map((feature) => {
-                const Icon = feature.icon;
-                return (
-                  <div
-                    key={feature.text}
-                    className="flex items-start gap-2 p-2 rounded-lg hover:bg-accent/50 transition-colors"
-                  >
-                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
-                      <Icon className="h-3 w-3 text-primary" />
+            {/* Features Grid */}
+            <div className="space-y-4">
+              <h3 className="text-base font-semibold text-center">
+                Everything Included
+              </h3>
+              <div className="grid grid-cols-1 gap-3">
+                {features.map((feature) => {
+                  const Icon = feature.icon;
+                  return (
+                    <div
+                      key={feature.text}
+                      className="flex items-center gap-3 p-3 rounded-lg bg-accent/50 hover:bg-accent transition-colors"
+                    >
+                      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                        <Icon className="h-4 w-4 text-primary" />
+                      </div>
+                      <span className="text-sm font-medium">
+                        {feature.text}
+                      </span>
+                      <Check className="h-4 w-4 text-green-600 ml-auto flex-shrink-0" />
                     </div>
-                    <span className="text-xs leading-relaxed">
-                      {feature.text}
-                    </span>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
-            <div className="mt-3 p-2 bg-gradient-to-r from-green-500/10 to-blue-500/10 rounded-lg border border-green-500/20">
-              <p className="text-[10px] text-center font-semibold">
-                🎯 Worth KSh 10,000-15,000 • Pay once, own forever • No monthly
-                fees
+
+            {/* Value Proposition */}
+            <div className="p-4 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-950/20 dark:to-blue-950/20 rounded-xl border border-green-200/50 dark:border-green-800/50">
+              <p className="text-xs text-center font-semibold text-foreground">
+                🎯 Worth KSh 10,000+ • Best deal ever • No monthly fees
               </p>
             </div>
           </div>
         </div>
 
-        <SheetFooter className="flex-col gap-2 sm:flex-col pb-safe">
+        {/* Sticky Footer */}
+        <SheetFooter className="sticky bottom-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t pt-4 pb-safe flex-col gap-3 sm:flex-col">
           {isTrialActive ? (
             <>
               <Button
-                onClick={handleContinueTrial}
-                variant="outline"
-                className="w-full"
-                size="lg"
-              >
-                Continue with Free Trial ({daysRemaining} day
-                {daysRemaining !== 1 ? "s" : ""} left)
-              </Button>
-              <Button
                 onClick={handlePayment}
                 disabled={isProcessing}
-                className="w-full"
+                className="w-full h-12 text-base font-semibold"
                 size="lg"
               >
-                {isProcessing ? "Processing..." : "Upgrade Now - Pay Ksh 999"}
+                {isProcessing ? "Processing..." : "Upgrade Now - Ksh 999"}
+              </Button>
+              <Button
+                onClick={handleContinueTrial}
+                variant="outline"
+                className="w-full h-12 text-base"
+                size="lg"
+              >
+                Continue Trial ({daysRemaining} day
+                {daysRemaining !== 1 ? "s" : ""})
               </Button>
             </>
           ) : (
             <Button
               onClick={handlePayment}
               disabled={isProcessing}
-              className="w-full"
+              className="w-full h-12 text-base font-semibold"
               size="lg"
             >
               {isProcessing ? "Processing..." : "Pay Ksh 999 & Get Started"}
             </Button>
           )}
-          <p className="text-[10px] text-center text-muted-foreground">
-            💳 Secure payment via Paystack • Worth KSh 10,000+ • Best deal ever
+          <p className="text-xs text-center text-muted-foreground">
+            🔒 Secure payment via Paystack • Lifetime access
           </p>
         </SheetFooter>
       </SheetContent>
