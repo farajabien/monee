@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "seed:demo:kenyan": "tsx --tsconfig tsconfig.json scripts/seed-demo-kenyan.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

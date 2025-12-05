@@ -9,6 +9,7 @@ import { calculateCashFlowHealth } from "@/lib/cash-flow-health-calculator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Item, ItemContent } from "@/components/ui/item";
 import { Calendar, Target } from "lucide-react";
+import { CompactItemCard } from "@/components/ui/compact-item-card";
 
 import { useCurrency } from "@/hooks/use-currency";
 
@@ -42,7 +43,15 @@ const DashboardMetricsTabs = dynamic(
     import("./dashboard-metrics-tabs").then((mod) => ({
       default: mod.DashboardMetricsTabs,
     })),
-  { ssr: false }
+  {
+    ssr: false,
+    loading: () => (
+      <div className="animate-pulse space-y-4">
+        <div className="h-10 bg-muted rounded-lg"></div>
+        <div className="h-64 bg-muted rounded-lg"></div>
+      </div>
+    ),
+  }
 );
 
 export function DashboardOverview() {
@@ -143,6 +152,25 @@ export function DashboardOverview() {
     return expenseTotal + debtPaymentTotal;
   }, [expenses, debtPayments]);
 
+  // Top 5 expenses by amount
+  const topExpenses = useMemo(() => {
+    return [...expenses].sort((a, b) => b.amount - a.amount).slice(0, 5);
+  }, [expenses]);
+
+  // Top 5 categories by total amount
+  const topCategories = useMemo(() => {
+    const categoryTotals = expenses.reduce((acc, expense) => {
+      const category = expense.category || "Uncategorized";
+      acc[category] = (acc[category] || 0) + expense.amount;
+      return acc;
+    }, {} as Record<string, number>);
+
+    return Object.entries(categoryTotals)
+      .map(([category, amount]) => ({ category, amount }))
+      .sort((a, b) => b.amount - a.amount)
+      .slice(0, 5);
+  }, [expenses]);
+
   // Debts data
   const debtsData = useMemo(() => {
     const currentDateTs = now.getTime();
@@ -208,7 +236,7 @@ export function DashboardOverview() {
     return futureExpenses;
   }, [expenses, now]);
 
-  // Savings goals with nearing deadlines
+  // Savings goals with nearing deadlines (top 5)
   const nearingDeadlineSavings = useMemo(() => {
     const currentDateTs = now.getTime();
     const thirtyDaysFromNow = currentDateTs + 30 * 24 * 60 * 60 * 1000;
@@ -337,16 +365,79 @@ export function DashboardOverview() {
               <TabsTrigger value="savings">Savings</TabsTrigger>
             </TabsList>
             <TabsContent value="cashflow">
-              <CashFlowHealthCard
-                healthData={cashFlowHealthData}
-                isLoading={isLoading}
-                userCurrency={profile?.currency}
-                userLocale={profile?.locale}
-                totalExpenses={totalExpenses}
-                totalIncome={totalIncome}
-                debtsThisMonth={debtsThisMonth}
-                savingsProgress={savingsProgress}
-              />
+              <div className="space-y-4">
+                <CashFlowHealthCard
+                  healthData={cashFlowHealthData}
+                  isLoading={isLoading}
+                  userCurrency={profile?.currency}
+                  userLocale={profile?.locale}
+                  totalExpenses={totalExpenses}
+                  totalIncome={totalIncome}
+                  debtsThisMonth={debtsThisMonth}
+                  savingsProgress={savingsProgress}
+                />
+
+                {/* Top 5 Expenses and Categories */}
+                {(topExpenses.length > 0 || topCategories.length > 0) && (
+                  <Item variant="outline" className="border-0">
+                    <ItemContent className="space-y-3">
+                      <Tabs defaultValue="expenses" className="w-full">
+                        <TabsList className="grid w-full grid-cols-2">
+                          <TabsTrigger value="expenses">
+                            Top 5 Expenses
+                          </TabsTrigger>
+                          <TabsTrigger value="categories">
+                            Top 5 Categories
+                          </TabsTrigger>
+                        </TabsList>
+                        <TabsContent value="expenses" className="mt-3">
+                          <div className="space-y-2">
+                            {topExpenses.map((expense, index) => (
+                              <CompactItemCard
+                                key={expense.id}
+                                index={index}
+                                title={expense.recipient}
+                                amount={formatCurrency(expense.amount)}
+                                amountColor="destructive"
+                                category={expense.category}
+                                date={formatDate(expense.date)}
+                                isRecurring={expense.isRecurring}
+                                actions={{
+                                  onEdit: () => {
+                                    // TODO: Implement edit
+                                  },
+                                  onDelete: () => {
+                                    // TODO: Implement delete
+                                  },
+                                }}
+                              />
+                            ))}
+                          </div>
+                        </TabsContent>
+                        <TabsContent value="categories" className="mt-3">
+                          <div className="space-y-2">
+                            {topCategories.map((categoryData, index) => (
+                              <div
+                                key={categoryData.category}
+                                className="flex items-center justify-between py-2 border-b last:border-0"
+                              >
+                                <div className="space-y-0.5">
+                                  <p className="text-sm font-medium">
+                                    {categoryData.category}
+                                  </p>
+                                </div>
+                                <div className="text-sm font-semibold tabular-nums text-destructive">
+                                  {formatCurrency(categoryData.amount)}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </TabsContent>
+                      </Tabs>
+                    </ItemContent>
+                  </Item>
+                )}
+              </div>
             </TabsContent>
             <TabsContent value="debts">
               <div className="space-y-4">
@@ -357,13 +448,13 @@ export function DashboardOverview() {
                   userLocale={profile?.locale}
                 />
 
-                {/* Upcoming Debts List */}
+                {/* Upcoming Debts List (Top 5) */}
                 {upcomingDebts.length > 0 && (
                   <Item variant="outline" className="border-0">
                     <ItemContent className="space-y-3">
                       <div className="flex items-center gap-2 text-sm font-medium">
                         <Calendar className="h-4 w-4" />
-                        <span>Upcoming Payments</span>
+                        <span>Upcoming Payments (Top 5)</span>
                       </div>
                       <div className="space-y-2">
                         {upcomingDebts.map((debt) => {
@@ -406,13 +497,13 @@ export function DashboardOverview() {
                   userLocale={profile?.locale}
                 />
 
-                {/* Savings Goals with Nearing Deadlines */}
+                {/* Savings Goals with Nearing Deadlines (Top 5) */}
                 {nearingDeadlineSavings.length > 0 && (
                   <Item variant="outline" className="border-0">
                     <ItemContent className="space-y-3">
                       <div className="flex items-center gap-2 text-sm font-medium">
                         <Target className="h-4 w-4" />
-                        <span>Nearing Deadlines</span>
+                        <span>Nearing Deadlines (Top 5)</span>
                       </div>
                       <div className="space-y-2">
                         {nearingDeadlineSavings.map((goal) => {

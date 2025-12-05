@@ -55,7 +55,7 @@ export default function HomeClient() {
       <DesktopHeader />
 
       {/* Content */}
-      <div className="w-full mx-auto px-4 sm:px-6 py-6 pb-24 md:pb-6 overflow-x-hidden">
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 py-6 pb-24 md:pb-6 overflow-x-hidden">
         {activeTab === "overview" && <DashboardOverview />}
         {activeTab === "expenses" && <ExpenseList />}
         {activeTab === "debts" && <DebtList />}

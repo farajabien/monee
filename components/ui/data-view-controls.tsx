@@ -92,11 +92,11 @@ export function DataViewControls({
                 <SelectValue placeholder={filterLabel} />
               </SelectTrigger>
               <SelectContent>
-                {filterOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value} className="text-sm">
-                    {option.label}
-                  </SelectItem>
-                ))}
+                  {filterOptions.map((option, idx) => (
+                    <SelectItem key={option.value === 'all' ? `all-${idx}` : option.value} value={option.value} className="text-sm">
+                      {option.label}
+                    </SelectItem>
+                  ))}
               </SelectContent>
             </Select>
           </div>
