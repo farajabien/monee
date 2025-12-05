@@ -91,10 +91,16 @@ export function PWABottomNav() {
   // More dropdown items - includes More sub-tabs
   const moreItems = [
     {
+      value: "debts",
+      label: "Debts",
+      icon: CreditCard,
+      href: "/dashboard?tab=more&subtab=debts",
+    },
+    {
       value: "income",
       label: "Income",
       icon: TrendingUp,
-      href: "/dashboard?tab=income",
+      href: "/dashboard?tab=more&subtab=income",
     },
     {
       value: "savings",
@@ -194,7 +200,10 @@ export function PWABottomNav() {
                 <div className="py-1">
                   {moreItems.map((item) => {
                     const Icon = item.icon;
-                    const isActive = activeTab === item.value;
+                    const isActive =
+                      item.value === "settings"
+                        ? activeTab === "settings"
+                        : moreSubTab === item.value;
                     const isLogout = item.value === "logout";
 
                     if (isLogout) {
