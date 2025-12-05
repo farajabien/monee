@@ -8,6 +8,7 @@ import type { ListConfig, FilterConfig } from "@/types/list-config";
 import type { IncomeSourceWithUser } from "@/types";
 import { Calendar, TrendingUp, CheckCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { CompactItemCard } from "@/components/ui/compact-item-card";
 import db from "@/lib/db";
 
 // Helper functions
@@ -96,72 +97,32 @@ export const createIncomeSourceListConfig = (
 
   // Rendering Functions
   renderListItem: (item: IncomeSourceWithUser, index: number, actions) => {
+    const isActive = item.isActive !== false;
+    const paydayText = formatPayday(item.paydayDay, item.paydayMonth);
+
     return (
-      <div key={item.id} className="flex items-center justify-between p-3 border rounded-lg">
-        <div className="flex items-center gap-3 flex-1">
-          <Badge variant="outline" className="text-xs">
-            #{index + 1}
-          </Badge>
-          <div className="flex-1 space-y-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="font-semibold">{item.name}</span>
-              <Badge variant="secondary">{formatAmount(item.amount)}</Badge>
-              {!item.isActive && <Badge variant="outline">Inactive</Badge>}
-            </div>
-            <div className="flex items-center gap-1 text-sm text-muted-foreground">
-              <Calendar className="h-3 w-3" />
-              <span>{formatPayday(item.paydayDay, item.paydayMonth)}</span>
-            </div>
-          </div>
-        </div>
-        <div className="flex gap-1">
-          {actions.onEdit && (
-            <button
-              onClick={actions.onEdit}
-              className="p-2 hover:bg-accent rounded"
-              aria-label="Edit"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
-                <path d="m15 5 4 4" />
-              </svg>
-            </button>
-          )}
-          {actions.onDelete && (
-            <button
-              onClick={actions.onDelete}
-              className="p-2 hover:bg-destructive/10 text-destructive rounded"
-              aria-label="Delete"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M3 6h18" />
-                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
-                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
-              </svg>
-            </button>
-          )}
-        </div>
-      </div>
+      <CompactItemCard
+        key={item.id}
+        index={index}
+        title={item.name}
+        amount={formatAmount(item.amount)}
+        amountColor="success"
+        category={item.frequency}
+        date={`Day ${item.paydayDay}`}
+        secondaryInfo={paydayText}
+        customBadge={
+          !isActive
+            ? {
+                label: "Inactive",
+                variant: "outline",
+              }
+            : undefined
+        }
+        actions={{
+          onEdit: actions.onEdit,
+          onDelete: actions.onDelete,
+        }}
+      />
     );
   },
 

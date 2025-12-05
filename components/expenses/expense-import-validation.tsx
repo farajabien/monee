@@ -105,13 +105,9 @@ export function ExpenseImportValidation({
   // Auto-select current year if only one year available
   useEffect(() => {
     if (availableYears.length === 1) {
-      setTimeout(() => {
-        setSelectedYear(availableYears[0].toString());
-      }, 0);
+      setSelectedYear(availableYears[0].toString());
     } else if (availableYears.includes(currentYear)) {
-      setTimeout(() => {
-        setSelectedYear(currentYear.toString());
-      }, 0);
+      setSelectedYear(currentYear.toString());
     }
   }, [availableYears, currentYear]);
 
@@ -150,16 +146,12 @@ export function ExpenseImportValidation({
   // Reset month selection when year changes
   useEffect(() => {
     if (selectedYear === "all") {
-      setTimeout(() => {
-        setSelectedMonth("all");
-      }, 0);
+      setSelectedMonth("all");
     } else if (
       selectedMonth !== "all" &&
       !monthsForSelectedYear.includes(parseInt(selectedMonth))
     ) {
-      setTimeout(() => {
-        setSelectedMonth("all");
-      }, 0);
+      setSelectedMonth("all");
     }
   }, [selectedYear, monthsForSelectedYear, selectedMonth]);
 
@@ -252,6 +244,10 @@ export function ExpenseImportValidation({
   const pendingRows = filteredRows.filter((r) => r.status === "pending");
   const acceptedRows = filteredRows.filter((r) => r.status === "accepted");
   const rejectedRows = filteredRows.filter((r) => r.status === "rejected");
+
+  // Calculate stats from ALL rows, not just filtered
+  const allAcceptedRows = rows.filter((r) => r.status === "accepted");
+  const allRejectedRows = rows.filter((r) => r.status === "rejected");
 
   const stats = {
     total: filteredRows.length,
@@ -382,6 +378,15 @@ export function ExpenseImportValidation({
           </CardContent>
         </Card>
       </div>
+      {/* Save Button - Use all accepted rows, not just filtered */}
+      {(allAcceptedRows.length > 0 || allRejectedRows.length > 0) && (
+        <div className="flex justify-end gap-2">
+          <Button onClick={onSave} size="lg" className="min-w-32">
+            Save {allAcceptedRows.length} Expense
+            {allAcceptedRows.length !== 1 ? "s" : ""}
+          </Button>
+        </div>
+      )}
 
       {/* Bulk Actions */}
       {pendingRows.length > 0 && (
@@ -680,16 +685,6 @@ export function ExpenseImportValidation({
           )}
         </TableBody>
       </Table>
-
-      {/* Save Button */}
-      {(acceptedRows.length > 0 || rejectedRows.length > 0) && (
-        <div className="flex justify-end gap-2">
-          <Button onClick={onSave} size="lg" className="min-w-32">
-            Save {acceptedRows.length} Expense
-            {acceptedRows.length !== 1 ? "s" : ""}
-          </Button>
-        </div>
-      )}
     </div>
   );
 }

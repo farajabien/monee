@@ -57,21 +57,30 @@ export function ImportSmsDialog({
             if (result.expenseType === "send" || result.expenseType === "buy") {
               parsed.push(result);
             } else {
-              console.log("Skipping non-expense type:", result.expenseType, message.substring(0, 50));
+              console.log(
+                "Skipping non-expense type:",
+                result.expenseType,
+                message.substring(0, 50)
+              );
             }
           } else {
             failed.push(message.substring(0, 50) + "...");
           }
         } catch (err) {
-          console.error("Failed to parse message:", err, message.substring(0, 80));
+          console.error(
+            "Failed to parse message:",
+            err,
+            message.substring(0, 80)
+          );
           failed.push(message.substring(0, 50) + "...");
         }
       }
 
       if (parsed.length === 0) {
-        const errorMsg = failed.length > 0 
-          ? `No valid M-Pesa expenses found. ${messages.length} message(s) detected but could not be parsed. Check the browser console for details, or try copying the SMS text exactly as shown in your Messages app.`
-          : "No valid M-Pesa expenses found. Only 'sent' and 'buy goods' transactions are imported. Received, withdraw, and deposit transactions are skipped.";
+        const errorMsg =
+          failed.length > 0
+            ? `No valid M-Pesa expenses found. ${messages.length} message(s) detected but could not be parsed. Check the browser console for details, or try copying the SMS text exactly as shown in your Messages app.`
+            : "No valid M-Pesa expenses found. Only 'sent' and 'buy goods' transactions are imported. Received, withdraw, and deposit transactions are skipped.";
         setError(errorMsg);
         setParsing(false);
         return;
@@ -99,7 +108,7 @@ TL5QCDEF9I Confirmed. Ksh1,500.00 paid to ZUKU FIBER for account 123456 on 3/12/
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <MessageSquare className="h-5 w-5" />
@@ -112,7 +121,7 @@ TL5QCDEF9I Confirmed. Ksh1,500.00 paid to ZUKU FIBER for account 123456 on 3/12/
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="space-y-4 overflow-y-auto flex-1 pr-2">
           {/* Instructions */}
           <Alert>
             <AlertCircle className="h-4 w-4" />

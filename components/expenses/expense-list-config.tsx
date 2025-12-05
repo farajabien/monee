@@ -7,7 +7,7 @@
 import type { ListConfig } from "@/types/list-config";
 import type { Expense, Recipient } from "@/types";
 import { Calendar, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
-import { UnifiedItemCard } from "@/components/ui/unified-item-card";
+import { CompactItemCard } from "@/components/ui/compact-item-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,8 +25,36 @@ const formatDate = (timestamp: number) => {
     day: "numeric",
     month: "short",
     year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
+  });
+};
+
+const formatDateCompact = (timestamp: number) => {
+  const date = new Date(timestamp);
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+
+  // Check if same day
+  if (date.toDateString() === today.toDateString()) {
+    return "Today";
+  }
+  if (date.toDateString() === yesterday.toDateString()) {
+    return "Yesterday";
+  }
+
+  // Show month and day only if same year
+  if (date.getFullYear() === today.getFullYear()) {
+    return date.toLocaleDateString("en-KE", {
+      day: "numeric",
+      month: "short",
+    });
+  }
+
+  // Show full date if different year
+  return date.toLocaleDateString("en-KE", {
+    day: "numeric",
+    month: "short",
+    year: "2-digit",
   });
 };
 
@@ -37,7 +65,8 @@ const getDisplayName = (originalName: string, recipients: Recipient[]) => {
 
 export const createExpenseListConfig = (
   recipients: Recipient[],
-  formatAmount: (amount: number) => string
+  formatAmount: (amount: number) => string,
+  checkPaidStatus?: (expenseId: string) => boolean
 ): ListConfig<Expense> => ({
   // Identity
   queryKey: "expenses",
@@ -185,32 +214,29 @@ export const createExpenseListConfig = (
   // Rendering Functions
   renderListItem: (item: Expense, index: number, actions) => {
     const displayName = getDisplayName(item.recipient || "", recipients);
+    const isRecurring = item.isRecurring || !!item.linkedRecurringId;
+
+    // Check if this recurring expense has been paid this month
+    const recurringId = item.linkedRecurringId || item.id;
+    const isPaidThisMonth = isRecurring && checkPaidStatus
+      ? checkPaidStatus(recurringId)
+      : false;
 
     return (
-      <UnifiedItemCard
+      <CompactItemCard
         key={item.id}
         index={index}
-        primaryBadge={{
-          value: formatAmount(item.amount),
-          variant: "destructive",
-          icon: "💸",
-          className: "text-xs px-2 py-0.5 font-semibold bg-destructive text-destructive-foreground",
-        }}
         title={displayName || "Unknown"}
-        badges={
-          item.category
-            ? [{ label: item.category, variant: "outline" as const }]
-            : []
-        }
-        metadata={[
-          {
-            icon: <Calendar className="h-3.5 w-3.5" />,
-            text: formatDate(item.date || item.createdAt),
-          },
-        ]}
+        amount={formatAmount(item.amount)}
+        amountColor="destructive"
+        category={item.category}
+        date={formatDateCompact(item.date || item.createdAt)}
+        isRecurring={isRecurring}
+        isPaid={isPaidThisMonth}
         actions={{
           onEdit: actions.onEdit,
           onDelete: actions.onDelete,
+          onPay: isRecurring && !isPaidThisMonth ? actions.customActions?.[0]?.onClick : undefined,
         }}
       />
     );
@@ -224,6 +250,15 @@ export const createExpenseListConfig = (
     delete: async (id: string) => {
       await db.transact(db.tx.expenses[id].delete());
     },
+    custom: [
+      {
+        label: "Record Payment",
+        onClick: async (item: Expense) => {
+          // This will be handled in expense-list.tsx with proper payment dialog
+          console.log("Record payment for recurring expense:", item.id);
+        },
+      },
+    ],
   },
 
   // Data transformation

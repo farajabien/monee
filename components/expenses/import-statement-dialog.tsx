@@ -77,10 +77,10 @@ export function ImportStatementDialog({
     try {
       // Extract text from PDF using pdf-utils
       const text = await extractTextFromPDF(file);
-      
+
       // Parse the extracted text into expenses
       const statementExpenses = parseStatementText(text);
-      
+
       // Convert to ParsedExpenseData format
       const expenses: ParsedExpenseData[] = statementExpenses.map((se) => ({
         amount: se.amount,
@@ -91,7 +91,9 @@ export function ImportStatementDialog({
       }));
 
       if (expenses.length === 0) {
-        setError("No expenses found in the statement. Please check the file format.");
+        setError(
+          "No expenses found in the statement. Please check the file format."
+        );
         setParsing(false);
         return;
       }
@@ -113,35 +115,42 @@ export function ImportStatementDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            Import from M-Pesa Statement
+            <FileText className="h-5 w-5 shrink-0" />
+            <span className="break-words">Import from M-Pesa Statement</span>
           </DialogTitle>
-          <DialogDescription>
-            Upload your M-Pesa statement PDF to automatically extract and import expenses.
+          <DialogDescription className="break-words">
+            Upload your M-Pesa statement PDF to automatically extract and import
+            expenses.
           </DialogDescription>
         </DialogHeader>
 
         {/* Instructions */}
         <Alert>
-          <AlertCircle className="h-4 w-4" />
+          <AlertCircle className="h-4 w-4 shrink-0" />
           <AlertDescription>
-            <strong>How to get your M-Pesa statement:</strong>
+            <strong className="block break-words">
+              How to get your M-Pesa statement:
+            </strong>
             <ol className="list-decimal list-inside mt-2 space-y-1 text-sm">
-              <li>Go to M-Pesa menu → My Account → M-Pesa Statement</li>
-              <li>Select the date range you want</li>
-              <li>Enter your email and request the statement</li>
-              <li>Download the PDF from your email</li>
-              <li>Upload it here for instant expense import</li>
+              <li className="break-words">
+                Go to M-Pesa menu → My Account → M-Pesa Statement
+              </li>
+              <li className="break-words">Select the date range you want</li>
+              <li className="break-words">
+                Enter your email and request the statement
+              </li>
+              <li className="break-words">Download the PDF from your email</li>
+              <li className="break-words">
+                Upload it here for instant expense import
+              </li>
             </ol>
           </AlertDescription>
         </Alert>
 
         <div className="space-y-4">
-         
-
           {/* File Upload Area */}
           <div
             onDragEnter={handleDrag}
@@ -156,8 +165,8 @@ export function ImportStatementDialog({
           >
             {file ? (
               <div className="space-y-2">
-                <FileText className="h-12 w-12 mx-auto text-primary" />
-                <p className="font-medium">{file.name}</p>
+                <FileText className="h-12 w-12 mx-auto text-primary shrink-0" />
+                <p className="font-medium break-all px-2">{file.name}</p>
                 <p className="text-sm text-muted-foreground">
                   {(file.size / 1024 / 1024).toFixed(2)} MB
                 </p>
@@ -174,14 +183,16 @@ export function ImportStatementDialog({
               </div>
             ) : (
               <div className="space-y-2">
-                <Upload className="h-12 w-12 mx-auto text-muted-foreground" />
-                <p className="font-medium">
+                <Upload className="h-12 w-12 mx-auto text-muted-foreground shrink-0" />
+                <p className="font-medium break-words px-2">
                   Drag and drop your M-Pesa statement here
                 </p>
                 <p className="text-sm text-muted-foreground">or</p>
                 <Button
                   variant="outline"
-                  onClick={() => document.getElementById("file-upload")?.click()}
+                  onClick={() =>
+                    document.getElementById("file-upload")?.click()
+                  }
                 >
                   Browse Files
                 </Button>
@@ -202,13 +213,15 @@ export function ImportStatementDialog({
           {/* Error */}
           {error && (
             <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{error}</AlertDescription>
+              <AlertCircle className="h-4 w-4 shrink-0" />
+              <AlertDescription className="break-words">
+                {error}
+              </AlertDescription>
             </Alert>
           )}
 
           {/* Actions */}
-          <div className="flex justify-end gap-2">
+          <div className="flex flex-wrap justify-end gap-2">
             <Button
               variant="outline"
               onClick={() => {
@@ -223,8 +236,10 @@ export function ImportStatementDialog({
             <Button onClick={handleImport} disabled={!file || parsing}>
               {parsing ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Parsing Statement...
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin shrink-0" />
+                  <span className="whitespace-nowrap">
+                    Parsing Statement...
+                  </span>
                 </>
               ) : (
                 "Import & Review"

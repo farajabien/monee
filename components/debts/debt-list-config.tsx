@@ -7,7 +7,7 @@
 import type { ListConfig, FilterConfig } from "@/types/list-config";
 import type { DebtWithUser } from "@/types";
 import { TrendingDown, Clock, Calendar, Percent, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
-import { UnifiedItemCard } from "@/components/ui/unified-item-card";
+import { CompactItemCard } from "@/components/ui/compact-item-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -31,6 +31,14 @@ const formatDate = (timestamp: number) => {
     month: "short",
     day: "numeric",
     year: "numeric",
+  });
+};
+
+const formatDateCompact = (timestamp: number) => {
+  const date = new Date(timestamp);
+  return date.toLocaleDateString("en-KE", {
+    day: "numeric",
+    month: "short",
   });
 };
 
@@ -307,92 +315,34 @@ export const createDebtListConfig = (
   // Rendering Functions
   renderListItem: (item: DebtWithUser, index: number, actions) => {
     const progress = calculateProgress(item);
-    const payoffMonths = calculatePayoffMonths(item);
     const isPaidOff = item.currentBalance === 0;
-    const debtType = (item.debtType || "one-time") as string;
-    const paymentDisplay = getPaymentDisplay(item);
     const dueDateDisplay = getDueDateDisplay(item);
 
-    // Debt type configuration
-    const getDebtTypeInfo = () => {
-      switch (debtType) {
-        case "one-time":
-          return { label: "No Interest", icon: "💳" };
-        case "interest-push":
-          return { label: "Interest-Push", icon: "📈" };
-        case "amortizing":
-          return { label: "Amortizing", icon: "🏦" };
-        default:
-          return { label: "One-Time", icon: "💳" };
-      }
-    };
+    // Build secondary info string
+    let secondaryInfo = `${progress.toFixed(0)}% paid`;
 
-    const debtTypeInfo = getDebtTypeInfo();
-
-    // Build badges array
-    const badges = [
-      { label: `${debtTypeInfo.icon} ${debtTypeInfo.label}`, variant: "secondary" as const },
-      {
-        label: `${formatCompactAmount(paymentDisplay.amount)}${paymentDisplay.isMonthly ? "/mo" : ""}`,
-        icon: "📅",
-        variant: "outline" as const,
-      },
-    ];
-
-    if (item.interestRate && item.interestRate > 0) {
-      badges.push({ label: `${item.interestRate}% APR`, icon: "📊", variant: "outline" as const });
-    }
-
-    if (isPaidOff) {
-      badges.push({ label: "✓ Paid Off", icon: "✅", variant: "outline" as const });
-    }
-
-    // Build metadata
-    const metadata = [];
+    // Add due date info
+    let dateText = "";
     if (dueDateDisplay) {
-      metadata.push({
-        icon: <Calendar className="h-3.5 w-3.5" />,
-        text: `${dueDateDisplay.label}: ${dueDateDisplay.text}`,
-      });
+      dateText = dueDateDisplay.text;
     }
-    if (payoffMonths && !isPaidOff && debtType !== "one-time") {
-      metadata.push({
-        icon: <Clock className="h-3.5 w-3.5" />,
-        text: `${payoffMonths}mo left`,
-      });
-    }
-    metadata.push({
-      icon: <Percent className="h-3.5 w-3.5" />,
-      text: `${progress.toFixed(0)}% paid`,
-    });
 
     return (
-      <UnifiedItemCard
+      <CompactItemCard
         key={item.id}
         index={index}
-        primaryBadge={{
-          value: formatCompactAmount(item.currentBalance),
-          variant: "default",
-          className: "text-xs px-2 py-0.5 font-semibold bg-green-600 text-white",
-        }}
         title={item.name}
-        badges={badges}
-        metadata={metadata}
-        progress={{
-          value: progress,
-          label: `${formatCompactAmount(item.totalAmount - item.currentBalance)} paid`,
-          secondaryLabel: `${formatCompactAmount(item.currentBalance)} remaining`,
-          color: "#16a34a", // green-600
-        }}
+        amount={formatCompactAmount(item.currentBalance)}
+        amountColor={isPaidOff ? "success" : "primary"}
+        category={`${progress.toFixed(0)}% paid`}
+        date={dateText}
+        secondaryInfo={secondaryInfo}
+        isCompleted={isPaidOff}
         actions={{
           onEdit: actions.onEdit,
           onDelete: actions.onDelete,
-          onPrimaryAction: !isPaidOff && actions.customActions?.[0]
-            ? {
-                label: "Record Payment",
-                onClick: () => actions.customActions![0].onClick(item),
-                variant: "success",
-              }
+          onPay: !isPaidOff && actions.customActions?.[0]
+            ? () => actions.customActions![0].onClick(item)
             : undefined,
         }}
       />

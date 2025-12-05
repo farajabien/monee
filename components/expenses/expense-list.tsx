@@ -120,37 +120,85 @@ export default function ExpenseList() {
     }
   };
 
+  // Helper to check if a recurring expense has been paid this month
+  const hasBeenPaidThisMonth = (expenseId: string) => {
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+
+    // Check if there's an expense linked to this recurring transaction this month
+    return expenses.some((expense) => {
+      if (expense.linkedRecurringId !== expenseId) return false;
+      const expenseDate = new Date(expense.date || expense.createdAt);
+      return (
+        expenseDate.getMonth() === currentMonth &&
+        expenseDate.getFullYear() === currentYear
+      );
+    });
+  };
+
+  // Handle recording a payment for a recurring transaction
+  const handleRecordPayment = async (recurringTransactionId: string) => {
+    if (!profile?.id) return;
+
+    const recurringTx = recurringTransactions.find(
+      (tx) => tx.id === recurringTransactionId
+    );
+    if (!recurringTx) return;
+
+    try {
+      const now = Date.now();
+      const newExpenseId = id();
+
+      await db.transact([
+        db.tx.expenses[newExpenseId]
+          .update({
+            amount: recurringTx.amount,
+            recipient: recurringTx.recipient,
+            date: now,
+            category: recurringTx.category,
+            expenseType: "recurring",
+            rawMessage: `Recurring payment: ${recurringTx.name}`,
+            notes: `Recorded via recurring transaction`,
+            linkedRecurringId: recurringTx.id,
+            isRecurring: true,
+            createdAt: now,
+          })
+          .link({ profile: profile.id }),
+      ]);
+
+      toast.success("Payment recorded successfully");
+    } catch (error) {
+      console.error("Failed to record payment:", error);
+      toast.error("Failed to record payment");
+    }
+  };
+
   // Create configuration with recipients for display name resolution
   const config = useMemo(() => {
-    // Add recurring indicator to card rendering
-    const baseConfig = createExpenseListConfig(recipients, formatCurrency);
+    const baseConfig = createExpenseListConfig(
+      recipients,
+      formatCurrency,
+      hasBeenPaidThisMonth
+    );
 
-    // Override renderListItem to add recurring indicator
-    const originalRenderListItem = baseConfig.renderListItem;
-    baseConfig.renderListItem = (item, index, actions) => {
-      const isRecurring = item.isRecurring || item.linkedRecurringId;
-      const originalCard = originalRenderListItem(item, index, actions);
-
-      // Add recurring badge to the card
-      if (isRecurring) {
-        return (
-          <div className="relative">
-            {originalCard}
-            <div className="absolute top-2 right-2 z-10">
-              <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs font-medium">
-                <RepeatIcon className="h-3 w-3" />
-                <span>Recurring</span>
-              </div>
-            </div>
-          </div>
-        );
-      }
-
-      return originalCard;
-    };
+    // Override custom actions to add payment handler
+    if (baseConfig.actions.custom) {
+      baseConfig.actions.custom = baseConfig.actions.custom.map((action) =>
+        action.label === "Record Payment"
+          ? {
+              ...action,
+              onClick: (item: Expense) => {
+                const recurringId = item.linkedRecurringId || item.id;
+                handleRecordPayment(recurringId);
+              },
+            }
+          : action
+      );
+    }
 
     return baseConfig;
-  }, [recipients, formatCurrency]);
+  }, [recipients, formatCurrency, expenses, profile?.id, recurringTransactions]);
 
   // Analytics calculations
   const analytics = useMemo(() => {
@@ -240,21 +288,6 @@ export default function ExpenseList() {
     return config;
   }, [analytics]);
 
-  // If showing validation, render it fullscreen (takes over entire view)
-  if (showingValidation && profile) {
-    return (
-      <div className="space-y-4 w-full">
-        <ExpenseImportOrchestrator
-          existingExpenses={expenses}
-          recurringExpenses={recurringTransactions}
-          categories={categories}
-          onSaveExpenses={handleSaveExpenses}
-          onValidationStateChange={setShowingValidation}
-        />
-      </div>
-    );
-  }
-
   // Main view navigation
   if (activeView === "list") {
     return (
@@ -276,20 +309,22 @@ export default function ExpenseList() {
             </TabsTrigger>
           </TabsList>
         </Tabs>
-        <UnifiedListContainer<Expense>
-          config={config}
-          data={expenses}
-          editDialog={EditExpenseDialogAdapter}
-          headerActions={
-            <ExpenseImportOrchestrator
-              existingExpenses={expenses}
-              recurringExpenses={recurringTransactions}
-              categories={categories}
-              onSaveExpenses={handleSaveExpenses}
-              onValidationStateChange={setShowingValidation}
-            />
-          }
+
+        <ExpenseImportOrchestrator
+          existingExpenses={expenses}
+          recurringExpenses={recurringTransactions}
+          categories={categories}
+          onSaveExpenses={handleSaveExpenses}
+          onValidationStateChange={setShowingValidation}
         />
+
+        {!showingValidation && (
+          <UnifiedListContainer<Expense>
+            config={config}
+            data={expenses}
+            editDialog={EditExpenseDialogAdapter}
+          />
+        )}
       </div>
     );
   }

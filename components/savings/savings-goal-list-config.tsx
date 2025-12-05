@@ -15,7 +15,7 @@ import {
   Pencil,
   Trash2,
 } from "lucide-react";
-import { UnifiedItemCard } from "@/components/ui/unified-item-card";
+import { CompactItemCard } from "@/components/ui/compact-item-card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -41,6 +41,26 @@ const formatDate = (timestamp: number) => {
     month: "short",
     day: "numeric",
     year: "numeric",
+  });
+};
+
+const formatDateCompact = (timestamp: number) => {
+  const date = new Date(timestamp);
+  const today = new Date();
+
+  // Show full date if different year
+  if (date.getFullYear() !== today.getFullYear()) {
+    return date.toLocaleDateString("en-KE", {
+      day: "numeric",
+      month: "short",
+      year: "2-digit",
+    });
+  }
+
+  // Show month and day only if same year
+  return date.toLocaleDateString("en-KE", {
+    day: "numeric",
+    month: "short",
   });
 };
 
@@ -212,75 +232,32 @@ export const createSavingsGoalListConfig = (
     actions
   ) => {
     const progress = calculateProgress(item.currentAmount, item.targetAmount);
-    const remaining = item.targetAmount - item.currentAmount;
     const isCompleted =
       item.isCompleted || item.currentAmount >= item.targetAmount;
 
-    // Build badges
-    const badges = [
-      {
-        label: `🎯 ${formatCurrency(item.targetAmount)}`,
-        variant: "outline" as const,
-      },
-      { label: `${Math.round(progress)}% saved`, variant: "outline" as const },
-    ];
+    // Build secondary info
+    const secondaryInfo = `${Math.round(progress)}% saved`;
 
-    if (isCompleted) {
-      badges.push({ label: "✓ Achieved!", variant: "outline" as const });
-    }
-
-    // Build metadata
-    const metadata = [];
-    if (item.contributions && item.contributions.length > 0) {
-      metadata.push({
-        icon: <TrendingUp className="h-3.5 w-3.5" />,
-        text: `${item.contributions.length} contribution${
-          item.contributions.length !== 1 ? "s" : ""
-        }`,
-      });
-    }
-    if (item.deadline) {
-      metadata.push({
-        icon: <CalendarDays className="h-3.5 w-3.5" />,
-        text: formatDate(item.deadline),
-      });
-    }
+    // Date display
+    const dateText = item.deadline ? formatDateCompact(item.deadline) : "";
 
     return (
-      <UnifiedItemCard
+      <CompactItemCard
         key={item.id}
         index={index}
         emoji={item.emoji || "💰"}
         title={item.name}
-        primaryBadge={{
-          value: `💵 ${formatCurrency(item.currentAmount)}`,
-          variant: "secondary",
-          className: "text-xs px-2 py-0.5 font-semibold",
-        }}
-        badges={badges}
-        metadata={metadata}
-        progress={{
-          value: progress,
-          label: !isCompleted
-            ? `${formatCurrency(remaining)} to go`
-            : "Goal reached!",
-          color: "#16a34a", // green-600
-        }}
+        amount={formatCurrency(item.currentAmount)}
+        amountColor={isCompleted ? "success" : "primary"}
+        category={`${Math.round(progress)}% saved`}
+        date={dateText}
+        secondaryInfo={`Goal: ${formatCurrency(item.targetAmount)}`}
+        isCompleted={isCompleted}
         actions={{
           onEdit: actions.onEdit,
           onDelete: actions.onDelete,
-          onPrimaryAction: !isCompleted
-            ? {
-                label: "Add Money",
-                onClick: () => onAddMoney(item),
-                variant: "success",
-              }
-            : progress >= 100 && !item.isCompleted
-            ? {
-                label: "Mark Complete",
-                onClick: () => onMarkComplete(item.id),
-                variant: "default",
-              }
+          onPay: !isCompleted
+            ? () => onAddMoney(item)
             : undefined,
         }}
       />

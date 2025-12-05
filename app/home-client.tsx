@@ -51,7 +51,7 @@ export default function HomeClient() {
   const tabs = [
     { value: "overview", label: "Overview" },
     { value: "expenses", label: "Expenses" },
-    { value: "income", label: "Income" },
+    { value: "debts", label: "Debts" },
     { value: "more", label: "More" },
   ];
 
@@ -84,21 +84,21 @@ export default function HomeClient() {
       <div className="w-full mx-auto px-4 sm:px-6 py-6 pb-24 sm:pb-28 overflow-x-hidden">
         {activeTab === "overview" && <DashboardOverview />}
         {activeTab === "expenses" && <ExpenseList />}
-        {activeTab === "income" && <IncomeSourceList />}
+        {activeTab === "debts" && <DebtList />}
         {activeTab === "more" && (
           <div className="space-y-4">
             {/* Sub-navigation for More section */}
             <div className="flex gap-2 border-b border-border pb-2 overflow-x-auto">
               <Link
-                href="/dashboard?tab=more&subtab=debts"
+                href="/dashboard?tab=more&subtab=income"
                 className={
                   `px-3 py-1.5 text-sm font-medium rounded-md transition-colors whitespace-nowrap ` +
-                  (moreSubTab === "debts"
+                  (moreSubTab === "income"
                     ? "bg-primary text-primary-foreground"
                     : "text-muted-foreground hover:text-foreground hover:bg-muted")
                 }
               >
-                Debts
+                Income
               </Link>
               <Link
                 href="/dashboard?tab=more&subtab=savings"
@@ -125,7 +125,7 @@ export default function HomeClient() {
             </div>
 
             {/* Sub-tab content */}
-            {moreSubTab === "debts" && <DebtList />}
+            {moreSubTab === "income" && <IncomeSourceList />}
             {moreSubTab === "savings" && <SavingsPage />}
             {moreSubTab === "categories" && <CategoryList />}
           </div>

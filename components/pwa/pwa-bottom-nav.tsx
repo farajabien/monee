@@ -81,20 +81,20 @@ export function PWABottomNav() {
       href: "/dashboard?tab=expenses",
     },
     {
-      value: "income",
-      label: "Income",
-      icon: TrendingUp,
-      href: "/dashboard?tab=income",
+      value: "debts",
+      label: "Debts",
+      icon: CreditCard,
+      href: "/dashboard?tab=debts",
     },
   ];
 
   // More dropdown items - includes More sub-tabs
   const moreItems = [
     {
-      value: "debts",
-      label: "Debts",
-      icon: CreditCard,
-      href: "/dashboard?tab=more&subtab=debts",
+      value: "income",
+      label: "Income",
+      icon: TrendingUp,
+      href: "/dashboard?tab=income",
     },
     {
       value: "savings",
@@ -120,9 +120,8 @@ export function PWABottomNav() {
 
   // Check if we're on More tab or any of its sub-tabs
   const moreSubTab = searchParams.get("subtab");
-  const hasActiveMoreItem = 
-    activeTab === "more" || 
-    moreItems.some((item) => item.value === moreSubTab);
+  const hasActiveMoreItem =
+    activeTab === "more" || moreItems.some((item) => item.value === moreSubTab);
 
   return (
     <>

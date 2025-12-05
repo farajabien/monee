@@ -5,7 +5,11 @@ import { Button } from "@/components/ui/button";
 import { MessageSquare, FileText } from "lucide-react";
 import { ImportSmsDialog } from "./import-sms-dialog";
 import { ImportStatementDialog } from "./import-statement-dialog";
-import { ExpenseImportValidation, type ValidationRow } from "./expense-import-validation";
+import { id } from "@instantdb/react";
+import {
+  ExpenseImportValidation,
+  type ValidationRow,
+} from "./expense-import-validation";
 import { batchMatchRecipients } from "@/lib/recipient-matcher";
 import { batchMatchRecurring } from "@/lib/recurring-matcher";
 import type { ParsedExpenseData, Expense, RecurringTransaction } from "@/types";
@@ -77,34 +81,42 @@ export function ExpenseImportOrchestrator({
   const handleEdit = (id: string, overrides: ValidationRow["overrides"]) => {
     setValidationRows((prev) =>
       prev.map((row) =>
-        row.id === id
-          ? { ...row, status: "edited" as const, overrides }
-          : row
+        row.id === id ? { ...row, status: "edited" as const, overrides } : row
       )
     );
   };
 
   const handleSave = async () => {
-    const acceptedRows = validationRows.filter((r) => r.status === "accepted" || r.status === "edited");
+    const acceptedRows = validationRows.filter(
+      (r) => r.status === "accepted" || r.status === "edited"
+    );
 
     const expensesToSave = acceptedRows.map((row) => {
-      const recipient = row.overrides?.recipient || row.recipientMatch.recipientName;
-      const category = row.overrides?.category || row.recipientMatch.suggestedCategory || "Uncategorized";
+      const recipient =
+        row.overrides?.recipient || row.recipientMatch.recipientName;
+      const category =
+        row.overrides?.category ||
+        row.recipientMatch.suggestedCategory ||
+        "Uncategorized";
       const amount = row.overrides?.amount || row.parsed.amount;
 
       return {
-        id: crypto.randomUUID(),
+        id: id(),
         amount,
         recipient,
         category,
         date: row.parsed.timestamp || Date.now(),
         rawMessage: row.parsed.reference || "",
         expenseType: row.parsed.expenseType || "send",
-        parsedData: row.parsed,
-        notes: row.parsed.phoneNumber ? `Phone: ${row.parsed.phoneNumber}` : undefined,
+        notes: row.parsed.phoneNumber
+          ? `Phone: ${row.parsed.phoneNumber}`
+          : undefined,
         mpesaReference: row.parsed.reference,
-        linkedRecurringId: row.overrides?.recurringId || row.recurringMatch.recurringExpenseId,
-        isRecurring: !!row.recurringMatch.recurringExpenseId,
+        recurringTransactionId:
+          row.overrides?.recurringId || row.recurringMatch.recurringExpenseId,
+        isRecurring: !!(
+          row.overrides?.recurringId || row.recurringMatch.recurringExpenseId
+        ),
         createdAt: Date.now(),
       };
     });
@@ -121,7 +133,11 @@ export function ExpenseImportOrchestrator({
   };
 
   const handleCancel = () => {
-    if (confirm("Are you sure you want to cancel? All pending imports will be lost.")) {
+    if (
+      confirm(
+        "Are you sure you want to cancel? All pending imports will be lost."
+      )
+    ) {
       setValidationRows([]);
       setShowValidation(false);
       onValidationStateChange?.(false);
