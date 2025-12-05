@@ -1,12 +1,14 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import dynamic from "next/dynamic";
 import db from "@/lib/db";
 import { calculateCashRunway } from "@/lib/cash-runway-calculator";
 import { calculateCashFlowHealth } from "@/lib/cash-flow-health-calculator";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Item, ItemContent } from "@/components/ui/item";
+import { Calendar, Target } from "lucide-react";
 
 import { useCurrency } from "@/hooks/use-currency";
 
@@ -111,7 +113,7 @@ export function DashboardOverview() {
   const savingsGoals = profile?.savingsGoals || [];
 
   // Currency formatting
-  const { formatCurrencyCompact } = useCurrency(
+  const { formatCurrencyCompact, formatCurrency } = useCurrency(
     profile?.currency,
     profile?.locale
   );
@@ -181,6 +183,47 @@ export function DashboardOverview() {
     });
   }, [debts, now]);
 
+  // Upcoming debts (next 5 with due dates)
+  const upcomingDebts = useMemo(() => {
+    const currentDateTs = now.getTime();
+    return debtsData
+      .filter((debt) => debt.nextPaymentDate > currentDateTs)
+      .sort((a, b) => a.nextPaymentDate - b.nextPaymentDate)
+      .slice(0, 5);
+  }, [debtsData, now]);
+
+  // Upcoming expenses (recurring expenses with due dates)
+  const upcomingExpenses = useMemo(() => {
+    const currentDateTs = now.getTime();
+    // Filter expenses that have future dates within the next 30 days
+    const futureExpenses = expenses
+      .filter((expense) => {
+        const expenseDate = expense.date;
+        const thirtyDaysFromNow = currentDateTs + 30 * 24 * 60 * 60 * 1000;
+        return expenseDate > currentDateTs && expenseDate <= thirtyDaysFromNow;
+      })
+      .sort((a, b) => a.date - b.date)
+      .slice(0, 5);
+
+    return futureExpenses;
+  }, [expenses, now]);
+
+  // Savings goals with nearing deadlines
+  const nearingDeadlineSavings = useMemo(() => {
+    const currentDateTs = now.getTime();
+    const thirtyDaysFromNow = currentDateTs + 30 * 24 * 60 * 60 * 1000;
+
+    return savingsGoals
+      .filter((goal) => {
+        if (!goal.deadline) return false;
+        return (
+          goal.deadline > currentDateTs && goal.deadline <= thirtyDaysFromNow
+        );
+      })
+      .sort((a, b) => (a.deadline ?? 0) - (b.deadline ?? 0))
+      .slice(0, 5);
+  }, [savingsGoals, now]);
+
   // Savings data
   const savingsData = useMemo(() => {
     const monthlySavings = savingsGoals.reduce((sum, goal) => {
@@ -249,6 +292,23 @@ export function DashboardOverview() {
     });
   }, [incomeSources, expenses, now, profile?.monthlyBudget]);
 
+  // Helper function to format date
+  const formatDate = (timestamp: number) => {
+    return new Date(timestamp).toLocaleDateString(profile?.locale || "en-US", {
+      month: "short",
+      day: "numeric",
+    });
+  };
+
+  // Helper function to get days until
+  const getDaysUntil = (timestamp: number) => {
+    const today = new Date(now.getTime());
+    const targetDate = new Date(timestamp);
+    const diffTime = targetDate.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+  };
+
   if (error) {
     return (
       <div className="p-6 text-center">
@@ -289,23 +349,111 @@ export function DashboardOverview() {
               />
             </TabsContent>
             <TabsContent value="debts">
-              <DebtsAlertCard
-                debts={debtsData}
-                isLoading={isLoading}
-                userCurrency={profile?.currency}
-                userLocale={profile?.locale}
-              />
+              <div className="space-y-4">
+                <DebtsAlertCard
+                  debts={debtsData}
+                  isLoading={isLoading}
+                  userCurrency={profile?.currency}
+                  userLocale={profile?.locale}
+                />
+
+                {/* Upcoming Debts List */}
+                {upcomingDebts.length > 0 && (
+                  <Item variant="outline" className="border-0">
+                    <ItemContent className="space-y-3">
+                      <div className="flex items-center gap-2 text-sm font-medium">
+                        <Calendar className="h-4 w-4" />
+                        <span>Upcoming Payments</span>
+                      </div>
+                      <div className="space-y-2">
+                        {upcomingDebts.map((debt) => {
+                          const daysUntil = getDaysUntil(debt.nextPaymentDate);
+                          return (
+                            <div
+                              key={debt.id}
+                              className="flex items-center justify-between py-2 border-b last:border-0"
+                            >
+                              <div className="space-y-0.5">
+                                <p className="text-sm font-medium">
+                                  {debt.name}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  {formatDate(debt.nextPaymentDate)} •{" "}
+                                  {daysUntil} day{daysUntil !== 1 ? "s" : ""}
+                                </p>
+                              </div>
+                              <div className="text-sm font-semibold tabular-nums">
+                                {formatCurrency(debt.nextPaymentAmount)}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </ItemContent>
+                  </Item>
+                )}
+              </div>
             </TabsContent>
             <TabsContent value="savings">
-              <SavingsProgressCard
-                monthlySavings={savingsData.monthlySavings}
-                totalSaved={savingsData.totalSaved}
-                totalTarget={savingsData.totalTarget}
-                goalsCount={savingsData.goalsCount}
-                isLoading={isLoading}
-                userCurrency={profile?.currency}
-                userLocale={profile?.locale}
-              />
+              <div className="space-y-4">
+                <SavingsProgressCard
+                  monthlySavings={savingsData.monthlySavings}
+                  totalSaved={savingsData.totalSaved}
+                  totalTarget={savingsData.totalTarget}
+                  goalsCount={savingsData.goalsCount}
+                  isLoading={isLoading}
+                  userCurrency={profile?.currency}
+                  userLocale={profile?.locale}
+                />
+
+                {/* Savings Goals with Nearing Deadlines */}
+                {nearingDeadlineSavings.length > 0 && (
+                  <Item variant="outline" className="border-0">
+                    <ItemContent className="space-y-3">
+                      <div className="flex items-center gap-2 text-sm font-medium">
+                        <Target className="h-4 w-4" />
+                        <span>Nearing Deadlines</span>
+                      </div>
+                      <div className="space-y-2">
+                        {nearingDeadlineSavings.map((goal) => {
+                          const daysUntil = getDaysUntil(goal.deadline ?? 0);
+                          const progress =
+                            goal.targetAmount > 0
+                              ? Math.round(
+                                  (goal.currentAmount / goal.targetAmount) * 100
+                                )
+                              : 0;
+                          return (
+                            <div
+                              key={goal.id}
+                              className="flex items-center justify-between py-2 border-b last:border-0"
+                            >
+                              <div className="space-y-0.5 flex-1">
+                                <p className="text-sm font-medium">
+                                  {goal.name}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  {formatDate(goal.deadline ?? 0)} • {daysUntil}{" "}
+                                  day{daysUntil !== 1 ? "s" : ""}
+                                </p>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-sm font-semibold tabular-nums">
+                                  {progress}%
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  {formatCurrencyCompact(goal.currentAmount)} /{" "}
+                                  {formatCurrencyCompact(goal.targetAmount)}
+                                </p>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </ItemContent>
+                  </Item>
+                )}
+              </div>
             </TabsContent>
           </Tabs>
         </TabsContent>

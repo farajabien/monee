@@ -210,11 +210,11 @@ export function ExpenseImportValidation({
   const getConfidenceColor = (confidence: "high" | "medium" | "low") => {
     switch (confidence) {
       case "high":
-        return "bg-green-50 hover:bg-green-100 border-green-200";
+        return "bg-success/10 hover:bg-success/20 border-success/30";
       case "medium":
-        return "bg-yellow-50 hover:bg-yellow-100 border-yellow-200";
+        return "bg-warning/10 hover:bg-warning/20 border-warning/30";
       case "low":
-        return "bg-red-50 hover:bg-red-100 border-red-200";
+        return "bg-destructive/10 hover:bg-destructive/20 border-destructive/30";
     }
   };
 
@@ -224,7 +224,7 @@ export function ExpenseImportValidation({
         return (
           <Badge
             variant="outline"
-            className="bg-green-100 text-green-800 border-green-300"
+            className="bg-success/10 text-success border-success/30"
           >
             <CheckCircle2 className="mr-1 h-3 w-3" />
             High
@@ -234,7 +234,7 @@ export function ExpenseImportValidation({
         return (
           <Badge
             variant="outline"
-            className="bg-yellow-100 text-yellow-800 border-yellow-300"
+            className="bg-warning/10 text-warning border-warning/30"
           >
             <AlertTriangle className="mr-1 h-3 w-3" />
             Medium
@@ -244,7 +244,7 @@ export function ExpenseImportValidation({
         return (
           <Badge
             variant="outline"
-            className="bg-red-100 text-red-800 border-red-300"
+            className="bg-destructive/10 text-destructive border-destructive/30"
           >
             <XCircle className="mr-1 h-3 w-3" />
             Low
@@ -351,13 +351,15 @@ export function ExpenseImportValidation({
       <div className="flex flex-wrap items-center gap-3 text-sm p-3 bg-muted/50 rounded-lg">
         <span className="font-semibold">Total: {stats.total}</span>
         <span className="text-muted-foreground">•</span>
-        <span className="font-semibold text-yellow-600">
+        <span className="font-semibold text-warning">
           Pending: {stats.pending}
         </span>
         <span className="text-muted-foreground">•</span>
-        <span className="font-semibold text-green-600">✓ {stats.accepted}</span>
+        <span className="font-semibold text-success">✓ {stats.accepted}</span>
         <span className="text-muted-foreground">•</span>
-        <span className="font-semibold text-red-600">✗ {stats.rejected}</span>
+        <span className="font-semibold text-destructive">
+          ✗ {stats.rejected}
+        </span>
       </div>
       {/* Save Button - Use accepted rows from filteredRows for consistency */}
       {(acceptedRows.length > 0 || rejectedRows.length > 0) && (
@@ -380,7 +382,7 @@ export function ExpenseImportValidation({
                 pendingRows.length > 0
               }
               onChange={toggleAllRows}
-              className="h-4 w-4 rounded border-gray-300"
+              className="h-4 w-4 rounded border-input"
             />
             <span className="text-xs sm:text-sm font-medium">
               {selectedRows.size > 0
@@ -399,7 +401,7 @@ export function ExpenseImportValidation({
                     onAccept(Array.from(selectedRows));
                     setSelectedRows(new Set());
                   }}
-                  className="flex-1 sm:flex-none bg-green-50 hover:bg-green-100 text-green-700 border-green-200 text-xs sm:text-sm"
+                  className="flex-1 sm:flex-none bg-success/10 hover:bg-success/20 text-success border-success/30 text-xs sm:text-sm"
                 >
                   <Check className="mr-1 h-3 w-3 sm:h-4 sm:w-4" />
                   Accept
@@ -411,7 +413,7 @@ export function ExpenseImportValidation({
                     onReject(Array.from(selectedRows));
                     setSelectedRows(new Set());
                   }}
-                  className="flex-1 sm:flex-none bg-red-50 hover:bg-red-100 text-red-700 border-red-200 text-xs sm:text-sm"
+                  className="flex-1 sm:flex-none bg-destructive/10 hover:bg-destructive/20 text-destructive border-destructive/30 text-xs sm:text-sm"
                 >
                   <X className="mr-1 h-3 w-3 sm:h-4 sm:w-4" />
                   Reject
@@ -480,8 +482,8 @@ export function ExpenseImportValidation({
                   className={cn(
                     "transition-colors",
                     isPending && confidenceColor,
-                    row.status === "accepted" && "bg-green-50/50",
-                    row.status === "rejected" && "bg-red-50/50 opacity-60"
+                    row.status === "accepted" && "bg-success/5",
+                    row.status === "rejected" && "bg-destructive/5 opacity-60"
                   )}
                 >
                   {/* Checkbox */}
@@ -491,7 +493,7 @@ export function ExpenseImportValidation({
                         type="checkbox"
                         checked={selectedRows.has(row.id)}
                         onChange={() => toggleRowSelection(row.id)}
-                        className="h-4 w-4 rounded border-gray-300"
+                        className="h-4 w-4 rounded border-input"
                       />
                     )}
                   </TableCell>
@@ -670,7 +672,7 @@ export function ExpenseImportValidation({
                           size="sm"
                           variant="ghost"
                           onClick={() => onAccept([row.id])}
-                          className="h-7 w-7 p-0 text-green-600 hover:text-green-700"
+                          className="h-7 w-7 p-0 text-success hover:text-success/80"
                         >
                           <Check className="h-4 w-4" />
                         </Button>
@@ -678,7 +680,7 @@ export function ExpenseImportValidation({
                           size="sm"
                           variant="ghost"
                           onClick={() => onReject([row.id])}
-                          className="h-7 w-7 p-0 text-red-600 hover:text-red-700"
+                          className="h-7 w-7 p-0 text-destructive hover:text-destructive/80"
                         >
                           <X className="h-4 w-4" />
                         </Button>

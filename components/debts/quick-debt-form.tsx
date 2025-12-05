@@ -41,7 +41,7 @@ export function QuickDebtForm({ onSuccess, debt }: QuickDebtFormProps) {
   const [interestCalcType, setInterestCalcType] = useState<
     "monthly" | "yearly" | "total"
   >("yearly");
-  const [paymentDueDay, setPaymentDueDay] = useState<string>("1");
+  const [paymentDueDate, setPaymentDueDate] = useState<string>("");
   const [monthlyPaymentAmount, setMonthlyPaymentAmount] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -52,7 +52,16 @@ export function QuickDebtForm({ onSuccess, debt }: QuickDebtFormProps) {
       setTotalAmount(debt.totalAmount?.toString() || "");
       setDebtType((debt.debtType as DebtType) || "one-time");
       setInterestRate(debt.interestRate?.toString() || "0");
-      setPaymentDueDay(debt.paymentDueDay?.toString() || "1");
+
+      // Convert paymentDueDay to a date string for the date input
+      if (debt.paymentDueDay) {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, "0");
+        const day = String(debt.paymentDueDay).padStart(2, "0");
+        setPaymentDueDate(`${year}-${month}-${day}`);
+      }
+
       setMonthlyPaymentAmount(debt.monthlyPaymentAmount?.toString() || "");
     }
   }, [debt]);
@@ -61,6 +70,11 @@ export function QuickDebtForm({ onSuccess, debt }: QuickDebtFormProps) {
     e.preventDefault();
     if (!name.trim() || !totalAmount) {
       toast.error("Please fill in all required fields");
+      return;
+    }
+
+    if (!paymentDueDate) {
+      toast.error("Please select a payment due date");
       return;
     }
 
@@ -90,6 +104,10 @@ export function QuickDebtForm({ onSuccess, debt }: QuickDebtFormProps) {
       const hasInterest = parsedInterestRate > 0;
       const newTotalAmount = parseFloat(totalAmount);
 
+      // Extract day from the selected date
+      const selectedDate = new Date(paymentDueDate);
+      const dueDayOfMonth = selectedDate.getDate();
+
       // When editing, adjust currentBalance proportionally to maintain payment history
       let newCurrentBalance: number;
       if (debt) {
@@ -110,7 +128,7 @@ export function QuickDebtForm({ onSuccess, debt }: QuickDebtFormProps) {
         currentBalance: newCurrentBalance,
         debtType,
         interestRate: parsedInterestRate,
-        paymentDueDay: parseInt(paymentDueDay || "1"),
+        paymentDueDay: dueDayOfMonth,
         monthlyPaymentAmount:
           debtType === "amortizing"
             ? parseFloat(monthlyPaymentAmount || "0")
@@ -139,7 +157,7 @@ export function QuickDebtForm({ onSuccess, debt }: QuickDebtFormProps) {
       setDebtType("one-time");
       setInterestRate("0");
       setInterestCalcType("yearly");
-      setPaymentDueDay("1");
+      setPaymentDueDate("");
       setMonthlyPaymentAmount("");
 
       if (onSuccess) {
@@ -241,20 +259,17 @@ export function QuickDebtForm({ onSuccess, debt }: QuickDebtFormProps) {
         <p className="text-xs text-muted-foreground">Enter 0 for no interest</p>
       </div>
 
-      {/* Step 4: Due Day (always show) */}
+      {/* Step 4: Due Date (always show) */}
       <div className="space-y-2">
-        <Label htmlFor="payment-due-day">Payment Due Day (1-31)</Label>
+        <Label htmlFor="payment-due-date">Payment Due Date</Label>
         <Input
-          id="payment-due-day"
-          type="number"
-          min="1"
-          max="31"
-          placeholder="1"
-          value={paymentDueDay}
-          onChange={(e) => setPaymentDueDay(e.target.value)}
+          id="payment-due-date"
+          type="date"
+          value={paymentDueDate}
+          onChange={(e) => setPaymentDueDate(e.target.value)}
         />
         <p className="text-xs text-muted-foreground">
-          Day of the month when payment is due
+          Select the date when payment is due
         </p>
       </div>
 

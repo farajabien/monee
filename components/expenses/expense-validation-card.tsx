@@ -1,8 +1,9 @@
 /**
  * ExpenseValidationCard Component
  *
- * Mobile-friendly card layout for validating imported expenses
+ * Compact mobile-friendly card layout for validating imported expenses
  * Shows transaction details with edit, accept, reject actions
+ * Uses design tokens from globals.css and follows compact-item-card patterns
  */
 
 "use client";
@@ -18,7 +19,6 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -83,7 +83,7 @@ export function ExpenseValidationCard({
         return (
           <Badge
             variant="outline"
-            className="bg-green-100 text-green-800 border-green-300"
+            className="text-[10px] px-1.5 py-0 h-5 bg-green-50 text-green-700 border-green-300 dark:bg-green-950/30 dark:text-green-400 dark:border-green-800"
           >
             <CheckCircle2 className="mr-1 h-3 w-3" />
             High
@@ -93,7 +93,7 @@ export function ExpenseValidationCard({
         return (
           <Badge
             variant="outline"
-            className="bg-yellow-100 text-yellow-800 border-yellow-300"
+            className="text-[10px] px-1.5 py-0 h-5 bg-yellow-50 text-yellow-700 border-yellow-300 dark:bg-yellow-950/30 dark:text-yellow-400 dark:border-yellow-800"
           >
             <AlertTriangle className="mr-1 h-3 w-3" />
             Medium
@@ -103,7 +103,7 @@ export function ExpenseValidationCard({
         return (
           <Badge
             variant="outline"
-            className="bg-red-100 text-red-800 border-red-300"
+            className="text-[10px] px-1.5 py-0 h-5 bg-red-50 text-red-700 border-red-300 dark:bg-red-950/30 dark:text-red-400 dark:border-red-800"
           >
             <XCircle className="mr-1 h-3 w-3" />
             Low
@@ -112,231 +112,228 @@ export function ExpenseValidationCard({
     }
   };
 
-  const getConfidenceColor = (confidence: "high" | "medium" | "low") => {
-    switch (confidence) {
-      case "high":
-        return "border-green-200 bg-green-50/50";
-      case "medium":
-        return "border-yellow-200 bg-yellow-50/50";
-      case "low":
-        return "border-red-200 bg-red-50/50";
+  const getCardBorderClass = () => {
+    if (row.status === "accepted") {
+      return "border-green-600 dark:border-green-400 bg-green-50 dark:bg-green-950/30";
     }
+    if (row.status === "rejected") {
+      return "border-red-600 dark:border-red-400 bg-red-50 dark:bg-red-950/30 opacity-60";
+    }
+    if (isPending) {
+      switch (row.recipientMatch.confidence) {
+        case "high":
+          return "border-green-300 dark:border-green-800 bg-green-50/50 dark:bg-green-950/20";
+        case "medium":
+          return "border-yellow-300 dark:border-yellow-800 bg-yellow-50/50 dark:bg-yellow-950/20";
+        case "low":
+          return "border-red-300 dark:border-red-800 bg-red-50/50 dark:bg-red-950/20";
+      }
+    }
+    return "";
   };
 
+  if (isEditing) {
+    return (
+      <div
+        className={cn(
+          "rounded-lg border bg-card p-3 space-y-3 transition-colors",
+          isSelected && "ring-2 ring-primary"
+        )}
+      >
+        {/* Edit Mode: Full form */}
+        <div className="space-y-2">
+          <div>
+            <Label htmlFor={`amount-${row.id}`} className="text-xs">
+              Amount
+            </Label>
+            <Input
+              id={`amount-${row.id}`}
+              type="number"
+              value={editValues?.amount ?? 0}
+              onChange={(e) =>
+                setEditValues({
+                  ...editValues,
+                  amount: parseFloat(e.target.value),
+                })
+              }
+              className="h-8 mt-1"
+            />
+          </div>
+
+          <div>
+            <Label htmlFor={`recipient-${row.id}`} className="text-xs">
+              Recipient
+            </Label>
+            <Input
+              id={`recipient-${row.id}`}
+              value={editValues?.recipient ?? ""}
+              onChange={(e) =>
+                setEditValues({
+                  ...editValues,
+                  recipient: e.target.value,
+                })
+              }
+              className="h-8 mt-1"
+            />
+          </div>
+
+          <div>
+            <Label htmlFor={`category-${row.id}`} className="text-xs">
+              Category
+            </Label>
+            <Select
+              value={editValues?.category ?? ""}
+              onValueChange={(value) =>
+                setEditValues({
+                  ...editValues,
+                  category: value,
+                })
+              }
+            >
+              <SelectTrigger id={`category-${row.id}`} className="h-8 mt-1">
+                <SelectValue placeholder="Select category" />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.map((cat) => (
+                  <SelectItem key={cat} value={cat}>
+                    {cat}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        <div className="flex gap-2 pt-2 border-t">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleCancelEdit}
+            className="flex-1 h-7"
+          >
+            Cancel
+          </Button>
+          <Button size="sm" onClick={handleSaveEdit} className="flex-1 h-7">
+            Save
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <Card
+    <div
       className={cn(
-        "transition-all",
-        isPending && getConfidenceColor(row.recipientMatch.confidence),
-        row.status === "accepted" && "bg-green-50/50 border-green-200",
-        row.status === "rejected" && "bg-red-50/50 border-red-200 opacity-60",
+        "rounded-lg border bg-card hover:bg-accent/30 transition-colors",
+        getCardBorderClass(),
         isSelected && "ring-2 ring-primary"
       )}
     >
-      <CardContent className="p-3 space-y-3">
-        {/* Header: Checkbox + Amount + Date */}
-        <div className="flex items-start justify-between">
-          <div className="flex items-start gap-3 flex-1">
-            {isPending && (
-              <input
-                type="checkbox"
-                checked={isSelected}
-                onChange={() => onToggleSelect(row.id)}
-                className="h-5 w-5 mt-0.5 rounded border-gray-300"
-              />
-            )}
-            <div className="flex-1">
-              {isEditing ? (
-                <div className="space-y-1">
-                  <Label htmlFor={`amount-${row.id}`} className="text-xs">
-                    Amount
-                  </Label>
-                  <Input
-                    id={`amount-${row.id}`}
-                    type="number"
-                    value={editValues?.amount ?? 0}
-                    onChange={(e) =>
-                      setEditValues({
-                        ...editValues,
-                        amount: parseFloat(e.target.value),
-                      })
-                    }
-                    className="h-8"
-                  />
-                </div>
-              ) : (
-                <div className="space-y-0.5">
-                  <p className="text-lg font-bold">
-                    KSh{" "}
-                    {(
-                      row.overrides?.amount || row.parsed.amount
-                    ).toLocaleString()}
-                  </p>
-                  {row.parsed.timestamp && (
-                    <p className="text-xs text-muted-foreground">
-                      {new Date(row.parsed.timestamp).toLocaleDateString(
-                        "en-US",
-                        {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        }
-                      )}
-                    </p>
-                  )}
-                </div>
-              )}
-            </div>
+      <div className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 min-h-[52px]">
+        {/* Left Section: Checkbox + Amount */}
+        <div className="flex items-center gap-2 shrink-0">
+          {isPending && (
+            <input
+              type="checkbox"
+              checked={isSelected}
+              onChange={() => onToggleSelect(row.id)}
+              className="h-4 w-4 rounded border-border"
+            />
+          )}
+          <div className="px-2 py-1 rounded-md font-semibold text-xs sm:text-sm whitespace-nowrap text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30">
+            KSh {(row.overrides?.amount || row.parsed.amount).toLocaleString()}
           </div>
-
-          {/* Confidence Badge */}
-          <div>{getConfidenceBadge(row.recipientMatch.confidence)}</div>
         </div>
 
-        {/* Recipient */}
-        <div className="space-y-1">
-          {isEditing ? (
-            <>
-              <Label htmlFor={`recipient-${row.id}`} className="text-xs">
-                Recipient
-              </Label>
-              <Input
-                id={`recipient-${row.id}`}
-                value={editValues?.recipient ?? ""}
-                onChange={(e) =>
-                  setEditValues({
-                    ...editValues,
-                    recipient: e.target.value,
-                  })
-                }
-                className="h-8"
-              />
-            </>
-          ) : (
-            <>
-              <p className="text-xs text-muted-foreground">Recipient</p>
-              <p className="font-medium text-sm">
-                {row.overrides?.recipient || row.recipientMatch.recipientName}
-              </p>
-              {row.parsed.phoneNumber && (
-                <p className="text-xs text-muted-foreground font-mono">
-                  {row.parsed.phoneNumber}
-                </p>
-              )}
-            </>
-          )}
-        </div>
-
-        {/* Category */}
-        <div className="space-y-1">
-          {isEditing ? (
-            <>
-              <Label htmlFor={`category-${row.id}`} className="text-xs">
-                Category
-              </Label>
-              <Select
-                value={editValues?.category ?? ""}
-                onValueChange={(value) =>
-                  setEditValues({
-                    ...editValues,
-                    category: value,
-                  })
-                }
-              >
-                <SelectTrigger id={`category-${row.id}`} className="h-8">
-                  <SelectValue placeholder="Select category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((cat) => (
-                    <SelectItem key={cat} value={cat}>
-                      {cat}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </>
-          ) : (
-            <>
-              <p className="text-xs text-muted-foreground">Category</p>
-              <Badge variant="secondary" className="font-normal">
-                {row.overrides?.category ||
-                  row.recipientMatch.suggestedCategory}
-              </Badge>
-            </>
-          )}
-        </div>
-
-        {/* Recurring Status (if applicable) */}
-        {row.recurringMatch && (
-          <div className="space-y-1">
-            <p className="text-xs text-muted-foreground">Recurring</p>
-            <Badge
-              variant={row.recurringMatch.isMatch ? "default" : "outline"}
-              className="font-normal"
+        {/* Middle Section: Recipient + Metadata */}
+        <div className="flex-1 min-w-0 flex flex-col gap-1">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span
+              className="font-medium text-sm truncate"
+              title={
+                row.overrides?.recipient || row.recipientMatch.recipientName
+              }
             >
-              {row.recurringMatch.isMatch ? "Linked" : "Not Linked"}
-            </Badge>
-          </div>
-        )}
+              {row.overrides?.recipient || row.recipientMatch.recipientName}
+            </span>
 
-        {/* Action Buttons */}
-        <div className="flex gap-2 pt-2 border-t">
-          {isEditing ? (
-            <>
-              <Button
-                size="sm"
+            <Badge
+              variant="outline"
+              className="text-[10px] px-1.5 py-0 h-5 whitespace-nowrap"
+            >
+              {row.overrides?.category || row.recipientMatch.suggestedCategory}
+            </Badge>
+
+            {row.parsed.timestamp && (
+              <span className="text-[10px] sm:text-xs text-muted-foreground whitespace-nowrap">
+                {new Date(row.parsed.timestamp).toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                })}
+              </span>
+            )}
+
+            {getConfidenceBadge(row.recipientMatch.confidence)}
+
+            {row.recurringMatch?.isMatch && (
+              <Badge
                 variant="outline"
-                onClick={handleCancelEdit}
-                className="flex-1"
+                className="text-[10px] px-1.5 py-0 h-5 whitespace-nowrap"
               >
-                Cancel
-              </Button>
-              <Button size="sm" onClick={handleSaveEdit} className="flex-1">
-                Save
-              </Button>
-            </>
-          ) : isPending ? (
-            <>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => setIsEditing(true)}
-                className="flex-1"
-              >
-                <Edit2 className="mr-1 h-3 w-3" />
-                Edit
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => onAccept([row.id])}
-                className="flex-1 bg-green-50 hover:bg-green-100 text-green-700 border-green-200"
-              >
-                <Check className="mr-1 h-4 w-4" />
-                Accept
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => onReject([row.id])}
-                className="flex-1 bg-red-50 hover:bg-red-100 text-red-700 border-red-200"
-              >
-                <X className="mr-1 h-4 w-4" />
-                Reject
-              </Button>
-            </>
-          ) : (
-            <div className="flex-1 text-center py-1">
+                🔁 Recurring
+              </Badge>
+            )}
+
+            {!isPending && (
               <Badge
                 variant={row.status === "accepted" ? "default" : "destructive"}
-                className="font-normal"
+                className="text-[10px] px-1.5 py-0 h-5"
               >
-                {row.status === "accepted" ? "Accepted" : "Rejected"}
+                {row.status === "accepted" ? "✓ Accepted" : "✗ Rejected"}
               </Badge>
-            </div>
+            )}
+          </div>
+
+          {row.parsed.phoneNumber && (
+            <span className="text-[10px] text-muted-foreground font-mono">
+              {row.parsed.phoneNumber}
+            </span>
           )}
         </div>
-      </CardContent>
-    </Card>
+
+        {/* Right Section: Action Buttons */}
+        {isPending && (
+          <div className="flex items-center gap-1 shrink-0">
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => setIsEditing(true)}
+              className="h-7 w-7 p-0"
+            >
+              <Edit2 className="h-3.5 w-3.5" />
+              <span className="sr-only">Edit</span>
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => onAccept([row.id])}
+              className="h-7 w-7 p-0 text-green-600 hover:text-green-700 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-950/30"
+            >
+              <Check className="h-4 w-4" />
+              <span className="sr-only">Accept</span>
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => onReject([row.id])}
+              className="h-7 w-7 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30"
+            >
+              <X className="h-4 w-4" />
+              <span className="sr-only">Reject</span>
+            </Button>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }

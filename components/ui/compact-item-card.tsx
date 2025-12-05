@@ -3,6 +3,7 @@
  *
  * Lean, single-row card design for expenses, debts, savings, and income
  * Optimized for maximum information density with minimal vertical space
+ * Supports expansion via accordion for viewing hidden details
  */
 
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +14,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { MoreVertical, Pencil, Trash2, RepeatIcon } from "lucide-react";
 import { ReactNode } from "react";
 
@@ -38,6 +45,9 @@ export interface CompactItemCardProps {
     variant?: "default" | "secondary" | "destructive" | "outline" | "success";
   };
 
+  // Expandable details
+  expandedContent?: ReactNode; // Content to show when expanded
+
   // Actions
   actions: {
     onEdit?: () => void;
@@ -62,6 +72,7 @@ export function CompactItemCard({
   isPaid = false,
   isCompleted = false,
   customBadge,
+  expandedContent,
   actions,
   onClick,
 }: CompactItemCardProps) {
@@ -78,23 +89,27 @@ export function CompactItemCard({
     }
   };
 
-  return (
+  const cardContent = (
     <div
       className={`
-        flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg border bg-card
-        hover:bg-accent/30 transition-colors min-h-[52px]
-        ${onClick ? "cursor-pointer" : ""}
+        flex items-center gap-2 sm:gap-3 p-2 sm:p-3 min-h-[52px]
+        ${!expandedContent && onClick ? "cursor-pointer" : ""}
       `}
-      onClick={onClick}
+      onClick={!expandedContent ? onClick : undefined}
     >
       {/* Left Section: Index + Amount */}
       <div className="flex items-center gap-2 shrink-0">
         {index !== undefined && (
-          <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5 w-7 justify-center shrink-0">
+          <Badge
+            variant="outline"
+            className="text-[10px] px-1.5 py-0 h-5 w-7 justify-center shrink-0"
+          >
             #{index + 1}
           </Badge>
         )}
-        <div className={`px-2 py-1 rounded-md font-semibold text-xs sm:text-sm whitespace-nowrap ${getAmountColorClass()}`}>
+        <div
+          className={`px-2 py-1 rounded-md font-semibold text-xs sm:text-sm whitespace-nowrap ${getAmountColorClass()}`}
+        >
           {amount}
         </div>
       </div>
@@ -103,13 +118,18 @@ export function CompactItemCard({
       <div className="flex-1 min-w-0 flex items-center gap-2 flex-nowrap overflow-hidden">
         <div className="flex items-center gap-1.5 min-w-0 max-w-[200px] sm:max-w-none">
           {emoji && <span className="text-base shrink-0">{emoji}</span>}
-          <span className="font-medium text-sm truncate" title={title}>{title}</span>
+          <span className="font-medium text-sm truncate" title={title}>
+            {title}
+          </span>
         </div>
 
         {/* Badges and metadata */}
         <div className="flex items-center gap-1.5 flex-wrap sm:flex-nowrap shrink-0">
           {category && (
-            <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5 whitespace-nowrap">
+            <Badge
+              variant="outline"
+              className="text-[10px] px-1.5 py-0 h-5 whitespace-nowrap"
+            >
               {category}
             </Badge>
           )}
@@ -126,13 +146,6 @@ export function CompactItemCard({
             </span>
           )}
 
-          {isRecurring && (
-            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5 gap-0.5 shrink-0">
-              <RepeatIcon className="h-2.5 w-2.5" />
-              <span className="hidden sm:inline">Recurring</span>
-            </Badge>
-          )}
-
           {customBadge && (
             <Badge
               variant={customBadge.variant || "outline"}
@@ -143,7 +156,10 @@ export function CompactItemCard({
           )}
 
           {isCompleted && (
-            <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5 text-green-600 border-green-600">
+            <Badge
+              variant="outline"
+              className="text-[10px] px-1.5 py-0 h-5 text-green-600 border-green-600"
+            >
               ✓ Done
             </Badge>
           )}
@@ -209,6 +225,31 @@ export function CompactItemCard({
           </DropdownMenu>
         )}
       </div>
+    </div>
+  );
+
+  // If there's expandable content, wrap in accordion
+  if (expandedContent) {
+    return (
+      <div className="rounded-lg border bg-card hover:bg-accent/30 transition-colors">
+        <Accordion type="single" collapsible>
+          <AccordionItem value="details" className="border-0">
+            <AccordionTrigger className="hover:no-underline py-0 px-0">
+              {cardContent}
+            </AccordionTrigger>
+            <AccordionContent className="px-2 sm:px-3 pb-3">
+              {expandedContent}
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+      </div>
+    );
+  }
+
+  // Otherwise, render as a simple card
+  return (
+    <div className="rounded-lg border bg-card hover:bg-accent/30 transition-colors">
+      {cardContent}
     </div>
   );
 }

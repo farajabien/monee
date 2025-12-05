@@ -2,9 +2,7 @@
 
 import { Item, ItemContent } from "@/components/ui/item";
 import { AlertCircle, ArrowRight, Wallet } from "lucide-react";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { useMemo } from "react";
+
 import { useCurrency } from "@/hooks/use-currency";
 import { getExpenseColor } from "@/lib/dashboard-colors";
 
@@ -106,7 +104,9 @@ export function DebtsAlertCard({
               <Wallet className="h-3.5 w-3.5" />
               <span>Total Owed</span>
             </div>
-            <div className={`text-base font-bold tabular-nums ${expenseColorClass}`}>
+            <div
+              className={`text-base font-bold tabular-nums ${expenseColorClass}`}
+            >
               {formatAmount(totalOwed)}
             </div>
           </div>
