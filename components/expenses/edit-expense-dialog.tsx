@@ -252,7 +252,7 @@ export function EditExpenseDialog({
                   </div>
 
                   {isRecurring && (
-                    <div className="space-y-4 p-4 border rounded-lg bg-muted/50">
+                    <div className="space-y-4 ">
                       <div className="space-y-2">
                         <Label htmlFor="recurring-frequency">Frequency</Label>
                         <Select
