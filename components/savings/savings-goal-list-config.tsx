@@ -235,9 +235,6 @@ export const createSavingsGoalListConfig = (
     const isCompleted =
       item.isCompleted || item.currentAmount >= item.targetAmount;
 
-    // Build secondary info
-    const secondaryInfo = `${Math.round(progress)}% saved`;
-
     // Date display
     const dateText = item.deadline ? formatDateCompact(item.deadline) : "";
 
@@ -247,19 +244,21 @@ export const createSavingsGoalListConfig = (
         index={index}
         emoji={item.emoji || "💰"}
         title={item.name}
-        amount={formatCurrency(item.currentAmount)}
-        amountColor={isCompleted ? "success" : "primary"}
-        category={`${Math.round(progress)}% saved`}
+        amount={formatCurrency(item.targetAmount)}
+        amountColor={isCompleted ? "success" : "default"}
+        category={`${Math.round(progress)}%`}
         date={dateText}
-        secondaryInfo={`Goal: ${formatCurrency(item.targetAmount)}`}
+        secondaryInfo={`${formatCurrency(item.currentAmount)} saved`}
         isCompleted={isCompleted}
         actions={{
           onEdit: actions.onEdit,
           onDelete: actions.onDelete,
-          onPay: !isCompleted
-            ? () => onAddMoney(item)
-            : undefined,
         }}
+        customBadge={!isCompleted ? {
+          label: "Add Money",
+          variant: "default"
+        } : undefined}
+        onClick={!isCompleted ? () => onAddMoney(item) : undefined}
       />
     );
   },

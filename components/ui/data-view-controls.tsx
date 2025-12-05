@@ -31,6 +31,11 @@ export interface DataViewControlsProps {
   children?: React.ReactNode;
   totalCount?: number;
   filteredCount?: number;
+  // Pagination props
+  currentPage?: number;
+  totalPages?: number;
+  onPageChange?: (page: number) => void;
+  displayedRange?: { start: number; end: number; total: number };
 }
 
 export function DataViewControls({
@@ -50,15 +55,21 @@ export function DataViewControls({
   children,
   totalCount,
   filteredCount,
+  currentPage,
+  totalPages,
+  onPageChange,
+  displayedRange,
 }: DataViewControlsProps) {
   const showCount = totalCount !== undefined && filteredCount !== undefined;
   const hasAdvancedFilters = !!children;
+  const showPagination = currentPage !== undefined && totalPages !== undefined && onPageChange;
 
   return (
-    <div className="space-y-3">
-      {/* Row 1: Search + Sort (always together) */}
-      <div className="flex items-center gap-2">
-        <div className="relative flex-1 min-w-0">
+    <div className="space-y-2">
+      {/* Row 1: Search + Sort + View Toggle */}
+      <div className="flex items-center gap-2 flex-wrap">
+        {/* Search - takes available space */}
+        <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
           <Input
             type="search"
@@ -68,6 +79,8 @@ export function DataViewControls({
             className="h-9 pl-8 pr-3 text-sm"
           />
         </div>
+
+        {/* Sort */}
         <Select value={sortValue} onValueChange={onSortChange}>
           <SelectTrigger className="h-9 w-[120px] sm:w-[140px] text-sm shrink-0">
             <SelectValue />
@@ -80,9 +93,45 @@ export function DataViewControls({
             ))}
           </SelectContent>
         </Select>
+
+        {/* View Mode Toggle */}
+        {viewMode && onViewModeChange && (
+          <div className="flex items-center gap-0.5 border rounded-md p-0.5 shrink-0">
+            {availableViews && availableViews.includes("list") && (
+              <Button
+                variant={viewMode === "list" ? "secondary" : "ghost"}
+                size="sm"
+                onClick={() => onViewModeChange("list")}
+                className="h-8 w-8 p-0"
+              >
+                <List className="h-3.5 w-3.5" />
+              </Button>
+            )}
+            {availableViews && availableViews.includes("table") && (
+              <Button
+                variant={viewMode === "table" ? "secondary" : "ghost"}
+                size="sm"
+                onClick={() => onViewModeChange("table")}
+                className="h-8 w-8 p-0"
+              >
+                <Table className="h-3.5 w-3.5" />
+              </Button>
+            )}
+            {availableViews && availableViews.includes("grid") && (
+              <Button
+                variant={viewMode === "grid" ? "secondary" : "ghost"}
+                size="sm"
+                onClick={() => onViewModeChange("grid")}
+                className="h-8 w-8 p-0"
+              >
+                <Grid3x3 className="h-3.5 w-3.5" />
+              </Button>
+            )}
+          </div>
+        )}
       </div>
 
-      {/* Row 2: Filters + View Toggle (stacked on very small screens) */}
+      {/* Row 2: Optional Filters (only if needed) */}
       <div className="flex flex-wrap items-center gap-2">
         {/* Quick Filters */}
         {filterOptions && onFilterChange && (
@@ -119,56 +168,7 @@ export function DataViewControls({
             </PopoverContent>
           </Popover>
         )}
-
-        {/* View Mode Toggle */}
-        {viewMode && onViewModeChange && (
-          <div className="flex items-center gap-0.5 border rounded-md p-0.5 shrink-0 ml-auto">
-            {availableViews && availableViews.includes("list") && (
-              <Button
-                variant={viewMode === "list" ? "secondary" : "ghost"}
-                size="sm"
-                onClick={() => onViewModeChange("list")}
-                className="h-8 w-8 p-0"
-              >
-                <List className="h-3.5 w-3.5" />
-              </Button>
-            )}
-            {availableViews && availableViews.includes("table") && (
-              <Button
-                variant={viewMode === "table" ? "secondary" : "ghost"}
-                size="sm"
-                onClick={() => onViewModeChange("table")}
-                className="h-8 w-8 p-0"
-              >
-                <Table className="h-3.5 w-3.5" />
-              </Button>
-            )}
-            {availableViews && availableViews.includes("grid") && (
-              <Button
-                variant={viewMode === "grid" ? "secondary" : "ghost"}
-                size="sm"
-                onClick={() => onViewModeChange("grid")}
-                className="h-8 w-8 p-0"
-              >
-                <Grid3x3 className="h-3.5 w-3.5" />
-              </Button>
-            )}
-          </div>
-        )}
       </div>
-
-      {/* Count */}
-      {showCount && (
-        <div className="text-sm text-muted-foreground">
-          {filteredCount === totalCount ? (
-            <span>{totalCount} items</span>
-          ) : (
-            <span>
-              {filteredCount} of {totalCount} items
-            </span>
-          )}
-        </div>
-      )}
     </div>
   );
 }

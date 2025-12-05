@@ -27,7 +27,7 @@ import { CategoryBreakdown } from "@/components/charts/category-breakdown";
 
 type TimeView = "week" | "month" | "year";
 
-interface DebtAnalyticsProps {
+interface DebtInsightsProps {
   onBack: () => void;
 }
 
@@ -39,9 +39,9 @@ const COLORS = [
   "var(--chart-5)",
 ];
 
-export function DebtAnalytics({ onBack }: DebtAnalyticsProps) {
-  const [analyticsView, setAnalyticsView] = useState<
-    "overview" | "timeline" | "breakdown"
+export function DebtInsights({ onBack }: DebtInsightsProps) {
+  const [insightsView, setInsightsView] = useState<
+    "overview" | "timeline"
   >("overview");
   const [timeView, setTimeView] = useState<TimeView>("month");
   const [chartType, setChartType] = useState<"bar" | "line">("bar");
@@ -259,7 +259,7 @@ export function DebtAnalytics({ onBack }: DebtAnalyticsProps) {
   if (error) {
     return (
       <div className="p-4 text-center text-destructive">
-        Error loading debt analytics
+        Error loading debt insights
       </div>
     );
   }
@@ -278,7 +278,7 @@ export function DebtAnalytics({ onBack }: DebtAnalyticsProps) {
             <CreditCard className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
             <h3 className="font-semibold text-lg mb-2">No Debts to Analyze</h3>
             <p className="text-sm text-muted-foreground">
-              Add your first debt to see analytics and track your progress.
+              Add your first debt to see insights and track your progress.
             </p>
           </CardContent>
         </Card>
@@ -296,18 +296,17 @@ export function DebtAnalytics({ onBack }: DebtAnalyticsProps) {
       </div>
 
       <Tabs
-        value={analyticsView}
-        onValueChange={(v) => setAnalyticsView(v as typeof analyticsView)}
+        value={insightsView}
+        onValueChange={(v) => setInsightsView(v as typeof insightsView)}
         className="w-full"
       >
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="timeline">Timeline</TabsTrigger>
-          <TabsTrigger value="breakdown">Breakdown</TabsTrigger>
         </TabsList>
       </Tabs>
 
-      {analyticsView === "overview" && (
+      {insightsView === "overview" && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <div className="bg-card rounded-lg border p-3">
             <div className="flex flex-col items-center text-center">
@@ -346,7 +345,7 @@ export function DebtAnalytics({ onBack }: DebtAnalyticsProps) {
         </div>
       )}
 
-      {analyticsView === "timeline" && (
+      {insightsView === "timeline" && (
         <Card>
           <CardHeader>
             <CardTitle className="text-base">
@@ -455,20 +454,6 @@ export function DebtAnalytics({ onBack }: DebtAnalyticsProps) {
                 )}
               </ResponsiveContainer>
             </ChartContainer>
-          </CardContent>
-        </Card>
-      )}
-
-      {analyticsView === "breakdown" && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Breakdown by Debt</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <CategoryBreakdown
-              items={categoryBreakdownItems}
-              formatAmount={formatCurrency}
-            />
           </CardContent>
         </Card>
       )}

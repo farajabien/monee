@@ -20,7 +20,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { MoreVertical, Pencil, Trash2, RepeatIcon } from "lucide-react";
+import { MoreVertical, Pencil, Trash2, RepeatIcon, Info } from "lucide-react";
 import { ReactNode } from "react";
 
 export interface CompactItemCardProps {
@@ -53,6 +53,7 @@ export interface CompactItemCardProps {
     onEdit?: () => void;
     onDelete?: () => void;
     onPay?: () => void; // For recurring unpaid expenses
+    onViewDetails?: () => void; // View full details in a sheet
   };
 
   // Click handler for the entire card
@@ -168,6 +169,23 @@ export function CompactItemCard({
 
       {/* Right Section: Action Buttons */}
       <div className="flex items-center gap-1 shrink-0">
+        {/* View Details button */}
+        {actions.onViewDetails && (
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-7 w-7 p-0"
+            onClick={(e) => {
+              e.stopPropagation();
+              actions.onViewDetails?.();
+            }}
+            title="View Details"
+          >
+            <Info className="h-3.5 w-3.5" />
+            <span className="sr-only">View Details</span>
+          </Button>
+        )}
+
         {/* Pay button for unpaid recurring expenses */}
         {isRecurring && !isPaid && actions.onPay && (
           <Button

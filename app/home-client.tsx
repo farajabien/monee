@@ -2,7 +2,6 @@
 
 import { useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import Link from "next/link";
 import db from "@/lib/db";
 
 import CategoryList from "@/components/categories/category-list";
@@ -19,7 +18,6 @@ export default function HomeClient() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const activeTab = searchParams.get("tab") || "overview";
-  const moreSubTab = searchParams.get("subtab") || "debts";
 
   const { isLoading, error, data } = db.useQuery({ profiles: {} });
 
@@ -59,63 +57,9 @@ export default function HomeClient() {
         {activeTab === "overview" && <DashboardOverview />}
         {activeTab === "expenses" && <ExpenseList />}
         {activeTab === "debts" && <DebtList />}
-        {activeTab === "more" && (
-          <div className="space-y-4">
-            {/* Sub-navigation for More section */}
-            <div className="flex gap-2 border-b border-border pb-2 overflow-x-auto">
-              <Link
-                href="/dashboard?tab=more&subtab=debts"
-                className={
-                  `px-3 py-1.5 text-sm font-medium rounded-md transition-colors whitespace-nowrap ` +
-                  (moreSubTab === "debts"
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted")
-                }
-              >
-                Debts
-              </Link>
-              <Link
-                href="/dashboard?tab=more&subtab=income"
-                className={
-                  `px-3 py-1.5 text-sm font-medium rounded-md transition-colors whitespace-nowrap ` +
-                  (moreSubTab === "income"
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted")
-                }
-              >
-                Income
-              </Link>
-              <Link
-                href="/dashboard?tab=more&subtab=savings"
-                className={
-                  `px-3 py-1.5 text-sm font-medium rounded-md transition-colors whitespace-nowrap ` +
-                  (moreSubTab === "savings"
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted")
-                }
-              >
-                Savings
-              </Link>
-              <Link
-                href="/dashboard?tab=more&subtab=categories"
-                className={
-                  `px-3 py-1.5 text-sm font-medium rounded-md transition-colors whitespace-nowrap ` +
-                  (moreSubTab === "categories"
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted")
-                }
-              >
-                Categories
-              </Link>
-            </div>
-
-            {/* Sub-tab content */}
-            {moreSubTab === "debts" && <DebtList />}
-            {moreSubTab === "income" && <IncomeSourceList />}
-            {moreSubTab === "savings" && <SavingsPage />}
-            {moreSubTab === "categories" && <CategoryList />}
-          </div>
-        )}
+        {activeTab === "income" && <IncomeSourceList />}
+        {activeTab === "savings" && <SavingsPage />}
+        {activeTab === "categories" && <CategoryList />}
       </div>
 
       <PWABottomNav />

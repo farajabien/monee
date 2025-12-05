@@ -62,6 +62,7 @@ export function DataTable<TData, TValue>({ columns, data, onEdit, onDelete, onGo
 
   return (
     <div className="space-y-4">
+      <DataTablePagination table={table} />
       <div className="rounded-md border overflow-x-auto">
         <Table>
           <TableHeader>

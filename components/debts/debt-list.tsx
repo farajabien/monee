@@ -14,7 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DebtPaymentForm } from "./debt-payment-form";
 import { QuickDebtForm } from "./quick-debt-form";
 import { DebtProgress } from "./debt-progress";
-import { DebtAnalytics } from "./debt-analytics";
+import { DebtInsights } from "./debt-insights";
 import { createDebtListConfig } from "./debt-list-config";
 import type { Debt, DebtWithUser } from "@/types";
 import { toast } from "sonner";
@@ -173,7 +173,7 @@ export function DebtList() {
           <DebtProgress />
         </TabsContent>
         <TabsContent value="analytics">
-          <DebtAnalytics onBack={() => setAnalyticsView("overview")} />
+          <DebtInsights onBack={() => setAnalyticsView("overview")} />
         </TabsContent>
       </Tabs>
 

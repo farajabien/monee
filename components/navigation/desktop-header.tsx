@@ -15,7 +15,6 @@ import { cn } from "@/lib/utils";
 export function DesktopHeader() {
   const searchParams = useSearchParams();
   const activeTab = searchParams.get("tab") || "overview";
-  const activeSubtab = searchParams.get("subtab");
 
   const navItems = [
     {
@@ -34,45 +33,34 @@ export function DesktopHeader() {
       value: "debts",
       label: "Debts",
       icon: Coins,
-      href: "/dashboard?tab=more&subtab=debts",
-      matchSubtab: "debts"
+      href: "/dashboard?tab=debts"
     },
     {
       value: "income",
       label: "Income",
       icon: TrendingUp,
-      href: "/dashboard?tab=more&subtab=income",
-      matchSubtab: "income"
+      href: "/dashboard?tab=income"
     },
     {
       value: "savings",
       label: "Savings",
       icon: PiggyBank,
-      href: "/dashboard?tab=more&subtab=savings",
-      matchSubtab: "savings"
+      href: "/dashboard?tab=savings"
     },
     {
       value: "categories",
       label: "Categories",
       icon: Tag,
-      href: "/dashboard?tab=more&subtab=categories",
-      matchSubtab: "categories"
+      href: "/dashboard?tab=categories"
     },
   ];
-
-  const isItemActive = (item: typeof navItems[0]) => {
-    if (item.matchSubtab) {
-      return activeTab === "more" && activeSubtab === item.matchSubtab;
-    }
-    return activeTab === item.value;
-  };
 
   return (
     <nav className="hidden md:flex items-center gap-1 px-6 h-[60px] border-b bg-background sticky top-0 z-40">
       <div className="flex items-center gap-1 flex-1">
         {navItems.map((item) => {
           const Icon = item.icon;
-          const isActive = isItemActive(item);
+          const isActive = activeTab === item.value;
 
           return (
             <Link
@@ -93,10 +81,10 @@ export function DesktopHeader() {
       </div>
 
       <Link
-        href="/dashboard?tab=more&subtab=settings"
+        href="/settings"
         className={cn(
           "flex items-center justify-center h-10 w-10 rounded-md transition-colors",
-          activeTab === "more" && activeSubtab === "settings"
+          activeTab === "settings"
             ? "bg-accent text-foreground"
             : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
         )}

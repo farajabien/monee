@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/sheet";
 import { BarChart3 } from "lucide-react";
 import { SavingsGoalList } from "./savings-goal-list";
-import { SavingsAnalytics } from "./savings-analytics";
+import { SavingsInsights } from "./savings-insights";
 
 export default function SavingsPage() {
   const [analyticsOpen, setAnalyticsOpen] = useState(false);
@@ -33,7 +33,7 @@ export default function SavingsPage() {
               <SheetTitle>Savings Analytics</SheetTitle>
             </SheetHeader>
             <div className="mt-4">
-              <SavingsAnalytics />
+              <SavingsInsights />
             </div>
           </SheetContent>
         </Sheet>

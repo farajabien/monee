@@ -2,9 +2,7 @@
 
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { MessageSquare, FileText } from "lucide-react";
-import { ImportSmsDialog } from "./import-sms-dialog";
-import { ImportStatementDialog } from "./import-statement-dialog";
+import { ImportTransactionsDropdown } from "./import-transactions-dropdown";
 import { id } from "@instantdb/react";
 import {
   ExpenseImportValidation,
@@ -29,8 +27,6 @@ export function ExpenseImportOrchestrator({
   onSaveExpenses,
   onValidationStateChange,
 }: ExpenseImportOrchestratorProps) {
-  const [smsDialogOpen, setSmsDialogOpen] = useState(false);
-  const [statementDialogOpen, setStatementDialogOpen] = useState(false);
   const [validationRows, setValidationRows] = useState<ValidationRow[]>([]);
   const [showValidation, setShowValidation] = useState(false);
 
@@ -173,40 +169,5 @@ export function ExpenseImportOrchestrator({
     );
   }
 
-  return (
-    <>
-      <div className="flex gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setSmsDialogOpen(true)}
-          className="flex items-center gap-2"
-        >
-          <MessageSquare className="h-4 w-4" />
-          Import SMS
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setStatementDialogOpen(true)}
-          className="flex items-center gap-2"
-        >
-          <FileText className="h-4 w-4" />
-          Import Statement
-        </Button>
-      </div>
-
-      <ImportSmsDialog
-        open={smsDialogOpen}
-        onOpenChange={setSmsDialogOpen}
-        onImport={processImportedExpenses}
-      />
-
-      <ImportStatementDialog
-        open={statementDialogOpen}
-        onOpenChange={setStatementDialogOpen}
-        onImport={processImportedExpenses}
-      />
-    </>
-  );
+  return <ImportTransactionsDropdown onImport={processImportedExpenses} />;
 }

@@ -32,6 +32,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Button } from "../ui/button";
 
 interface UnifiedListContainerProps<T> {
   config: ListConfig<T>;
@@ -73,7 +74,7 @@ export function UnifiedListContainer<T extends Record<string, unknown>>({
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(20);
+  const pageSize = 20;
 
   // Data processing
   const { filteredData, metrics, hasActiveFilters } = useListData({
@@ -185,52 +186,82 @@ export function UnifiedListContainer<T extends Record<string, unknown>>({
 
   return (
     <div className="space-y-2 w-full overflow-hidden">
-      {/* Compact Header: Header Actions + Controls on same row */}
-      <div className="flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-between">
-        {/* Left: Header Actions (e.g., Import buttons, Recipients button) */}
-        {headerActions && (
-          <div className="flex gap-2 shrink-0">
-            {headerActions}
-          </div>
-        )}
+      {/* Row 1: Header Actions (if exist) + Pagination */}
+      {headerActions && (
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          {/* Header Actions */}
+          <div className="flex gap-2 shrink-0">{headerActions}</div>
 
-        {/* Right: Search, Sort, View Toggle */}
-        <div className="flex-1 min-w-0">
-          <DataViewControls
-            viewMode={viewMode}
-            onViewModeChange={setViewMode}
-            availableViews={config.availableViews}
-            searchValue={searchQuery}
-            onSearchChange={setSearchQuery}
-            searchPlaceholder={config.searchPlaceholder}
-            sortValue={sortBy}
-            onSortChange={setSortBy}
-            sortOptions={config.sortOptions}
-            filterValue={primaryFilterValue}
-            onFilterChange={
-              primaryFilter
-                ? (value) => handleFilterChange(primaryFilter.key, value)
-                : undefined
-            }
-            filterOptions={
-              primaryFilter?.options
-                ? [{ value: "all", label: "All" }, ...primaryFilter.options]
-                : undefined
-            }
-            filterLabel={primaryFilter?.label}
-            totalCount={data.length}
-            filteredCount={filteredData.length}
-          />
+          {/* Pagination Controls on same line as header actions */}
+          {filteredData.length > 0 && (
+            <div className="flex items-center gap-1 shrink-0 ml-auto">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="h-8 px-2 text-xs"
+              >
+                Prev
+              </Button>
+              <span className="text-xs px-2 whitespace-nowrap">
+                {currentPage}/{totalPages}
+              </span>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() =>
+                  setCurrentPage((p) => Math.min(totalPages, p + 1))
+                }
+                disabled={currentPage >= totalPages}
+                className="h-8 px-2 text-xs"
+              >
+                Next
+              </Button>
+            </div>
+          )}
         </div>
-      </div>
+      )}
 
-      {/* Metrics + Item Count Row */}
+      {/* Row 2: Search, Sort, View Toggle */}
+      <DataViewControls
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
+        availableViews={config.availableViews}
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder={config.searchPlaceholder}
+        sortValue={sortBy}
+        onSortChange={setSortBy}
+        sortOptions={config.sortOptions}
+        filterValue={primaryFilterValue}
+        onFilterChange={
+          primaryFilter
+            ? (value) => handleFilterChange(primaryFilter.key, value)
+            : undefined
+        }
+        filterOptions={
+          primaryFilter?.options
+            ? [{ value: "all", label: "All" }, ...primaryFilter.options]
+            : undefined
+        }
+        filterLabel={primaryFilter?.label}
+        totalCount={data.length}
+        filteredCount={filteredData.length}
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+        displayedRange={displayedRange}
+      />
+
+      {/* Row 3: Metrics (if exists) - combined with item count */}
       {config.metrics && config.metrics.length > 0 && (
         <div className="flex flex-wrap items-center gap-3">
           <ListMetrics metrics={config.metrics} values={metrics} />
           <span className="text-muted-foreground/50">•</span>
           <span className="text-sm text-muted-foreground">
-            {filteredData.length} {filteredData.length === 1 ? 'item' : 'items'}
+            {filteredData.length}{" "}
+            {filteredData.length === 1 ? "item" : "items"}
           </span>
         </div>
       )}
@@ -244,7 +275,6 @@ export function UnifiedListContainer<T extends Record<string, unknown>>({
 
       {/* Main container */}
       <div className="w-full">
-
         {/* Additional filters (if any) */}
         {config.filters && config.filters.length > 1 && (
           <div className="flex flex-wrap gap-2">
@@ -324,23 +354,28 @@ export function UnifiedListContainer<T extends Record<string, unknown>>({
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 p-1">
                     {paginatedData.map((item, index) => (
                       <div key={config.getItemId(item)}>
-                        {config.renderGridCard!(item, (currentPage - 1) * pageSize + index, {
-                          onEdit: config.actions?.edit
-                            ? () => handleEditWrapper(item)
-                            : undefined,
-                          onDelete: config.actions?.delete
-                            ? () => handleDelete(config.getItemId(item))
-                            : undefined,
-                          customActions: config.actions?.custom,
-                        })}
+                        {config.renderGridCard!(
+                          item,
+                          (currentPage - 1) * pageSize + index,
+                          {
+                            onEdit: config.actions?.edit
+                              ? () => handleEditWrapper(item)
+                              : undefined,
+                            onDelete: config.actions?.delete
+                              ? () => handleDelete(config.getItemId(item))
+                              : undefined,
+                            customActions: config.actions?.custom,
+                          }
+                        )}
                       </div>
                     ))}
                   </div>
                 </ScrollArea>
-                {/* Pagination for Grid View */}
+                {/* Pagination for Grid View - Bottom */}
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-2 py-3 border-t">
                   <span className="text-sm text-muted-foreground">
-                    {displayedRange.start}-{displayedRange.end} of {displayedRange.total}
+                    {displayedRange.start}-{displayedRange.end} of{" "}
+                    {displayedRange.total}
                   </span>
                   <div className="flex items-center gap-2">
                     <button
@@ -354,7 +389,9 @@ export function UnifiedListContainer<T extends Record<string, unknown>>({
                       Page {currentPage} of {totalPages}
                     </span>
                     <button
-                      onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                      onClick={() =>
+                        setCurrentPage((p) => Math.min(totalPages, p + 1))
+                      }
                       disabled={currentPage >= totalPages}
                       className="px-3 py-1 text-sm border rounded disabled:opacity-50"
                     >
@@ -369,23 +406,28 @@ export function UnifiedListContainer<T extends Record<string, unknown>>({
                   <div className="space-y-1.5 p-1">
                     {paginatedData.map((item, index) => (
                       <div key={config.getItemId(item)}>
-                        {config.renderListItem(item, (currentPage - 1) * pageSize + index, {
-                          onEdit: config.actions?.edit
-                            ? () => handleEditWrapper(item)
-                            : undefined,
-                          onDelete: config.actions?.delete
-                            ? () => handleDelete(config.getItemId(item))
-                            : undefined,
-                          customActions: config.actions?.custom,
-                        })}
+                        {config.renderListItem(
+                          item,
+                          (currentPage - 1) * pageSize + index,
+                          {
+                            onEdit: config.actions?.edit
+                              ? () => handleEditWrapper(item)
+                              : undefined,
+                            onDelete: config.actions?.delete
+                              ? () => handleDelete(config.getItemId(item))
+                              : undefined,
+                            customActions: config.actions?.custom,
+                          }
+                        )}
                       </div>
                     ))}
                   </div>
                 </ScrollArea>
-                {/* Pagination for List View */}
+                {/* Pagination for List View - Bottom */}
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-2 py-3 border-t">
                   <span className="text-sm text-muted-foreground">
-                    {displayedRange.start}-{displayedRange.end} of {displayedRange.total}
+                    {displayedRange.start}-{displayedRange.end} of{" "}
+                    {displayedRange.total}
                   </span>
                   <div className="flex items-center gap-2">
                     <button
@@ -399,7 +441,9 @@ export function UnifiedListContainer<T extends Record<string, unknown>>({
                       Page {currentPage} of {totalPages}
                     </span>
                     <button
-                      onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                      onClick={() =>
+                        setCurrentPage((p) => Math.min(totalPages, p + 1))
+                      }
                       disabled={currentPage >= totalPages}
                       className="px-3 py-1 text-sm border rounded disabled:opacity-50"
                     >

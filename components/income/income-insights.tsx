@@ -32,7 +32,7 @@ import db from "@/lib/db";
 
 type TimeView = "week" | "month" | "year";
 
-export function IncomeAnalytics() {
+export function IncomeInsights() {
   const [timeView, setTimeView] = useState<TimeView>("month");
   const [chartType, setChartType] = useState<"bar" | "line">("bar");
 

@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/dialog";
 import { TrendingUp } from "lucide-react";
 import { IncomeSourceForm } from "./income-source-form";
-import { IncomeAnalytics } from "./income-analytics";
+import { IncomeInsights } from "./income-insights";
 import { createIncomeSourceListConfig } from "./income-source-list-config";
 import type { IncomeSourceWithUser } from "@/types";
 import { useCurrency } from "@/hooks/use-currency";
@@ -111,7 +111,7 @@ export function IncomeSourceList() {
               <SheetTitle>Income Analytics</SheetTitle>
             </SheetHeader>
             <div className="mt-4">
-              <IncomeAnalytics />
+              <IncomeInsights />
             </div>
           </SheetContent>
         </Sheet>

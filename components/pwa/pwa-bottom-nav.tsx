@@ -88,31 +88,25 @@ export function PWABottomNav() {
     },
   ];
 
-  // More dropdown items - includes More sub-tabs
+  // More dropdown items - direct tab links
   const moreItems = [
-    {
-      value: "debts",
-      label: "Debts",
-      icon: CreditCard,
-      href: "/dashboard?tab=more&subtab=debts",
-    },
     {
       value: "income",
       label: "Income",
       icon: TrendingUp,
-      href: "/dashboard?tab=more&subtab=income",
+      href: "/dashboard?tab=income",
     },
     {
       value: "savings",
       label: "Savings",
       icon: Wallet,
-      href: "/dashboard?tab=more&subtab=savings",
+      href: "/dashboard?tab=savings",
     },
     {
       value: "categories",
       label: "Categories",
       icon: Tag,
-      href: "/dashboard?tab=more&subtab=categories",
+      href: "/dashboard?tab=categories",
     },
     { value: "settings", label: "Settings", icon: Settings, href: "/settings" },
     {
@@ -124,10 +118,8 @@ export function PWABottomNav() {
     },
   ];
 
-  // Check if we're on More tab or any of its sub-tabs
-  const moreSubTab = searchParams.get("subtab");
-  const hasActiveMoreItem =
-    activeTab === "more" || moreItems.some((item) => item.value === moreSubTab);
+  // Check if we're on any of the more dropdown tabs
+  const hasActiveMoreItem = moreItems.some((item) => item.value === activeTab);
 
   return (
     <>
@@ -200,10 +192,7 @@ export function PWABottomNav() {
                 <div className="py-1">
                   {moreItems.map((item) => {
                     const Icon = item.icon;
-                    const isActive =
-                      item.value === "settings"
-                        ? activeTab === "settings"
-                        : moreSubTab === item.value;
+                    const isActive = activeTab === item.value;
                     const isLogout = item.value === "logout";
 
                     if (isLogout) {
