@@ -34,13 +34,15 @@ export function DesktopHeader() {
       value: "debts",
       label: "Debts",
       icon: Coins,
-      href: "/dashboard?tab=debts"
+      href: "/dashboard?tab=more&subtab=debts",
+      matchSubtab: "debts"
     },
     {
       value: "income",
       label: "Income",
       icon: TrendingUp,
-      href: "/dashboard?tab=income"
+      href: "/dashboard?tab=more&subtab=income",
+      matchSubtab: "income"
     },
     {
       value: "savings",

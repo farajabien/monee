@@ -6,7 +6,7 @@ import { UnifiedListContainer } from "@/components/custom/unified-list-container
 import { EditExpenseDialog } from "./edit-expense-dialog";
 import { createExpenseListConfig } from "./expense-list-config";
 import { ExpenseImportOrchestrator } from "./expense-import-orchestrator";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RecipientList } from "@/components/recipients/recipient-list";
 import { id } from "@instantdb/react";
 import { toast } from "sonner";
@@ -29,7 +29,6 @@ import {
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { ChevronLeft, RepeatIcon } from "lucide-react";
 import type { Expense } from "@/types";
 import { useCurrency } from "@/hooks/use-currency";
@@ -52,13 +51,12 @@ const EditExpenseDialogAdapter = ({
 export default function ExpenseList() {
   const user = db.useUser();
   const [activeView, setActiveView] = useState<
-    "list" | "analytics"
+    "list" | "recipients" | "analytics"
   >("list");
   const [analyticsView, setAnalyticsView] = useState<
     "overview" | "day" | "category" | "recipients"
   >("overview");
   const [showingValidation, setShowingValidation] = useState(false);
-  const [showRecipientsSheet, setShowRecipientsSheet] = useState(false);
 
   const { data } = db.useQuery({
     profiles: {
@@ -122,85 +120,37 @@ export default function ExpenseList() {
     }
   };
 
-  // Helper to check if a recurring expense has been paid this month
-  const hasBeenPaidThisMonth = (expenseId: string) => {
-    const now = new Date();
-    const currentMonth = now.getMonth();
-    const currentYear = now.getFullYear();
-
-    // Check if there's an expense linked to this recurring transaction this month
-    return expenses.some((expense) => {
-      if (expense.linkedRecurringId !== expenseId) return false;
-      const expenseDate = new Date(expense.date || expense.createdAt);
-      return (
-        expenseDate.getMonth() === currentMonth &&
-        expenseDate.getFullYear() === currentYear
-      );
-    });
-  };
-
-  // Handle recording a payment for a recurring transaction
-  const handleRecordPayment = async (recurringTransactionId: string) => {
-    if (!profile?.id) return;
-
-    const recurringTx = recurringTransactions.find(
-      (tx) => tx.id === recurringTransactionId
-    );
-    if (!recurringTx) return;
-
-    try {
-      const now = Date.now();
-      const newExpenseId = id();
-
-      await db.transact([
-        db.tx.expenses[newExpenseId]
-          .update({
-            amount: recurringTx.amount,
-            recipient: recurringTx.recipient,
-            date: now,
-            category: recurringTx.category,
-            expenseType: "recurring",
-            rawMessage: `Recurring payment: ${recurringTx.name}`,
-            notes: `Recorded via recurring transaction`,
-            linkedRecurringId: recurringTx.id,
-            isRecurring: true,
-            createdAt: now,
-          })
-          .link({ profile: profile.id }),
-      ]);
-
-      toast.success("Payment recorded successfully");
-    } catch (error) {
-      console.error("Failed to record payment:", error);
-      toast.error("Failed to record payment");
-    }
-  };
-
   // Create configuration with recipients for display name resolution
   const config = useMemo(() => {
-    const baseConfig = createExpenseListConfig(
-      recipients,
-      formatCurrency,
-      hasBeenPaidThisMonth
-    );
+    // Add recurring indicator to card rendering
+    const baseConfig = createExpenseListConfig(recipients, formatCurrency);
 
-    // Override custom actions to add payment handler
-    if (baseConfig.actions.custom) {
-      baseConfig.actions.custom = baseConfig.actions.custom.map((action) =>
-        action.label === "Record Payment"
-          ? {
-              ...action,
-              onClick: (item: Expense) => {
-                const recurringId = item.linkedRecurringId || item.id;
-                handleRecordPayment(recurringId);
-              },
-            }
-          : action
-      );
-    }
+    // Override renderListItem to add recurring indicator
+    const originalRenderListItem = baseConfig.renderListItem;
+    baseConfig.renderListItem = (item, index, actions) => {
+      const isRecurring = item.isRecurring || item.linkedRecurringId;
+      const originalCard = originalRenderListItem(item, index, actions);
+
+      // Add recurring badge to the card
+      if (isRecurring) {
+        return (
+          <div className="relative">
+            {originalCard}
+            <div className="absolute top-2 right-2 z-10">
+              <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs font-medium">
+                <RepeatIcon className="h-3 w-3" />
+                <span>Recurring</span>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      return originalCard;
+    };
 
     return baseConfig;
-  }, [recipients, formatCurrency, expenses, profile?.id, recurringTransactions]);
+  }, [recipients, formatCurrency]);
 
   // Analytics calculations
   const analytics = useMemo(() => {
@@ -290,67 +240,69 @@ export default function ExpenseList() {
     return config;
   }, [analytics]);
 
-  // Calculate unique recipient count
-  const recipientCount = useMemo(() => {
-    const uniqueRecipients = new Set(expenses.map(e => e.recipient).filter(Boolean));
-    return uniqueRecipients.size;
-  }, [expenses]);
+  // Main view navigation
+  if (activeView === "list") {
+    return (
+      <div className="space-y-4">
+        <Tabs value="list" className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="list">Expenses</TabsTrigger>
+            <TabsTrigger
+              value="recipients"
+              onClick={() => setActiveView("recipients")}
+            >
+              Recipients
+            </TabsTrigger>
+            <TabsTrigger
+              value="analytics"
+              onClick={() => setActiveView("analytics")}
+            >
+              Analytics
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
 
-  return (
-    <>
-      {/* Main view navigation */}
-      {activeView === "list" && (
-        <div className="space-y-4">
-          {/* Import Orchestrator - Renders independently, takes over when validating */}
-          <ExpenseImportOrchestrator
-            existingExpenses={expenses}
-            recurringExpenses={recurringTransactions}
-            categories={categories}
-            onSaveExpenses={handleSaveExpenses}
-            onValidationStateChange={setShowingValidation}
+        <ExpenseImportOrchestrator
+          existingExpenses={expenses}
+          recurringExpenses={recurringTransactions}
+          categories={categories}
+          onSaveExpenses={handleSaveExpenses}
+          onValidationStateChange={setShowingValidation}
+        />
+
+        {!showingValidation && (
+          <UnifiedListContainer<Expense>
+            config={config}
+            data={expenses}
+            editDialog={EditExpenseDialogAdapter}
           />
+        )}
+      </div>
+    );
+  }
 
-          {/* List View - Only shown when NOT validating */}
-          {!showingValidation && (
-            <>
-              <Tabs value="list" className="w-full">
-                <TabsList className="grid w-full grid-cols-2 h-10">
-                  <TabsTrigger value="list" className="py-2 text-xs sm:text-sm">
-                    Expenses
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="analytics"
-                    onClick={() => setActiveView("analytics")}
-                    className="py-2 text-xs sm:text-sm"
-                  >
-                    Analytics
-                  </TabsTrigger>
-                </TabsList>
-              </Tabs>
-
-              <UnifiedListContainer<Expense>
-                config={config}
-                data={expenses}
-                editDialog={EditExpenseDialogAdapter}
-                headerActions={
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowRecipientsSheet(true)}
-                    className="h-8"
-                  >
-                    Recipients ({recipientCount})
-                  </Button>
-                }
-              />
-            </>
-          )}
+  if (activeView === "recipients") {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setActiveView("list")}
+          >
+            <ChevronLeft className="h-4 w-4 mr-1" />
+            Back to Expenses
+          </Button>
         </div>
-      )}
+        <RecipientList />
+      </div>
+    );
+  }
 
-      {/* Analytics view with sub-navigation */}
-      {activeView === "analytics" && (
-        <div className="space-y-4">
+  // Analytics view with sub-navigation
+  if (activeView === "analytics") {
+    return (
+      <div className="space-y-4">
         <div className="flex items-center gap-2">
           <Button
             variant="ghost"
@@ -369,19 +321,11 @@ export default function ExpenseList() {
               onValueChange={(v) => setAnalyticsView(v as typeof analyticsView)}
               className="w-full"
             >
-              <TabsList className="grid w-full grid-cols-4 h-10">
-                <TabsTrigger value="overview" className="py-2 text-xs sm:text-sm">
-                  Overview
-                </TabsTrigger>
-                <TabsTrigger value="day" className="py-2 text-xs sm:text-sm">
-                  By Day
-                </TabsTrigger>
-                <TabsTrigger value="category" className="py-2 text-xs sm:text-sm">
-                  Category
-                </TabsTrigger>
-                <TabsTrigger value="recipients" className="py-2 text-xs sm:text-sm">
-                  Recipients
-                </TabsTrigger>
+              <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="overview">Overview</TabsTrigger>
+                <TabsTrigger value="day">By Day</TabsTrigger>
+                <TabsTrigger value="category">Category</TabsTrigger>
+                <TabsTrigger value="recipients">Recipients</TabsTrigger>
               </TabsList>
             </Tabs>
 
@@ -582,20 +526,9 @@ export default function ExpenseList() {
             No expense data available for analytics
           </div>
         )}
-        </div>
-      )}
+      </div>
+    );
+  }
 
-      {/* Recipients Sheet */}
-      <Sheet open={showRecipientsSheet} onOpenChange={setShowRecipientsSheet}>
-        <SheetContent side="bottom" className="h-[85vh] overflow-y-auto">
-          <SheetHeader>
-            <SheetTitle>Recipients</SheetTitle>
-          </SheetHeader>
-          <div className="mt-4">
-            <RecipientList />
-          </div>
-        </SheetContent>
-      </Sheet>
-    </>
-  );
+  return null;
 }

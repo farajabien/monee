@@ -71,6 +71,10 @@ export function UnifiedListContainer<T extends Record<string, unknown>>({
     return initialFilters;
   });
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
+
   // Data processing
   const { filteredData, metrics, hasActiveFilters } = useListData({
     data,
@@ -79,6 +83,29 @@ export function UnifiedListContainer<T extends Record<string, unknown>>({
     sortBy,
     filters,
   });
+
+  // Pagination logic - memoized to avoid unnecessary recalculations
+  const { paginatedData, totalPages, displayedRange } = useMemo(() => {
+    const totalItems = filteredData.length;
+    const pages = Math.ceil(totalItems / pageSize) || 1;
+
+    // Ensure currentPage doesn't exceed available pages
+    const safePage = Math.min(currentPage, pages);
+
+    const startIndex = (safePage - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    const paginated = filteredData.slice(startIndex, endIndex);
+
+    return {
+      paginatedData: paginated,
+      totalPages: pages,
+      displayedRange: {
+        start: totalItems === 0 ? 0 : startIndex + 1,
+        end: Math.min(endIndex, totalItems),
+        total: totalItems,
+      },
+    };
+  }, [filteredData, currentPage, pageSize]);
 
   // Action handlers
   const {
@@ -129,6 +156,7 @@ export function UnifiedListContainer<T extends Record<string, unknown>>({
       ...prev,
       [key]: value as string | boolean | string[] | [Date, Date],
     }));
+    setCurrentPage(1); // Reset to first page when filter changes
   };
 
   // Get primary filter for DataViewControls (if exists)
@@ -291,41 +319,95 @@ export function UnifiedListContainer<T extends Record<string, unknown>>({
                 </div>
               </ScrollArea>
             ) : viewMode === "grid" && config.renderGridCard ? (
-              <ScrollArea className="h-[600px] w-full">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 p-1">
-                  {filteredData.map((item, index) => (
-                    <div key={config.getItemId(item)}>
-                      {config.renderGridCard!(item, index, {
-                        onEdit: config.actions?.edit
-                          ? () => handleEditWrapper(item)
-                          : undefined,
-                        onDelete: config.actions?.delete
-                          ? () => handleDelete(config.getItemId(item))
-                          : undefined,
-                        customActions: config.actions?.custom,
-                      })}
-                    </div>
-                  ))}
+              <>
+                <ScrollArea className="h-[600px] w-full">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 p-1">
+                    {paginatedData.map((item, index) => (
+                      <div key={config.getItemId(item)}>
+                        {config.renderGridCard!(item, (currentPage - 1) * pageSize + index, {
+                          onEdit: config.actions?.edit
+                            ? () => handleEditWrapper(item)
+                            : undefined,
+                          onDelete: config.actions?.delete
+                            ? () => handleDelete(config.getItemId(item))
+                            : undefined,
+                          customActions: config.actions?.custom,
+                        })}
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+                {/* Pagination for Grid View */}
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-2 py-3 border-t">
+                  <span className="text-sm text-muted-foreground">
+                    {displayedRange.start}-{displayedRange.end} of {displayedRange.total}
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                      disabled={currentPage === 1}
+                      className="px-3 py-1 text-sm border rounded disabled:opacity-50"
+                    >
+                      Previous
+                    </button>
+                    <span className="text-sm">
+                      Page {currentPage} of {totalPages}
+                    </span>
+                    <button
+                      onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                      disabled={currentPage >= totalPages}
+                      className="px-3 py-1 text-sm border rounded disabled:opacity-50"
+                    >
+                      Next
+                    </button>
+                  </div>
                 </div>
-              </ScrollArea>
+              </>
             ) : (
-              <ScrollArea className="h-[600px] w-full">
-                <div className="space-y-1.5 p-1">
-                  {filteredData.map((item, index) => (
-                    <div key={config.getItemId(item)}>
-                      {config.renderListItem(item, index, {
-                        onEdit: config.actions?.edit
-                          ? () => handleEditWrapper(item)
-                          : undefined,
-                        onDelete: config.actions?.delete
-                          ? () => handleDelete(config.getItemId(item))
-                          : undefined,
-                        customActions: config.actions?.custom,
-                      })}
-                    </div>
-                  ))}
+              <>
+                <ScrollArea className="h-[600px] w-full">
+                  <div className="space-y-1.5 p-1">
+                    {paginatedData.map((item, index) => (
+                      <div key={config.getItemId(item)}>
+                        {config.renderListItem(item, (currentPage - 1) * pageSize + index, {
+                          onEdit: config.actions?.edit
+                            ? () => handleEditWrapper(item)
+                            : undefined,
+                          onDelete: config.actions?.delete
+                            ? () => handleDelete(config.getItemId(item))
+                            : undefined,
+                          customActions: config.actions?.custom,
+                        })}
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+                {/* Pagination for List View */}
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-2 py-3 border-t">
+                  <span className="text-sm text-muted-foreground">
+                    {displayedRange.start}-{displayedRange.end} of {displayedRange.total}
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                      disabled={currentPage === 1}
+                      className="px-3 py-1 text-sm border rounded disabled:opacity-50"
+                    >
+                      Previous
+                    </button>
+                    <span className="text-sm">
+                      Page {currentPage} of {totalPages}
+                    </span>
+                    <button
+                      onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                      disabled={currentPage >= totalPages}
+                      className="px-3 py-1 text-sm border rounded disabled:opacity-50"
+                    >
+                      Next
+                    </button>
+                  </div>
                 </div>
-              </ScrollArea>
+              </>
             )}
           </div>
         )}

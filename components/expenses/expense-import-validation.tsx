@@ -27,7 +27,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import type { ParsedExpenseData } from "@/types";
 import type { RecipientMatch } from "@/lib/recipient-matcher";
@@ -106,9 +105,13 @@ export function ExpenseImportValidation({
   // Auto-select current year if only one year available
   useEffect(() => {
     if (availableYears.length === 1) {
-      setSelectedYear(availableYears[0].toString());
+      setTimeout(() => {
+        setSelectedYear(availableYears[0].toString());
+      }, 0);
     } else if (availableYears.includes(currentYear)) {
-      setSelectedYear(currentYear.toString());
+      setTimeout(() => {
+        setSelectedYear(currentYear.toString());
+      }, 0);
     }
   }, [availableYears, currentYear]);
 
@@ -147,12 +150,16 @@ export function ExpenseImportValidation({
   // Reset month selection when year changes
   useEffect(() => {
     if (selectedYear === "all") {
-      setSelectedMonth("all");
+      setTimeout(() => {
+        setSelectedMonth("all");
+      }, 0);
     } else if (
       selectedMonth !== "all" &&
       !monthsForSelectedYear.includes(parseInt(selectedMonth))
     ) {
-      setSelectedMonth("all");
+      setTimeout(() => {
+        setSelectedMonth("all");
+      }, 0);
     }
   }, [selectedYear, monthsForSelectedYear, selectedMonth]);
 
@@ -168,9 +175,13 @@ export function ExpenseImportValidation({
 
   const toggleAllRows = () => {
     if (selectedRows.size === pendingRows.length) {
-      setSelectedRows(new Set());
+      setTimeout(() => {
+        setSelectedRows(new Set());
+      }, 0);
     } else {
-      setSelectedRows(new Set(pendingRows.map((r) => r.id)));
+      setTimeout(() => {
+        setSelectedRows(new Set(pendingRows.map((r) => r.id)));
+      }, 0);
     }
   };
 
@@ -340,18 +351,20 @@ export function ExpenseImportValidation({
       <div className="flex flex-wrap items-center gap-3 text-sm p-3 bg-muted/50 rounded-lg">
         <span className="font-semibold">Total: {stats.total}</span>
         <span className="text-muted-foreground">•</span>
-        <span className="font-semibold text-yellow-600">Pending: {stats.pending}</span>
+        <span className="font-semibold text-yellow-600">
+          Pending: {stats.pending}
+        </span>
         <span className="text-muted-foreground">•</span>
         <span className="font-semibold text-green-600">✓ {stats.accepted}</span>
         <span className="text-muted-foreground">•</span>
         <span className="font-semibold text-red-600">✗ {stats.rejected}</span>
       </div>
-      {/* Save Button - Use all accepted rows, not just filtered */}
-      {(allAcceptedRows.length > 0 || allRejectedRows.length > 0) && (
+      {/* Save Button - Use accepted rows from filteredRows for consistency */}
+      {(acceptedRows.length > 0 || rejectedRows.length > 0) && (
         <div className="flex justify-end gap-2">
           <Button onClick={onSave} size="lg" className="min-w-32">
-            Save {allAcceptedRows.length} Expense
-            {allAcceptedRows.length !== 1 ? "s" : ""}
+            Save {acceptedRows.length} Expense
+            {acceptedRows.length !== 1 ? "s" : ""}
           </Button>
         </div>
       )}
@@ -363,7 +376,8 @@ export function ExpenseImportValidation({
             <input
               type="checkbox"
               checked={
-                selectedRows.size === pendingRows.length && pendingRows.length > 0
+                selectedRows.size === pendingRows.length &&
+                pendingRows.length > 0
               }
               onChange={toggleAllRows}
               className="h-4 w-4 rounded border-gray-300"
@@ -412,7 +426,9 @@ export function ExpenseImportValidation({
       <div className="block md:hidden space-y-3">
         {filteredRows.length === 0 ? (
           <div className="flex items-center justify-center py-12 px-4">
-            <p className="text-sm text-muted-foreground">No expenses to validate.</p>
+            <p className="text-sm text-muted-foreground">
+              No expenses to validate.
+            </p>
           </div>
         ) : (
           filteredRows.map((row) => (

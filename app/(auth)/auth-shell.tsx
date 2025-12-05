@@ -6,6 +6,7 @@ import { Sparkles } from "lucide-react";
 import db from "@/lib/db";
 import EnsureProfile from "@/components/ensure-profile";
 import { PaywallDialog } from "@/components/payment/paywall-dialog";
+import { DashboardSkeleton } from "@/components/ui/skeleton";
 
 interface AuthShellProps {
   children?: ReactNode;
@@ -83,12 +84,15 @@ export default function AuthShell({ children, className }: AuthShellProps) {
 
   if (isLoading || isLoadingUsers || isLoadingProfile) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto" />
-          <p className="mt-4 text-sm text-muted-foreground">Loading...</p>
-        </div>
-      </div>
+      <DashboardSkeleton
+        title="Authenticating..."
+        customContent={
+          <div className="flex flex-col items-center justify-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-4" />
+            <p className="mt-4 text-sm text-muted-foreground">Loading...</p>
+          </div>
+        }
+      />
     );
   }
 

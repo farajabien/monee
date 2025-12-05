@@ -30,6 +30,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { DashboardSkeleton } from "../ui/skeleton";
 
 export type TableColumn<T> = {
   id: string;
@@ -252,9 +253,11 @@ export function ListingView<T>({
       )}
       <CardContent>
         {isLoading && (
-          <div className="py-12 text-center text-muted-foreground">
-            Loading...
-          </div>
+          <DashboardSkeleton title="Loading items...">
+            <div className="py-12 text-center text-muted-foreground">
+              Loading items...
+            </div>
+          </DashboardSkeleton>
         )}
         {error && (
           <div className="py-12 text-center text-red-500">Error: {error}</div>

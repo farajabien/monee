@@ -100,14 +100,14 @@ export function CompactItemCard({
       </div>
 
       {/* Middle Section: Title + Metadata */}
-      <div className="flex-1 min-w-0 flex items-center gap-2 flex-wrap sm:flex-nowrap">
-        <div className="flex items-center gap-1.5 min-w-0">
+      <div className="flex-1 min-w-0 flex items-center gap-2 flex-nowrap overflow-hidden">
+        <div className="flex items-center gap-1.5 min-w-0 max-w-[200px] sm:max-w-none">
           {emoji && <span className="text-base shrink-0">{emoji}</span>}
-          <span className="font-medium text-sm truncate">{title}</span>
+          <span className="font-medium text-sm truncate" title={title}>{title}</span>
         </div>
 
         {/* Badges and metadata */}
-        <div className="flex items-center gap-1.5 flex-wrap">
+        <div className="flex items-center gap-1.5 flex-wrap sm:flex-nowrap shrink-0">
           {category && (
             <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5 whitespace-nowrap">
               {category}

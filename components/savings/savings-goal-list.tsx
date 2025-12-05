@@ -15,6 +15,7 @@ import {
 import { toast } from "sonner";
 import { createSavingsGoalListConfig } from "./savings-goal-list-config";
 import { SavingsGoal, SavingsGoalWithContributions } from "@/types";
+import { DashboardSkeleton } from "@/components/ui/skeleton";
 
 export function SavingsGoalList() {
   const user = db.useUser();
@@ -44,9 +45,9 @@ export function SavingsGoalList() {
   const profile = data?.profiles?.[0];
   const savingsGoals = useMemo(() => {
     // Add user reference for compatibility
-    return (profile?.savingsGoals || []).map(goal => ({
+    return (profile?.savingsGoals || []).map((goal) => ({
       ...goal,
-      user: { id: profile?.id }
+      user: { id: profile?.id },
     }));
   }, [profile?.savingsGoals, profile?.id]);
 
@@ -94,7 +95,7 @@ export function SavingsGoalList() {
     [handleAddMoney, handleMarkComplete, handleEdit]
   );
 
-  if (isLoading) return <div className="text-center py-8">Loading...</div>;
+  if (isLoading) return <DashboardSkeleton title="Loading savings goals..." />;
   if (error)
     return (
       <div className="text-center py-8 text-red-600">

@@ -3,12 +3,6 @@
 import { useState, useEffect } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
-import {
-  Accordion,
-  AccordionItem,
-  AccordionTrigger,
-  AccordionContent,
-} from "@/components/ui/accordion";
 import { PWABottomNav } from "@/components/pwa/pwa-bottom-nav";
 import { PaywallDialog } from "@/components/payment/paywall-dialog";
 import { Button } from "@/components/ui/button";
@@ -36,7 +30,6 @@ import {
   User,
   Mail,
   Calendar,
-  TrendingUp,
   Download,
   Trash2,
   AlertTriangle,
@@ -61,6 +54,7 @@ import {
   getLocaleForCurrency,
   DEFAULT_CURRENCY,
 } from "@/lib/currency-utils";
+import { DashboardSkeleton } from "@/components/ui/skeleton";
 
 const FREE_TRIAL_DAYS = 7;
 
@@ -313,8 +307,6 @@ export default function SettingsClient() {
         });
       }
 
-
-
       // Delete all daily checkins
       if (profile.dailyCheckins) {
         profile.dailyCheckins.forEach((checkin) => {
@@ -380,7 +372,7 @@ export default function SettingsClient() {
     }
   };
 
-  if (isLoading) return <div className="p-4">Loading...</div>;
+  if (isLoading) return <DashboardSkeleton title="Loading settings..." />;
   if (error) return <div className="p-4">Error: {error.message}</div>;
   if (!profile) return <div className="p-4">No profile found</div>;
 
@@ -509,8 +501,7 @@ export default function SettingsClient() {
                   Income Sources
                 </span>
                 <span className="font-semibold">
-                  {profile.incomeSources?.filter((i) => i.isActive).length ||
-                    0}
+                  {profile.incomeSources?.filter((i) => i.isActive).length || 0}
                 </span>
               </div>
             </ItemContent>
@@ -519,9 +510,7 @@ export default function SettingsClient() {
           <Item>
             <ItemHeader>
               <ItemTitle>Give Feedback</ItemTitle>
-              <ItemDescription>
-                Your feedback shapes the app
-              </ItemDescription>
+              <ItemDescription>Your feedback shapes the app</ItemDescription>
             </ItemHeader>
             <ItemContent className="space-y-4">
               <p className="text-sm text-muted-foreground">
@@ -559,9 +548,7 @@ export default function SettingsClient() {
           <Item>
             <ItemHeader>
               <ItemTitle>Profile Information</ItemTitle>
-              <ItemDescription>
-                Update your personal details
-              </ItemDescription>
+              <ItemDescription>Update your personal details</ItemDescription>
             </ItemHeader>
             <ItemContent className="space-y-4">
               <div className="space-y-2">

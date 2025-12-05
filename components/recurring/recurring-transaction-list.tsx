@@ -22,6 +22,7 @@ import { RecurringTransactionForm } from "./recurring-transaction-form";
 import { Plus, Edit, Trash2, Check, X } from "lucide-react";
 import type { RecurringTransaction } from "@/lib/recurring-transaction-matcher";
 import { useCurrency } from "@/hooks/use-currency";
+import { DashboardSkeleton } from "../ui/skeleton";
 
 export function RecurringTransactionList() {
   const user = db.useUser();
@@ -92,11 +93,7 @@ export function RecurringTransactionList() {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center p-8">
-        <p className="text-muted-foreground">Loading...</p>
-      </div>
-    );
+    return <DashboardSkeleton title="Loading recurring transactions..." />;
   }
 
   return (

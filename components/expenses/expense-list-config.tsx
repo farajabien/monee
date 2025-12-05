@@ -6,7 +6,7 @@
 
 import type { ListConfig } from "@/types/list-config";
 import type { Expense, Recipient } from "@/types";
-import { Calendar, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { CompactItemCard } from "@/components/ui/compact-item-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -20,13 +20,6 @@ import { ColumnDef } from "@tanstack/react-table";
 import db from "@/lib/db";
 
 // Helper functions
-const formatDate = (timestamp: number) => {
-  return new Date(timestamp).toLocaleDateString("en-KE", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
-};
 
 const formatDateCompact = (timestamp: number) => {
   const date = new Date(timestamp);
@@ -96,7 +89,7 @@ export const createExpenseListConfig = (
       type: "currency",
       icon: "💰",
     },
-   
+
     {
       key: "avgExpense",
       label: "Avg",
@@ -143,7 +136,10 @@ export const createExpenseListConfig = (
       accessorKey: "recipient",
       header: "Recipient",
       cell: ({ row }) => {
-        const displayName = getDisplayName(row.original.recipient || "", recipients);
+        const displayName = getDisplayName(
+          row.original.recipient || "",
+          recipients
+        );
         return <div className="font-medium">{displayName}</div>;
       },
     },
@@ -218,9 +214,8 @@ export const createExpenseListConfig = (
 
     // Check if this recurring expense has been paid this month
     const recurringId = item.linkedRecurringId || item.id;
-    const isPaidThisMonth = isRecurring && checkPaidStatus
-      ? checkPaidStatus(recurringId)
-      : false;
+    const isPaidThisMonth =
+      isRecurring && checkPaidStatus ? checkPaidStatus(recurringId) : false;
 
     return (
       <CompactItemCard
@@ -236,7 +231,10 @@ export const createExpenseListConfig = (
         actions={{
           onEdit: actions.onEdit,
           onDelete: actions.onDelete,
-          onPay: isRecurring && !isPaidThisMonth ? actions.customActions?.[0]?.onClick : undefined,
+          onPay:
+            isRecurring && !isPaidThisMonth
+              ? () => actions.customActions?.[0]?.onClick(item)
+              : undefined,
         }}
       />
     );

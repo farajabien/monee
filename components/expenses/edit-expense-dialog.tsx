@@ -24,6 +24,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { AddCategoryDialog } from "@/components/categories/add-category-dialog";
 import type { Expense, Category, RecurringFrequency } from "@/types";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "../ui/tabs";
 
 interface EditExpenseDialogProps {
   open: boolean;
@@ -42,8 +43,11 @@ export function EditExpenseDialog({
   const [recipient, setRecipient] = useState<string>("");
   const [notes, setNotes] = useState<string>("");
   const [isRecurring, setIsRecurring] = useState(false);
-  const [recurringFrequency, setRecurringFrequency] = useState<RecurringFrequency>("monthly");
-  const [nextDueDate, setNextDueDate] = useState(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
+  const [recurringFrequency, setRecurringFrequency] =
+    useState<RecurringFrequency>("monthly");
+  const [nextDueDate, setNextDueDate] = useState(
+    new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]
+  );
   const [reminderDays, setReminderDays] = useState("3");
   const [showAddCategoryDialog, setShowAddCategoryDialog] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -128,46 +132,55 @@ export function EditExpenseDialog({
               Update the details for this expense.
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0">
+          <form
+            onSubmit={handleSubmit}
+            className="flex-1 flex flex-col min-h-0"
+          >
             <Tabs defaultValue="basic" className="flex-1 flex flex-col min-h-0">
               <TabsList className="mx-6 grid w-[calc(100%-3rem)] grid-cols-3 shrink-0 h-10">
                 <TabsTrigger value="basic" className="py-2 text-xs sm:text-sm">
                   Basic
                 </TabsTrigger>
-                <TabsTrigger value="details" className="py-2 text-xs sm:text-sm">
+                <TabsTrigger
+                  value="details"
+                  className="py-2 text-xs sm:text-sm"
+                >
                   Details
                 </TabsTrigger>
-                <TabsTrigger value="recurring" className="py-2 text-xs sm:text-sm">
+                <TabsTrigger
+                  value="recurring"
+                  className="py-2 text-xs sm:text-sm"
+                >
                   Recurring
                 </TabsTrigger>
               </TabsList>
 
               <div className="flex-1 overflow-y-auto px-6 py-4">
                 <TabsContent value="basic" className="space-y-4 mt-0">
-            <div className="space-y-2">
-              <Label htmlFor="amount">Amount</Label>
-              <Input
-                id="amount"
-                type="number"
-                step="0.01"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                placeholder="0.00"
-                required
-              />
-            </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="amount">Amount</Label>
+                    <Input
+                      id="amount"
+                      type="number"
+                      step="0.01"
+                      value={amount}
+                      onChange={(e) => setAmount(e.target.value)}
+                      placeholder="0.00"
+                      required
+                    />
+                  </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="recipient">Recipient</Label>
-              <Input
-                id="recipient"
-                type="text"
-                value={recipient}
-                onChange={(e) => setRecipient(e.target.value)}
-                placeholder="Enter recipient name"
-                required
-              />
-            </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="recipient">Recipient</Label>
+                    <Input
+                      id="recipient"
+                      type="text"
+                      value={recipient}
+                      onChange={(e) => setRecipient(e.target.value)}
+                      placeholder="Enter recipient name"
+                      required
+                    />
+                  </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="category-select">Category</Label>
@@ -221,7 +234,10 @@ export function EditExpenseDialog({
                 <TabsContent value="recurring" className="space-y-4 mt-0">
                   <div className="flex items-center justify-between py-2">
                     <div>
-                      <Label htmlFor="recurring-toggle" className="text-sm font-medium">
+                      <Label
+                        htmlFor="recurring-toggle"
+                        className="text-sm font-medium"
+                      >
                         Recurring Expense
                       </Label>
                       <p className="text-xs text-muted-foreground mt-1">
@@ -239,7 +255,12 @@ export function EditExpenseDialog({
                     <div className="space-y-4 p-4 border rounded-lg bg-muted/50">
                       <div className="space-y-2">
                         <Label htmlFor="recurring-frequency">Frequency</Label>
-                        <Select value={recurringFrequency} onValueChange={(value) => setRecurringFrequency(value as RecurringFrequency)}>
+                        <Select
+                          value={recurringFrequency}
+                          onValueChange={(value) =>
+                            setRecurringFrequency(value as RecurringFrequency)
+                          }
+                        >
                           <SelectTrigger id="recurring-frequency">
                             <SelectValue />
                           </SelectTrigger>
@@ -264,7 +285,9 @@ export function EditExpenseDialog({
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="reminder-days">Reminder (days before)</Label>
+                        <Label htmlFor="reminder-days">
+                          Reminder (days before)
+                        </Label>
                         <Input
                           id="reminder-days"
                           type="number"

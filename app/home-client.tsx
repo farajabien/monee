@@ -13,6 +13,7 @@ import { IncomeSourceList } from "@/components/income/income-source-list";
 import { PWABottomNav } from "@/components/pwa/pwa-bottom-nav";
 import { DesktopHeader } from "@/components/navigation/desktop-header";
 import SavingsPage from "@/components/savings/savings-page";
+import { DashboardSkeleton } from "@/components/ui/skeleton";
 
 export default function HomeClient() {
   const searchParams = useSearchParams();
@@ -33,7 +34,7 @@ export default function HomeClient() {
     }
   }, [isLoading, profile, router]);
 
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading) return <DashboardSkeleton title="Loading home..." />;
   if (error) return <div>Error: {error.message}</div>;
   if (!profile) return <div>No profile found</div>;
 
@@ -62,6 +63,17 @@ export default function HomeClient() {
           <div className="space-y-4">
             {/* Sub-navigation for More section */}
             <div className="flex gap-2 border-b border-border pb-2 overflow-x-auto">
+              <Link
+                href="/dashboard?tab=more&subtab=debts"
+                className={
+                  `px-3 py-1.5 text-sm font-medium rounded-md transition-colors whitespace-nowrap ` +
+                  (moreSubTab === "debts"
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted")
+                }
+              >
+                Debts
+              </Link>
               <Link
                 href="/dashboard?tab=more&subtab=income"
                 className={
@@ -98,6 +110,7 @@ export default function HomeClient() {
             </div>
 
             {/* Sub-tab content */}
+            {moreSubTab === "debts" && <DebtList />}
             {moreSubTab === "income" && <IncomeSourceList />}
             {moreSubTab === "savings" && <SavingsPage />}
             {moreSubTab === "categories" && <CategoryList />}

@@ -53,9 +53,10 @@ export function ExpenseValidationCard({
   const [isEditing, setIsEditing] = useState(false);
   const [editValues, setEditValues] = useState<ValidationRow["overrides"]>({
     recipient: row.overrides?.recipient || row.recipientMatch.recipientName,
-    category: row.overrides?.category || row.recipientMatch.category,
+    category: row.overrides?.category || row.recipientMatch.suggestedCategory,
     amount: row.overrides?.amount || row.parsed.amount,
-    recurringId: row.overrides?.recurringId || row.recurringMatch?.recurringId,
+    recurringId:
+      row.overrides?.recurringId || row.recurringMatch?.recurringExpenseId,
   });
 
   const isPending = row.status === "pending";
@@ -68,9 +69,10 @@ export function ExpenseValidationCard({
   const handleCancelEdit = () => {
     setEditValues({
       recipient: row.overrides?.recipient || row.recipientMatch.recipientName,
-      category: row.overrides?.category || row.recipientMatch.category,
+      category: row.overrides?.category || row.recipientMatch.suggestedCategory,
       amount: row.overrides?.amount || row.parsed.amount,
-      recurringId: row.overrides?.recurringId || row.recurringMatch?.recurringId,
+      recurringId:
+        row.overrides?.recurringId || row.recurringMatch?.recurringExpenseId,
     });
     setIsEditing(false);
   };
@@ -165,15 +167,21 @@ export function ExpenseValidationCard({
               ) : (
                 <div className="space-y-0.5">
                   <p className="text-lg font-bold">
-                    KSh {(row.overrides?.amount || row.parsed.amount).toLocaleString()}
+                    KSh{" "}
+                    {(
+                      row.overrides?.amount || row.parsed.amount
+                    ).toLocaleString()}
                   </p>
                   {row.parsed.timestamp && (
                     <p className="text-xs text-muted-foreground">
-                      {new Date(row.parsed.timestamp).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      })}
+                      {new Date(row.parsed.timestamp).toLocaleDateString(
+                        "en-US",
+                        {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                        }
+                      )}
                     </p>
                   )}
                 </div>
@@ -251,7 +259,8 @@ export function ExpenseValidationCard({
             <>
               <p className="text-xs text-muted-foreground">Category</p>
               <Badge variant="secondary" className="font-normal">
-                {row.overrides?.category || row.recipientMatch.category}
+                {row.overrides?.category ||
+                  row.recipientMatch.suggestedCategory}
               </Badge>
             </>
           )}
@@ -262,10 +271,10 @@ export function ExpenseValidationCard({
           <div className="space-y-1">
             <p className="text-xs text-muted-foreground">Recurring</p>
             <Badge
-              variant={row.recurringMatch.isRecurring ? "default" : "outline"}
+              variant={row.recurringMatch.isMatch ? "default" : "outline"}
               className="font-normal"
             >
-              {row.recurringMatch.isRecurring ? "Linked" : "Not Linked"}
+              {row.recurringMatch.isMatch ? "Linked" : "Not Linked"}
             </Badge>
           </div>
         )}
@@ -282,11 +291,7 @@ export function ExpenseValidationCard({
               >
                 Cancel
               </Button>
-              <Button
-                size="sm"
-                onClick={handleSaveEdit}
-                className="flex-1"
-              >
+              <Button size="sm" onClick={handleSaveEdit} className="flex-1">
                 Save
               </Button>
             </>

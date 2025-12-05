@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { MessageSquare, FileText } from "lucide-react";
 import { ImportSmsDialog } from "./import-sms-dialog";
@@ -34,7 +34,13 @@ export function ExpenseImportOrchestrator({
   const [validationRows, setValidationRows] = useState<ValidationRow[]>([]);
   const [showValidation, setShowValidation] = useState(false);
 
+  // Use a stable timestamp for this import session to avoid hydration mismatch
+  const importTimestampRef = useRef<number | null>(null);
+
   const processImportedExpenses = (parsed: ParsedExpenseData[]) => {
+    if (importTimestampRef.current === null) {
+      importTimestampRef.current = Date.now();
+    }
     // Step 1: Match recipients
     const recipientMatches = batchMatchRecipients(parsed, existingExpenses);
 
@@ -105,7 +111,7 @@ export function ExpenseImportOrchestrator({
         amount,
         recipient,
         category,
-        date: row.parsed.timestamp || Date.now(),
+        date: row.parsed.timestamp || importTimestampRef.current!,
         rawMessage: row.parsed.reference || "",
         expenseType: row.parsed.expenseType || "send",
         notes: row.parsed.phoneNumber
@@ -117,7 +123,7 @@ export function ExpenseImportOrchestrator({
         isRecurring: !!(
           row.overrides?.recurringId || row.recurringMatch.recurringExpenseId
         ),
-        createdAt: Date.now(),
+        createdAt: importTimestampRef.current!,
       };
     });
 

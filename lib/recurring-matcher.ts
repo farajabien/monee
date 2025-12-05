@@ -8,11 +8,12 @@ export interface RecurringMatch {
   lastPaidDate?: number;
   frequency?: "weekly" | "monthly" | "quarterly" | "yearly";
   matchScore: number;
+  isMatch: boolean;
 }
 
 /**
  * Calculate if an amount is within tolerance
- * 
+ *
  * Examples:
  * - amount: 2500, expected: 2500, tolerance: 0.1 → true (exact)
  * - amount: 2550, expected: 2500, tolerance: 0.1 → true (within 10%)
@@ -30,7 +31,7 @@ function isAmountWithinTolerance(
 
 /**
  * Check if expense is due based on frequency and last paid date
- * 
+ *
  * Returns a score:
  * - 1.0: Due now or overdue
  * - 0.5-0.9: Due soon (within grace period)
@@ -43,7 +44,8 @@ function calculateDueScore(
 ): number {
   if (!lastPaidDate || !frequency) return 0.5; // Unknown, give medium score
 
-  const daysSinceLastPaid = (currentDate - lastPaidDate) / (1000 * 60 * 60 * 24);
+  const daysSinceLastPaid =
+    (currentDate - lastPaidDate) / (1000 * 60 * 60 * 24);
 
   // Expected days between payments
   const expectedDays: Record<string, number> = {
@@ -68,19 +70,19 @@ function calculateDueScore(
 
 /**
  * Match expense to recurring expenses
- * 
+ *
  * Matching logic:
  * 1. Same recipient (using normalized name)
  * 2. Same category
  * 3. Similar amount (within 10% tolerance)
  * 4. Due date appropriate for frequency
- * 
+ *
  * Score calculation:
  * - Recipient match: 40 points
  * - Category match: 20 points
  * - Amount match: 20 points
  * - Due date score: 20 points
- * 
+ *
  * Confidence levels:
  * - High: 80+ points
  * - Medium: 60-79 points
@@ -97,6 +99,7 @@ export function matchRecurringExpense(
       confidence: "low",
       expenseName: matchedRecipientName,
       matchScore: 0,
+      isMatch: false,
     };
   }
 
@@ -116,8 +119,12 @@ export function matchRecurringExpense(
     } else {
       // Partial recipient match
       const recipientContains =
-        recurring.recipient.toLowerCase().includes(matchedRecipientName.toLowerCase()) ||
-        matchedRecipientName.toLowerCase().includes(recurring.recipient.toLowerCase());
+        recurring.recipient
+          .toLowerCase()
+          .includes(matchedRecipientName.toLowerCase()) ||
+        matchedRecipientName
+          .toLowerCase()
+          .includes(recurring.recipient.toLowerCase());
       if (recipientContains) {
         score += 20;
       }
@@ -132,7 +139,9 @@ export function matchRecurringExpense(
     if (parsed.amount && recurring.amount) {
       if (isAmountWithinTolerance(parsed.amount, recurring.amount)) {
         score += 20;
-      } else if (isAmountWithinTolerance(parsed.amount, recurring.amount, 0.2)) {
+      } else if (
+        isAmountWithinTolerance(parsed.amount, recurring.amount, 0.2)
+      ) {
         score += 10; // Within 20% tolerance, partial points
       }
     }
@@ -153,11 +162,7 @@ export function matchRecurringExpense(
   // Return best match or no match
   if (bestMatch) {
     const confidence =
-      bestMatch.score >= 80
-        ? "high"
-        : bestMatch.score >= 60
-        ? "medium"
-        : "low";
+      bestMatch.score >= 80 ? "high" : bestMatch.score >= 60 ? "medium" : "low";
 
     return {
       confidence,
@@ -165,8 +170,14 @@ export function matchRecurringExpense(
       expenseName: bestMatch.expense.recipient,
       expectedAmount: bestMatch.expense.amount,
       lastPaidDate: bestMatch.expense.lastPaidDate,
-      frequency: bestMatch.expense.frequency as "weekly" | "monthly" | "quarterly" | "yearly" | undefined,
+      frequency: bestMatch.expense.frequency as
+        | "weekly"
+        | "monthly"
+        | "quarterly"
+        | "yearly"
+        | undefined,
       matchScore: Math.round(bestMatch.score),
+      isMatch: true,
     };
   }
 
@@ -174,6 +185,7 @@ export function matchRecurringExpense(
     confidence: "low",
     expenseName: matchedRecipientName,
     matchScore: 0,
+    isMatch: false,
   };
 }
 
@@ -188,7 +200,13 @@ export function batchMatchRecurring(
   }>,
   recurringExpenses: RecurringTransaction[]
 ): RecurringMatch[] {
-  return parsedExpenses.map(({ parsed, matchedRecipientName, suggestedCategory }) =>
-    matchRecurringExpense(parsed, matchedRecipientName, suggestedCategory, recurringExpenses)
+  return parsedExpenses.map(
+    ({ parsed, matchedRecipientName, suggestedCategory }) =>
+      matchRecurringExpense(
+        parsed,
+        matchedRecipientName,
+        suggestedCategory,
+        recurringExpenses
+      )
   );
 }
