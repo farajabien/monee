@@ -32,6 +32,7 @@ import { cn } from "@/lib/utils";
 import type { ParsedExpenseData } from "@/types";
 import type { RecipientMatch } from "@/lib/recipient-matcher";
 import type { RecurringMatch } from "@/lib/recurring-matcher";
+import { ExpenseValidationCard } from "./expense-validation-card";
 
 export interface ValidationRow {
   id: string;
@@ -282,12 +283,12 @@ export function ExpenseImportValidation({
 
   return (
     <div className="space-y-4">
-      {/* Filters */}
+      {/* Filters - Mobile friendly with wrapping */}
       {availableYears.length > 0 && (
-        <div className="flex items-center gap-3 p-4 bg-muted rounded-lg">
-          <span className="text-sm font-medium">Filter by:</span>
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3 p-3 sm:p-4 bg-muted rounded-lg">
+          <span className="text-xs sm:text-sm font-medium">Filter by:</span>
           <Select value={selectedYear} onValueChange={setSelectedYear}>
-            <SelectTrigger className="w-[140px] h-9">
+            <SelectTrigger className="w-[110px] sm:w-[140px] h-9 text-xs sm:text-sm">
               <SelectValue placeholder="Year" />
             </SelectTrigger>
             <SelectContent>
@@ -305,7 +306,7 @@ export function ExpenseImportValidation({
 
           {selectedYear !== "all" && monthsForSelectedYear.length > 0 && (
             <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-              <SelectTrigger className="w-[160px] h-9">
+              <SelectTrigger className="w-[130px] sm:w-[160px] h-9 text-xs sm:text-sm">
                 <SelectValue placeholder="Month" />
               </SelectTrigger>
               <SelectContent>
@@ -327,56 +328,23 @@ export function ExpenseImportValidation({
                 setSelectedYear("all");
                 setSelectedMonth("all");
               }}
-              className="h-9"
+              className="h-9 text-xs sm:text-sm"
             >
-              Clear Filters
+              Clear
             </Button>
           )}
         </div>
       )}
 
-      {/* Stats Header - Compact Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <Card>
-          <CardHeader className="pb-1 pt-3">
-            <CardTitle className="text-xs font-medium text-muted-foreground">
-              Total
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pb-3">
-            <p className="text-xl font-bold">{stats.total}</p>
-          </CardContent>
-        </Card>
-        <Card className="border-yellow-200 bg-yellow-50/50">
-          <CardHeader className="pb-1 pt-3">
-            <CardTitle className="text-xs font-medium text-yellow-700">
-              Pending
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pb-3">
-            <p className="text-xl font-bold text-yellow-600">{stats.pending}</p>
-          </CardContent>
-        </Card>
-        <Card className="border-green-200 bg-green-50/50">
-          <CardHeader className="pb-1 pt-3">
-            <CardTitle className="text-xs font-medium text-green-700">
-              Accepted
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pb-3">
-            <p className="text-xl font-bold text-green-600">{stats.accepted}</p>
-          </CardContent>
-        </Card>
-        <Card className="border-red-200 bg-red-50/50">
-          <CardHeader className="pb-1 pt-3">
-            <CardTitle className="text-xs font-medium text-red-700">
-              Rejected
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pb-3">
-            <p className="text-xl font-bold text-red-600">{stats.rejected}</p>
-          </CardContent>
-        </Card>
+      {/* Compact Stats - Single Line */}
+      <div className="flex flex-wrap items-center gap-3 text-sm p-3 bg-muted/50 rounded-lg">
+        <span className="font-semibold">Total: {stats.total}</span>
+        <span className="text-muted-foreground">•</span>
+        <span className="font-semibold text-yellow-600">Pending: {stats.pending}</span>
+        <span className="text-muted-foreground">•</span>
+        <span className="font-semibold text-green-600">✓ {stats.accepted}</span>
+        <span className="text-muted-foreground">•</span>
+        <span className="font-semibold text-red-600">✗ {stats.rejected}</span>
       </div>
       {/* Save Button - Use all accepted rows, not just filtered */}
       {(allAcceptedRows.length > 0 || allRejectedRows.length > 0) && (
@@ -388,56 +356,82 @@ export function ExpenseImportValidation({
         </div>
       )}
 
-      {/* Bulk Actions */}
+      {/* Bulk Actions - Mobile friendly */}
       {pendingRows.length > 0 && (
-        <div className="flex items-center gap-2 p-4 bg-muted rounded-lg">
-          <input
-            type="checkbox"
-            checked={
-              selectedRows.size === pendingRows.length && pendingRows.length > 0
-            }
-            onChange={toggleAllRows}
-            className="h-4 w-4 rounded border-gray-300"
-          />
-          <span className="text-sm font-medium">
-            {selectedRows.size > 0
-              ? `${selectedRows.size} selected`
-              : "Select all"}
-          </span>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 p-3 sm:p-4 bg-muted rounded-lg">
+          <div className="flex items-center gap-3">
+            <input
+              type="checkbox"
+              checked={
+                selectedRows.size === pendingRows.length && pendingRows.length > 0
+              }
+              onChange={toggleAllRows}
+              className="h-4 w-4 rounded border-gray-300"
+            />
+            <span className="text-xs sm:text-sm font-medium">
+              {selectedRows.size > 0
+                ? `${selectedRows.size} selected`
+                : "Select all"}
+            </span>
+          </div>
           {selectedRows.size > 0 && (
             <>
-              <div className="flex-1" />
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => {
-                  onAccept(Array.from(selectedRows));
-                  setSelectedRows(new Set());
-                }}
-                className="bg-green-50 hover:bg-green-100 text-green-700 border-green-200"
-              >
-                <Check className="mr-1 h-4 w-4" />
-                Accept Selected
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => {
-                  onReject(Array.from(selectedRows));
-                  setSelectedRows(new Set());
-                }}
-                className="bg-red-50 hover:bg-red-100 text-red-700 border-red-200"
-              >
-                <X className="mr-1 h-4 w-4" />
-                Reject Selected
-              </Button>
+              <div className="flex-1 hidden sm:block" />
+              <div className="flex gap-2 w-full sm:w-auto">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    onAccept(Array.from(selectedRows));
+                    setSelectedRows(new Set());
+                  }}
+                  className="flex-1 sm:flex-none bg-green-50 hover:bg-green-100 text-green-700 border-green-200 text-xs sm:text-sm"
+                >
+                  <Check className="mr-1 h-3 w-3 sm:h-4 sm:w-4" />
+                  Accept
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    onReject(Array.from(selectedRows));
+                    setSelectedRows(new Set());
+                  }}
+                  className="flex-1 sm:flex-none bg-red-50 hover:bg-red-100 text-red-700 border-red-200 text-xs sm:text-sm"
+                >
+                  <X className="mr-1 h-3 w-3 sm:h-4 sm:w-4" />
+                  Reject
+                </Button>
+              </div>
             </>
           )}
         </div>
       )}
 
-      {/* Validation Table */}
-      <Table>
+      {/* Mobile Card View - Hidden on desktop */}
+      <div className="block md:hidden space-y-3">
+        {filteredRows.length === 0 ? (
+          <div className="flex items-center justify-center py-12 px-4">
+            <p className="text-sm text-muted-foreground">No expenses to validate.</p>
+          </div>
+        ) : (
+          filteredRows.map((row) => (
+            <ExpenseValidationCard
+              key={row.id}
+              row={row}
+              categories={categories}
+              isSelected={selectedRows.has(row.id)}
+              onToggleSelect={toggleRowSelection}
+              onEdit={onEdit}
+              onAccept={onAccept}
+              onReject={onReject}
+            />
+          ))
+        )}
+      </div>
+
+      {/* Desktop Table View - Hidden on mobile */}
+      <Table className="hidden md:table">
         <TableHeader>
           <TableRow>
             <TableHead className="w-[50px]"></TableHead>

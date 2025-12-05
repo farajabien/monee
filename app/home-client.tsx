@@ -11,6 +11,7 @@ import { DebtList } from "@/components/debts/debt-list";
 import ExpenseList from "@/components/expenses/expense-list";
 import { IncomeSourceList } from "@/components/income/income-source-list";
 import { PWABottomNav } from "@/components/pwa/pwa-bottom-nav";
+import { DesktopHeader } from "@/components/navigation/desktop-header";
 import SavingsPage from "@/components/savings/savings-page";
 
 export default function HomeClient() {
@@ -47,41 +48,13 @@ export default function HomeClient() {
     );
   }
 
-  // Tab configuration
-  const tabs = [
-    { value: "overview", label: "Overview" },
-    { value: "expenses", label: "Expenses" },
-    { value: "debts", label: "Debts" },
-    { value: "more", label: "More" },
-  ];
-
   return (
     <>
-      {/* Sticky Tab Navigation */}
-      <div className="border-b border-border sticky top-0 bg-background/95 backdrop-blur-sm z-40">
-        <div className="w-full mx-auto">
-          <div className="grid grid-cols-4 h-auto">
-            {tabs.map((tab) => (
-              <Link
-                key={tab.value}
-                href={`/dashboard?tab=${tab.value}`}
-                className={
-                  `flex items-center justify-center py-3 text-xs sm:text-sm font-medium ` +
-                  `border-b-2 transition-colors ` +
-                  (activeTab === tab.value
-                    ? "border-primary text-primary"
-                    : "border-transparent text-muted-foreground hover:text-foreground")
-                }
-              >
-                {tab.label}
-              </Link>
-            ))}
-          </div>
-        </div>
-      </div>
+      {/* Desktop Header Navigation - Hidden on mobile */}
+      <DesktopHeader />
 
       {/* Content */}
-      <div className="w-full mx-auto px-4 sm:px-6 py-6 pb-24 sm:pb-28 overflow-x-hidden">
+      <div className="w-full mx-auto px-4 sm:px-6 py-6 pb-24 md:pb-6 overflow-x-hidden">
         {activeTab === "overview" && <DashboardOverview />}
         {activeTab === "expenses" && <ExpenseList />}
         {activeTab === "debts" && <DebtList />}

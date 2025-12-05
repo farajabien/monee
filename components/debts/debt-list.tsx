@@ -150,10 +150,16 @@ export function DebtList() {
   return (
     <>
       <Tabs defaultValue="list" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 mb-4">
-          <TabsTrigger value="list">All Debts</TabsTrigger>
-          <TabsTrigger value="progress">Progress</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3 mb-4 h-10">
+          <TabsTrigger value="list" className="py-2 text-xs sm:text-sm">
+            All Debts
+          </TabsTrigger>
+          <TabsTrigger value="progress" className="py-2 text-xs sm:text-sm">
+            Progress
+          </TabsTrigger>
+          <TabsTrigger value="analytics" className="py-2 text-xs sm:text-sm">
+            Analytics
+          </TabsTrigger>
         </TabsList>
         <TabsContent value="list">
           <UnifiedListContainer<DebtWithUser>

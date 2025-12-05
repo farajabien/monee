@@ -125,15 +125,15 @@ export function PWABottomNav() {
 
   return (
     <>
-      {/* Backdrop overlay when More is open */}
+      {/* Backdrop overlay when More is open - Mobile only */}
       {showMore && (
         <div
-          className="fixed inset-0 bg-black/20 z-40 animate-in fade-in duration-200"
+          className="md:hidden fixed inset-0 bg-black/20 z-40 animate-in fade-in duration-200"
           onClick={() => setShowMore(false)}
         />
       )}
 
-      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t pb-safe">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background border-t pb-safe">
         <div className="max-w-xl mx-auto flex items-center justify-around h-16 relative">
           {navItems.map((item) => {
             const Icon = item.icon;

@@ -29,6 +29,7 @@ import {
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { ChevronLeft, RepeatIcon } from "lucide-react";
 import type { Expense } from "@/types";
 import { useCurrency } from "@/hooks/use-currency";
@@ -51,12 +52,13 @@ const EditExpenseDialogAdapter = ({
 export default function ExpenseList() {
   const user = db.useUser();
   const [activeView, setActiveView] = useState<
-    "list" | "recipients" | "analytics"
+    "list" | "analytics"
   >("list");
   const [analyticsView, setAnalyticsView] = useState<
     "overview" | "day" | "category" | "recipients"
   >("overview");
   const [showingValidation, setShowingValidation] = useState(false);
+  const [showRecipientsSheet, setShowRecipientsSheet] = useState(false);
 
   const { data } = db.useQuery({
     profiles: {
@@ -288,69 +290,67 @@ export default function ExpenseList() {
     return config;
   }, [analytics]);
 
-  // Main view navigation
-  if (activeView === "list") {
-    return (
-      <div className="space-y-4">
-        <Tabs value="list" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="list">Expenses</TabsTrigger>
-            <TabsTrigger
-              value="recipients"
-              onClick={() => setActiveView("recipients")}
-            >
-              Recipients
-            </TabsTrigger>
-            <TabsTrigger
-              value="analytics"
-              onClick={() => setActiveView("analytics")}
-            >
-              Analytics
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
+  // Calculate unique recipient count
+  const recipientCount = useMemo(() => {
+    const uniqueRecipients = new Set(expenses.map(e => e.recipient).filter(Boolean));
+    return uniqueRecipients.size;
+  }, [expenses]);
 
-        <ExpenseImportOrchestrator
-          existingExpenses={expenses}
-          recurringExpenses={recurringTransactions}
-          categories={categories}
-          onSaveExpenses={handleSaveExpenses}
-          onValidationStateChange={setShowingValidation}
-        />
-
-        {!showingValidation && (
-          <UnifiedListContainer<Expense>
-            config={config}
-            data={expenses}
-            editDialog={EditExpenseDialogAdapter}
+  return (
+    <>
+      {/* Main view navigation */}
+      {activeView === "list" && (
+        <div className="space-y-4">
+          {/* Import Orchestrator - Renders independently, takes over when validating */}
+          <ExpenseImportOrchestrator
+            existingExpenses={expenses}
+            recurringExpenses={recurringTransactions}
+            categories={categories}
+            onSaveExpenses={handleSaveExpenses}
+            onValidationStateChange={setShowingValidation}
           />
-        )}
-      </div>
-    );
-  }
 
-  if (activeView === "recipients") {
-    return (
-      <div className="space-y-4">
-        <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setActiveView("list")}
-          >
-            <ChevronLeft className="h-4 w-4 mr-1" />
-            Back to Expenses
-          </Button>
+          {/* List View - Only shown when NOT validating */}
+          {!showingValidation && (
+            <>
+              <Tabs value="list" className="w-full">
+                <TabsList className="grid w-full grid-cols-2 h-10">
+                  <TabsTrigger value="list" className="py-2 text-xs sm:text-sm">
+                    Expenses
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="analytics"
+                    onClick={() => setActiveView("analytics")}
+                    className="py-2 text-xs sm:text-sm"
+                  >
+                    Analytics
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+
+              <UnifiedListContainer<Expense>
+                config={config}
+                data={expenses}
+                editDialog={EditExpenseDialogAdapter}
+                headerActions={
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowRecipientsSheet(true)}
+                    className="h-8"
+                  >
+                    Recipients ({recipientCount})
+                  </Button>
+                }
+              />
+            </>
+          )}
         </div>
-        <RecipientList />
-      </div>
-    );
-  }
+      )}
 
-  // Analytics view with sub-navigation
-  if (activeView === "analytics") {
-    return (
-      <div className="space-y-4">
+      {/* Analytics view with sub-navigation */}
+      {activeView === "analytics" && (
+        <div className="space-y-4">
         <div className="flex items-center gap-2">
           <Button
             variant="ghost"
@@ -369,11 +369,19 @@ export default function ExpenseList() {
               onValueChange={(v) => setAnalyticsView(v as typeof analyticsView)}
               className="w-full"
             >
-              <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="overview">Overview</TabsTrigger>
-                <TabsTrigger value="day">By Day</TabsTrigger>
-                <TabsTrigger value="category">Category</TabsTrigger>
-                <TabsTrigger value="recipients">Recipients</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-4 h-10">
+                <TabsTrigger value="overview" className="py-2 text-xs sm:text-sm">
+                  Overview
+                </TabsTrigger>
+                <TabsTrigger value="day" className="py-2 text-xs sm:text-sm">
+                  By Day
+                </TabsTrigger>
+                <TabsTrigger value="category" className="py-2 text-xs sm:text-sm">
+                  Category
+                </TabsTrigger>
+                <TabsTrigger value="recipients" className="py-2 text-xs sm:text-sm">
+                  Recipients
+                </TabsTrigger>
               </TabsList>
             </Tabs>
 
@@ -574,9 +582,20 @@ export default function ExpenseList() {
             No expense data available for analytics
           </div>
         )}
-      </div>
-    );
-  }
+        </div>
+      )}
 
-  return null;
+      {/* Recipients Sheet */}
+      <Sheet open={showRecipientsSheet} onOpenChange={setShowRecipientsSheet}>
+        <SheetContent side="bottom" className="h-[85vh] overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>Recipients</SheetTitle>
+          </SheetHeader>
+          <div className="mt-4">
+            <RecipientList />
+          </div>
+        </SheetContent>
+      </Sheet>
+    </>
+  );
 }

@@ -156,58 +156,66 @@ export function UnifiedListContainer<T extends Record<string, unknown>>({
   }, [deletingItem]);
 
   return (
-    <div className="space-y-3 w-full overflow-hidden">
-      {/* Metrics */}
-      {config.metrics && config.metrics.length > 0 && (
-        <ListMetrics metrics={config.metrics} values={metrics} />
-      )}
-
-      {/* Main container */}
-      <div className="space-y-3 w-full">
-        {/* Additional filters if provided */}
-        {additionalFilters && (
-          <div className="flex items-center justify-end">
-            <div className="flex-shrink-0">{additionalFilters}</div>
+    <div className="space-y-2 w-full overflow-hidden">
+      {/* Compact Header: Header Actions + Controls on same row */}
+      <div className="flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-between">
+        {/* Left: Header Actions (e.g., Import buttons, Recipients button) */}
+        {headerActions && (
+          <div className="flex gap-2 shrink-0">
+            {headerActions}
           </div>
         )}
 
-        {/* Controls and Header Actions */}
-        <div className="flex flex-col gap-2">
-          <div className="flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-between">
-            <div className="flex-1 min-w-0">
-              <DataViewControls
-                viewMode={viewMode}
-                onViewModeChange={setViewMode}
-                availableViews={config.availableViews}
-                searchValue={searchQuery}
-                onSearchChange={setSearchQuery}
-                searchPlaceholder={config.searchPlaceholder}
-                sortValue={sortBy}
-                onSortChange={setSortBy}
-                sortOptions={config.sortOptions}
-                filterValue={primaryFilterValue}
-                onFilterChange={
-                  primaryFilter
-                    ? (value) => handleFilterChange(primaryFilter.key, value)
-                    : undefined
-                }
-                filterOptions={
-                  primaryFilter?.options
-                    ? [{ value: "all", label: "All" }, ...primaryFilter.options]
-                    : undefined
-                }
-                filterLabel={primaryFilter?.label}
-                totalCount={data.length}
-                filteredCount={filteredData.length}
-              />
-            </div>
-          </div>
-          {headerActions && (
-            <div className="flex justify-end gap-2">
-              {headerActions}
-            </div>
-          )}
+        {/* Right: Search, Sort, View Toggle */}
+        <div className="flex-1 min-w-0">
+          <DataViewControls
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
+            availableViews={config.availableViews}
+            searchValue={searchQuery}
+            onSearchChange={setSearchQuery}
+            searchPlaceholder={config.searchPlaceholder}
+            sortValue={sortBy}
+            onSortChange={setSortBy}
+            sortOptions={config.sortOptions}
+            filterValue={primaryFilterValue}
+            onFilterChange={
+              primaryFilter
+                ? (value) => handleFilterChange(primaryFilter.key, value)
+                : undefined
+            }
+            filterOptions={
+              primaryFilter?.options
+                ? [{ value: "all", label: "All" }, ...primaryFilter.options]
+                : undefined
+            }
+            filterLabel={primaryFilter?.label}
+            totalCount={data.length}
+            filteredCount={filteredData.length}
+          />
         </div>
+      </div>
+
+      {/* Metrics + Item Count Row */}
+      {config.metrics && config.metrics.length > 0 && (
+        <div className="flex flex-wrap items-center gap-3">
+          <ListMetrics metrics={config.metrics} values={metrics} />
+          <span className="text-muted-foreground/50">•</span>
+          <span className="text-sm text-muted-foreground">
+            {filteredData.length} {filteredData.length === 1 ? 'item' : 'items'}
+          </span>
+        </div>
+      )}
+
+      {/* Additional filters if provided */}
+      {additionalFilters && (
+        <div className="flex items-center justify-end">
+          <div className="flex-shrink-0">{additionalFilters}</div>
+        </div>
+      )}
+
+      {/* Main container */}
+      <div className="w-full">
 
         {/* Additional filters (if any) */}
         {config.filters && config.filters.length > 1 && (

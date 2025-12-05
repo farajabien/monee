@@ -1,16 +1,13 @@
 /**
  * ListMetrics Component
  *
- * Displays metric badges at the top of lists
- * Consistent formatting and responsive layout
+ * Displays metrics in a compact horizontal layout
+ * Numbers first, no icon clutter
  */
 
 "use client";
 
-import { Badge } from "@/components/ui/badge";
 import type { MetricConfig, MetricValues } from "@/types/list-config";
-import { LucideIcon } from "lucide-react";
-import * as Icons from "lucide-react";
 
 interface ListMetricsProps {
   metrics: MetricConfig[];
@@ -46,50 +43,33 @@ export function ListMetrics({ metrics, values }: ListMetricsProps) {
   };
 
   const formatCompact = (num: number) => {
-    if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
-    if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
-    return num.toString();
-  };
-
-  const getIcon = (iconProp?: LucideIcon | string) => {
-    if (!iconProp) return null;
-
-    if (typeof iconProp === "string") {
-      // Try to find a Lucide icon with this name
-      const IconComponent = (Icons as any)[iconProp] as LucideIcon;
-      if (!IconComponent) {
-        // Not a Lucide icon - render as emoji/text
-        return <span className="mr-1">{iconProp}</span>;
-      }
-      return <IconComponent className="h-3 w-3 mr-1" />;
-    }
-
-    const IconComponent = iconProp;
-    return <IconComponent className="h-3 w-3 mr-1" />;
+    if (num >= 1000000) return `Ksh ${(num / 1000000).toFixed(1)}M`;
+    if (num >= 1000) return `Ksh ${(num / 1000).toFixed(1)}K`;
+    return `Ksh ${num}`;
   };
 
   if (metrics.length === 0) return null;
 
   return (
-    <div className="flex flex-wrap gap-2">
-      {metrics.map((metric) => {
+    <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+      {metrics.map((metric, index) => {
         const value = values[metric.key];
         if (value === undefined) return null;
 
+        const formattedValue = metric.type === "currency" && value >= 1000
+          ? formatCompact(value)
+          : formatValue(value, metric.type, metric.format);
+
         return (
-          <Badge
-            key={metric.key}
-            variant={metric.key === "totalSpent" || metric.key === "totalDebt" ? "secondary" : "outline"}
-            className={`whitespace-nowrap text-xs px-2 py-0.5 ${metric.className || ""}`}
-          >
-            {getIcon(metric.icon)}
-            {metric.label && <span className="mr-1">{metric.label}:</span>}
-            <span className="font-semibold">
-              {metric.type === "currency" && value >= 1000
-                ? `Ksh ${formatCompact(value)}`
-                : formatValue(value, metric.type, metric.format)}
+          <div key={metric.key} className="flex items-center gap-3">
+            <span className="whitespace-nowrap">
+              <span className="font-semibold text-foreground">{formattedValue}</span>
+              {metric.label && <span className="ml-1">{metric.label.toLowerCase()}</span>}
             </span>
-          </Badge>
+            {index < metrics.length - 1 && (
+              <span className="text-muted-foreground/50">•</span>
+            )}
+          </div>
         );
       })}
     </div>

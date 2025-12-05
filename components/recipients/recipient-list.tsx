@@ -98,22 +98,25 @@ export function RecipientList() {
     setShowManageSheet(true);
   };
 
-  const config = useMemo(() => createRecipientListConfig(handleManage, formatCurrency), [formatCurrency]);
+  const config = useMemo(
+    () => createRecipientListConfig(handleManage, formatCurrency),
+    [formatCurrency]
+  );
 
   return (
-    <>
+    <div className="px-4">
       <Tabs defaultValue="list" className="w-full">
         <TabsList className="grid w-full grid-cols-2 mb-4">
           <TabsTrigger value="list">All Recipients</TabsTrigger>
           <TabsTrigger value="stats">Statistics</TabsTrigger>
         </TabsList>
-        <TabsContent value="list">
+        <TabsContent value="list" className="mt-0">
           <UnifiedListContainer<RecipientWithStats>
             config={config}
             data={allRecipients}
           />
         </TabsContent>
-        <TabsContent value="stats">
+        <TabsContent value="stats" className="mt-0">
           {/* Placeholder for future statistics view */}
           <div className="text-center text-muted-foreground py-8">
             Statistics view coming soon
@@ -139,6 +142,6 @@ export function RecipientList() {
           )}
         </SheetContent>
       </Sheet>
-    </>
+    </div>
   );
 }

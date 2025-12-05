@@ -389,11 +389,19 @@ export function UnifiedAddModal({
               )
             }
           >
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="expense">Expense</TabsTrigger>
-              <TabsTrigger value="income">Income</TabsTrigger>
-              <TabsTrigger value="debt">Debt</TabsTrigger>
-              <TabsTrigger value="savings">Savings</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-4 h-10">
+              <TabsTrigger value="expense" className="py-2 text-xs sm:text-sm">
+                Expense
+              </TabsTrigger>
+              <TabsTrigger value="income" className="py-2 text-xs sm:text-sm">
+                Income
+              </TabsTrigger>
+              <TabsTrigger value="debt" className="py-2 text-xs sm:text-sm">
+                Debt
+              </TabsTrigger>
+              <TabsTrigger value="savings" className="py-2 text-xs sm:text-sm">
+                Savings
+              </TabsTrigger>
             </TabsList>
 
             <form onSubmit={handleSubmit} className="space-y-4 pt-4">
