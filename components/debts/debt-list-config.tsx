@@ -115,7 +115,8 @@ const getDueDateDisplay = (debt: DebtWithUser) => {
 export const createDebtListConfig = (
   onRecordPayment: (debt: DebtWithUser) => void,
   onQuickPush: (debt: DebtWithUser) => void,
-  onEdit: (debt: DebtWithUser) => void
+  onEdit: (debt: DebtWithUser) => void,
+  onViewDetails: (debt: DebtWithUser) => void
 ): ListConfig<DebtWithUser> => ({
   // Identity
   queryKey: "debts",
@@ -344,6 +345,7 @@ export const createDebtListConfig = (
           onPay: !isPaidOff && actions.customActions?.[0]
             ? () => actions.customActions![0].onClick(item)
             : undefined,
+          onViewDetails: () => onViewDetails(item),
         }}
       />
     );

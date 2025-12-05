@@ -15,6 +15,7 @@ import { DebtPaymentForm } from "./debt-payment-form";
 import { QuickDebtForm } from "./quick-debt-form";
 import { DebtProgress } from "./debt-progress";
 import { DebtInsights } from "./debt-insights";
+import { DebtDetailsSheet } from "./debt-details-sheet";
 import { createDebtListConfig } from "./debt-list-config";
 import type { Debt, DebtWithUser } from "@/types";
 import { toast } from "sonner";
@@ -25,6 +26,9 @@ export function DebtList() {
     useState<DebtWithUser | null>(null);
   const [showPaymentSheet, setShowPaymentSheet] = useState(false);
   const [editingDebt, setEditingDebt] = useState<DebtWithUser | null>(null);
+  const [selectedDebtForDetails, setSelectedDebtForDetails] =
+    useState<DebtWithUser | null>(null);
+  const [showDetailsSheet, setShowDetailsSheet] = useState(false);
   const [analyticsView, setAnalyticsView] = useState<
     "overview" | "timeline" | "breakdown"
   >("overview");
@@ -37,6 +41,7 @@ export function DebtList() {
         $: {
           order: { createdAt: "desc" },
         },
+        payments: {},
       },
     },
   });
@@ -66,6 +71,11 @@ export function DebtList() {
 
   const handleEdit = useCallback((debt: DebtWithUser) => {
     setEditingDebt(debt);
+  }, []);
+
+  const handleViewDetails = useCallback((debt: DebtWithUser) => {
+    setSelectedDebtForDetails(debt);
+    setShowDetailsSheet(true);
   }, []);
 
   const handleQuickPush = useCallback(
@@ -143,8 +153,8 @@ export function DebtList() {
   // Create configuration with callbacks
   const config = useMemo(
     () =>
-      createDebtListConfig(handleRecordPayment, handleQuickPush, handleEdit),
-    [handleRecordPayment, handleQuickPush, handleEdit]
+      createDebtListConfig(handleRecordPayment, handleQuickPush, handleEdit, handleViewDetails),
+    [handleRecordPayment, handleQuickPush, handleEdit, handleViewDetails]
   );
 
   return (
@@ -222,6 +232,12 @@ export function DebtList() {
           )}
         </SheetContent>
       </Sheet>
+
+      <DebtDetailsSheet
+        debt={selectedDebtForDetails}
+        open={showDetailsSheet}
+        onOpenChange={setShowDetailsSheet}
+      />
     </>
   );
 }
