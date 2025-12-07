@@ -5,17 +5,10 @@ import { AlertCircle, ArrowRight, Wallet } from "lucide-react";
 
 import { useCurrency } from "@/hooks/use-currency";
 import { getExpenseColor } from "@/lib/dashboard-colors";
-
-interface DebtInfo {
-  id: string;
-  name: string;
-  nextPaymentAmount: number;
-  nextPaymentDate: number;
-  totalOwed: number;
-}
+import { Debt } from "@/types";
 
 interface DebtsAlertCardProps {
-  debts: DebtInfo[];
+  debts: Debt[];
   isLoading?: boolean;
   userCurrency?: string;
   userLocale?: string;
@@ -50,12 +43,17 @@ export function DebtsAlertCard({
     return diffDays;
   };
 
-  const totalOwed = debts.reduce((sum, debt) => sum + debt.totalOwed, 0);
+  const totalOwed = debts.reduce(
+    (sum, debt) => sum + (debt.currentBalance || 0),
+    0
+  );
 
   // Find next payment due
   const nextPayment = debts
-    .filter((d) => d.nextPaymentDate > now.getTime())
-    .sort((a, b) => a.nextPaymentDate - b.nextPaymentDate)[0];
+    .filter((d) => d.nextPaymentDueDate && d.nextPaymentDueDate > now.getTime())
+    .sort(
+      (a, b) => (a.nextPaymentDueDate || 0) - (b.nextPaymentDueDate || 0)
+    )[0];
 
   if (isLoading) {
     return (
@@ -88,9 +86,10 @@ export function DebtsAlertCard({
     );
   }
 
-  const daysUntilPayment = nextPayment
-    ? getDaysUntil(nextPayment.nextPaymentDate)
-    : null;
+  const daysUntilPayment =
+    nextPayment && nextPayment.nextPaymentDueDate
+      ? getDaysUntil(nextPayment.nextPaymentDueDate)
+      : null;
 
   const expenseColorClass = getExpenseColor();
 
@@ -125,7 +124,9 @@ export function DebtsAlertCard({
               <span>Due Date</span>
             </div>
             <div className="text-sm font-semibold leading-tight">
-              {nextPayment ? formatDate(nextPayment.nextPaymentDate) : "—"}
+              {nextPayment && nextPayment.nextPaymentDueDate
+                ? formatDate(nextPayment.nextPaymentDueDate)
+                : "—"}
             </div>
           </div>
         </div>

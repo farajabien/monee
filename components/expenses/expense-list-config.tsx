@@ -6,7 +6,13 @@
 
 import type { ListConfig } from "@/types/list-config";
 import type { Expense, Recipient } from "@/types";
-import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import {
+  MoreHorizontal,
+  Pencil,
+  Trash2,
+  RefreshCw,
+  Calendar,
+} from "lucide-react";
 import { CompactItemCard } from "@/components/ui/compact-item-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -127,6 +133,8 @@ export const createExpenseListConfig = (
               day: "numeric",
               month: "short",
               year: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
             })}
           </div>
         );
@@ -140,7 +148,16 @@ export const createExpenseListConfig = (
           row.original.recipient || "",
           recipients
         );
-        return <div className="font-medium">{displayName}</div>;
+        const isRecurring =
+          row.original.isRecurring || !!row.original.linkedRecurringId;
+        return (
+          <div className="flex items-center gap-2">
+            <span className="font-medium">{displayName}</span>
+            {isRecurring && (
+              <RefreshCw className="h-3 w-3 text-muted-foreground" />
+            )}
+          </div>
+        );
       },
     },
     {
@@ -168,7 +185,28 @@ export const createExpenseListConfig = (
       },
     },
     {
+      accessorKey: "paidThisMonth",
+      header: "Paid",
+      cell: ({ row }) => {
+        const isRecurring =
+          row.original.isRecurring || !!row.original.linkedRecurringId;
+        if (!isRecurring) return null;
+
+        const recurringId = row.original.linkedRecurringId || row.original.id;
+        const isPaidThisMonth = checkPaidStatus
+          ? checkPaidStatus(recurringId)
+          : false;
+
+        return (
+          <Badge variant={isPaidThisMonth ? "default" : "outline"}>
+            {isPaidThisMonth ? "Yes" : "No"}
+          </Badge>
+        );
+      },
+    },
+    {
       id: "actions",
+      header: "Actions",
       cell: ({ row, table }) => {
         const expense = row.original;
         const meta = table.options.meta as {

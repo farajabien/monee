@@ -24,7 +24,12 @@ import { AddCategoryDialog } from "@/components/categories/add-category-dialog";
 import { Switch } from "@/components/ui/switch";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
-import type { Category, Recipient, RecurringFrequency, DebtType } from "@/types";
+import type {
+  Category,
+  Recipient,
+  RecurringFrequency,
+  DebtType,
+} from "@/types";
 import { getDebtTypeDescription } from "@/lib/debt-calculator";
 
 // Helper function to calculate next due date based on frequency
@@ -74,7 +79,9 @@ export function UnifiedAddModal({
   const [debtName, setDebtName] = useState(""); // Debt
   const [debtType, setDebtType] = useState<DebtType>("one-time"); // Debt
   const [interestRate, setInterestRate] = useState("0"); // Debt
-  const [interestCalcType, setInterestCalcType] = useState<"monthly" | "yearly" | "total">("yearly"); // Debt
+  const [interestCalcType, setInterestCalcType] = useState<
+    "monthly" | "yearly" | "total"
+  >("yearly"); // Debt
   const [paymentDueDay, setPaymentDueDay] = useState("1"); // Debt
   const [monthlyPayment, setMonthlyPayment] = useState(""); // Debt
   const [savingsName, setSavingsName] = useState(""); // Savings
@@ -83,11 +90,14 @@ export function UnifiedAddModal({
   const [isRegularSavings, setIsRegularSavings] = useState(false); // Regular Savings
   const [savingsFrequency, setSavingsFrequency] = useState("monthly"); // Regular Savings
   const [regularSavingsAmount, setRegularSavingsAmount] = useState(""); // Regular Savings
-  
+
   // Recurring expense fields
   const [isRecurring, setIsRecurring] = useState(false);
-  const [recurringFrequency, setRecurringFrequency] = useState<RecurringFrequency>("monthly");
-  const [nextDueDate, setNextDueDate] = useState(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]);
+  const [recurringFrequency, setRecurringFrequency] =
+    useState<RecurringFrequency>("monthly");
+  const [nextDueDate, setNextDueDate] = useState(
+    new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]
+  );
   const [reminderDays, setReminderDays] = useState("3");
 
   // Fetch data
@@ -143,7 +153,11 @@ export function UnifiedAddModal({
     setRegularSavingsAmount("");
     setIsRecurring(false);
     setRecurringFrequency("monthly");
-    setNextDueDate(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]);
+    setNextDueDate(
+      new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+        .toISOString()
+        .split("T")[0]
+    );
     setReminderDays("3");
   };
 
@@ -179,7 +193,7 @@ export function UnifiedAddModal({
             setIsSubmitting(false);
             return;
           }
-          
+
           const expenseId = id();
           const recurringId = isRecurring ? id() : undefined;
 
@@ -218,7 +232,9 @@ export function UnifiedAddModal({
                   dueDate: new Date(nextDueDate).getTime(),
                   nextDueDate: new Date(nextDueDate).getTime(),
                   lastPaidDate: new Date(date).getTime(),
-                  reminderDays: reminderDays ? parseInt(reminderDays) : undefined,
+                  reminderDays: reminderDays
+                    ? parseInt(reminderDays)
+                    : undefined,
                   isActive: true,
                   isPaused: false,
                   createdAt: now,
@@ -227,7 +243,11 @@ export function UnifiedAddModal({
             );
           }
 
-          toast.success(isRecurring ? "Recurring expense added successfully" : "Expense added successfully");
+          toast.success(
+            isRecurring
+              ? "Recurring expense added successfully"
+              : "Expense added successfully"
+          );
           break;
 
         case "income":
@@ -259,32 +279,38 @@ export function UnifiedAddModal({
           }
 
           if (debtType === "amortizing" && !monthlyPayment) {
-            toast.error("Please enter a monthly payment amount for amortizing loans");
+            toast.error(
+              "Please enter a monthly payment amount for amortizing loans"
+            );
             setIsSubmitting(false);
             return;
           }
 
           let parsedInterestRate = parseFloat(interestRate || "0");
-          
+
           // Convert interest rate based on calculation type
           if (parsedInterestRate > 0) {
             if (interestCalcType === "monthly") {
               parsedInterestRate = parsedInterestRate * 12;
             }
           }
-          
+
           const hasInterest = parsedInterestRate > 0;
 
           await db.transact([
             db.tx.debts[id()]
               .update({
-                name: debtName,
-                totalAmount: parsedAmount,
+                debtor: debtName,
+                debtTaken: parsedAmount,
                 currentBalance: parsedAmount,
-                debtType,
+                repaymentTerms: debtType,
                 interestRate: parsedInterestRate,
+                interestFrequency: interestCalcType,
                 paymentDueDay: hasInterest ? parseInt(paymentDueDay || "1") : 0,
-                monthlyPaymentAmount: debtType === "amortizing" ? parseFloat(monthlyPayment || "0") : 0,
+                monthlyPaymentAmount:
+                  debtType === "amortizing"
+                    ? parseFloat(monthlyPayment || "0")
+                    : 0,
                 compoundingFrequency: hasInterest ? "monthly" : undefined,
                 createdAt: now,
               })
@@ -304,7 +330,7 @@ export function UnifiedAddModal({
             setIsSubmitting(false);
             return;
           }
-          
+
           // Validation for regular savings
           if (isRegularSavings && !regularSavingsAmount) {
             toast.error("Please enter regular contribution amount");
@@ -313,10 +339,10 @@ export function UnifiedAddModal({
           }
 
           const goalId = id();
-          const nextDue = isRegularSavings 
+          const nextDue = isRegularSavings
             ? calculateNextDueDate(new Date(), savingsFrequency)
             : undefined;
-            
+
           await db.transact([
             db.tx.savings_goals[goalId]
               .update({
@@ -329,7 +355,9 @@ export function UnifiedAddModal({
                 // Regular savings fields
                 isRegular: isRegularSavings,
                 frequency: isRegularSavings ? savingsFrequency : undefined,
-                regularAmount: isRegularSavings ? parseFloat(regularSavingsAmount) : undefined,
+                regularAmount: isRegularSavings
+                  ? parseFloat(regularSavingsAmount)
+                  : undefined,
                 nextDueDate: nextDue,
                 lastContributionDate: parsedAmount > 0 ? now : undefined,
               })
@@ -384,9 +412,7 @@ export function UnifiedAddModal({
           <Tabs
             value={activeTab}
             onValueChange={(v) =>
-              setActiveTab(
-                v as "expense" | "income" | "debt" | "savings"
-              )
+              setActiveTab(v as "expense" | "income" | "debt" | "savings")
             }
           >
             <TabsList className="grid w-full grid-cols-4 h-10">
@@ -423,7 +449,8 @@ export function UnifiedAddModal({
                 />
                 {activeTab === "savings" && (
                   <p className="text-xs text-muted-foreground">
-                    Optional: Leave at 0 to set goal without initial contribution
+                    Optional: Leave at 0 to set goal without initial
+                    contribution
                   </p>
                 )}
               </div>
@@ -550,7 +577,10 @@ export function UnifiedAddModal({
 
                 {/* Recurring Toggle */}
                 <div className="flex items-center justify-between py-2">
-                  <Label htmlFor="recurring-toggle" className="text-sm font-medium">
+                  <Label
+                    htmlFor="recurring-toggle"
+                    className="text-sm font-medium"
+                  >
                     Recurring Expense
                   </Label>
                   <Switch
@@ -564,7 +594,12 @@ export function UnifiedAddModal({
                   <div className="space-y-4 p-4 border rounded-lg bg-muted/50">
                     <div className="space-y-2">
                       <Label htmlFor="recurring-frequency">Frequency</Label>
-                      <Select value={recurringFrequency} onValueChange={(value) => setRecurringFrequency(value as RecurringFrequency)}>
+                      <Select
+                        value={recurringFrequency}
+                        onValueChange={(value) =>
+                          setRecurringFrequency(value as RecurringFrequency)
+                        }
+                      >
                         <SelectTrigger id="recurring-frequency">
                           <SelectValue />
                         </SelectTrigger>
@@ -589,7 +624,9 @@ export function UnifiedAddModal({
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="reminder-days">Reminder (days before)</Label>
+                      <Label htmlFor="reminder-days">
+                        Reminder (days before)
+                      </Label>
                       <Input
                         id="reminder-days"
                         type="number"
@@ -649,13 +686,18 @@ export function UnifiedAddModal({
 
                 <div className="space-y-2">
                   <Label htmlFor="debt-type-modal">Debt Type</Label>
-                  <Select value={debtType} onValueChange={(value) => setDebtType(value as DebtType)}>
+                  <Select
+                    value={debtType}
+                    onValueChange={(value) => setDebtType(value as DebtType)}
+                  >
                     <SelectTrigger id="debt-type-modal">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="one-time">One-Time</SelectItem>
-                      <SelectItem value="interest-push">Interest-Push</SelectItem>
+                      <SelectItem value="interest-push">
+                        Interest-Push
+                      </SelectItem>
                       <SelectItem value="amortizing">Amortizing</SelectItem>
                     </SelectContent>
                   </Select>
@@ -676,7 +718,14 @@ export function UnifiedAddModal({
                       onChange={(e) => setInterestRate(e.target.value)}
                       className="flex-1"
                     />
-                    <Select value={interestCalcType} onValueChange={(value) => setInterestCalcType(value as "monthly" | "yearly" | "total")}>
+                    <Select
+                      value={interestCalcType}
+                      onValueChange={(value) =>
+                        setInterestCalcType(
+                          value as "monthly" | "yearly" | "total"
+                        )
+                      }
+                    >
                       <SelectTrigger className="w-[120px]">
                         <SelectValue />
                       </SelectTrigger>
@@ -694,7 +743,9 @@ export function UnifiedAddModal({
 
                 {parseFloat(interestRate || "0") > 0 && (
                   <div className="space-y-2">
-                    <Label htmlFor="payment-due-day-modal">Payment Due Day (1-31)</Label>
+                    <Label htmlFor="payment-due-day-modal">
+                      Payment Due Day (1-31)
+                    </Label>
                     <Input
                       id="payment-due-day-modal"
                       type="number"
@@ -709,7 +760,9 @@ export function UnifiedAddModal({
 
                 {debtType === "amortizing" && (
                   <div className="space-y-2">
-                    <Label htmlFor="monthly-payment">Monthly Payment Amount</Label>
+                    <Label htmlFor="monthly-payment">
+                      Monthly Payment Amount
+                    </Label>
                     <Input
                       id="monthly-payment"
                       type="number"
@@ -763,7 +816,10 @@ export function UnifiedAddModal({
 
                 {/* Regular Savings Toggle */}
                 <div className="flex items-center justify-between py-2 border-t">
-                  <Label htmlFor="regular-savings-toggle" className="text-sm font-medium">
+                  <Label
+                    htmlFor="regular-savings-toggle"
+                    className="text-sm font-medium"
+                  >
                     Regular Savings Plan
                   </Label>
                   <Switch
@@ -777,7 +833,10 @@ export function UnifiedAddModal({
                   <div className="space-y-4 p-4 border rounded-lg bg-muted/50">
                     <div className="space-y-2">
                       <Label htmlFor="savings-frequency">Frequency</Label>
-                      <Select value={savingsFrequency} onValueChange={setSavingsFrequency}>
+                      <Select
+                        value={savingsFrequency}
+                        onValueChange={setSavingsFrequency}
+                      >
                         <SelectTrigger id="savings-frequency">
                           <SelectValue />
                         </SelectTrigger>
@@ -790,14 +849,18 @@ export function UnifiedAddModal({
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="regular-amount">Regular Contribution Amount (KES)</Label>
+                      <Label htmlFor="regular-amount">
+                        Regular Contribution Amount (KES)
+                      </Label>
                       <Input
                         id="regular-amount"
                         type="number"
                         step="0.01"
                         placeholder="5000"
                         value={regularSavingsAmount}
-                        onChange={(e) => setRegularSavingsAmount(e.target.value)}
+                        onChange={(e) =>
+                          setRegularSavingsAmount(e.target.value)
+                        }
                         required
                       />
                       <p className="text-xs text-muted-foreground">
@@ -808,8 +871,10 @@ export function UnifiedAddModal({
                 )}
 
                 <p className="text-xs text-muted-foreground">
-                  {isRegularSavings 
-                    ? `You&apos;ll be reminded to contribute KES ${regularSavingsAmount || '___'} ${savingsFrequency}`
+                  {isRegularSavings
+                    ? `You&apos;ll be reminded to contribute KES ${
+                        regularSavingsAmount || "___"
+                      } ${savingsFrequency}`
                     : "Initial contribution will be recorded if amount is greater than 0"}
                 </p>
               </TabsContent>

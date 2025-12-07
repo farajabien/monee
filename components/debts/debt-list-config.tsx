@@ -6,7 +6,15 @@
 
 import type { ListConfig, FilterConfig } from "@/types/list-config";
 import type { DebtWithUser } from "@/types";
-import { TrendingDown, Clock, Calendar, Percent, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import {
+  TrendingDown,
+  Clock,
+  Calendar,
+  Percent,
+  MoreHorizontal,
+  Pencil,
+  Trash2,
+} from "lucide-react";
 import { CompactItemCard } from "@/components/ui/compact-item-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -43,46 +51,81 @@ const formatDateCompact = (timestamp: number) => {
 };
 
 const calculateProgress = (debt: DebtWithUser) => {
-  if (debt.totalAmount === 0) return 100;
-  const paid = debt.totalAmount - debt.currentBalance;
-  return (paid / debt.totalAmount) * 100;
+  if (debt.debtTaken === 0) return 100;
+  const paid = (debt.debtTaken || 0) - debt.currentBalance;
+  return (paid / (debt.debtTaken || 0)) * 100;
 };
 
 const calculatePayoffMonths = (debt: DebtWithUser) => {
   if (debt.monthlyPaymentAmount === 0) return null;
-  return Math.ceil(debt.currentBalance / debt.monthlyPaymentAmount);
+  return Math.ceil(debt.currentBalance / (debt.monthlyPaymentAmount || 0));
 };
 
 const isDueToday = (debt: DebtWithUser) => {
+  if (!debt.nextPaymentDueDate) return false;
   const today = new Date();
-  return today.getDate() === debt.paymentDueDay;
+  const dueDate = new Date(debt.nextPaymentDueDate);
+  return (
+    today.getDate() === dueDate.getDate() &&
+    today.getMonth() === dueDate.getMonth() &&
+    today.getFullYear() === dueDate.getFullYear()
+  );
+};
+
+const calculateRemainingDays = (debt: DebtWithUser) => {
+  if (!debt.nextPaymentDueDate) return null;
+  const today = new Date();
+  const dueDate = new Date(debt.nextPaymentDueDate);
+  const diffTime = dueDate.getTime() - today.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  return diffDays;
+};
+
+// Format interest terms display
+const formatInterestTerms = (debt: DebtWithUser) => {
+  if (!debt.interestRate || debt.interestRate === 0) {
+    return "N/A";
+  }
+  const frequency = debt.interestFrequency || "per month";
+  return `${debt.interestRate}% ${frequency}`;
+};
+
+// Format repayment terms display
+const formatRepaymentTerms = (debt: DebtWithUser) => {
+  const terms = debt.repaymentTerms || "One-time";
+  return terms;
 };
 
 // Calculate the appropriate payment amount to display based on debt type
 const getPaymentDisplay = (debt: DebtWithUser) => {
-  const debtType = (debt.debtType || "one-time") as string;
-  
-  if (debtType === "one-time") {
+  const repaymentTerms = debt.repaymentTerms || "One-time";
+
+  if (repaymentTerms === "One-time") {
     // One-time: show full amount due
     return {
       amount: debt.currentBalance,
       label: "Due",
       isMonthly: false,
     };
-  } else if (debtType === "interest-push") {
-    // Interest-push: calculate monthly interest to keep principal intact
-    const monthlyInterest = debt.interestRate 
-      ? (debt.currentBalance * debt.interestRate / 100) / 12
-      : 0;
+  } else if (repaymentTerms === "Interest Push") {
+    // Interest-push: show interest payment or full amount option
+    const interestAmount = debt.nextPaymentAmount || 0;
     return {
-      amount: monthlyInterest,
-      label: "Interest/mo",
-      isMonthly: true,
+      amount: interestAmount,
+      label: "Interest or Full",
+      isMonthly: false,
+    };
+  } else if (repaymentTerms === "No Interest") {
+    // No interest: show full amount or flexible payment
+    return {
+      amount: debt.currentBalance,
+      label: "Full or Reduce",
+      isMonthly: false,
     };
   } else {
     // Amortizing: show monthly payment (principal + interest)
     return {
-      amount: debt.monthlyPaymentAmount,
+      amount: debt.monthlyPaymentAmount || debt.nextPaymentAmount || 0,
       label: "Payment/mo",
       isMonthly: true,
     };
@@ -91,19 +134,17 @@ const getPaymentDisplay = (debt: DebtWithUser) => {
 
 // Get due date display based on debt type
 const getDueDateDisplay = (debt: DebtWithUser) => {
-  const debtType = (debt.debtType || "one-time") as string;
-  
-  if (debtType === "one-time" && debt.deadline) {
+  if (debt.nextPaymentDueDate) {
+    return {
+      text: formatDate(debt.nextPaymentDueDate),
+      label: "Next payment",
+    };
+  } else if (debt.deadline) {
     return {
       text: formatDate(debt.deadline),
       label: "Deadline",
     };
-  } else if (debtType === "interest-push" && debt.deadline) {
-    return {
-      text: formatDate(debt.deadline),
-      label: "Next payment",
-    };
-  } else if (debt.paymentDueDay > 0) {
+  } else if (debt.paymentDueDay && debt.paymentDueDay > 0) {
     return {
       text: `Day ${debt.paymentDueDay}`,
       label: "Due",
@@ -140,17 +181,28 @@ export const createDebtListConfig = (
         { value: "due-today", label: "Due Today" },
       ],
     },
+    {
+      key: "repaymentTerms",
+      label: "Repayment Terms",
+      type: "select",
+      options: [
+        { value: "Interest Push", label: "Interest Push" },
+        { value: "No Interest", label: "No Interest" },
+        { value: "Amortizing", label: "Amortizing" },
+        { value: "One-time", label: "One-time" },
+      ],
+    },
   ] as FilterConfig[],
 
   sortOptions: [
     { value: "balance-desc", label: "Balance (High to Low)" },
     { value: "balance-asc", label: "Balance (Low to High)" },
     { value: "progress-desc", label: "Progress" },
-    { value: "due-day-asc", label: "Due Day" },
-    { value: "deadline-asc", label: "Deadline" },
+    { value: "due-date-asc", label: "Due Date (Soonest)" },
+    { value: "remaining-days-asc", label: "Remaining Days" },
   ],
   defaultSort: "balance-desc",
-  searchFields: ["name"],
+  searchFields: ["debtor"],
 
   // Metrics
   metrics: [
@@ -187,7 +239,7 @@ export const createDebtListConfig = (
       0
     );
     const totalOriginal = activeDebts.reduce(
-      (sum, debt) => sum + debt.totalAmount,
+      (sum, debt) => sum + (debt.debtTaken || 0),
       0
     );
     const totalPaid = totalOriginal - totalDebt;
@@ -212,22 +264,97 @@ export const createDebtListConfig = (
   // Table columns
   tableColumns: [
     {
-      accessorKey: "name",
-      header: "Debt Name",
+      accessorKey: "debtor",
+      header: "Debtor",
       cell: ({ row }) => {
-        return <div className="font-medium">{row.original.name}</div>;
+        return (
+          <div className="font-medium">{row.original.debtor || "Unknown"}</div>
+        );
       },
     },
     {
-      accessorKey: "debtType",
-      header: "Type",
+      accessorKey: "debtTaken",
+      header: () => <div className="text-right">Debt Taken</div>,
       cell: ({ row }) => {
-        const type = row.original.debtType || "one-time";
-        const icon = type === "credit-card" ? "💳" : type === "loan" ? "📈" : "🏦";
+        return (
+          <div className="text-right text-sm">
+            {formatCompactAmount(row.original.debtTaken || 0)}
+          </div>
+        );
+      },
+    },
+    {
+      id: "interestTerms",
+      header: "Interest Terms",
+      cell: ({ row }) => {
+        return (
+          <div className="text-sm">{formatInterestTerms(row.original)}</div>
+        );
+      },
+    },
+    {
+      accessorKey: "repaymentTerms",
+      header: "Repayment Terms",
+      cell: ({ row }) => {
+        const terms = formatRepaymentTerms(row.original);
         return (
           <Badge variant="outline" className="text-xs">
-            {icon} {type.replace("-", " ")}
+            {terms}
           </Badge>
+        );
+      },
+    },
+    {
+      accessorKey: "nextPaymentAmount",
+      header: () => <div className="text-right">Next Payment</div>,
+      cell: ({ row }) => {
+        const paymentDisplay = getPaymentDisplay(row.original);
+        return (
+          <div className="text-right">
+            <div className="font-semibold text-red-600 dark:text-red-400">
+              {formatCompactAmount(paymentDisplay.amount)}
+            </div>
+            <div className="text-xs text-muted-foreground">
+              {paymentDisplay.label}
+            </div>
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "nextPaymentDueDate",
+      header: "Next Due Date",
+      cell: ({ row }) => {
+        const dueDateDisplay = getDueDateDisplay(row.original);
+        if (!dueDateDisplay)
+          return <span className="text-muted-foreground">-</span>;
+        return <div className="text-sm">{dueDateDisplay.text}</div>;
+      },
+    },
+    {
+      id: "remainingDays",
+      header: () => <div className="text-center">Days Left</div>,
+      cell: ({ row }) => {
+        const remainingDays = calculateRemainingDays(row.original);
+        if (remainingDays === null)
+          return <span className="text-muted-foreground">-</span>;
+
+        const isOverdue = remainingDays < 0;
+        const isDueSoon = remainingDays >= 0 && remainingDays <= 7;
+
+        return (
+          <div className="text-center">
+            <Badge
+              variant={
+                isOverdue ? "destructive" : isDueSoon ? "default" : "outline"
+              }
+              className="text-xs"
+            >
+              {isOverdue
+                ? `${Math.abs(remainingDays)}d overdue`
+                : `${remainingDays}d`}
+            </Badge>
+          </div>
         );
       },
     },
@@ -238,37 +365,6 @@ export const createDebtListConfig = (
         return (
           <div className="text-right font-semibold text-red-600 dark:text-red-400">
             {formatCompactAmount(row.original.currentBalance)}
-          </div>
-        );
-      },
-    },
-    {
-      accessorKey: "monthlyPaymentAmount",
-      header: () => <div className="text-right">Monthly Payment</div>,
-      cell: ({ row }) => {
-        return (
-          <div className="text-right text-sm">
-            {formatCompactAmount(row.original.monthlyPaymentAmount || 0)}
-          </div>
-        );
-      },
-    },
-    {
-      id: "progress",
-      header: "Progress",
-      cell: ({ row }) => {
-        const progress = calculateProgress(row.original);
-        return (
-          <div className="flex items-center gap-2">
-            <div className="w-20 h-2 bg-muted rounded-full overflow-hidden">
-              <div
-                className="h-full bg-green-600"
-                style={{ width: `${Math.min(progress, 100)}%` }}
-              />
-            </div>
-            <span className="text-xs text-muted-foreground">
-              {progress.toFixed(0)}%
-            </span>
           </div>
         );
       },
@@ -318,9 +414,21 @@ export const createDebtListConfig = (
     const progress = calculateProgress(item);
     const isPaidOff = item.currentBalance === 0;
     const dueDateDisplay = getDueDateDisplay(item);
+    const remainingDays = calculateRemainingDays(item);
 
     // Build secondary info string
     let secondaryInfo = `${progress.toFixed(0)}% paid`;
+
+    // Add remaining days if available
+    if (remainingDays !== null) {
+      if (remainingDays < 0) {
+        secondaryInfo += ` • ${Math.abs(remainingDays)}d overdue`;
+      } else if (remainingDays === 0) {
+        secondaryInfo += ` • Due today`;
+      } else {
+        secondaryInfo += ` • ${remainingDays}d left`;
+      }
+    }
 
     // Add due date info
     let dateText = "";
@@ -332,19 +440,20 @@ export const createDebtListConfig = (
       <CompactItemCard
         key={item.id}
         index={index}
-        title={item.name}
+        title={item.debtor || "Unknown Debtor"}
         amount={formatCompactAmount(item.currentBalance)}
         amountColor={isPaidOff ? "success" : "primary"}
-        category={`${progress.toFixed(0)}% paid`}
+        category={formatRepaymentTerms(item)}
         date={dateText}
         secondaryInfo={secondaryInfo}
         isCompleted={isPaidOff}
         actions={{
           onEdit: actions.onEdit,
           onDelete: actions.onDelete,
-          onPay: !isPaidOff && actions.customActions?.[0]
-            ? () => actions.customActions![0].onClick(item)
-            : undefined,
+          onPay:
+            !isPaidOff && actions.customActions?.[0]
+              ? () => actions.customActions![0].onClick(item)
+              : undefined,
           onViewDetails: () => onViewDetails(item),
         }}
       />
@@ -385,9 +494,16 @@ export const createDebtListConfig = (
       if (statusFilter === "due-today" && !isDueToday(item)) return false;
     }
 
+    // Apply repayment terms filter
+    const repaymentTermsFilter = filters.repaymentTerms;
+    if (repaymentTermsFilter && repaymentTermsFilter !== "all") {
+      if (item.repaymentTerms !== repaymentTermsFilter) return false;
+    }
+
     // Apply search
     if (searchQuery) {
-      return item.name.toLowerCase().includes(searchQuery.toLowerCase());
+      const debtor = item.debtor || "";
+      return debtor.toLowerCase().includes(searchQuery.toLowerCase());
     }
 
     return true;
@@ -405,13 +521,20 @@ export const createDebtListConfig = (
         const progressB = calculateProgress(b);
         return progressB - progressA;
       }
-      case "due-day-asc":
-        return a.paymentDueDay - b.paymentDueDay;
-      case "deadline-asc":
-        if (!a.deadline && !b.deadline) return 0;
-        if (!a.deadline) return 1;
-        if (!b.deadline) return -1;
-        return a.deadline - b.deadline;
+      case "due-date-asc": {
+        if (!a.nextPaymentDueDate && !b.nextPaymentDueDate) return 0;
+        if (!a.nextPaymentDueDate) return 1;
+        if (!b.nextPaymentDueDate) return -1;
+        return a.nextPaymentDueDate - b.nextPaymentDueDate;
+      }
+      case "remaining-days-asc": {
+        const daysA = calculateRemainingDays(a);
+        const daysB = calculateRemainingDays(b);
+        if (daysA === null && daysB === null) return 0;
+        if (daysA === null) return 1;
+        if (daysB === null) return -1;
+        return daysA - daysB;
+      }
       default:
         return b.currentBalance - a.currentBalance;
     }

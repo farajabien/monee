@@ -17,12 +17,30 @@ export type ExpenseWithUser = InstaQLEntity<
   "expenses",
   { profile: object }
 >;
+export type ExpenseWithRecurringTransaction = InstaQLEntity<
+  typeof schema,
+  "expenses",
+  { recurringTransaction: object }
+>;
 
 // Category types
 export type Category = InstaQLEntity<typeof schema, "categories">;
 export type CategoryWithUser = InstaQLEntity<
   typeof schema,
   "categories",
+  { profile: object }
+>;
+
+// Budget types
+export type Budget = InstaQLEntity<typeof schema, "budgets">;
+export type BudgetWithCategory = InstaQLEntity<
+  typeof schema,
+  "budgets",
+  { category: object }
+>;
+export type BudgetWithProfile = InstaQLEntity<
+  typeof schema,
+  "budgets",
   { profile: object }
 >;
 
@@ -48,6 +66,11 @@ export type DebtWithUser = InstaQLEntity<
   typeof schema,
   "debts",
   { profile: object }
+>;
+export type DebtWithPayments = InstaQLEntity<
+  typeof schema,
+  "debts",
+  { payments: object }
 >;
 
 // Debt Payment types
@@ -100,6 +123,11 @@ export type RecurringTransactionWithUser = InstaQLEntity<
   "recurring_transactions",
   { profile: object }
 >;
+export type RecurringTransactionWithExpenses = InstaQLEntity<
+  typeof schema,
+  "recurring_transactions",
+  { linkedExpenses: object }
+>;
 
 // Feedback types
 export type Feedback = InstaQLEntity<typeof schema, "feedback">;
@@ -113,7 +141,12 @@ export type FeedbackWithUser = InstaQLEntity<
 export type PaymentType = "interest_only" | "principal" | "both";
 
 // Recurring frequency types
-export type RecurringFrequency = "weekly" | "biweekly" | "monthly" | "quarterly" | "annually";
+export type RecurringFrequency =
+  | "weekly"
+  | "biweekly"
+  | "monthly"
+  | "quarterly"
+  | "annually";
 
 // Debt type enum
 export type DebtType = "one-time" | "interest-push" | "amortizing";

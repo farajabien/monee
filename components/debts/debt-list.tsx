@@ -17,7 +17,7 @@ import { DebtProgress } from "./debt-progress";
 import { DebtInsights } from "./debt-insights";
 import { DebtDetailsSheet } from "./debt-details-sheet";
 import { createDebtListConfig } from "./debt-list-config";
-import type { Debt, DebtWithUser } from "@/types";
+import type { Debt, DebtWithUser, DebtWithPayments } from "@/types";
 import { toast } from "sonner";
 
 export function DebtList() {
@@ -27,7 +27,7 @@ export function DebtList() {
   const [showPaymentSheet, setShowPaymentSheet] = useState(false);
   const [editingDebt, setEditingDebt] = useState<DebtWithUser | null>(null);
   const [selectedDebtForDetails, setSelectedDebtForDetails] =
-    useState<DebtWithUser | null>(null);
+    useState<DebtWithPayments | null>(null);
   const [showDetailsSheet, setShowDetailsSheet] = useState(false);
   const [analyticsView, setAnalyticsView] = useState<
     "overview" | "timeline" | "breakdown"
@@ -73,10 +73,17 @@ export function DebtList() {
     setEditingDebt(debt);
   }, []);
 
-  const handleViewDetails = useCallback((debt: DebtWithUser) => {
-    setSelectedDebtForDetails(debt);
-    setShowDetailsSheet(true);
-  }, []);
+  const handleViewDetails = useCallback(
+    (debt: DebtWithUser) => {
+      // Find the debt with payments from the query data
+      const debtWithPayments = profile?.debts?.find((d) => d.id === debt.id);
+      if (debtWithPayments) {
+        setSelectedDebtForDetails(debtWithPayments as DebtWithPayments);
+        setShowDetailsSheet(true);
+      }
+    },
+    [profile]
+  );
 
   const handleQuickPush = useCallback(
     async (debt: DebtWithUser) => {
@@ -101,7 +108,7 @@ export function DebtList() {
             .update({
               amount: monthlyInterest,
               paymentDate: now,
-              paymentType: "interest_only",
+              paymentType: "interest",
               interestAmount: monthlyInterest,
               principalAmount: 0,
               createdAt: now,
@@ -110,16 +117,16 @@ export function DebtList() {
           db.tx.expenses[expenseId]
             .update({
               amount: monthlyInterest,
-              recipient: `Debt Payment - ${debt.name}`,
+              recipient: `Debt Payment - ${debt.debtor}`,
               date: now,
               category: "Debt Payment",
               rawMessage: `Interest payment of Ksh ${monthlyInterest.toLocaleString()} for ${
-                debt.name
+                debt.debtor
               } (Quick Push)`,
               parsedData: {
                 type: "debt_payment",
                 debtId: debt.id,
-                debtName: debt.name,
+                debtName: debt.debtor,
                 paymentType: "interest_only",
                 interestAmount: monthlyInterest,
                 principalAmount: 0,
@@ -153,7 +160,12 @@ export function DebtList() {
   // Create configuration with callbacks
   const config = useMemo(
     () =>
-      createDebtListConfig(handleRecordPayment, handleQuickPush, handleEdit, handleViewDetails),
+      createDebtListConfig(
+        handleRecordPayment,
+        handleQuickPush,
+        handleEdit,
+        handleViewDetails
+      ),
     [handleRecordPayment, handleQuickPush, handleEdit, handleViewDetails]
   );
 

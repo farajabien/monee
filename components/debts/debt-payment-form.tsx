@@ -35,7 +35,7 @@ export function DebtPaymentForm({ debt, onSuccess }: DebtPaymentFormProps) {
         : 0;
 
     // For amortizing loans, suggest the monthly payment amount
-    if (debt.debtType === "amortizing" && debt.monthlyPaymentAmount > 0) {
+    if (debt.repaymentTerms === "Amortizing" && debt.monthlyPaymentAmount) {
       amounts.push(debt.monthlyPaymentAmount);
     }
 
@@ -59,7 +59,7 @@ export function DebtPaymentForm({ debt, onSuccess }: DebtPaymentFormProps) {
   }, [
     debt.currentBalance,
     debt.interestRate,
-    debt.debtType,
+    debt.repaymentTerms,
     debt.monthlyPaymentAmount,
   ]);
 
@@ -120,16 +120,16 @@ export function DebtPaymentForm({ debt, onSuccess }: DebtPaymentFormProps) {
         db.tx.expenses[expenseId]
           .update({
             amount: paymentAmount,
-            recipient: `Debt Payment - ${debt.name}`,
+            recipient: `Debt Payment - ${debt.debtor || "Unknown"}`,
             date: paymentTimestamp,
             category: "Debt Payment",
             rawMessage: `Debt payment of Ksh ${paymentAmount.toLocaleString()} for ${
-              debt.name
+              debt.debtor || "Unknown"
             }`,
             parsedData: {
               type: "debt_payment",
               debtId: debt.id,
-              debtName: debt.name,
+              debtName: debt.debtor || "Unknown",
               paymentType,
               interestAmount: interestPaid > 0 ? interestPaid : undefined,
               principalAmount: principalPaid > 0 ? principalPaid : undefined,

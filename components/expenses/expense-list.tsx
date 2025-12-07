@@ -29,9 +29,18 @@ import {
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, RepeatIcon } from "lucide-react";
+import { ChevronLeft, RepeatIcon, Calendar, DollarSign } from "lucide-react";
 import type { Expense } from "@/types";
 import { useCurrency } from "@/hooks/use-currency";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 
 // Wrapper component to adapt props
 const EditExpenseDialogAdapter = ({
@@ -51,8 +60,8 @@ const EditExpenseDialogAdapter = ({
 export default function ExpenseList() {
   const user = db.useUser();
   const [activeView, setActiveView] = useState<
-    "list" | "recipients" | "analytics"
-  >("list");
+    "list" | "recipients" | "analytics" | "table"
+  >("table");
   const [analyticsView, setAnalyticsView] = useState<
     "overview" | "day" | "category" | "recipients"
   >("overview");
@@ -68,9 +77,17 @@ export default function ExpenseList() {
           order: { createdAt: "desc" },
           limit: 50,
         },
+        recurringTransaction: {},
       },
       recipients: {},
-      recurringTransactions: {},
+      recurringTransactions: {
+        $: {
+          where: {
+            isActive: true,
+          },
+        },
+        linkedExpenses: {},
+      },
     },
   });
 
@@ -92,6 +109,61 @@ export default function ExpenseList() {
     const cats = new Set(expenses.map((e) => e.category).filter(Boolean));
     return Array.from(cats);
   }, [expenses]);
+
+  // Separate expenses by type
+  const { recurringExpenses, oneTimeExpenses } = useMemo(() => {
+    const recurring = expenses.filter(
+      (e) => e.expenseType === "recurring" || e.isRecurring
+    );
+    const oneTime = expenses.filter(
+      (e) => e.expenseType === "one-time" || !e.isRecurring
+    );
+    return { recurringExpenses: recurring, oneTimeExpenses: oneTime };
+  }, [expenses]);
+
+  // Calculate recipient statistics
+  const recipientStats = useMemo(() => {
+    const stats = expenses.reduce((acc, expense) => {
+      const recipientName = expense.recipient || "Unknown";
+      const savedRecipient = recipients.find(
+        (r) => r.originalName === recipientName
+      );
+      const displayName = savedRecipient?.nickname || recipientName;
+
+      if (!acc[displayName]) {
+        acc[displayName] = {
+          totalAmount: 0,
+          expenseCount: 0,
+        };
+      }
+
+      acc[displayName].totalAmount += expense.amount;
+      acc[displayName].expenseCount += 1;
+
+      return acc;
+    }, {} as Record<string, { totalAmount: number; expenseCount: number }>);
+
+    const totalExpenses = expenses.length;
+
+    return Object.entries(stats)
+      .map(([name, data]) => ({
+        recipient: name,
+        totalAmount: data.totalAmount,
+        expenseCount: data.expenseCount,
+        percentage:
+          totalExpenses > 0 ? (data.expenseCount / totalExpenses) * 100 : 0,
+      }))
+      .sort((a, b) => b.totalAmount - a.totalAmount);
+  }, [expenses, recipients]);
+
+  // Calculate days remaining helper
+  const getDaysRemaining = (dueDate: number) => {
+    const now = new Date();
+    const due = new Date(dueDate);
+    const diffTime = due.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+  };
 
   // Handle saving imported expenses
   const handleSaveExpenses = async (
@@ -240,13 +312,241 @@ export default function ExpenseList() {
     return config;
   }, [analytics]);
 
+  // Table view - comprehensive expense tracking
+  if (activeView === "table") {
+    return (
+      <div className="space-y-6">
+        <Tabs value="table" className="w-full">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="table">Table View</TabsTrigger>
+            <TabsTrigger value="list" onClick={() => setActiveView("list")}>
+              List View
+            </TabsTrigger>
+            <TabsTrigger
+              value="recipients"
+              onClick={() => setActiveView("recipients")}
+            >
+              Recipients
+            </TabsTrigger>
+            <TabsTrigger
+              value="analytics"
+              onClick={() => setActiveView("analytics")}
+            >
+              Analytics
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+
+        {/* Recurring Expenses Table */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <RepeatIcon className="h-5 w-5" />
+              My Recurring Expenses
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Amount</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead>Paid This Month</TableHead>
+                    <TableHead>Next Due Date</TableHead>
+                    <TableHead>Remaining Days</TableHead>
+                    <TableHead>Payment Details</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {recurringExpenses.length > 0 ? (
+                    recurringExpenses.map((expense) => {
+                      const daysRemaining = expense.date
+                        ? getDaysRemaining(expense.date)
+                        : null;
+                      return (
+                        <TableRow key={expense.id}>
+                          <TableCell className="font-medium">
+                            {formatCurrency(expense.amount)}
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline">{expense.category}</Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              variant={
+                                expense.paidThisMonth ? "default" : "secondary"
+                              }
+                            >
+                              {expense.paidThisMonth ? "YES" : "NO"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            {expense.date
+                              ? new Date(expense.date).toLocaleDateString()
+                              : "N/A"}
+                          </TableCell>
+                          <TableCell>
+                            {daysRemaining !== null ? (
+                              <span
+                                className={
+                                  daysRemaining < 0
+                                    ? "text-red-600"
+                                    : daysRemaining < 7
+                                    ? "text-orange-600"
+                                    : "text-green-600"
+                                }
+                              >
+                                {daysRemaining} days
+                              </span>
+                            ) : (
+                              "N/A"
+                            )}
+                          </TableCell>
+                          <TableCell className="text-sm text-muted-foreground">
+                            {expense.notes || expense.mpesaReference || "-"}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
+                  ) : (
+                    <TableRow>
+                      <TableCell
+                        colSpan={6}
+                        className="text-center text-muted-foreground"
+                      >
+                        No recurring expenses found
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* One-Time Expenses Table */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <DollarSign className="h-5 w-5" />
+              My One-Time Expenses
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Amount</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead>Recipient</TableHead>
+                    <TableHead>Expense Date</TableHead>
+                    <TableHead>Payment Details</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {oneTimeExpenses.length > 0 ? (
+                    oneTimeExpenses.map((expense) => {
+                      const savedRecipient = recipients.find(
+                        (r) => r.originalName === expense.recipient
+                      );
+                      const displayName =
+                        savedRecipient?.nickname || expense.recipient;
+
+                      return (
+                        <TableRow key={expense.id}>
+                          <TableCell className="font-medium">
+                            {formatCurrency(expense.amount)}
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline">{expense.category}</Badge>
+                          </TableCell>
+                          <TableCell>{displayName}</TableCell>
+                          <TableCell>
+                            {new Date(expense.date).toLocaleString()}
+                          </TableCell>
+                          <TableCell className="text-sm text-muted-foreground">
+                            {expense.notes || expense.mpesaReference || "-"}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
+                  ) : (
+                    <TableRow>
+                      <TableCell
+                        colSpan={5}
+                        className="text-center text-muted-foreground"
+                      >
+                        No one-time expenses found
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Recipients Statistics Table */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Recipients Summary</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Recipient</TableHead>
+                    <TableHead>Total Amount</TableHead>
+                    <TableHead>Expenses Count</TableHead>
+                    <TableHead>% of Expenses</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {recipientStats.length > 0 ? (
+                    recipientStats.map((stat) => (
+                      <TableRow key={stat.recipient}>
+                        <TableCell className="font-medium">
+                          {stat.recipient}
+                        </TableCell>
+                        <TableCell>
+                          {formatCurrency(stat.totalAmount)}
+                        </TableCell>
+                        <TableCell>{stat.expenseCount}</TableCell>
+                        <TableCell>{stat.percentage.toFixed(1)}%</TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell
+                        colSpan={4}
+                        className="text-center text-muted-foreground"
+                      >
+                        No recipient data available
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   // Main view navigation
   if (activeView === "list") {
     return (
       <div className="space-y-4">
         <Tabs value="list" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="list">Expenses</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="table" onClick={() => setActiveView("table")}>
+              Table View
+            </TabsTrigger>
+            <TabsTrigger value="list">List View</TabsTrigger>
             <TabsTrigger
               value="recipients"
               onClick={() => setActiveView("recipients")}
@@ -288,10 +588,10 @@ export default function ExpenseList() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setActiveView("list")}
+            onClick={() => setActiveView("table")}
           >
             <ChevronLeft className="h-4 w-4 mr-1" />
-            Back to Expenses
+            Back to Table View
           </Button>
         </div>
         <RecipientList />
@@ -307,10 +607,10 @@ export default function ExpenseList() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setActiveView("list")}
+            onClick={() => setActiveView("table")}
           >
             <ChevronLeft className="h-4 w-4 mr-1" />
-            Back to Expenses
+            Back to Table View
           </Button>
         </div>
 

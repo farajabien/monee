@@ -27,7 +27,7 @@ const _schema = i.schema({
       recipient: i.string(),
       date: i.number().indexed(),
       category: i.string(),
-      expenseType: i.string().optional().indexed(),
+      expenseType: i.string().optional().indexed(), // one-time | recurring
       rawMessage: i.string(),
       parsedData: i.json().optional(),
       notes: i.string().optional(),
@@ -35,6 +35,7 @@ const _schema = i.schema({
       linkedRecurringId: i.string().optional().indexed(),
       isRecurring: i.boolean().optional(),
       recurringTransactionId: i.string().optional().indexed(),
+      paidThisMonth: i.boolean().optional(),
       createdAt: i.number().indexed(),
     }),
     categories: i.entity({
@@ -65,27 +66,34 @@ const _schema = i.schema({
       createdAt: i.number().indexed(),
     }),
     debts: i.entity({
-      name: i.string().indexed(),
-      totalAmount: i.number().indexed(),
-      currentBalance: i.number().indexed(),
-      monthlyPaymentAmount: i.number(),
-      paymentDueDay: i.number(),
-      interestRate: i.number().optional(),
-      debtType: i.string().optional().indexed(), // one-time | interest-push | amortizing
+      debtor: i.string().optional().indexed(), // Name of the person/entity you owe
+      debtTaken: i.number().optional().indexed(), // Original amount borrowed
+      currentBalance: i.number().indexed(), // Current amount owed
+      interestRate: i.number().optional(), // Interest rate (e.g., 15 for 15%)
+      interestFrequency: i.string().optional().indexed(), // per month | per year | N/A
+      repaymentTerms: i.string().optional().indexed(), // Interest Push | No Interest | Amortizing | One-time
+      nextPaymentAmount: i.number().optional().indexed(), // Amount due for next payment
+      nextPaymentDueDate: i.number().optional().indexed(), // Timestamp for next payment
+      remainingDays: i.number().optional(), // Calculated field for UI
+      paymentDetails: i.string().optional(), // Additional payment notes
+      monthlyPaymentAmount: i.number().optional(), // For regular payments
+      paymentDueDay: i.number().optional(), // Day of month for recurring payments
       compoundingFrequency: i.string().optional(), // monthly | quarterly | annually
-      pushMonthsPlan: i.number().optional(),
+      pushMonthsPlan: i.number().optional(), // For interest push debts
       pushMonthsCompleted: i.number().optional().indexed(),
       lastInterestPaymentDate: i.number().optional().indexed(),
       interestAccrued: i.number().optional(),
       deadline: i.number().optional().indexed(),
+      isActive: i.boolean().optional(),
       createdAt: i.number().indexed(),
     }),
     debt_payments: i.entity({
       amount: i.number().indexed(),
       paymentDate: i.number().indexed(),
-      paymentType: i.string().indexed(),
+      paymentType: i.string().indexed(), // interest | principal | full
       interestAmount: i.number().optional(),
       principalAmount: i.number().optional(),
+      notes: i.string().optional(),
       createdAt: i.number().indexed(),
     }),
     recipients: i.entity({
@@ -93,6 +101,9 @@ const _schema = i.schema({
       nickname: i.string().optional().indexed(),
       defaultCategory: i.string().optional(),
       notes: i.string().optional(),
+      totalAmount: i.number().optional().indexed(), // Total spent on this recipient
+      expensesCount: i.number().optional().indexed(), // Number of expenses
+      percentageOfExpenses: i.number().optional(), // % of total expenses
       createdAt: i.number().indexed(),
       updatedAt: i.number().indexed(),
     }),
@@ -128,11 +139,14 @@ const _schema = i.schema({
       dueDate: i.number().optional().indexed(),
       nextDueDate: i.number().optional().indexed(),
       lastPaidDate: i.number().optional().indexed(),
+      paidThisMonth: i.boolean().optional(),
+      remainingDays: i.number().optional(), // Calculated for UI
       reminderDays: i.number().optional(),
       isPaused: i.boolean().optional(),
       paybillNumber: i.string().optional().indexed(),
       tillNumber: i.string().optional().indexed(),
       accountNumber: i.string().optional(),
+      paymentDetails: i.string().optional(),
       isActive: i.boolean(),
       createdAt: i.number().indexed(),
     }),

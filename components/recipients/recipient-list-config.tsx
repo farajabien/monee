@@ -5,19 +5,15 @@
  */
 
 import type { ListConfig, FilterConfig } from "@/types/list-config";
+import type { RecipientWithUser } from "@/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Users, Receipt, Settings } from "lucide-react";
 
-export type RecipientWithStats = {
-  id: string;
-  originalName: string;
-  nickname?: string;
-  defaultCategory?: string;
-  notes?: string;
-  updatedAt: number;
+export type RecipientWithStats = RecipientWithUser & {
   totalAmount: number;
   expenseCount: number;
+  percentageOfExpenses: number;
 };
 
 export const createRecipientListConfig = (
@@ -30,7 +26,8 @@ export const createRecipientListConfig = (
   // Display
   title: "Recipients",
   description: "Track where your money goes",
-  emptyMessage: "No recipients yet. Recipients will appear as you add expenses.",
+  emptyMessage:
+    "No recipients yet. Recipients will appear as you add expenses.",
   emptyMessageFiltered: "No recipients found matching your filters",
   searchPlaceholder: "Search recipients...",
 
@@ -105,7 +102,7 @@ export const createRecipientListConfig = (
   defaultView: "list",
 
   // Rendering Functions
-  renderListItem: (item: RecipientWithStats, index: number, actions) => {
+  renderListItem: (item: RecipientWithStats) => {
     const displayName = item.nickname || item.originalName;
     const hasNickname = !!item.nickname;
 
@@ -180,10 +177,10 @@ export const createRecipientListConfig = (
 
   // Actions
   actions: {
-    edit: async (item: RecipientWithStats) => {
+    edit: async () => {
       // Handled via manage button / onManage callback
     },
-    delete: async (id: string) => {
+    delete: async () => {
       // Recipients are not directly deleted - they're derived from expenses
       // Instead, we could clear nickname/category settings
     },
@@ -193,7 +190,11 @@ export const createRecipientListConfig = (
   getItemId: (item: RecipientWithStats) => item.id,
 
   // Custom filter
-  customFilter: (item: RecipientWithStats, searchQuery: string, filters: Record<string, any>): boolean => {
+  customFilter: (
+    item: RecipientWithStats,
+    searchQuery: string,
+    filters: Record<string, string | undefined>
+  ): boolean => {
     // Apply nickname filter
     const nicknameFilter = filters.hasNickname;
     if (nicknameFilter && nicknameFilter !== "all") {
@@ -226,7 +227,11 @@ export const createRecipientListConfig = (
   },
 
   // Custom sort
-  customSort: (a: RecipientWithStats, b: RecipientWithStats, sortBy: string) => {
+  customSort: (
+    a: RecipientWithStats,
+    b: RecipientWithStats,
+    sortBy: string
+  ) => {
     switch (sortBy) {
       case "amount-high":
         return b.totalAmount - a.totalAmount;

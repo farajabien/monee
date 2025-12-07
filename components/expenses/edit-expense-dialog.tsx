@@ -25,6 +25,7 @@ import { Switch } from "@/components/ui/switch";
 import { AddCategoryDialog } from "@/components/categories/add-category-dialog";
 import type { Expense, Category, RecurringFrequency } from "@/types";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../ui/tabs";
+import { id } from "@instantdb/react";
 
 interface EditExpenseDialogProps {
   open: boolean;
@@ -95,6 +96,7 @@ export function EditExpenseDialog({
 
     setIsSubmitting(true);
     try {
+      // Update the expense
       await db.transact(
         db.tx.expenses[expense.id].update({
           category: selectedCategory || "Uncategorized",
@@ -104,6 +106,44 @@ export function EditExpenseDialog({
           isRecurring: isRecurring,
         })
       );
+
+      // Update or create recipient record
+      const recipientName = recipient.trim() || "Unknown";
+
+      // Check if recipient exists
+      const { data: recipientData } = await db.useQuery({
+        recipients: {
+          $: {
+            where: {
+              "profile.id": profile?.id,
+              originalName: recipientName,
+            },
+          },
+        },
+      });
+
+      const existingRecipient = recipientData?.recipients?.[0];
+
+      if (existingRecipient) {
+        // Update existing recipient
+        await db.transact(
+          db.tx.recipients[existingRecipient.id].update({
+            updatedAt: Date.now(),
+          })
+        );
+      } else {
+        // Create new recipient
+        await db.transact(
+          db.tx.recipients[id()]
+            .update({
+              originalName: recipientName,
+              createdAt: Date.now(),
+              updatedAt: Date.now(),
+            })
+            .link({ profile: profile?.id })
+        );
+      }
+
       onOpenChange(false);
     } catch (error) {
       console.error("Error updating expense:", error);

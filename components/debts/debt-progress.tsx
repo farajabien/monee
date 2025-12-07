@@ -6,22 +6,7 @@ import { CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
-type Debt = {
-  id: string;
-  createdAt: number;
-  name: string;
-  totalAmount: number;
-  currentBalance: number;
-  monthlyPaymentAmount: number;
-  paymentDueDay: number;
-  deadline?: number;
-  interestRate?: number;
-  pushMonthsPlan?: number;
-  pushMonthsCompleted?: number;
-  lastInterestPaymentDate?: number;
-  interestAccrued?: number;
-};
+import type { Debt, DebtWithUser } from "@/types";
 
 export function DebtProgress() {
   const user = db.useUser();
@@ -82,11 +67,12 @@ export function DebtProgress() {
   };
 
   const calculateTotalPaid = (debt: Debt) => {
-    return debt.totalAmount - debt.currentBalance;
+    return (debt.debtTaken || 0) - debt.currentBalance;
   };
 
   const calculatePayoffMonths = (debt: Debt) => {
-    if (debt.monthlyPaymentAmount === 0) return null;
+    if (!debt.monthlyPaymentAmount || debt.monthlyPaymentAmount === 0)
+      return null;
     return Math.ceil(debt.currentBalance / debt.monthlyPaymentAmount);
   };
 
@@ -136,14 +122,15 @@ export function DebtProgress() {
       <h3 className="text-sm font-medium">Debt Breakdown</h3>
       {debts.map((debt) => {
         const paid = calculateTotalPaid(debt);
-        const progress = (paid / debt.totalAmount) * 100;
+        const totalAmount = debt.debtTaken || 0;
+        const progress = totalAmount > 0 ? (paid / totalAmount) * 100 : 0;
         const payoffMonths = calculatePayoffMonths(debt);
 
         return (
           <div key={debt.id} className="space-y-2">
             <div className="flex items-center justify-between text-sm">
               <div className="flex items-center gap-2">
-                <span className="font-medium">{debt.name}</span>
+                <span className="font-medium">{debt.debtor || "Unknown"}</span>
                 {debt.pushMonthsPlan && (
                   <Badge variant="outline" className="text-xs">
                     Push Strategy

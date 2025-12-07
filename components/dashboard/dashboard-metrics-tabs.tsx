@@ -39,8 +39,8 @@ interface Expense {
 
 interface Debt {
   id: string;
-  name: string;
-  totalAmount: number;
+  debtor?: string;
+  debtTaken?: number;
   currentBalance: number;
 }
 
@@ -125,13 +125,15 @@ export function DashboardMetricsTabs({
 
   // Debts data
   const debtsData = useMemo(() => {
-    return debts.map((debt) => ({
-      name: debt.name,
-      remaining: debt.currentBalance,
-      total: debt.totalAmount,
-      progress:
-        ((debt.totalAmount - debt.currentBalance) / debt.totalAmount) * 100,
-    }));
+    return debts
+      .filter((debt) => debt.debtor && debt.debtTaken)
+      .map((debt) => ({
+        name: debt.debtor!,
+        remaining: debt.currentBalance,
+        total: debt.debtTaken!,
+        progress:
+          ((debt.debtTaken! - debt.currentBalance) / debt.debtTaken!) * 100,
+      }));
   }, [debts]);
 
   // Savings data

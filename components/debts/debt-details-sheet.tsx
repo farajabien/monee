@@ -12,19 +12,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Calendar, TrendingDown, Percent, CreditCard } from "lucide-react";
 import { useCurrency } from "@/hooks/use-currency";
-import type { Debt } from "@/types";
-
-interface DebtWithPayments extends Debt {
-  payments?: Array<{
-    id: string;
-    amount: number;
-    paymentDate: number;
-    paymentType: string;
-    interestAmount?: number;
-    principalAmount?: number;
-    createdAt: number;
-  }>;
-}
+import type { DebtWithPayments } from "@/types";
 
 interface DebtDetailsSheetProps {
   debt: DebtWithPayments | null;
@@ -42,10 +30,11 @@ export function DebtDetailsSheet({
   const calculations = useMemo(() => {
     if (!debt) return null;
 
-    const totalPaid =
-      debt.payments?.reduce((sum, p) => sum + p.amount, 0) || 0;
-    const remaining = debt.totalAmount - totalPaid;
-    const percentPaid = (totalPaid / debt.totalAmount) * 100;
+    const totalPaid = debt.payments?.reduce((sum, p) => sum + p.amount, 0) || 0;
+    const remaining = debt.currentBalance;
+    const percentPaid = debt.debtTaken
+      ? ((debt.debtTaken - debt.currentBalance) / debt.debtTaken) * 100
+      : 0;
     const avgPayment =
       debt.payments && debt.payments.length > 0
         ? totalPaid / debt.payments.length
@@ -68,13 +57,12 @@ export function DebtDetailsSheet({
       amortizing: "outline",
     } as const;
 
+    const debtType =
+      debt.repaymentTerms?.toLowerCase().replace(/\s+/g, "-") || "one-time";
+
     return (
-      <Badge variant={variants[debt.debtType as keyof typeof variants] || "default"}>
-        {debt.debtType === "one-time"
-          ? "One-time"
-          : debt.debtType === "interest-push"
-          ? "Interest Push"
-          : "Amortizing"}
+      <Badge variant={variants[debtType as keyof typeof variants] || "default"}>
+        {debt.repaymentTerms || "One-time"}
       </Badge>
     );
   };
@@ -105,7 +93,7 @@ export function DebtDetailsSheet({
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
             <CreditCard className="h-5 w-5" />
-            {debt.name}
+            {debt.debtor || "Debt"}
           </SheetTitle>
         </SheetHeader>
 
@@ -115,7 +103,7 @@ export function DebtDetailsSheet({
             <div>
               <p className="text-sm text-muted-foreground mb-1">Total Debt</p>
               <p className="text-2xl font-bold">
-                {formatCurrency(debt.totalAmount)}
+                {formatCurrency(debt.debtTaken || 0)}
               </p>
             </div>
             <div>
@@ -144,26 +132,32 @@ export function DebtDetailsSheet({
                 <span className="text-sm text-muted-foreground">Debt Type</span>
                 {getDebtTypeBadge()}
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">
-                  Monthly Payment
-                </span>
-                <span className="font-semibold">
-                  {formatCurrency(debt.monthlyPaymentAmount)}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Calendar className="h-4 w-4" />
-                  <span>Payment Due</span>
+              {debt.monthlyPaymentAmount && (
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">
+                    Monthly Payment
+                  </span>
+                  <span className="font-semibold">
+                    {formatCurrency(debt.monthlyPaymentAmount)}
+                  </span>
                 </div>
-                <span className="font-medium">
-                  {formatPaymentDay(debt.paymentDueDay)}
-                </span>
-              </div>
+              )}
+              {debt.paymentDueDay && (
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Calendar className="h-4 w-4" />
+                    <span>Payment Due</span>
+                  </div>
+                  <span className="font-medium">
+                    {formatPaymentDay(debt.paymentDueDay)}
+                  </span>
+                </div>
+              )}
               {debt.deadline && (
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Deadline</span>
+                  <span className="text-sm text-muted-foreground">
+                    Deadline
+                  </span>
                   <span className="font-medium">
                     {formatDate(debt.deadline)}
                   </span>
@@ -221,7 +215,7 @@ export function DebtDetailsSheet({
           )}
 
           {/* Push Plan Details */}
-          {debt.debtType === "interest-push" && debt.pushMonthsPlan && (
+          {debt.repaymentTerms === "Interest Push" && debt.pushMonthsPlan && (
             <Card>
               <CardContent className="pt-4 space-y-3">
                 <h3 className="font-semibold">Interest Push Plan</h3>
@@ -229,7 +223,9 @@ export function DebtDetailsSheet({
                   <span className="text-sm text-muted-foreground">
                     Plan Duration
                   </span>
-                  <span className="font-medium">{debt.pushMonthsPlan} months</span>
+                  <span className="font-medium">
+                    {debt.pushMonthsPlan} months
+                  </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">
@@ -244,7 +240,8 @@ export function DebtDetailsSheet({
                     <span className="text-muted-foreground">Progress</span>
                     <span className="font-medium">
                       {(
-                        ((debt.pushMonthsCompleted || 0) / debt.pushMonthsPlan) *
+                        ((debt.pushMonthsCompleted || 0) /
+                          debt.pushMonthsPlan) *
                         100
                       ).toFixed(1)}
                       %
@@ -320,7 +317,8 @@ export function DebtDetailsSheet({
                           </Badge>
                           {payment.principalAmount !== undefined && (
                             <span>
-                              Principal: {formatCurrency(payment.principalAmount)}
+                              Principal:{" "}
+                              {formatCurrency(payment.principalAmount)}
                             </span>
                           )}
                           {payment.interestAmount !== undefined && (

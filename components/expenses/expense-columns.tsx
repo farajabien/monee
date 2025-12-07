@@ -2,7 +2,7 @@ import * as React from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Edit, Trash2 } from "lucide-react";
+import { Edit, Trash2, RefreshCw, Calendar } from "lucide-react";
 import type { Expense } from "@/types";
 
 export const expenseColumns: ColumnDef<Expense, unknown>[] = [
@@ -36,7 +36,14 @@ export const expenseColumns: ColumnDef<Expense, unknown>[] = [
   {
     accessorKey: "recipient",
     header: "Recipient",
-    cell: ({ row }) => row.original.recipient || "-",
+    cell: ({ row }) => (
+      <div className="flex items-center gap-2">
+        <span>{row.original.recipient || "-"}</span>
+        {row.original.isRecurring && (
+          <RefreshCw className="h-3 w-3 text-muted-foreground" />
+        )}
+      </div>
+    ),
   },
   {
     accessorKey: "date",
@@ -52,6 +59,18 @@ export const expenseColumns: ColumnDef<Expense, unknown>[] = [
           minute: "2-digit",
         }
       ),
+  },
+  {
+    accessorKey: "paidThisMonth",
+    header: "Paid",
+    cell: ({ row }) => {
+      if (!row.original.isRecurring) return null;
+      return (
+        <Badge variant={row.original.paidThisMonth ? "default" : "outline"}>
+          {row.original.paidThisMonth ? "Yes" : "No"}
+        </Badge>
+      );
+    },
   },
   {
     id: "actions",

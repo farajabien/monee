@@ -13,8 +13,8 @@ interface SavingsGoal {
 }
 
 interface Debt {
-  name: string;
-  totalAmount: string;
+  debtor: string;
+  debtTaken: string;
 }
 
 interface Step4GoalsProps {
@@ -159,20 +159,20 @@ export function Step4Goals({
 
                   <div className="space-y-3">
                     <Input
-                      placeholder="e.g., Credit Card, Student Loan"
-                      value={debt.name}
+                      placeholder="e.g., John Doe, Bank Name"
+                      value={debt.debtor}
                       onChange={(e) =>
-                        onUpdateDebt(index, "name", e.target.value)
+                        onUpdateDebt(index, "debtor", e.target.value)
                       }
                       className={`${MOBILE_CONFIG.input.text} ${MOBILE_CONFIG.touchTarget}`}
                     />
                     <Input
                       type="number"
                       inputMode="decimal"
-                      placeholder="Total amount"
-                      value={debt.totalAmount}
+                      placeholder="Amount borrowed"
+                      value={debt.debtTaken}
                       onChange={(e) =>
-                        onUpdateDebt(index, "totalAmount", e.target.value)
+                        onUpdateDebt(index, "debtTaken", e.target.value)
                       }
                       className={`${MOBILE_CONFIG.input.text} ${MOBILE_CONFIG.touchTarget}`}
                     />

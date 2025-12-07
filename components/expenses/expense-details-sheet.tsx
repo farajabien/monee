@@ -19,7 +19,7 @@ import {
   Repeat,
 } from "lucide-react";
 import { useCurrency } from "@/hooks/use-currency";
-import type { Expense } from "@/types";
+import type { Expense, ParsedExpenseData } from "@/types";
 
 interface ExpenseDetailsSheetProps {
   expense: Expense | null;
@@ -74,7 +74,7 @@ export function ExpenseDetailsSheet({
   };
 
   // Parse parsedData if it exists
-  const parsedData = expense.parsedData as any;
+  const parsedData = expense.parsedData as ParsedExpenseData | undefined;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>

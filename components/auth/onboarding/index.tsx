@@ -39,7 +39,7 @@ export default function OnboardingFlow() {
     Array<{ name: string; targetAmount: string }>
   >([]);
   const [debts, setDebts] = useState<
-    Array<{ name: string; totalAmount: string }>
+    Array<{ debtor: string; debtTaken: string }>
   >([]);
 
   // Fetch profile
@@ -235,17 +235,19 @@ export default function OnboardingFlow() {
       }
 
       // Save debts
-      const validDebts = debts.filter((d) => d.name.trim() && d.totalAmount);
+      const validDebts = debts.filter((d) => d.debtor.trim() && d.debtTaken);
       if (validDebts.length > 0) {
         const debtTxs = validDebts.map((debt) => {
           const debtId = id();
           return db.tx.debts[debtId]
             .update({
-              name: debt.name,
-              totalAmount: parseFloat(debt.totalAmount),
-              currentBalance: parseFloat(debt.totalAmount),
-              monthlyPaymentAmount: parseFloat(debt.totalAmount) * 0.1,
-              paymentDueDay: 1,
+              debtor: debt.debtor,
+              debtTaken: parseFloat(debt.debtTaken),
+              currentBalance: parseFloat(debt.debtTaken),
+              repaymentTerms: "One-time",
+              interestRate: 0,
+              interestFrequency: "N/A",
+              isActive: true,
               createdAt: Date.now(),
             })
             .link({ profile: profile.id });
@@ -366,7 +368,7 @@ export default function OnboardingFlow() {
               setDebts(updated);
             }}
             onAddDebt={() => {
-              setDebts([...debts, { name: "", totalAmount: "" }]);
+              setDebts([...debts, { debtor: "", debtTaken: "" }]);
             }}
             onRemoveDebt={(index) => {
               setDebts(debts.filter((_, i) => i !== index));

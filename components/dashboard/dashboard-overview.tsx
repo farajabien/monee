@@ -8,7 +8,7 @@ import { calculateCashFlowHealth } from "@/lib/cash-flow-health-calculator";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Item, ItemContent } from "@/components/ui/item";
-import { Calendar, Target } from "lucide-react";
+import { Calendar, Target, TrendingDown, Receipt } from "lucide-react";
 import { CompactItemCard } from "@/components/ui/compact-item-card";
 
 import { useCurrency } from "@/hooks/use-currency";
@@ -116,10 +116,16 @@ export function DashboardOverview() {
 
   // Calculate totals
   const profile = data?.profiles?.[0];
-  const expenses = profile?.expenses || [];
-  const incomeSources = profile?.incomeSources || [];
-  const debts = profile?.debts || [];
-  const savingsGoals = profile?.savingsGoals || [];
+  const expenses = useMemo(() => profile?.expenses || [], [profile?.expenses]);
+  const incomeSources = useMemo(
+    () => profile?.incomeSources || [],
+    [profile?.incomeSources]
+  );
+  const debts = useMemo(() => profile?.debts || [], [profile?.debts]);
+  const savingsGoals = useMemo(
+    () => profile?.savingsGoals || [],
+    [profile?.savingsGoals]
+  );
 
   // Currency formatting
   const { formatCurrencyCompact, formatCurrency } = useCurrency(
@@ -128,12 +134,27 @@ export function DashboardOverview() {
   );
 
   // Flatten debt payments from all debts
-  const debtPayments = debts.flatMap((debt) =>
-    (debt.payments || []).map((payment) => ({
-      ...payment,
-      debt: { id: debt.id, user: { id: profile?.id } },
-    }))
+  const debtPayments = useMemo(
+    () =>
+      debts.flatMap((debt) =>
+        (debt.payments || []).map((payment) => ({
+          ...payment,
+          debt: { id: debt.id, user: { id: profile?.id } },
+        }))
+      ),
+    [debts, profile?.id]
   );
+
+  // Helper function to get days until
+  const getDaysUntil = useMemo(() => {
+    return (timestamp: number) => {
+      const today = new Date(now.getTime());
+      const targetDate = new Date(timestamp);
+      const diffTime = targetDate.getTime() - today.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      return diffDays;
+    };
+  }, [now]);
 
   // Income vs Expenses calculations
   const totalIncome = useMemo(() => {
@@ -151,6 +172,15 @@ export function DashboardOverview() {
     const debtPaymentTotal = debtPayments.reduce((sum, p) => sum + p.amount, 0);
     return expenseTotal + debtPaymentTotal;
   }, [expenses, debtPayments]);
+
+  // Separate recurring and one-time expenses
+  const recurringExpenses = useMemo(() => {
+    return expenses.filter((expense) => expense.isRecurring);
+  }, [expenses]);
+
+  const oneTimeExpenses = useMemo(() => {
+    return expenses.filter((expense) => !expense.isRecurring);
+  }, [expenses]);
 
   // Top 5 expenses by amount
   const topExpenses = useMemo(() => {
@@ -171,7 +201,36 @@ export function DashboardOverview() {
       .slice(0, 5);
   }, [expenses]);
 
-  // Debts data
+  // Recipients analysis
+  const recipientsData = useMemo(() => {
+    const recipientTotals = expenses.reduce((acc, expense) => {
+      const recipient = expense.recipient || "Unknown";
+      if (!acc[recipient]) {
+        acc[recipient] = {
+          recipient,
+          totalAmount: 0,
+          expensesCount: 0,
+        };
+      }
+      acc[recipient].totalAmount += expense.amount;
+      acc[recipient].expensesCount += 1;
+      return acc;
+    }, {} as Record<string, { recipient: string; totalAmount: number; expensesCount: number }>);
+
+    const totalExpensesAmount = expenses.reduce((sum, e) => sum + e.amount, 0);
+
+    return Object.values(recipientTotals)
+      .map((data) => ({
+        ...data,
+        percentageOfExpenses:
+          totalExpensesAmount > 0
+            ? Math.round((data.totalAmount / totalExpensesAmount) * 100)
+            : 0,
+      }))
+      .sort((a, b) => b.totalAmount - a.totalAmount);
+  }, [expenses]);
+
+  // Debts data with enhanced structure - matching Debt type from types.ts
   const debtsData = useMemo(() => {
     const currentDateTs = now.getTime();
 
@@ -181,60 +240,114 @@ export function DashboardOverview() {
       const currentYear = now.getFullYear();
       const currentDay = now.getDate();
 
-      let nextPaymentDate: number;
+      let nextPaymentDueDate: number | undefined;
       if (debt.paymentDueDay && debt.paymentDueDay >= currentDay) {
         // Payment due this month
-        nextPaymentDate = new Date(
+        nextPaymentDueDate = new Date(
           currentYear,
           currentMonth,
           debt.paymentDueDay
         ).getTime();
       } else if (debt.paymentDueDay) {
         // Payment due next month
-        nextPaymentDate = new Date(
+        nextPaymentDueDate = new Date(
           currentYear,
           currentMonth + 1,
           debt.paymentDueDay
         ).getTime();
-      } else {
-        // No payment day set, default to 30 days from now
-        nextPaymentDate = currentDateTs + 30 * 24 * 60 * 60 * 1000;
       }
+
+      // Calculate next payment amount based on debt type and monthly payment
+      const nextPaymentAmount = debt.monthlyPaymentAmount || 0;
 
       return {
         id: debt.id,
-        name: debt.name,
-        nextPaymentAmount: debt.monthlyPaymentAmount ?? 0,
-        nextPaymentDate,
-        totalOwed: debt.currentBalance ?? debt.totalAmount ?? 0,
+        createdAt: debt.createdAt,
+        currentBalance: debt.currentBalance,
+        isActive: debt.isActive,
+        debtor: debt.debtor,
+        debtTaken: debt.debtTaken,
+        interestRate: debt.interestRate,
+        interestFrequency: debt.interestFrequency,
+        repaymentTerms: debt.repaymentTerms,
+        nextPaymentAmount,
+        nextPaymentDueDate,
+        remainingDays: debt.remainingDays,
+        paymentDetails: debt.paymentDetails,
+        monthlyPaymentAmount: debt.monthlyPaymentAmount,
+        paymentDueDay: debt.paymentDueDay,
+        compoundingFrequency: debt.compoundingFrequency,
+        pushMonthsPlan: debt.pushMonthsPlan,
+        pushMonthsCompleted: debt.pushMonthsCompleted,
+        lastInterestPaymentDate: debt.lastInterestPaymentDate,
+        interestAccrued: debt.interestAccrued,
+        deadline: debt.deadline,
       };
     });
   }, [debts, now]);
 
-  // Upcoming debts (next 5 with due dates)
-  const upcomingDebts = useMemo(() => {
-    const currentDateTs = now.getTime();
-    return debtsData
-      .filter((debt) => debt.nextPaymentDate > currentDateTs)
-      .sort((a, b) => a.nextPaymentDate - b.nextPaymentDate)
-      .slice(0, 5);
-  }, [debtsData, now]);
+  // Recurring expenses with enhanced structure
+  const recurringExpensesData = useMemo(() => {
+    return recurringExpenses.map((expense) => {
+      // Check if paid this month
+      const paidThisMonth =
+        expense.date >= monthStartTs && expense.date <= monthEndTs;
 
-  // Upcoming expenses (recurring expenses with due dates)
-  const upcomingExpenses = useMemo(() => {
-    const currentDateTs = now.getTime();
-    // Filter expenses that have future dates within the next 30 days
-    const futureExpenses = expenses
-      .filter((expense) => {
-        const expenseDate = expense.date;
-        const thirtyDaysFromNow = currentDateTs + 30 * 24 * 60 * 60 * 1000;
-        return expenseDate > currentDateTs && expenseDate <= thirtyDaysFromNow;
-      })
-      .sort((a, b) => a.date - b.date)
-      .slice(0, 5);
+      // Calculate next due date based on frequency
+      let nextDueDate = expense.date;
+      if (paidThisMonth && expense.expenseType) {
+        const expenseDate = new Date(expense.date);
+        switch (expense.expenseType) {
+          case "daily":
+            nextDueDate = new Date(
+              expenseDate.setDate(expenseDate.getDate() + 1)
+            ).getTime();
+            break;
+          case "weekly":
+            nextDueDate = new Date(
+              expenseDate.setDate(expenseDate.getDate() + 7)
+            ).getTime();
+            break;
+          case "monthly":
+            nextDueDate = new Date(
+              expenseDate.setMonth(expenseDate.getMonth() + 1)
+            ).getTime();
+            break;
+          case "yearly":
+            nextDueDate = new Date(
+              expenseDate.setFullYear(expenseDate.getFullYear() + 1)
+            ).getTime();
+            break;
+          default:
+            nextDueDate = expense.date;
+        }
+      }
 
-    return futureExpenses;
-  }, [expenses, now]);
+      return {
+        id: expense.id,
+        recipient: expense.recipient,
+        amount: expense.amount,
+        category: expense.category || "Uncategorized",
+        paidThisMonth,
+        nextDueDate,
+        remainingDays: getDaysUntil(nextDueDate),
+        frequency: expense.expenseType,
+        date: expense.date,
+      };
+    });
+  }, [recurringExpenses, monthStartTs, monthEndTs, getDaysUntil]);
+
+  // One-time expenses with enhanced structure
+  const oneTimeExpensesData = useMemo(() => {
+    return oneTimeExpenses.map((expense) => ({
+      id: expense.id,
+      recipient: expense.recipient,
+      amount: expense.amount,
+      category: expense.category || "Uncategorized",
+      expenseDate: expense.date,
+      notes: expense.notes,
+    }));
+  }, [oneTimeExpenses]);
 
   // Savings goals with nearing deadlines (top 5)
   const nearingDeadlineSavings = useMemo(() => {
@@ -282,7 +395,10 @@ export function DashboardOverview() {
 
   // Calculate debts due this month
   const debtsThisMonth = useMemo(() => {
-    return debtsData.reduce((sum, debt) => sum + debt.nextPaymentAmount, 0);
+    return debtsData.reduce(
+      (sum, debt) => sum + (debt.nextPaymentAmount || 0),
+      0
+    );
   }, [debtsData]);
 
   // Calculate savings progress percentage
@@ -290,22 +406,6 @@ export function DashboardOverview() {
     if (savingsData.totalTarget === 0) return 0;
     return Math.round((savingsData.totalSaved / savingsData.totalTarget) * 100);
   }, [savingsData]);
-
-  // Cash runway calculation
-  const cashRunwayData = useMemo(() => {
-    // Require at least income sources to show cash runway
-    if (!incomeSources.length) return null;
-
-    return calculateCashRunway({
-      incomeSources,
-      expenses,
-      debtPayments: debtPayments.map((p) => ({
-        amount: p.amount,
-        paymentDate: p.paymentDate,
-      })),
-      currentDate: now,
-    });
-  }, [incomeSources, expenses, debtPayments, now]);
 
   // Cash flow health calculation
   const cashFlowHealthData = useMemo(() => {
@@ -325,16 +425,8 @@ export function DashboardOverview() {
     return new Date(timestamp).toLocaleDateString(profile?.locale || "en-US", {
       month: "short",
       day: "numeric",
+      year: "numeric",
     });
-  };
-
-  // Helper function to get days until
-  const getDaysUntil = (timestamp: number) => {
-    const today = new Date(now.getTime());
-    const targetDate = new Date(timestamp);
-    const diffTime = targetDate.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays;
   };
 
   if (error) {
@@ -359,9 +451,10 @@ export function DashboardOverview() {
         {/* Overview Tab - Dashboard Cards with nested tabs */}
         <TabsContent value="overview">
           <Tabs defaultValue="cashflow" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 mb-4">
+            <TabsList className="grid w-full grid-cols-4 mb-4">
               <TabsTrigger value="cashflow">Cash Flow</TabsTrigger>
               <TabsTrigger value="debts">Debts</TabsTrigger>
+              <TabsTrigger value="expenses">Expenses</TabsTrigger>
               <TabsTrigger value="savings">Savings</TabsTrigger>
             </TabsList>
             <TabsContent value="cashflow">
@@ -416,7 +509,7 @@ export function DashboardOverview() {
                         </TabsContent>
                         <TabsContent value="categories" className="mt-3">
                           <div className="space-y-2">
-                            {topCategories.map((categoryData, index) => (
+                            {topCategories.map((categoryData) => (
                               <div
                                 key={categoryData.category}
                                 className="flex items-center justify-between py-2 border-b last:border-0"
@@ -437,6 +530,57 @@ export function DashboardOverview() {
                     </ItemContent>
                   </Item>
                 )}
+
+                {/* Recipients Table */}
+                {recipientsData.length > 0 && (
+                  <Item variant="outline" className="border-0">
+                    <ItemContent className="space-y-3">
+                      <div className="flex items-center gap-2 text-sm font-medium">
+                        <Receipt className="h-4 w-4" />
+                        <span>Recipients Analysis</span>
+                      </div>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                          <thead>
+                            <tr className="border-b">
+                              <th className="text-left py-2 font-medium">
+                                Recipient
+                              </th>
+                              <th className="text-right py-2 font-medium">
+                                Total Amount
+                              </th>
+                              <th className="text-right py-2 font-medium">
+                                Expenses Count
+                              </th>
+                              <th className="text-right py-2 font-medium">
+                                % of Expenses
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {recipientsData.map((data) => (
+                              <tr
+                                key={data.recipient}
+                                className="border-b last:border-0"
+                              >
+                                <td className="py-2">{data.recipient}</td>
+                                <td className="text-right tabular-nums">
+                                  {formatCurrency(data.totalAmount)}
+                                </td>
+                                <td className="text-right tabular-nums">
+                                  {data.expensesCount}
+                                </td>
+                                <td className="text-right tabular-nums">
+                                  {data.percentageOfExpenses}%
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </ItemContent>
+                  </Item>
+                )}
               </div>
             </TabsContent>
             <TabsContent value="debts">
@@ -448,37 +592,225 @@ export function DashboardOverview() {
                   userLocale={profile?.locale}
                 />
 
-                {/* Upcoming Debts List (Top 5) */}
-                {upcomingDebts.length > 0 && (
+                {/* My Debts Table */}
+                {debtsData.length > 0 && (
+                  <Item variant="outline" className="border-0">
+                    <ItemContent className="space-y-3">
+                      <div className="flex items-center gap-2 text-sm font-medium">
+                        <TrendingDown className="h-4 w-4" />
+                        <span>My Debts</span>
+                      </div>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                          <thead>
+                            <tr className="border-b">
+                              <th className="text-left py-2 font-medium">
+                                Debtor
+                              </th>
+                              <th className="text-right py-2 font-medium">
+                                Debt Taken
+                              </th>
+                              <th className="text-left py-2 font-medium">
+                                Interest Rate
+                              </th>
+                              <th className="text-left py-2 font-medium">
+                                Repayment Terms
+                              </th>
+                              <th className="text-right py-2 font-medium">
+                                Next Payment
+                              </th>
+                              <th className="text-left py-2 font-medium">
+                                Due Date
+                              </th>
+                              <th className="text-right py-2 font-medium">
+                                Days Left
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {debtsData.map((debt) => (
+                              <tr
+                                key={debt.id}
+                                className="border-b last:border-0"
+                              >
+                                <td className="py-2">{debt.debtor || "—"}</td>
+                                <td className="text-right tabular-nums">
+                                  {formatCurrency(debt.debtTaken || 0)}
+                                </td>
+                                <td className="py-2">
+                                  {debt.interestRate
+                                    ? `${debt.interestRate}%`
+                                    : "N/A"}
+                                </td>
+                                <td className="py-2">
+                                  {debt.repaymentTerms || "—"}
+                                </td>
+                                <td className="text-right tabular-nums font-semibold">
+                                  {formatCurrency(debt.nextPaymentAmount || 0)}
+                                </td>
+                                <td className="py-2">
+                                  {debt.nextPaymentDueDate
+                                    ? formatDate(debt.nextPaymentDueDate)
+                                    : "—"}
+                                </td>
+                                <td className="text-right tabular-nums">
+                                  {debt.remainingDays !== undefined ? (
+                                    <span
+                                      className={
+                                        debt.remainingDays <= 7
+                                          ? "text-destructive font-semibold"
+                                          : debt.remainingDays <= 14
+                                          ? "text-yellow-600 font-semibold"
+                                          : ""
+                                      }
+                                    >
+                                      {debt.remainingDays}
+                                    </span>
+                                  ) : (
+                                    "—"
+                                  )}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </ItemContent>
+                  </Item>
+                )}
+              </div>
+            </TabsContent>
+            <TabsContent value="expenses">
+              <div className="space-y-4">
+                {/* Recurring Expenses Table */}
+                {recurringExpensesData.length > 0 && (
                   <Item variant="outline" className="border-0">
                     <ItemContent className="space-y-3">
                       <div className="flex items-center gap-2 text-sm font-medium">
                         <Calendar className="h-4 w-4" />
-                        <span>Upcoming Payments (Top 5)</span>
+                        <span>My Recurring Expenses</span>
                       </div>
-                      <div className="space-y-2">
-                        {upcomingDebts.map((debt) => {
-                          const daysUntil = getDaysUntil(debt.nextPaymentDate);
-                          return (
-                            <div
-                              key={debt.id}
-                              className="flex items-center justify-between py-2 border-b last:border-0"
-                            >
-                              <div className="space-y-0.5">
-                                <p className="text-sm font-medium">
-                                  {debt.name}
-                                </p>
-                                <p className="text-xs text-muted-foreground">
-                                  {formatDate(debt.nextPaymentDate)} •{" "}
-                                  {daysUntil} day{daysUntil !== 1 ? "s" : ""}
-                                </p>
-                              </div>
-                              <div className="text-sm font-semibold tabular-nums">
-                                {formatCurrency(debt.nextPaymentAmount)}
-                              </div>
-                            </div>
-                          );
-                        })}
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                          <thead>
+                            <tr className="border-b">
+                              <th className="text-left py-2 font-medium">
+                                Recipient
+                              </th>
+                              <th className="text-right py-2 font-medium">
+                                Amount
+                              </th>
+                              <th className="text-left py-2 font-medium">
+                                Category
+                              </th>
+                              <th className="text-center py-2 font-medium">
+                                Paid This Month
+                              </th>
+                              <th className="text-left py-2 font-medium">
+                                Next Due Date
+                              </th>
+                              <th className="text-right py-2 font-medium">
+                                Days Left
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {recurringExpensesData.map((expense) => (
+                              <tr
+                                key={expense.id}
+                                className="border-b last:border-0"
+                              >
+                                <td className="py-2">{expense.recipient}</td>
+                                <td className="text-right tabular-nums font-semibold">
+                                  {formatCurrency(expense.amount)}
+                                </td>
+                                <td className="py-2">{expense.category}</td>
+                                <td className="text-center">
+                                  <span
+                                    className={
+                                      expense.paidThisMonth
+                                        ? "text-green-600 font-semibold"
+                                        : "text-muted-foreground"
+                                    }
+                                  >
+                                    {expense.paidThisMonth ? "YES" : "NO"}
+                                  </span>
+                                </td>
+                                <td className="py-2">
+                                  {formatDate(expense.nextDueDate)}
+                                </td>
+                                <td className="text-right tabular-nums">
+                                  <span
+                                    className={
+                                      expense.remainingDays <= 7
+                                        ? "text-destructive font-semibold"
+                                        : expense.remainingDays <= 14
+                                        ? "text-yellow-600 font-semibold"
+                                        : ""
+                                    }
+                                  >
+                                    {expense.remainingDays}
+                                  </span>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </ItemContent>
+                  </Item>
+                )}
+
+                {/* One-Time Expenses Table */}
+                {oneTimeExpensesData.length > 0 && (
+                  <Item variant="outline" className="border-0">
+                    <ItemContent className="space-y-3">
+                      <div className="flex items-center gap-2 text-sm font-medium">
+                        <Receipt className="h-4 w-4" />
+                        <span>My One-Time Expenses</span>
+                      </div>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                          <thead>
+                            <tr className="border-b">
+                              <th className="text-left py-2 font-medium">
+                                Recipient
+                              </th>
+                              <th className="text-right py-2 font-medium">
+                                Amount
+                              </th>
+                              <th className="text-left py-2 font-medium">
+                                Category
+                              </th>
+                              <th className="text-left py-2 font-medium">
+                                Expense Date
+                              </th>
+                              <th className="text-left py-2 font-medium">
+                                Notes
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {oneTimeExpensesData.map((expense) => (
+                              <tr
+                                key={expense.id}
+                                className="border-b last:border-0"
+                              >
+                                <td className="py-2">{expense.recipient}</td>
+                                <td className="text-right tabular-nums font-semibold">
+                                  {formatCurrency(expense.amount)}
+                                </td>
+                                <td className="py-2">{expense.category}</td>
+                                <td className="py-2">
+                                  {formatDate(expense.expenseDate)}
+                                </td>
+                                <td className="py-2 text-xs text-muted-foreground">
+                                  {expense.notes || "-"}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
                       </div>
                     </ItemContent>
                   </Item>

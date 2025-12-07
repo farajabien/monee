@@ -20,7 +20,13 @@ import {
   CartesianGrid,
   ResponsiveContainer,
 } from "recharts";
-import { CreditCard, ChevronLeft, TrendingDown, CheckCircle2, Calendar } from "lucide-react";
+import {
+  CreditCard,
+  ChevronLeft,
+  TrendingDown,
+  CheckCircle2,
+  Calendar,
+} from "lucide-react";
 import db from "@/lib/db";
 import { useCurrency } from "@/hooks/use-currency";
 import { CategoryBreakdown } from "@/components/charts/category-breakdown";
@@ -40,9 +46,9 @@ const COLORS = [
 ];
 
 export function DebtInsights({ onBack }: DebtInsightsProps) {
-  const [insightsView, setInsightsView] = useState<
-    "overview" | "timeline"
-  >("overview");
+  const [insightsView, setInsightsView] = useState<"overview" | "timeline">(
+    "overview"
+  );
   const [timeView, setTimeView] = useState<TimeView>("month");
   const [chartType, setChartType] = useState<"bar" | "line">("bar");
   const { formatCurrency } = useCurrency();
@@ -58,9 +64,13 @@ export function DebtInsights({ onBack }: DebtInsightsProps) {
   const profile = data?.profiles?.[0];
   const debts = useMemo(() => profile?.debts || [], [profile?.debts]);
 
-  // Calculate total debt
+  // Calculate total debt (using currentBalance as the original debt amount)
   const totalDebt = useMemo(
-    () => debts.reduce((sum, debt) => sum + (debt.totalAmount || 0), 0),
+    () =>
+      debts.reduce(
+        (sum, debt) => sum + (debt.debtTaken || debt.currentBalance || 0),
+        0
+      ),
     [debts]
   );
 
@@ -184,10 +194,11 @@ export function DebtInsights({ onBack }: DebtInsightsProps) {
       .map((debt) => {
         const paid =
           debt.payments?.reduce((sum, p) => sum + (p.amount || 0), 0) || 0;
-        const remaining = (debt.totalAmount || 0) - paid;
+        const originalAmount = debt.debtTaken || debt.currentBalance || 0;
+        const remaining = originalAmount - paid;
 
         return {
-          name: debt.name || "Unknown Debt",
+          name: debt.debtor || "Unknown Debt",
           value: remaining,
         };
       })
@@ -239,7 +250,7 @@ export function DebtInsights({ onBack }: DebtInsightsProps) {
 
     const config: ChartConfig = {};
     debts.forEach((debt, index) => {
-      const debtName = debt.name || "Unknown Debt";
+      const debtName = debt.debtor || "Unknown Debt";
       config[debtName] = {
         label: debtName,
         color: COLORS[index % COLORS.length],

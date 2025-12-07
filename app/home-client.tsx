@@ -19,7 +19,50 @@ export default function HomeClient() {
   const router = useRouter();
   const activeTab = searchParams.get("tab") || "overview";
 
-  const { isLoading, error, data } = db.useQuery({ profiles: {} });
+  // Fetch all data with nested relations for comprehensive tracking
+  const { isLoading, error, data } = db.useQuery({
+    profiles: {},
+    debts: {
+      $: {
+        where: {
+          isActive: true,
+        },
+      },
+      payments: {},
+    },
+    expenses: {
+      recurringTransaction: {},
+      profile: {},
+    },
+    recurring_transactions: {
+      $: {
+        where: {
+          isActive: true,
+        },
+      },
+      linkedExpenses: {},
+    },
+    recipients: {
+      profile: {},
+    },
+    categories: {
+      $: {
+        where: {
+          isActive: true,
+        },
+      },
+    },
+    savings_goals: {
+      contributions: {},
+    },
+    income_sources: {
+      $: {
+        where: {
+          isActive: true,
+        },
+      },
+    },
+  });
 
   const profile = data?.profiles?.[0];
 
