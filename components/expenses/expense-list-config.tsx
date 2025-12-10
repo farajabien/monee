@@ -116,9 +116,6 @@ export const createExpenseListConfig = (
     };
   },
 
-  // Views
-  availableViews: ["list", "table"],
-  defaultView: "list",
 
   // Table columns
   tableColumns: [

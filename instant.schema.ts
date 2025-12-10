@@ -27,7 +27,7 @@ const _schema = i.schema({
       recipient: i.string(),
       date: i.number().indexed(),
       category: i.string(),
-      expenseType: i.string().optional().indexed(), // one-time | recurring
+      expenseType: i.string().optional().indexed(), // one-time | recurring | income
       rawMessage: i.string(),
       parsedData: i.json().optional(),
       notes: i.string().optional(),
@@ -36,6 +36,8 @@ const _schema = i.schema({
       isRecurring: i.boolean().optional(),
       recurringTransactionId: i.string().optional().indexed(),
       paidThisMonth: i.boolean().optional(),
+      // Payment details for tracking (M-Pesa, bank, etc.)
+      paymentDetails: i.json().optional(), // { paybillNumber, tillNumber, accountNumber, phoneNumber, notes }
       createdAt: i.number().indexed(),
     }),
     categories: i.entity({
@@ -72,10 +74,11 @@ const _schema = i.schema({
       interestRate: i.number().optional(), // Interest rate (e.g., 15 for 15%)
       interestFrequency: i.string().optional().indexed(), // per month | per year | N/A
       repaymentTerms: i.string().optional().indexed(), // Interest Push | No Interest | Amortizing | One-time
-      nextPaymentAmount: i.number().optional().indexed(), // Amount due for next payment
+      nextPaymentAmount: i.number().optional().indexed(), // Amount due for next payment (calculated or set)
       nextPaymentDueDate: i.number().optional().indexed(), // Timestamp for next payment
-      remainingDays: i.number().optional(), // Calculated field for UI
-      paymentDetails: i.string().optional(), // Additional payment notes
+      remainingDays: i.number().optional(), // Calculated field for UI (auto-calculated from nextPaymentDueDate)
+      // Structured payment details for M-Pesa, bank transfers, etc.
+      paymentDetails: i.json().optional(), // { paybillNumber, tillNumber, accountNumber, phoneNumber, bankName, notes }
       monthlyPaymentAmount: i.number().optional(), // For regular payments
       paymentDueDay: i.number().optional(), // Day of month for recurring payments
       compoundingFrequency: i.string().optional(), // monthly | quarterly | annually
@@ -86,6 +89,7 @@ const _schema = i.schema({
       deadline: i.number().optional().indexed(),
       isActive: i.boolean().optional(),
       createdAt: i.number().indexed(),
+      updatedAt: i.number().optional().indexed(),
     }),
     debt_payments: i.entity({
       amount: i.number().indexed(),
@@ -101,9 +105,11 @@ const _schema = i.schema({
       nickname: i.string().optional().indexed(),
       defaultCategory: i.string().optional(),
       notes: i.string().optional(),
-      totalAmount: i.number().optional().indexed(), // Total spent on this recipient
-      expensesCount: i.number().optional().indexed(), // Number of expenses
-      percentageOfExpenses: i.number().optional(), // % of total expenses
+      totalAmount: i.number().optional().indexed(), // Total spent on this recipient (auto-calculated)
+      expensesCount: i.number().optional().indexed(), // Number of expenses (auto-calculated)
+      percentageOfExpenses: i.number().optional(), // % of total expenses (auto-calculated)
+      // Payment details for this recipient (default payment method)
+      paymentDetails: i.json().optional(), // { paybillNumber, tillNumber, accountNumber, phoneNumber, bankName, notes }
       createdAt: i.number().indexed(),
       updatedAt: i.number().indexed(),
     }),
@@ -135,20 +141,19 @@ const _schema = i.schema({
       amount: i.number().indexed(),
       recipient: i.string().indexed(),
       category: i.string(),
-      frequency: i.string().indexed(),
+      frequency: i.string().indexed(), // weekly | biweekly | monthly | quarterly | annually
       dueDate: i.number().optional().indexed(),
       nextDueDate: i.number().optional().indexed(),
       lastPaidDate: i.number().optional().indexed(),
-      paidThisMonth: i.boolean().optional(),
-      remainingDays: i.number().optional(), // Calculated for UI
+      paidThisMonth: i.boolean().optional(), // TRUE when paid, FALSE when not paid
+      remainingDays: i.number().optional(), // Calculated for UI (auto-calculated from nextDueDate)
       reminderDays: i.number().optional(),
       isPaused: i.boolean().optional(),
-      paybillNumber: i.string().optional().indexed(),
-      tillNumber: i.string().optional().indexed(),
-      accountNumber: i.string().optional(),
-      paymentDetails: i.string().optional(),
+      // Consolidated structured payment details
+      paymentDetails: i.json().optional(), // { paybillNumber, tillNumber, accountNumber, phoneNumber, bankName, notes }
       isActive: i.boolean(),
       createdAt: i.number().indexed(),
+      updatedAt: i.number().optional().indexed(),
     }),
     feedback: i.entity({
       feedbackType: i.string().indexed(), // Bug | Feature | Suggestion | UI/UX | Performance | General

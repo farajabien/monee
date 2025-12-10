@@ -99,9 +99,6 @@ export const createSavingsGoalListConfig = (
   // Metrics
   metrics: [],
 
-  // Views
-  availableViews: ["list", "table"],
-  defaultView: "list",
 
   // Table columns
   tableColumns: [

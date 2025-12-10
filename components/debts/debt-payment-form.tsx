@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import React from "react";
 import { id } from "@instantdb/react";
 import db from "@/lib/db";
@@ -15,6 +15,25 @@ import type { DebtWithUser } from "@/types";
 interface DebtPaymentFormProps {
   debt: DebtWithUser;
   onSuccess?: () => void;
+}
+
+// Helper to format payment details for display
+function formatPaymentDetails(
+  paymentDetails: Record<string, string> | null | undefined
+): string {
+  if (!paymentDetails || typeof paymentDetails !== "object") return "";
+  const parts: string[] = [];
+  if (paymentDetails.paybillNumber)
+    parts.push(`Paybill: ${paymentDetails.paybillNumber}`);
+  if (paymentDetails.tillNumber)
+    parts.push(`Till: ${paymentDetails.tillNumber}`);
+  if (paymentDetails.accountNumber)
+    parts.push(`Acc: ${paymentDetails.accountNumber}`);
+  if (paymentDetails.phoneNumber)
+    parts.push(`Phone: ${paymentDetails.phoneNumber}`);
+  if (paymentDetails.bankName) parts.push(`Bank: ${paymentDetails.bankName}`);
+  if (paymentDetails.notes) parts.push(paymentDetails.notes);
+  return parts.join(" • ");
 }
 
 export function DebtPaymentForm({ debt, onSuccess }: DebtPaymentFormProps) {
@@ -195,8 +214,24 @@ export function DebtPaymentForm({ debt, onSuccess }: DebtPaymentFormProps) {
     ? Math.max(0, debt.pushMonthsPlan - (debt.pushMonthsCompleted || 0))
     : null;
 
+  // Display payment details if available
+  const paymentDetailsText = formatPaymentDetails(debt.paymentDetails);
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {paymentDetailsText && (
+        <Card>
+          <CardContent className="p-3">
+            <div className="space-y-1">
+              <span className="text-xs font-medium text-muted-foreground">
+                Payment Details:
+              </span>
+              <p className="text-sm">{paymentDetailsText}</p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {debt.pushMonthsPlan && (
         <Card>
           <CardContent className="p-3">

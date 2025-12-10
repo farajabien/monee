@@ -91,9 +91,6 @@ export const createIncomeSourceListConfig = (
     };
   },
 
-  // Views
-  availableViews: ["list"],
-  defaultView: "list",
 
   // Rendering Functions
   renderListItem: (item: IncomeSourceWithUser, index: number, actions) => {

@@ -29,7 +29,6 @@ import {
 } from "lucide-react";
 import db from "@/lib/db";
 import { useCurrency } from "@/hooks/use-currency";
-import { CategoryBreakdown } from "@/components/charts/category-breakdown";
 
 type TimeView = "week" | "month" | "year";
 

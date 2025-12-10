@@ -257,9 +257,6 @@ export const createDebtListConfig = (
     };
   },
 
-  // Views
-  availableViews: ["list", "table"],
-  defaultView: "list",
 
   // Table columns
   tableColumns: [

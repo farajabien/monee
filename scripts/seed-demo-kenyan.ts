@@ -30,30 +30,50 @@ export const seedData = {
     {
       originalName: "AMO Liquor Store",
       nickname: "Liquor",
+      paymentDetails: {
+        tillNumber: "123456",
+        phoneNumber: "0712345678",
+      },
       createdAt: now,
       updatedAt: now,
     },
     {
       originalName: "Joze Locals",
       nickname: "Joze",
+      paymentDetails: {
+        tillNumber: "654321",
+        phoneNumber: "0723456789",
+      },
       createdAt: now,
       updatedAt: now,
     },
     {
       originalName: "Boda Riders",
       nickname: "Boda",
+      paymentDetails: {
+        phoneNumber: "0734567890",
+        notes: "Cash payment",
+      },
       createdAt: now,
       updatedAt: now,
     },
     {
       originalName: "Food Store",
       nickname: "Food",
+      paymentDetails: {
+        tillNumber: "789012",
+      },
       createdAt: now,
       updatedAt: now,
     },
     {
       originalName: "Landlord",
       nickname: "Rent",
+      paymentDetails: {
+        paybillNumber: "522533",
+        accountNumber: "1234567890",
+        notes: "Monthly rent payment",
+      },
       createdAt: now,
       updatedAt: now,
     },

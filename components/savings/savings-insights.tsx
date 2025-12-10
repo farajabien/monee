@@ -305,9 +305,7 @@ export function SavingsInsights() {
             <p className="text-lg font-bold leading-tight">
               KSh {(Math.round(avgMonthlyContribution) / 1000).toFixed(1)}K
             </p>
-            <p className="text-xs text-muted-foreground mt-1">
-              Per month
-            </p>
+            <p className="text-xs text-muted-foreground mt-1">Per month</p>
           </div>
         </div>
       </div>

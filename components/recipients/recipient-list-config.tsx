@@ -97,9 +97,6 @@ export const createRecipientListConfig = (
     };
   },
 
-  // Views
-  availableViews: ["list"],
-  defaultView: "list",
 
   // Rendering Functions
   renderListItem: (item: RecipientWithStats) => {

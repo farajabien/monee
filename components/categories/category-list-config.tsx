@@ -102,9 +102,6 @@ export const createCategoryListConfig = (
     };
   },
 
-  // Views
-  availableViews: ["list"],
-  defaultView: "list",
 
   // Rendering Functions
   renderListItem: (item: Category, index: number, actions) => {

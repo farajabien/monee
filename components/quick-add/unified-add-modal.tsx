@@ -22,8 +22,13 @@ import {
 } from "@/components/ui/select";
 import { AddCategoryDialog } from "@/components/categories/add-category-dialog";
 import { Switch } from "@/components/ui/switch";
-import { Plus } from "lucide-react";
+import { Plus, ChevronDown, ChevronUp } from "lucide-react";
 import { toast } from "sonner";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import type {
   Category,
   Recipient,
@@ -100,6 +105,15 @@ export function UnifiedAddModal({
   );
   const [reminderDays, setReminderDays] = useState("3");
 
+  // Payment details fields (for all transaction types)
+  const [showPaymentDetails, setShowPaymentDetails] = useState(false);
+  const [paybillNumber, setPaybillNumber] = useState("");
+  const [tillNumber, setTillNumber] = useState("");
+  const [accountNumber, setAccountNumber] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [bankName, setBankName] = useState("");
+  const [paymentNotes, setPaymentNotes] = useState("");
+
   // Fetch data
   const { data } = db.useQuery({
     profiles: {
@@ -159,6 +173,13 @@ export function UnifiedAddModal({
         .split("T")[0]
     );
     setReminderDays("3");
+    setPaybillNumber("");
+    setTillNumber("");
+    setAccountNumber("");
+    setPhoneNumber("");
+    setBankName("");
+    setPaymentNotes("");
+    setShowPaymentDetails(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -197,6 +218,15 @@ export function UnifiedAddModal({
           const expenseId = id();
           const recurringId = isRecurring ? id() : undefined;
 
+          // Build payment details object
+          const paymentDetailsObj: Record<string, string> = {};
+          if (paybillNumber) paymentDetailsObj.paybillNumber = paybillNumber;
+          if (tillNumber) paymentDetailsObj.tillNumber = tillNumber;
+          if (accountNumber) paymentDetailsObj.accountNumber = accountNumber;
+          if (phoneNumber) paymentDetailsObj.phoneNumber = phoneNumber;
+          if (bankName) paymentDetailsObj.bankName = bankName;
+          if (paymentNotes) paymentDetailsObj.notes = paymentNotes;
+
           // Create expense
           await db.transact(
             db.tx.expenses[expenseId]
@@ -214,6 +244,10 @@ export function UnifiedAddModal({
                 },
                 isRecurring: isRecurring,
                 recurringTransactionId: recurringId,
+                paymentDetails:
+                  Object.keys(paymentDetailsObj).length > 0
+                    ? paymentDetailsObj
+                    : undefined,
                 createdAt: now,
               })
               .link({ profile: profile.id })
@@ -232,12 +266,18 @@ export function UnifiedAddModal({
                   dueDate: new Date(nextDueDate).getTime(),
                   nextDueDate: new Date(nextDueDate).getTime(),
                   lastPaidDate: new Date(date).getTime(),
+                  paidThisMonth: true,
                   reminderDays: reminderDays
                     ? parseInt(reminderDays)
                     : undefined,
+                  paymentDetails:
+                    Object.keys(paymentDetailsObj).length > 0
+                      ? paymentDetailsObj
+                      : undefined,
                   isActive: true,
                   isPaused: false,
                   createdAt: now,
+                  updatedAt: now,
                 })
                 .link({ profile: profile.id })
             );
@@ -297,6 +337,15 @@ export function UnifiedAddModal({
 
           const hasInterest = parsedInterestRate > 0;
 
+          // Build payment details object for debt
+          const debtPaymentDetails: Record<string, string> = {};
+          if (paybillNumber) debtPaymentDetails.paybillNumber = paybillNumber;
+          if (tillNumber) debtPaymentDetails.tillNumber = tillNumber;
+          if (accountNumber) debtPaymentDetails.accountNumber = accountNumber;
+          if (phoneNumber) debtPaymentDetails.phoneNumber = phoneNumber;
+          if (bankName) debtPaymentDetails.bankName = bankName;
+          if (paymentNotes) debtPaymentDetails.notes = paymentNotes;
+
           await db.transact([
             db.tx.debts[id()]
               .update({
@@ -312,7 +361,12 @@ export function UnifiedAddModal({
                     ? parseFloat(monthlyPayment || "0")
                     : 0,
                 compoundingFrequency: hasInterest ? "monthly" : undefined,
+                paymentDetails:
+                  Object.keys(debtPaymentDetails).length > 0
+                    ? debtPaymentDetails
+                    : undefined,
                 createdAt: now,
+                updatedAt: now,
               })
               .link({ profile: profile.id }),
           ]);
@@ -639,6 +693,102 @@ export function UnifiedAddModal({
                     </div>
                   </div>
                 )}
+
+                {/* Payment Details (Collapsible) */}
+                <Collapsible
+                  open={showPaymentDetails}
+                  onOpenChange={setShowPaymentDetails}
+                  className="border rounded-lg"
+                >
+                  <CollapsibleTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      className="w-full justify-between p-3"
+                    >
+                      <span className="text-sm font-medium">
+                        Payment Details (Optional)
+                      </span>
+                      {showPaymentDetails ? (
+                        <ChevronUp className="h-4 w-4" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="p-4 pt-0 space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <Label htmlFor="paybill" className="text-xs">
+                          Paybill Number
+                        </Label>
+                        <Input
+                          id="paybill"
+                          placeholder="e.g., 522533"
+                          value={paybillNumber}
+                          onChange={(e) => setPaybillNumber(e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label htmlFor="till" className="text-xs">
+                          Till Number
+                        </Label>
+                        <Input
+                          id="till"
+                          placeholder="e.g., 123456"
+                          value={tillNumber}
+                          onChange={(e) => setTillNumber(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor="account" className="text-xs">
+                        Account Number
+                      </Label>
+                      <Input
+                        id="account"
+                        placeholder="e.g., 1234567890"
+                        value={accountNumber}
+                        onChange={(e) => setAccountNumber(e.target.value)}
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <Label htmlFor="phone" className="text-xs">
+                          Phone Number
+                        </Label>
+                        <Input
+                          id="phone"
+                          placeholder="e.g., 0712345678"
+                          value={phoneNumber}
+                          onChange={(e) => setPhoneNumber(e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label htmlFor="bank" className="text-xs">
+                          Bank Name
+                        </Label>
+                        <Input
+                          id="bank"
+                          placeholder="e.g., KCB"
+                          value={bankName}
+                          onChange={(e) => setBankName(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor="payment-notes" className="text-xs">
+                        Notes
+                      </Label>
+                      <Input
+                        id="payment-notes"
+                        placeholder="Additional payment info..."
+                        value={paymentNotes}
+                        onChange={(e) => setPaymentNotes(e.target.value)}
+                      />
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
               </TabsContent>
 
               {/* INCOME TAB */}
@@ -776,6 +926,102 @@ export function UnifiedAddModal({
                     </p>
                   </div>
                 )}
+
+                {/* Payment Details (Collapsible) - Same as expense */}
+                <Collapsible
+                  open={showPaymentDetails}
+                  onOpenChange={setShowPaymentDetails}
+                  className="border rounded-lg"
+                >
+                  <CollapsibleTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      className="w-full justify-between p-3"
+                    >
+                      <span className="text-sm font-medium">
+                        Payment Details (Optional)
+                      </span>
+                      {showPaymentDetails ? (
+                        <ChevronUp className="h-4 w-4" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="p-4 pt-0 space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <Label htmlFor="debt-paybill" className="text-xs">
+                          Paybill Number
+                        </Label>
+                        <Input
+                          id="debt-paybill"
+                          placeholder="e.g., 522533"
+                          value={paybillNumber}
+                          onChange={(e) => setPaybillNumber(e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label htmlFor="debt-till" className="text-xs">
+                          Till Number
+                        </Label>
+                        <Input
+                          id="debt-till"
+                          placeholder="e.g., 123456"
+                          value={tillNumber}
+                          onChange={(e) => setTillNumber(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor="debt-account" className="text-xs">
+                        Account Number
+                      </Label>
+                      <Input
+                        id="debt-account"
+                        placeholder="e.g., 1234567890"
+                        value={accountNumber}
+                        onChange={(e) => setAccountNumber(e.target.value)}
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <Label htmlFor="debt-phone" className="text-xs">
+                          Phone Number
+                        </Label>
+                        <Input
+                          id="debt-phone"
+                          placeholder="e.g., 0712345678"
+                          value={phoneNumber}
+                          onChange={(e) => setPhoneNumber(e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label htmlFor="debt-bank" className="text-xs">
+                          Bank Name
+                        </Label>
+                        <Input
+                          id="debt-bank"
+                          placeholder="e.g., KCB"
+                          value={bankName}
+                          onChange={(e) => setBankName(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor="debt-payment-notes" className="text-xs">
+                        Notes
+                      </Label>
+                      <Input
+                        id="debt-payment-notes"
+                        placeholder="Additional payment info..."
+                        value={paymentNotes}
+                        onChange={(e) => setPaymentNotes(e.target.value)}
+                      />
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
               </TabsContent>
 
               {/* SAVINGS TAB */}
