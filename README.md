@@ -1,8 +1,27 @@
-# **MONEE – Track Your Money with Clarity**
-
-> Simple money tracking. Know your cashflow health at a glance.
+# **MONEE – Open Source Personal Finance Tracker**
+> Simple, powerful money tracking. Open Source & Forever Free to Self-Host.
 
 **MONEE** is your personal money tracker built for real life. Track income, expenses, debts, and wishlist items—all in one clean, intuitive app.
+
+---
+
+## **Cloud vs Self-Hosted**
+
+MONEE is proudly **Open Source**. You have two ways to use it:
+
+### **1. ☁️ Managed Cloud (Recommended)**
+The easiest way to get started. We handle the hosting, backups, updates, and database management for you.
+- **Cost**: **KSh 999 Lifetime License** (One-time payment)
+- **Includes**: 7-day free trial, priority support, automatic updates, zero setup.
+- **[Get Started with Cloud Version](https://monee.co.ke)**
+
+### **2. 🛠️ Self-Hosted**
+For developers and DIY enthusiasts. Host it yourself for free on your own infrastructure.
+- **Cost**: **Free Forever**
+- **You Manage**: Vercel deployment, InstantDB instance, updates, and maintenance.
+- **[Jump to Self-Hosting Guide](#self-hosting-guide)**
+
+---
 
 ---
 
@@ -111,7 +130,7 @@ Helpful empty states guide you when starting:
 
 ---
 
-## **Getting Started**
+## **Self-Hosting Guide**
 
 ### Prerequisites
 - Node.js 18+ installed

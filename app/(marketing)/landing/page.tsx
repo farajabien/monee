@@ -573,93 +573,122 @@ export default function LandingPage() {
       <section className="container mx-auto px-4 py-16">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            The Smartest Money App in Kenya — For Less Than Lunch
+            Open Source & Fair Pricing
           </h2>
           <p className="text-lg text-muted-foreground">
-            Free to download. 7-day free trial. Then one payment, yours forever.
+            MONEE is open source software. You can host it yourself for free, or
+            pay a small one-time fee for our managed cloud version.
           </p>
         </div>
-        <div className="max-w-lg mx-auto">
-          <Card className="border-4 border-primary relative overflow-hidden">
-            <div className="absolute top-0 right-0 bg-primary text-primary-foreground px-4 py-1 text-sm font-semibold">
-              Limited Lifetime Offer
-            </div>
+        
+        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          {/* Self-Hosted Option */}
+          <Card className="border-2 relative">
             <CardContent className="p-8 space-y-6">
               <div className="text-center space-y-2">
-                <h3 className="text-2xl font-bold">MONEE Lifetime Access</h3>
-                <div className="flex items-center justify-center gap-3">
-                  <span className="text-5xl font-bold text-primary">
-                    KSh 999
-                  </span>
-                  <div className="text-left">
-                    <div className="text-2xl text-muted-foreground line-through">
-                      KSh 10,000
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      True Value
-                    </div>
-                  </div>
+                <h3 className="text-2xl font-bold">Self-Hosted</h3>
+                <div className="flex items-center justify-center gap-2">
+                  <span className="text-4xl font-bold">Free</span>
+                  <span className="text-muted-foreground">/ Forever</span>
                 </div>
-                <Badge variant="secondary" className="text-base">
-                  One-time payment • Lifetime access • Best deal ever
+                <Badge variant="outline" className="text-base">
+                  For Developers & DIYers
                 </Badge>
-                <p className="text-sm text-muted-foreground font-semibold">
-                  Worth KSh 10,000-15,000. Pay once. Own forever. No monthly
-                  fees.
+                <p className="text-sm text-muted-foreground font-medium pt-2">
+                  Host it yourself. You own your data infrastructure.
                 </p>
               </div>
 
               <div className="space-y-3">
-                <p className="text-sm font-semibold">Everything Included:</p>
+                <p className="text-sm font-semibold">What you get:</p>
                 <div className="space-y-2">
                   {[
-                    "Quick expense tracking (manual or M-Pesa import)",
-                    "Debt tracking with progress visualization",
-                    "Savings goals with target tracking",
-                    "Income source management",
-                    "Rich analytics and insights",
-                    "Auto-categorization & learning",
-                    "Offline-first PWA - works everywhere",
-                    "Cloud sync across all devices",
+                    "Full source code access (GitHub)",
+                    "Deploy on your own Vercel/Netlify",
+                    "Configure your own InstantDB",
+                    "Community support",
+                    "Manual updates & maintenance",
+                    "Full control over infrastructure",
                   ].map((item, i) => (
                     <div key={i} className="flex items-start gap-2">
-                      <CheckCircle2 className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-                      <span className="text-sm">{item}</span>
+                      <CheckCircle2 className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
+                      <span className="text-sm text-muted-foreground">{item}</span>
                     </div>
                   ))}
                 </div>
               </div>
 
-              <div className="pt-4 border-t space-y-3">
-                <div className="flex items-center gap-2 text-sm">
-                  <CheckCircle2 className="h-4 w-4 text-green-600" />
-                  <span>7-day free trial included</span>
+              <div className="pt-6 mt-auto">
+                <Link href="https://github.com/yourusername/monee" target="_blank" className="block">
+                  <Button size="lg" variant="outline" className="w-full">
+                    View Source Code
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </Link>
+                <p className="text-xs text-center text-muted-foreground mt-4">
+                  Requires technical knowledge to set up and maintain.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Cloud Lifetime Option */}
+          <Card className="border-4 border-primary relative overflow-hidden shadow-xl">
+            <div className="absolute top-0 right-0 bg-primary text-primary-foreground px-4 py-1 text-sm font-semibold">
+              Most Popular
+            </div>
+            <CardContent className="p-8 space-y-6">
+              <div className="text-center space-y-2">
+                <h3 className="text-2xl font-bold">Cloud Lifetime</h3>
+                <div className="flex items-center justify-center gap-3">
+                  <span className="text-5xl font-bold text-primary">
+                    KSh 999
+                  </span>
+                  <div className="text-left">
+                    <div className="text-xl text-muted-foreground line-through">
+                      KSh 10,000
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <CheckCircle2 className="h-4 w-4 text-green-600" />
-                  <span>All future updates included</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <CheckCircle2 className="h-4 w-4 text-green-600" />
-                  <span>No monthly fees, ever</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <CheckCircle2 className="h-4 w-4 text-green-600" />
-                  <span>Works offline on all devices</span>
+                <Badge variant="default" className="text-base">
+                  One-time Payment
+                </Badge>
+                <p className="text-sm text-muted-foreground font-semibold pt-2">
+                  Zero setup. We handle hosting, backups, and updates.
+                </p>
+              </div>
+
+              <div className="space-y-3">
+                <p className="text-sm font-semibold">Everything in Self-Hosted plus:</p>
+                <div className="space-y-2">
+                  {[
+                    "Instant setup - start in seconds",
+                    "Managed secure cloud hosting",
+                    "Automatic backups",
+                    "Seamless auto-updates",
+                    "Priority support",
+                    "100% maintenance free",
+                    "7-day free trial included",
+                  ].map((item, i) => (
+                    <div key={i} className="flex items-start gap-2">
+                      <CheckCircle2 className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                      <span className="text-sm font-medium">{item}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
 
-              <Link href="/login" className="block">
-                <Button size="lg" className="w-full">
-                  Download App - Start Free Trial
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </Link>
-
-              <p className="text-xs text-center text-muted-foreground">
-                Free to download. 7-day free trial. No credit card required.
-                Then KSh 999 one-time — worth KSh 10,000-15,000. Best deal ever.
-              </p>
+              <div className="pt-6">
+                <Link href="/login" className="block">
+                  <Button size="lg" className="w-full">
+                    Start Free Trial
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </Link>
+                <p className="text-xs text-center text-muted-foreground mt-4">
+                  Free to download. 7-day free trial. Then KSh 999 one-time.
+                </p>
+              </div>
             </CardContent>
           </Card>
         </div>
