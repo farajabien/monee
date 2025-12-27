@@ -166,6 +166,16 @@ const _schema = i.schema({
       userEmail: i.string().optional(),
       createdAt: i.number().indexed(),
     }),
+    wishlist_items: i.entity({
+      name: i.string().indexed(),
+      price: i.number().indexed(),
+      priority: i.string().indexed(), // high | medium | low
+      status: i.string().indexed(), // wishlist | purchased | cancelled
+      savedAmount: i.number().optional(), // Amount saved toward this item
+      notes: i.string().optional(),
+      createdAt: i.number().indexed(),
+      updatedAt: i.number().optional().indexed(),
+    }),
   },
   links: {
     userProfiles: {
@@ -231,6 +241,10 @@ const _schema = i.schema({
     profileFeedback: {
       forward: { on: "feedback", has: "one", label: "profile" },
       reverse: { on: "profiles", has: "many", label: "feedback" },
+    },
+    profileWishlistItems: {
+      forward: { on: "wishlist_items", has: "one", label: "profile" },
+      reverse: { on: "profiles", has: "many", label: "wishlistItems" },
     },
   },
   rooms: {},
