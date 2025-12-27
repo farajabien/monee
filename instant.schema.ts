@@ -1,3 +1,5 @@
+// Docs: https://www.instantdb.com/docs/modeling-data
+
 import { i } from "@instantdb/react";
 
 const _schema = i.schema({
@@ -8,98 +10,155 @@ const _schema = i.schema({
     }),
     $users: i.entity({
       email: i.string().unique().indexed().optional(),
-      type: i.string().optional(),
       hasPaid: i.boolean().optional(),
-      paymentDate: i.number().optional().indexed(),
+      imageURL: i.string().optional(),
+      paymentDate: i.number().indexed().optional(),
       paystackReference: i.string().optional(),
+      type: i.string().optional(),
     }),
-    profiles: i.entity({
-      handle: i.string(),
-      createdAt: i.number().indexed(),
-      onboardingCompleted: i.boolean().optional(),
-      onboardingStep: i.string().optional(),
-      currency: i.string().optional(),
-      locale: i.string().optional(),
-    }),
-    // Core Entity 1: Income
-    income: i.entity({
-      amount: i.number().indexed(),
-      source: i.string(), // Where it's from (salary, freelance, friend, etc.)
-      type: i.string().indexed(), // "one-time" or "recurring"
-      date: i.number().indexed(),
-      notes: i.string().optional(),
-      isRecurring: i.boolean().optional(),
-      frequency: i.string().optional(), // "monthly" for recurring
-      createdAt: i.number().indexed(),
-    }),
-    // Core Entity 2: Debts (two-way tracking)
-    // TEMPORARY: Fields marked optional for migration - will be required after data fix
     debts: i.entity({
-      personName: i.string().indexed().optional(), // Friend's name
       amount: i.number().indexed().optional(),
-      currentBalance: i.number().indexed().optional(), // Remaining balance
-      direction: i.string().indexed().optional(), // "I_OWE" or "THEY_OWE_ME"
-      date: i.number().indexed().optional(), // When borrowed/lent
-      dueDate: i.number().optional().indexed(), // When to pay back
-      status: i.string().indexed().optional(), // "pending" | "paid" | "collected"
-      notes: i.string().optional(),
+      compoundingFrequency: i.string().optional(),
       createdAt: i.number().indexed().optional(),
-      // Debt configuration fields
-      interestRate: i.number().optional(), // Annual interest rate (e.g., 5 for 5%)
-      debtType: i.string().optional(), // "one-time" | "interest-push" | "amortizing"
-      compoundingFrequency: i.string().optional(), // "monthly" | "quarterly" | "annually"
-      monthlyPayment: i.number().optional(), // Agreed monthly payment amount
+      currentBalance: i.number().indexed().optional(),
+      date: i.number().indexed().optional(),
+      debtType: i.string().optional(),
+      direction: i.string().indexed().optional(),
+      dueDate: i.number().indexed().optional(),
+      interestRate: i.number().optional(),
+      monthlyPayment: i.number().optional(),
+      notes: i.string().optional(),
+      personName: i.string().indexed().optional(),
+      status: i.string().indexed().optional(),
     }),
-    // Core Entity 3: Expenses (with recurring support)
     expenses: i.entity({
       amount: i.number().indexed(),
-      category: i.string().optional(), // Food, Transport, Rent, Subscriptions, etc.
-      recipient: i.string().optional(), // Where money was spent
+      category: i.string().optional(),
+      createdAt: i.number().indexed(),
       date: i.number().indexed(),
+      frequency: i.string().optional(),
+      isRecurring: i.boolean().optional(),
+      nextDueDate: i.number().indexed().optional(),
       notes: i.string().optional(),
-      isRecurring: i.boolean().optional(), // Track if it's recurring (rent, subscription, etc.)
-      frequency: i.string().optional(), // "monthly", "weekly", "yearly" for recurring expenses
-      nextDueDate: i.number().optional().indexed(), // When next payment is due (for recurring)
-      createdAt: i.number().indexed(),
+      recipient: i.string().optional(),
     }),
-    // Core Entity 4: Wishlist (ELLIW - Every Little Thing I Want)
-    wishlist: i.entity({
-      itemName: i.string().indexed(),
-      amount: i.number().optional(), // Estimated price
-      status: i.string().indexed(), // "want" | "got"
-      gotDate: i.number().optional().indexed(), // When purchased
-      notes: i.string().optional(),
+    income: i.entity({
+      amount: i.number().indexed(),
       createdAt: i.number().indexed(),
-      category: i.string().optional(), // "purchase" | "savings_contribution"
+      date: i.number().indexed(),
+      frequency: i.string().optional(),
+      isRecurring: i.boolean().optional(),
+      notes: i.string().optional(),
+      source: i.string(),
+      type: i.string().indexed(),
+    }),
+    profiles: i.entity({
+      createdAt: i.number().indexed(),
+      currency: i.string().optional(),
+      handle: i.string(),
+      locale: i.string().optional(),
+      onboardingCompleted: i.boolean().optional(),
+      onboardingStep: i.string().optional(),
+    }),
+    wishlist: i.entity({
+      amount: i.number().optional(),
+      category: i.string().optional(),
+      createdAt: i.number().indexed(),
+      gotDate: i.number().indexed().optional(),
+      itemName: i.string().indexed(),
+      notes: i.string().optional(),
+      status: i.string().indexed(),
     }),
   },
   links: {
-    userProfiles: {
-      forward: { on: "profiles", has: "one", label: "user" },
-      reverse: { on: "$users", has: "one", label: "profile" },
+    $usersLinkedPrimaryUser: {
+      forward: {
+        on: "$users",
+        has: "one",
+        label: "linkedPrimaryUser",
+        onDelete: "cascade",
+      },
+      reverse: {
+        on: "$users",
+        has: "many",
+        label: "linkedGuestUsers",
+      },
     },
-    profileIncome: {
-      forward: { on: "income", has: "one", label: "profile" },
-      reverse: { on: "profiles", has: "many", label: "income" },
+    debtsProfile: {
+      forward: {
+        on: "debts",
+        has: "one",
+        label: "profile",
+        required: true,
+        onDelete: "cascade",
+      },
+      reverse: {
+        on: "profiles",
+        has: "many",
+        label: "debts",
+      },
     },
-    profileDebts: {
-      forward: { on: "debts", has: "one", label: "profile" },
-      reverse: { on: "profiles", has: "many", label: "debts" },
+    expensesProfile: {
+      forward: {
+        on: "expenses",
+        has: "one",
+        label: "profile",
+        onDelete: "cascade",
+      },
+      reverse: {
+        on: "profiles",
+        has: "many",
+        label: "expenses",
+      },
     },
-    profileExpenses: {
-      forward: { on: "expenses", has: "one", label: "profile" },
-      reverse: { on: "profiles", has: "many", label: "expenses" },
+    incomeProfile: {
+      forward: {
+        on: "income",
+        has: "one",
+        label: "profile",
+        required: true,
+        onDelete: "cascade",
+      },
+      reverse: {
+        on: "profiles",
+        has: "many",
+        label: "income",
+      },
     },
-    profileWishlist: {
-      forward: { on: "wishlist", has: "one", label: "profile" },
-      reverse: { on: "profiles", has: "many", label: "wishlist" },
+    profilesUser: {
+      forward: {
+        on: "profiles",
+        has: "one",
+        label: "user",
+        required: true,
+        onDelete: "cascade",
+      },
+      reverse: {
+        on: "$users",
+        has: "one",
+        label: "profile",
+        onDelete: "cascade",
+      },
+    },
+    wishlistProfile: {
+      forward: {
+        on: "wishlist",
+        has: "one",
+        label: "profile",
+      },
+      reverse: {
+        on: "profiles",
+        has: "many",
+        label: "wishlist",
+      },
     },
   },
   rooms: {},
 });
 
+// This helps Typescript display nicer intellisense
 type _AppSchema = typeof _schema;
-type AppSchema = _AppSchema;
+interface AppSchema extends _AppSchema {}
 const schema: AppSchema = _schema;
 
 export type { AppSchema };
