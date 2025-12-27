@@ -1,111 +1,148 @@
 "use client";
 
-import { useEffect } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import db from "@/lib/db";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Plus, Calendar } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
-import CategoryList from "@/components/categories/category-list";
-import { DashboardOverview } from "@/components/dashboard/dashboard-overview";
-import { DebtList } from "@/components/debts/debt-list";
-import ExpenseList from "@/components/expenses/expense-list";
-import { IncomeSourceList } from "@/components/income/income-source-list";
-import { PWABottomNav } from "@/components/pwa/pwa-bottom-nav";
-import { DesktopHeader } from "@/components/navigation/desktop-header";
-import SavingsPage from "@/components/savings/savings-page";
-import { DashboardSkeleton } from "@/components/ui/skeleton";
+// Placeholder components - we'll create these next
+function IncomeList() {
+  return (
+    <div className="p-4">
+      <div className="mb-4">
+        <h2 className="text-lg font-semibold">Income</h2>
+        <p className="text-sm text-muted-foreground">MRR: KSh 0</p>
+      </div>
+      <div className="text-center py-8 text-muted-foreground">
+        No income recorded yet
+      </div>
+    </div>
+  );
+}
+
+function DebtsList() {
+  return (
+    <div className="p-4">
+      <div className="mb-4">
+        <h2 className="text-lg font-semibold">Debts</h2>
+        <p className="text-sm text-muted-foreground">Total to Pay: KSh 0</p>
+      </div>
+      <div className="space-y-4">
+        <div>
+          <h3 className="text-sm font-medium mb-2">People I Owe</h3>
+          <div className="text-center py-4 text-muted-foreground text-sm">
+            No debts to pay
+          </div>
+        </div>
+        <div>
+          <h3 className="text-sm font-medium mb-2">People Who Owe Me</h3>
+          <div className="text-center py-4 text-muted-foreground text-sm">
+            No debts to collect
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ExpensesList() {
+  return (
+    <div className="p-4">
+      <div className="mb-4">
+        <h2 className="text-lg font-semibold">Expenses</h2>
+        <p className="text-sm text-muted-foreground">Total Spent: KSh 0</p>
+      </div>
+      <div className="text-center py-8 text-muted-foreground">
+        No expenses recorded yet
+      </div>
+    </div>
+  );
+}
+
+function WishlistList() {
+  return (
+    <div className="p-4">
+      <div className="mb-4">
+        <h2 className="text-lg font-semibold">ELLIW</h2>
+        <p className="text-sm text-muted-foreground">Every Little Thing I Want</p>
+      </div>
+      <div className="text-center py-8 text-muted-foreground">
+        No wishlist items yet
+      </div>
+    </div>
+  );
+}
 
 export default function HomeClient() {
   const searchParams = useSearchParams();
-  const router = useRouter();
-  const activeTab = searchParams.get("tab") || "overview";
+  const activeTab = searchParams.get("tab") || "income";
+  const [showAddDialog, setShowAddDialog] = useState(false);
 
-  // Fetch all data with nested relations for comprehensive tracking
-  const { isLoading, error, data } = db.useQuery({
+  const { data, isLoading } = db.useQuery({
     profiles: {},
-    debts: {
-      $: {
-        where: {
-          isActive: true,
-        },
-      },
-      payments: {},
-    },
-    expenses: {
-      recurringTransaction: {},
-      profile: {},
-    },
-    recurring_transactions: {
-      $: {
-        where: {
-          isActive: true,
-        },
-      },
-      linkedExpenses: {},
-    },
-    recipients: {
-      profile: {},
-    },
-    categories: {
-      $: {
-        where: {
-          isActive: true,
-        },
-      },
-    },
-    savings_goals: {
-      contributions: {},
-    },
-    income_sources: {
-      $: {
-        where: {
-          isActive: true,
-        },
-      },
-    },
   });
 
   const profile = data?.profiles?.[0];
 
-  // Check onboarding status and redirect if incomplete
-  useEffect(() => {
-    if (!isLoading && profile) {
-      if (!profile.onboardingCompleted) {
-        router.push("/onboarding");
-      }
-    }
-  }, [isLoading, profile, router]);
-
-  if (isLoading) return <DashboardSkeleton title="Loading home..." />;
-  if (error) return <div>Error: {error.message}</div>;
-  if (!profile) return <div>No profile found</div>;
-
-  // Don't render content if onboarding is incomplete (will redirect)
-  if (!profile.onboardingCompleted) {
+  if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto" />
-        </div>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
       </div>
     );
   }
 
   return (
-    <>
-      {/* Desktop Header Navigation - Hidden on mobile */}
-      <DesktopHeader />
+    <div className="flex flex-col h-screen">
+      {/* Main content area */}
+      <div className="flex-1 overflow-auto pb-20">
+        <Tabs defaultValue={activeTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-4 sticky top-0 z-10 bg-background">
+            <TabsTrigger value="income">Income</TabsTrigger>
+            <TabsTrigger value="debts">Debts</TabsTrigger>
+            <TabsTrigger value="expenses">Expenses</TabsTrigger>
+            <TabsTrigger value="elliw">ELLIW</TabsTrigger>
+          </TabsList>
 
-      {/* Content */}
-      <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 py-6 pb-24 md:pb-6 overflow-x-hidden">
-        {activeTab === "overview" && <DashboardOverview />}
-        {activeTab === "expenses" && <ExpenseList />}
-        {activeTab === "debts" && <DebtList />}
-        {activeTab === "income" && <IncomeSourceList />}
-        {activeTab === "savings" && <SavingsPage />}
-        {activeTab === "categories" && <CategoryList />}
+          <TabsContent value="income" className="mt-0">
+            <IncomeList />
+          </TabsContent>
+
+          <TabsContent value="debts" className="mt-0">
+            <DebtsList />
+          </TabsContent>
+
+          <TabsContent value="expenses" className="mt-0">
+            <ExpensesList />
+          </TabsContent>
+
+          <TabsContent value="elliw" className="mt-0">
+            <WishlistList />
+          </TabsContent>
+        </Tabs>
       </div>
 
-      <PWABottomNav />
-    </>
+      {/* Bottom Navigation */}
+      <div className="fixed bottom-0 left-0 right-0 bg-background border-t">
+        <div className="grid grid-cols-3 gap-2 p-4 max-w-5xl mx-auto">
+          <Button variant="outline" className="w-full">
+            <Calendar className="h-4 w-4 mr-2" />
+            Today
+          </Button>
+          <Button
+            className="w-full"
+            onClick={() => setShowAddDialog(true)}
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Add
+          </Button>
+          <Button variant="outline" className="w-full">
+            TBD
+          </Button>
+        </div>
+      </div>
+    </div>
   );
 }

@@ -120,18 +120,13 @@ export function UnifiedAddModal({
       $: {
         where: { "user.id": user?.id || "" },
       },
-      categories: {},
-      recipients: {},
-      expenses: {},
     },
   });
 
   const profile = data?.profiles?.[0];
-  const categories: Category[] = (profile?.categories || []).filter(
-    (c) => c.isActive !== false
-  );
-  const savedRecipients: Recipient[] = profile?.recipients || [];
-  const expenses = profile?.expenses || [];
+  const categories: Category[] = []; // Removed - no longer using categories
+  const savedRecipients: Recipient[] = []; // Removed
+  const expenses = []; // Removed
 
   // Get unique recipients from expenses
   const uniqueRecipients = Array.from(
