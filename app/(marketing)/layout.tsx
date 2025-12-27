@@ -1,4 +1,4 @@
-import { PWARedirectGuard } from "@/components/pwa/pwa-redirect-guard";
+// import { PWARedirectGuard } from "@/components/pwa/pwa-redirect-guard";
 
 export default function MarketingLayout({
   children,
@@ -7,7 +7,7 @@ export default function MarketingLayout({
 }) {
   return (
     <>
-      <PWARedirectGuard redirectTo="/dashboard" />
+      {/* <PWARedirectGuard redirectTo="/dashboard" /> */}
       {children}
     </>
   );

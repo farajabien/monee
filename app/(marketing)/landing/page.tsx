@@ -6,9 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { HowToGetStatement } from "@/components/how-to-get-statement";
-import { FAQSection } from "@/components/marketing/faq-section";
-import { Footer } from "@/components/marketing/footer";
-import { BetaBadge } from "@/components/marketing/beta-badge";
 import { ThemeToggle } from "@/components/theme-toggle";
 import {
   ArrowRight,
@@ -171,7 +168,7 @@ export default function LandingPage() {
             {/* Left: Text Content */}
             <div className="space-y-8 text-center md:text-left">
               <div className="flex flex-wrap items-center gap-2 justify-center md:justify-start">
-                <BetaBadge variant="gradient" size="sm" />
+                {/* <BetaBadge variant="gradient" size="sm" /> */}
                 <Badge variant="secondary" className="w-fit">
                   <Zap className="h-3 w-3 mr-1" />
                   Built for Real Life in Kenya 🇰🇪
@@ -410,7 +407,7 @@ export default function LandingPage() {
           <Card className="border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-blue-500/5">
             <CardContent className="p-8 md:p-12 text-center space-y-6">
               <div className="flex justify-center">
-                <BetaBadge variant="gradient" size="lg" />
+                {/* <BetaBadge variant="gradient" size="lg" /> */}
               </div>
               <h2 className="text-2xl md:text-3xl font-bold">
                 Help Shape the Future of MONEE
@@ -713,10 +710,11 @@ export default function LandingPage() {
       </section>
 
       {/* FAQ Section */}
-      <FAQSection />
+      {/* FAQ Section */}
+      {/* <FAQSection /> */}
 
       {/* Footer */}
-      <Footer />
+      {/* <Footer /> */}
     </div>
   );
 }

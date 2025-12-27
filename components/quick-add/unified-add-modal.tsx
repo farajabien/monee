@@ -126,7 +126,7 @@ export function UnifiedAddModal({
   const profile = data?.profiles?.[0];
   const categories: Category[] = []; // Removed - no longer using categories
   const savedRecipients: Recipient[] = []; // Removed
-  const expenses = []; // Removed
+  const expenses: any[] = []; // Removed
 
   // Get unique recipients from expenses
   const uniqueRecipients = Array.from(
@@ -230,25 +230,18 @@ export function UnifiedAddModal({
                 recipient: finalRecipient,
                 date: new Date(date).getTime(),
                 category: selectedCategory || "Uncategorized",
-                rawMessage: `Manual entry: Ksh${amount} to ${finalRecipient}`,
-                parsedData: {
-                  amount: parsedAmount,
-                  recipient: finalRecipient,
-                  timestamp: new Date(date).getTime(),
-                  type: "manual",
-                },
+                // rawMessage: `Manual entry: Ksh${amount} to ${finalRecipient}`,
+                // parsedData: ...
                 isRecurring: isRecurring,
-                recurringTransactionId: recurringId,
-                paymentDetails:
-                  Object.keys(paymentDetailsObj).length > 0
-                    ? paymentDetailsObj
-                    : undefined,
+                // recurringTransactionId: recurringId,
+                // paymentDetails: ...
                 createdAt: now,
               })
               .link({ profile: profile.id })
           );
 
           // If recurring, create recurring transaction record
+          /*
           if (isRecurring && recurringId) {
             await db.transact(
               db.tx.recurring_transactions[recurringId]
@@ -277,6 +270,7 @@ export function UnifiedAddModal({
                 .link({ profile: profile.id })
             );
           }
+          */
 
           toast.success(
             isRecurring
@@ -292,13 +286,16 @@ export function UnifiedAddModal({
             return;
           }
           await db.transact([
-            db.tx.income_sources[id()]
+            db.tx.income[id()]
               .update({
-                name: sourceName,
+                source: sourceName,
                 amount: parsedAmount,
                 frequency: frequency,
-                isActive: true,
-                paydayDay: 1,
+                isRecurring: true, // Assuming generic setup implies recurring logic intent
+                type: "recurring",
+                date: now,
+                // isActive: true,
+                // paydayDay: 1,
                 createdAt: now,
               })
               .link({ profile: profile.id }),
@@ -344,24 +341,22 @@ export function UnifiedAddModal({
           await db.transact([
             db.tx.debts[id()]
               .update({
-                debtor: debtName,
-                debtTaken: parsedAmount,
+                personName: debtName,
+                amount: parsedAmount,
                 currentBalance: parsedAmount,
-                repaymentTerms: debtType,
-                interestRate: parsedInterestRate,
-                interestFrequency: interestCalcType,
-                paymentDueDay: hasInterest ? parseInt(paymentDueDay || "1") : 0,
-                monthlyPaymentAmount:
-                  debtType === "amortizing"
-                    ? parseFloat(monthlyPayment || "0")
-                    : 0,
-                compoundingFrequency: hasInterest ? "monthly" : undefined,
-                paymentDetails:
-                  Object.keys(debtPaymentDetails).length > 0
-                    ? debtPaymentDetails
-                    : undefined,
+                direction: "I_OWE",
+                date: now,
+                status: "pending",
+                notes: `Terms: ${debtType}, Rate: ${interestRate}%`,
+                // repaymentTerms: debtType,
+                // interestRate: parsedInterestRate,
+                // interestFrequency: interestCalcType,
+                // paymentDueDay: hasInterest ? parseInt(paymentDueDay || "1") : 0,
+                // monthlyPaymentAmount: ...,
+                // compoundingFrequency: hasInterest ? "monthly" : undefined,
+                // paymentDetails: ...,
                 createdAt: now,
-                updatedAt: now,
+                // updatedAt: now,
               })
               .link({ profile: profile.id }),
           ]);
@@ -369,64 +364,15 @@ export function UnifiedAddModal({
           break;
 
         case "savings":
+          toast.error("Savings goals are currently disabled.");
+          /*
           if (!savingsName) {
             toast.error("Please enter a goal name");
             setIsSubmitting(false);
             return;
           }
-          if (!targetAmount) {
-            toast.error("Please enter a target amount");
-            setIsSubmitting(false);
-            return;
-          }
-
-          // Validation for regular savings
-          if (isRegularSavings && !regularSavingsAmount) {
-            toast.error("Please enter regular contribution amount");
-            setIsSubmitting(false);
-            return;
-          }
-
-          const goalId = id();
-          const nextDue = isRegularSavings
-            ? calculateNextDueDate(new Date(), savingsFrequency)
-            : undefined;
-
-          await db.transact([
-            db.tx.savings_goals[goalId]
-              .update({
-                name: savingsName,
-                targetAmount: parseFloat(targetAmount),
-                currentAmount: parsedAmount,
-                deadline: deadline ? new Date(deadline).getTime() : undefined,
-                isCompleted: false,
-                createdAt: now,
-                // Regular savings fields
-                isRegular: isRegularSavings,
-                frequency: isRegularSavings ? savingsFrequency : undefined,
-                regularAmount: isRegularSavings
-                  ? parseFloat(regularSavingsAmount)
-                  : undefined,
-                nextDueDate: nextDue,
-                lastContributionDate: parsedAmount > 0 ? now : undefined,
-              })
-              .link({ profile: profile.id }),
-            // Add initial contribution if amount > 0
-            ...(parsedAmount > 0
-              ? [
-                  db.tx.savings_contributions[id()]
-                    .update({
-                      amount: parsedAmount,
-                      date: now,
-                      contributionDate: now,
-                      notes: "Initial contribution",
-                      createdAt: now,
-                    })
-                    .link({ goal: goalId }),
-                ]
-              : []),
-          ]);
-          toast.success("Savings goal added successfully");
+           ... (commented out savings logic)
+          */
           break;
       }
 

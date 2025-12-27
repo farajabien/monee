@@ -64,7 +64,8 @@ function extractPaymentInfo(expense: Expense): {
   till?: string;
   account?: string;
 } {
-  const rawMessage = expense.rawMessage?.toLowerCase() || "";
+  // const rawMessage = expense.rawMessage?.toLowerCase() || "";
+  const rawMessage = expense.notes?.toLowerCase() || "";
   const result: { paybill?: string; till?: string; account?: string } = {};
 
   // Extract paybill number
@@ -203,10 +204,10 @@ export function matchParsedToRecurring(
     recipient: parsed.recipient || "",
     date: parsed.timestamp || Date.now(),
     category: "Uncategorized",
-    rawMessage: rawMessage,
-    parsedData: parsed,
+    // rawMessage: rawMessage,
+    // parsedData: parsed,
     createdAt: Date.now(),
-  };
+  } as unknown as Expense;
 
   return matchExpenseToRecurring(tempExpense, recurringTransactions);
 }

@@ -70,17 +70,19 @@ export function AddCategoryDialog({
     setIsSubmitting(true);
     try {
       const categoryId = id();
-      await db.transact(
-        db.tx.categories[categoryId]
-          .update({
-            name: name.trim(),
-            color: color,
-            icon: "",
-            isActive: true,
-            createdAt: Date.now(),
-          })
-          .link({ profile: profile.id })
-      );
+      
+      // TODO: Add categories entity to schema before enabling this
+      // await db.transact(
+      //   db.tx.categories[categoryId]
+      //     .update({
+      //       name: name.trim(),
+      //       color: color,
+      //       icon: "",
+      //       isActive: true,
+      //       createdAt: Date.now(),
+      //     })
+      //     .link({ profile: profile.id })
+      // );
 
       if (onCategoryCreated) {
         onCategoryCreated(categoryId, name.trim(), color);

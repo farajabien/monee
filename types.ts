@@ -17,125 +17,38 @@ export type ExpenseWithUser = InstaQLEntity<
   "expenses",
   { profile: object }
 >;
-export type ExpenseWithRecurringTransaction = InstaQLEntity<
-  typeof schema,
-  "expenses",
-  { recurringTransaction: object }
->;
 
-// Category types
-export type Category = InstaQLEntity<typeof schema, "categories">;
-export type CategoryWithUser = InstaQLEntity<
-  typeof schema,
-  "categories",
-  { profile: object }
->;
-
-// Budget types
-export type Budget = InstaQLEntity<typeof schema, "budgets">;
-export type BudgetWithCategory = InstaQLEntity<
-  typeof schema,
-  "budgets",
-  { category: object }
->;
-export type BudgetWithProfile = InstaQLEntity<
-  typeof schema,
-  "budgets",
-  { profile: object }
->;
-
-// Daily Check-in types
-export type DailyCheckin = InstaQLEntity<typeof schema, "daily_checkins">;
-export type DailyCheckinWithUser = InstaQLEntity<
-  typeof schema,
-  "daily_checkins",
-  { profile: object }
->;
-
-// Income Source types
-export type IncomeSource = InstaQLEntity<typeof schema, "income_sources">;
-export type IncomeSourceWithUser = InstaQLEntity<
-  typeof schema,
-  "income_sources",
-  { profile: object }
->;
+// Income types
+export type IncomeSource = InstaQLEntity<typeof schema, "income">;
 
 // Debt types
 export type Debt = InstaQLEntity<typeof schema, "debts">;
-export type DebtWithUser = InstaQLEntity<
-  typeof schema,
-  "debts",
-  { profile: object }
->;
-export type DebtWithPayments = InstaQLEntity<
-  typeof schema,
-  "debts",
-  { payments: object }
->;
 
-// Debt Payment types
-export type DebtPayment = InstaQLEntity<typeof schema, "debt_payments">;
-export type DebtPaymentWithDebt = InstaQLEntity<
-  typeof schema,
-  "debt_payments",
-  { debt: object }
->;
+// Wishlist types
+export type WishlistItem = InstaQLEntity<typeof schema, "wishlist">;
 
-// Recipient types
-export type Recipient = InstaQLEntity<typeof schema, "recipients">;
-export type RecipientWithUser = InstaQLEntity<
-  typeof schema,
-  "recipients",
-  { profile: object }
->;
+// Category types
+// TODO: Add categories entity to schema before enabling these types
+// export type Category = InstaQLEntity<typeof schema, "categories">;
+// export type CategoryWithUser = InstaQLEntity<
+//   typeof schema,
+//   "categories",
+//   { profile: object }
+// >;
 
-// Savings Goal types
-export type SavingsGoal = InstaQLEntity<typeof schema, "savings_goals">;
-export type SavingsGoalWithUser = InstaQLEntity<
-  typeof schema,
-  "savings_goals",
-  { profile: object }
->;
-export type SavingsGoalWithContributions = InstaQLEntity<
-  typeof schema,
-  "savings_goals",
-  { contributions: object }
->;
+// Temporary inline type for categories until schema is updated
+export interface Category {
+  id: string;
+  name: string;
+  color?: string;
+  icon?: string;
+  isActive?: boolean;
+  createdAt?: number;
+  updatedAt?: number;
+}
 
-// Savings Contribution types
-export type SavingsContribution = InstaQLEntity<
-  typeof schema,
-  "savings_contributions"
->;
-export type SavingsContributionWithGoal = InstaQLEntity<
-  typeof schema,
-  "savings_contributions",
-  { goal: object }
->;
 
-// Recurring Transaction types
-export type RecurringTransaction = InstaQLEntity<
-  typeof schema,
-  "recurring_transactions"
->;
-export type RecurringTransactionWithUser = InstaQLEntity<
-  typeof schema,
-  "recurring_transactions",
-  { profile: object }
->;
-export type RecurringTransactionWithExpenses = InstaQLEntity<
-  typeof schema,
-  "recurring_transactions",
-  { linkedExpenses: object }
->;
 
-// Feedback types
-export type Feedback = InstaQLEntity<typeof schema, "feedback">;
-export type FeedbackWithUser = InstaQLEntity<
-  typeof schema,
-  "feedback",
-  { profile: object }
->;
 
 // Payment type enum
 export type PaymentType = "interest_only" | "principal" | "both";
@@ -154,10 +67,6 @@ export type DebtType = "one-time" | "interest-push" | "amortizing";
 // Compounding frequency enum
 export type CompoundingFrequency = "monthly" | "quarterly" | "annually";
 
-// Recurring transaction with linked expenses
-export interface RecurringTransactionWithPayments extends RecurringTransaction {
-  linkedExpenses?: Expense[];
-}
 
 // Parsed expense data structure
 export interface ParsedExpenseData {
@@ -169,4 +78,25 @@ export interface ParsedExpenseData {
   timestamp?: number;
   phoneNumber?: string; // Extracted phone number from SMS (e.g., 0712345678)
   transactionCost?: number; // Transaction fee charged by M-Pesa
+}
+
+export interface Recipient {
+  id: string;
+  originalName: string;
+  nickname: string;
+}
+
+export interface RecurringTransaction {
+  id: string;
+  recipient: string;
+  category: string;
+  amount: number;
+  frequency: string;
+  lastPaidDate?: number;
+  dueDate?: number;
+  reminderDays?: number;
+  isActive: boolean;
+  isPaused: boolean;
+  createdAt: number;
+  updatedAt?: number;
 }

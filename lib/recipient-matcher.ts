@@ -217,8 +217,8 @@ export function matchRecipient(
   if (incomingPhone) {
     for (const expense of existingExpenses) {
       // Check if expense has phone number in rawMessage or notes
-      const expensePhone = expense.rawMessage?.match(/(\d{10})/)?.[1] || 
-                          expense.notes?.match(/(\d{10})/)?.[1];
+      // Check if expense has phone number in notes
+      const expensePhone = expense.notes?.match(/(\d{10})/)?.[1];
       
       if (!expensePhone) continue;
       
@@ -226,7 +226,7 @@ export function matchRecipient(
       
       if (phoneMatch.match) {
         const suggestedCategory = findMostCommonCategoryForRecipient(
-          expense.recipient,
+          expense.recipient || "",
           existingExpenses
         );
         
@@ -242,7 +242,7 @@ export function matchRecipient(
         return {
           confidence: "high",
           recipientId: expense.id,
-          recipientName: expense.recipient,
+          recipientName: expense.recipient || "Unknown",
           matchedBy: phoneMatch.isPartial ? "phone-partial" : "phone-exact",
           suggestedCategory: suggestedCategory || undefined,
           categoryConfidence,
@@ -259,7 +259,7 @@ export function matchRecipient(
     } | null = null;
     
     for (const expense of existingExpenses) {
-      const similarity = calculateSimilarity(incomingName, expense.recipient);
+      const similarity = calculateSimilarity(incomingName, expense.recipient || "");
       
       if (similarity > 60 && (!bestMatch || similarity > bestMatch.similarity)) {
         bestMatch = { expense, similarity };
@@ -268,7 +268,7 @@ export function matchRecipient(
     
     if (bestMatch) {
       const suggestedCategory = findMostCommonCategoryForRecipient(
-        bestMatch.expense.recipient,
+        bestMatch.expense.recipient || "",
         existingExpenses
       );
       
@@ -284,7 +284,7 @@ export function matchRecipient(
       return {
         confidence: bestMatch.similarity >= 80 ? "medium" : "low",
         recipientId: bestMatch.expense.id,
-        recipientName: bestMatch.expense.recipient,
+        recipientName: bestMatch.expense.recipient || "Unknown",
         matchedBy: "name-fuzzy",
         suggestedCategory: suggestedCategory || undefined,
         categoryConfidence,

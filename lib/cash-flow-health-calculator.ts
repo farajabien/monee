@@ -37,18 +37,18 @@ function calculateMonthlyIncome(
   incomeSources: IncomeSource[],
   currentDate: Date
 ): number {
-  const currentMonth = currentDate.getMonth() + 1;
+  // const currentMonth = currentDate.getMonth() + 1;
 
   return incomeSources
-    .filter(source => source.isActive)
-    .filter(source => {
-      // If paydayMonth is specified, only include if it matches current month
-      if (source.paydayMonth && source.paydayMonth !== currentMonth) {
-        return false;
-      }
-      return true;
-    })
-    .reduce((sum, source) => sum + source.amount, 0);
+    // .filter(source => source.isActive)
+    // .filter(source => {
+    //   // If paydayMonth is specified, only include if it matches current month
+    //   if (source.paydayMonth && source.paydayMonth !== currentMonth) {
+    //     return false;
+    //   }
+    //   return true;
+    // })
+    .reduce((sum, source) => sum + (source.amount || 0), 0);
 }
 
 /**

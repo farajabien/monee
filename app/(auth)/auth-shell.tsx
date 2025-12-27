@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Sparkles } from "lucide-react";
 import db from "@/lib/db";
 import EnsureProfile from "@/components/ensure-profile";
-import { PaywallDialog } from "@/components/payment/paywall-dialog";
+// import { PaywallDialog } from "@/components/payment/paywall-dialog";
 import { DashboardSkeleton } from "@/components/ui/skeleton";
 
 interface AuthShellProps {
@@ -18,7 +18,7 @@ const FREE_TRIAL_DAYS = 7;
 export default function AuthShell({ children, className }: AuthShellProps) {
   const router = useRouter();
   const { isLoading, user } = db.useAuth();
-  const [showPaywall, setShowPaywall] = useState(false);
+  // const [showPaywall, setShowPaywall] = useState(false);
 
   // Query the actual $users entity to get payment status
   const { data: usersData, isLoading: isLoadingUsers } = db.useQuery(
@@ -43,19 +43,14 @@ export default function AuthShell({ children, className }: AuthShellProps) {
   const userRecord = usersData?.$users?.find((u) => u.id === user?.id);
   const profile = profileData?.profiles?.[0];
 
-  // Calculate trial status
-  const profileCreatedAt = profile?.createdAt || new Date().getTime();
-  const daysSinceCreation = Math.floor(
-    (new Date().getTime() - profileCreatedAt) / (1000 * 60 * 60 * 24)
-  );
-  const isTrialActive = daysSinceCreation < FREE_TRIAL_DAYS;
-
   useEffect(() => {
     if (!isLoading && !user) {
       router.push("/login");
     }
   }, [isLoading, user, router]);
 
+  // Payment logic commented out
+  /*
   useEffect(() => {
     // Check payment status after user and payment data loads
     if (
@@ -81,6 +76,7 @@ export default function AuthShell({ children, className }: AuthShellProps) {
     userRecord,
     isTrialActive,
   ]);
+  */
 
   if (isLoading || isLoadingUsers || isLoadingProfile) {
     return (
@@ -101,12 +97,13 @@ export default function AuthShell({ children, className }: AuthShellProps) {
   }
 
   // Allow access if user has paid OR trial is active
-  const hasPaid = userRecord?.hasPaid === true;
-  const hasAccess = hasPaid || isTrialActive;
+  // const hasPaid = userRecord?.hasPaid === true;
+  // const hasAccess = hasPaid || isTrialActive;
+  const hasAccess = true;
 
   return (
     <>
-      <PaywallDialog open={showPaywall} onOpenChange={setShowPaywall} />
+      {/* <PaywallDialog open={showPaywall} onOpenChange={setShowPaywall} /> */}
       {hasAccess ? (
         <EnsureProfile>
           <div className={className}>{children}</div>

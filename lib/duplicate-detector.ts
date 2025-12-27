@@ -115,14 +115,14 @@ export function detectDuplicates(
     let confidence: ConfidenceLevel = "none";
 
     // EXACT MATCH: M-Pesa reference code
-    if (parsed.reference && expense.mpesaReference) {
-      if (matchByReference(parsed.reference, expense.mpesaReference)) {
-        matchReasons.push("M-PESA reference code matches");
-        confidence = "exact";
-        matches.push({ expense, confidence, matchReasons });
-        continue; // Exact match found, no need for further checks
-      }
-    }
+    // if (parsed.reference && (expense as any).mpesaReference) {
+    //   if (matchByReference(parsed.reference, (expense as any).mpesaReference)) {
+    //     matchReasons.push("M-PESA reference code matches");
+    //     confidence = "exact";
+    //     matches.push({ expense, confidence, matchReasons });
+    //     continue; // Exact match found, no need for further checks
+    //   }
+    // }
 
     // FUZZY MATCHING: Amount, Date, Recipient
     const amountMatches = amountsMatch(parsed.amount, expense.amount);

@@ -128,7 +128,7 @@ function scheduleDebtReminder(debtId, debtName, dueDate, amount) {
         tag: `debt-reminder-${debtId}`,
         requireInteraction: true,
         data: {
-          url: "/debts",
+          url: "/dashboard?tab=debts",
           type: "debt-reminder",
           debtId,
           dateOfArrival: Date.now(),
@@ -165,7 +165,7 @@ function schedulePaydayReminder(sourceId, sourceName, payday, daysBefore) {
         tag: `payday-reminder-${sourceId}`,
         requireInteraction: false,
         data: {
-          url: "/income",
+          url: "/dashboard?tab=income",
           type: "payday-reminder",
           sourceId,
           dateOfArrival: Date.now(),
@@ -196,7 +196,7 @@ function scheduleSavingsWeeklyNudge() {
       tag: "savings-weekly",
       requireInteraction: false,
       data: {
-        url: "/savings",
+        url: "/dashboard?tab=elliw",
         type: "savings-weekly",
         dateOfArrival: Date.now(),
       },
@@ -216,7 +216,7 @@ function showSavingsTargetNotification(goalName, targetAmount) {
     tag: "savings-target-reached",
     requireInteraction: false,
     data: {
-      url: "/savings",
+      url: "/dashboard?tab=elliw",
       type: "savings-target",
       dateOfArrival: Date.now(),
     },
@@ -237,7 +237,7 @@ function showSpendingThresholdNotification(threshold, currentSpending, isOver) {
     tag: "spending-threshold",
     requireInteraction: false,
     data: {
-      url: "/dashboard",
+      url: "/dashboard?tab=expenses",
       type: "spending-threshold",
       dateOfArrival: Date.now(),
     },
@@ -264,9 +264,9 @@ self.addEventListener("push", function (event) {
 self.addEventListener("notificationclick", function (event) {
   console.log("Notification click received.");
   event.notification.close();
-  
+
   const urlToOpen = event.notification.data?.url || "/dashboard";
-  
+
   event.waitUntil(
     clients.matchAll({ type: "window", includeUnowned: true }).then((clientList) => {
       // Check if there's already a window open

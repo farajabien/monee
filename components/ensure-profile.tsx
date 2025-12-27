@@ -20,7 +20,7 @@ async function createProfile(userId: string) {
     db.tx.profiles[profileId]
       .update({
         handle: randomHandle(),
-        monthlyBudget: 0,
+// monthlyBudget: 0,
         createdAt: Date.now(),
       })
       .link({ user: userId })

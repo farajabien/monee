@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { BarChart3, BookOpen, Sparkles } from "lucide-react";
-import { MPesaAnalyzerClient } from "@/components/marketing/mpesa-analyzer-client";
+// import { MPesaAnalyzerClient } from "@/components/marketing/mpesa-analyzer-client";
 import { HowToGetStatement } from "@/components/how-to-get-statement";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -46,7 +46,7 @@ export default function FreeMPesaAnalyzer() {
           </TabsList>
 
           <TabsContent value="analyzer" className="space-y-6">
-            <MPesaAnalyzerClient />
+            {/* <MPesaAnalyzerClient /> */}
           </TabsContent>
 
           <TabsContent value="guide" className="space-y-6">

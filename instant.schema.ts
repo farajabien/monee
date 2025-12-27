@@ -36,6 +36,7 @@ const _schema = i.schema({
     debts: i.entity({
       personName: i.string().indexed(), // Friend's name
       amount: i.number().indexed(),
+      currentBalance: i.number().indexed(), // Remaining balance
       direction: i.string().indexed(), // "I_OWE" or "THEY_OWE_ME"
       date: i.number().indexed(), // When borrowed/lent
       dueDate: i.number().optional().indexed(), // When to pay back

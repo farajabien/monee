@@ -1,245 +1,244 @@
-# **MONEE – Your Money, Finally in One Place**
+# **MONEE – Track Your Money with Clarity**
 
-Most of us _think_ we know where our money goes… until the end of the month, when it's gone — leaving only screenshots of payments and good intentions.
+> Simple money tracking. Know your cashflow health at a glance.
 
-**MONEE** is your simple, personal money assistant — built for real life in Kenya 🇰🇪 and beyond.
-It helps you **track, understand, and plan your money** — all in one calm, habit-forming routine.
-
----
-
-## **Why MONEE Exists**
-
-Most people buy 5–6 different spreadsheets or templates just to manage different parts of their life: budget tracker, debt tracker, business expenses, student budgets, savings goals… each costing KSh 400–800.
-
-**That's KSh 3,500+ for disconnected files that don't sync, don't talk to each other, and require manual updates.**
-
-**MONEE replaces them all — for just KSh 999, one time.**
-
-Instead of juggling multiple spreadsheets, you get one app that does everything:
-
-- Zero-sum budgeting with visual analytics
-- Debt tracking with interest calculations and payment progress
-- Savings goals with contribution tracking and milestone celebrations
-- Business/side-hustle expense tagging
-- Student academic expense tracking
-- Smart notifications for daily check-ins, debt reminders, and payday alerts
-- Optional M-Pesa auto-import and smart categorization
-- Visual insights with charts and breakdowns for all modules
-- Cloud sync, offline-first, and works on any device
-
-**MONEE** is about **awareness, control, and saving**, not spreadsheets. By recording your transactions daily, weekly, or monthly, you start seeing where your money goes — and make sure every shilling is accounted for.
+**MONEE** is your personal money tracker built for real life. Track income, expenses, debts, and wishlist items—all in one clean, intuitive app.
 
 ---
 
-## **The Better Deal**
+## **Features**
 
-Here's what you'd pay for separate tools vs. getting everything in Monee:
+### **💰 Income & Expense Tracking**
+- Track all your income sources (salary, side hustles, etc.)
+- Categorize and monitor expenses
+- See daily, weekly, and monthly breakdowns
 
-| Tool / Spreadsheet       | Competitor Price | Monee       |
-| ------------------------ | ---------------- | ----------- |
-| **Budget Tracker**       | KSh 799          | ✅ Included |
-| **Debt Tracker**         | KSh 799          | ✅ Included |
-| **Business/Inventory**   | KSh 799          | ✅ Included |
-| **Student Planner**      | KSh 399          | ✅ Included |
-| **Savings Goal Tracker** | KSh 599          | ✅ Included |
-| **Total**                | **KSh 3,395+**   | **KSh 999** |
+### **📊 Cashflow Health Monitoring**
+- Instant visual health indicators (💚 Excellent | ⚠️ Good | 🔴 Warning)
+- Real-time savings rate calculation
+- Net cashflow at a glance
+- Smart status messages based on your financial health
 
-**Plus with Monee you get:**
+### **🤝 Debt Management**
+- Track money you owe and money owed to you
+- Color-coded labels (red for debts, green for receivables)
+- Monitor balances and payment history
+- See who owes what at a glance
 
-- Cloud sync across devices (spreadsheets don't sync)
-- Visual analytics for all modules (charts, trends, insights)
-- Smart push notifications (daily reminders, debt alerts, payday notifications)
-- Optional M-Pesa auto-import (no copy-pasting)
-- Smart recipient matching (see where money _really_ goes)
-- Offline-first (works without internet)
-- One habit, complete picture (not 6 different files)
+### **✨ Wishlist (ELLIW - Everything I Like I Want)**
+- Track items you're saving for
+- Set target amounts
+- Mark items as "got" when purchased
+- Stay motivated toward your goals
+
+### **📈 Visual Stats & Insights**
+- Stats view with period selection (Weekly/Monthly/Annually)
+- Expense breakdown by category with percentages
+- Stacked bar charts for visualization
+- Interactive period navigation
+
+### **🌍 Multi-Currency Support**
+- Support for 150+ currencies
+- Set your preferred currency
+- All amounts automatically formatted
+- Currency-aware calculations
+
+### **🎨 Clean, Modern Design**
+- Safaricom Green branding 🟢
+- Full dark mode support 🌙
+- PWA-ready for mobile installation 📱
+- Responsive on all devices 💻📱
+
+### **⚡ Real-Time Updates**
+- Powered by InstantDB for instant sync
+- Offline-first architecture
+- Cloud sync across all devices
+- No backend configuration needed
 
 ---
 
 ## **How It Works**
 
-**Set it up once, use it daily.**
+### **Smart Navigation**
 
-Monee is designed to be lightweight and habit-forming. You spend 10 minutes setting up your income, recurring budgets, debts, and savings goals — then you just record your one-time daily expenses as they happen.
+**Daily View**  
+See all transactions for the current month, grouped by day with:
+- Month navigation (← September 2025 →)
+- Filter tabs (Summary, Income, Expenses, Debts, ELLIW)
+- Cashflow health summary
+- Day-by-day transaction breakdown
 
-The secret? **Recipient nicknames** and **auto-matching**.
+**Monthly View**  
+Year-over-year summary with:
+- All-time financial overview
+- Expandable months to see details
+- Income, expenses, and net totals per month
+- Overall cashflow health metrics
 
-Instead of seeing "KPLC TOKENS" or "NAIVAS SUPERMARKET LTD", you nickname them "Electricity" or "Groceries". Once saved, Monee auto-categorizes future transactions from that recipient. You start to see _exactly_ where your money goes — because what eats your budget is those daily small purchases.
+**Stats View**  
+Visual insights with:
+- Period selector (Weekly/Monthly/Annually)
+- Expense breakdown by category
+- Percentage and amount for each category
+- Stacked bar chart visualization
 
----
+### **Filter by Type**
 
-## **Core Features**
+Easy tabs let you focus on what matters:
+- **Summary**: Cashflow health overview with all transactions
+- **Income**: Only income sources
+- **Expenses**: Only spending
+- **Debts**: Only money owed tracking
+- **ELLIW**: Only wishlist items
 
-### **1. Dashboard Overview – Your Financial Snapshot**
+### **Empty States**
 
-Every time you open Monee, you see:
-
-- **Income vs Expenses** this month
-- **Debt payments due** (next payment + total balance)
-- **Savings progress** (this month + total saved, with % complete)
-- **Cash Runway Prediction**: "Based on your current spending, you have KSh X left until next payday"
-  - Daily average spend with a ↑ (you're disciplined) or ↓ (overspending) indicator
-  - Predicts if you'll make it to payday or run short
-
-### **2. Zero-Sum Budgeting**
-
-- Set your income sources and amounts for the month (with payday dates)
-- Allocate for **recurring expenses** by category (rent, utilities, transport, subscriptions)
-- Track **one-time daily expenses** alongside your budget
-- Automatically shows how much is left for spending or saving
-
-### **3. Savings Goals**
-
-- Set multiple savings goals (emergency fund, vacation, new phone, etc.)
-- Track progress automatically as you allocate funds
-- See total saved across all goals
-- Understand how your spending decisions affect your goals
-
-### **4. Habit-Building & Smart Transaction Recording**
-
-- Record transactions daily, weekly, or monthly
-- **Manual entry** for any expense type
-- **Optional M-Pesa integration**: paste messages or upload statements for auto-parsing
-- **Auto-categorization** based on saved recipients
-- **Recipient nicknames** to see where money _really_ goes
-- **Smart push notifications**:
-  - Daily expense reminders at your preferred time
-  - Debt payment due date alerts
-  - Payday reminders to help budget planning
-  - Weekly savings nudges to build consistency
-  - Spending threshold notifications to stay on track
-
-### **5. Debt Management**
-
-- Track multiple debts (loans, chamas, personal debts)
-- Interest calculations and payment schedules
-- See upcoming payments on dashboard
-- Track payment history and principal vs interest breakdown
-- Automatic integration of debt payments into your monthly budget
-
-### **6. Visual Analytics & Insights**
-
-- **Comprehensive analytics** for debts, savings, and income (matching existing expense analytics)
-- **Interactive charts**: Bar and line charts showing trends over time
-- **Category breakdowns**: Understand where every shilling goes
-- **Time period views**: Week, month, and year perspectives
-- **Progress tracking**: Visual representation of debt payoff and savings growth
-- **Summary cards**: Quick overview of key metrics
-
-### **7. Business & Student Modes**
-
-- **Business/Side-Hustle**: Tag expenses as business to track profitability separately
-- **Student**: Track academic expenses (tuition, books, supplies) in one view
-- Switch between modes or use all at once
+Helpful empty states guide you when starting:
+- Contextual emojis and messages
+- Clear next steps
+- Encourages taking action
 
 ---
 
-## **What Makes Monee Different**
+## **Tech Stack**
 
-### **1. Recipient Nicknames = Real Insight**
-
-Stop seeing "MERCHANT CODE 12345" and start seeing "Coffee Shop" or "Uber". You'll finally understand where your money _actually_ goes.
-
-### **2. Cash Runway Prediction**
-
-Other apps show you budgets. Monee tells you: "At your current rate, you'll run out on Nov 25 (3 days before payday)". Adjust before it's too late.
-
-### **3. Set Once, Use Daily**
-
-No complex setup every month. Set your recurring income and budgets once, then just record daily expenses. That's it.
-
-### **4. Smart Notifications That Build Habits**
-
-Get personalized reminders at your preferred time. Debt payment alerts keep you on track. Payday notifications help you plan. Weekly savings nudges build consistency. All configurable to your preferences.
-
-### **5. Visual Insights**
-
-See your financial data come to life with charts and analytics. Track trends over time, understand category breakdowns, and visualize your progress toward goals.
-
-### **6. M-Pesa Integration (Optional)**
-
-For Kenyan users: paste M-Pesa messages or upload statements. MONEE auto-imports, auto-categorizes, and learns your spending patterns. Not required — manual entry works perfectly too.
-
-### **7. Offline-First, Cloud-Synced**
-
-Record expenses on your phone without internet. Syncs automatically when you're back online. Works across all your devices.
-
-### **8. All-In-One**
-
-Budget, debts, savings, business expenses, student costs, analytics, notifications — one app, one price, one habit.
+- **Frontend**: Next.js 15 (App Router)
+- **Database**: InstantDB (real-time, zero-backend)
+- **Styling**: Tailwind CSS + shadcn/ui components
+- **Language**: TypeScript
+- **Deployment**: Vercel
+- **PWA**: Offline-first with service workers
 
 ---
 
-## **Getting Started Flow**
+## **Getting Started**
 
-**First-Time Setup (10 minutes):**
+### Prerequisites
+- Node.js 18+ installed
+- npm or pnpm package manager
 
-1. Create account and profile
-2. Add income sources (salary, side-hustle, etc.) with payday dates
-3. Set up recurring monthly budgets by category
-4. Add debts (if any) with payment schedules
-5. Create savings goals (if any)
-6. Done! Start recording expenses.
+### Installation
 
-**Daily Use (< 2 minutes):**
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/monee.git
+cd monee
 
-1. Get notification reminder at your preferred time
-2. Open app → See dashboard (income vs expenses, cash runway, debt alerts, savings progress)
-3. Tap "Add Expense" and enter details (or paste M-Pesa message if you use that feature)
-4. Auto-categorized based on recipient
-5. Done! Check in daily or weekly to stay on track.
+# Install dependencies
+npm install
 
-**Weekly Check-In:**
+# Set up environment variables
+cp .env.example .env.local
+# Add your InstantDB app ID to .env.local
 
-- Review visual analytics showing spending trends
-- Check interactive charts for category breakdowns
-- See if you're on track to next payday
-- Review debt payment progress with visual insights
-- Check savings goal progress with contribution tracking
-- Adjust habits based on data insights
+# Run the development server
+npm run dev
+```
 
----
+Open [http://localhost:3000](http://localhost:3000) to see the app.
 
-## **Branding & Contact**
+### Environment Variables
 
-**Domain:** [monee.co.ke](https://monee.co.ke)
+```env
+NEXT_PUBLIC_INSTANT_APP_ID=your_instant_app_id_here
+```
 
-**Email:**
-- General inquiries, partnerships, social media: **hello@monee.co.ke**
-- Customer support, user questions: **support@monee.co.ke**
-
-**Social Media:**
-- TikTok: **@monee.co.ke**
-
-**Development:**
-- All developer accounts (InstantDB, Vercel, APIs, analytics) use: hello@monee.co.ke
-- Support queries use: support@monee.co.ke
+Get your InstantDB App ID from [instantdb.com](https://instantdb.com)
 
 ---
 
-## **Business Model & Pricing**
+## **Usage**
 
-**Monee Personal:** **KSh 999** (one-time payment, lifetime access)
+1. **Create an Account**: Sign up to start tracking
+2. **Add Your First Transaction**: Click the **+** button
+3. **Choose Type**: Income, Expense, Debt, or Wishlist
+4. **Track Daily**: Add transactions as they happen
+5. **Monitor Health**: Check your cashflow summary anytime
 
-**Why KSh 999?**
-- Replaces 5-6 separate spreadsheets worth **KSh 3,395+** if bought individually
-- All-in-one solution with cloud sync, Mpesa integration, and offline support
-- No monthly fees, ever. Pay once, use forever.
-- All future updates and features included
+### Adding Transactions
 
-**What you get:**
-- Complete financial tracking (income, expenses, debts, savings, budgets)
-- Visual analytics with charts and insights for all modules
-- Smart push notifications (daily reminders, debt alerts, payday notifications, spending threshold alerts)
-- Optional M-Pesa auto-import and smart categorization (Kenya)
-- Cash runway predictions with discipline tracking
-- Offline-first with cloud sync across all devices
-- Business and student expense tagging
-- Free M-Pesa analyzer tool (no login required) for trying before buying
-- Lifetime updates and new features
+**Income**
+- Source name (e.g., "Salary", "Freelance")
+- Amount
+- Date
+- Optional: Recurring status and frequency
 
-**Launch Strategy:**
-- Secure domain and social media handles
-- Build TikTok presence with finance-focused content
-- Early access beta testing through TikTok and landing page funnel
-- Launch with full-featured app at KSh 999
+**Expenses**
+- Recipient/Merchant name
+- Amount
+- Category
+- Date
+- Optional: Notes
+
+**Debts**
+- Person's name
+- Amount
+- Direction (You owe / They owe you)
+- Due date (optional)
+- Optional: Notes
+
+**Wishlist**
+- Item name
+- Target amount (optional)
+- Status (Want / Got)
+
+---
+
+## **Cashflow Health Indicator**
+
+MONEE analyzes your financial data and gives you instant feedback:
+
+- **💚 Excellent**: Savings rate ≥ 20% (Strong financial health)
+- **⚠️ Good**: Net cashflow positive but could save more
+- **🔴 Warning**: Spending exceeds income
+
+The indicator updates in real-time as you add transactions.
+
+---
+
+## **Roadmap**
+
+### **Coming Soon**
+- 📱 M-PESA integration for auto-import (Kenya)
+- 📊 Budget planning tools
+- 📁 Export to CSV/PDF
+- 🔔 Push notifications for reminders
+- 📈 Advanced analytics and trends
+
+---
+
+## **Contributing**
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+---
+
+## **License**
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+---
+
+## **Contact**
+
+**Email:** hello@monee.co.ke  
+**Website:** [monee.co.ke](https://monee.co.ke)
+
+---
+
+## **Acknowledgments**
+
+- Built with [InstantDB](https://instantdb.com) for real-time data
+- UI components from [shadcn/ui](https://ui.shadcn.com)
+- Icons from [Lucide](https://lucide.dev)
+- Inspired by Money Manager app
+
+---
+
+**Made with 💚 in Kenya**

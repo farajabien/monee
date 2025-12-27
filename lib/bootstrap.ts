@@ -1,6 +1,3 @@
-import { id } from "@instantdb/react";
-import db from "@/lib/db";
-import type { Category } from "@/types";
 
 export const DEFAULT_CATEGORIES = [
   // Income
@@ -224,6 +221,7 @@ export const DEFAULT_CATEGORIES = [
   },
 ];
 
+/*
 export async function ensureDefaultCategories(profileId: string) {
   try {
     const { data } = await db.useQuery({
@@ -258,3 +256,4 @@ export async function ensureDefaultCategories(profileId: string) {
     console.error("Failed to ensure default categories:", error);
   }
 }
+*/
