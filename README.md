@@ -140,7 +140,7 @@ Helpful empty states guide you when starting:
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/monee.git
+git clone https://github.com/farajabien/monee.git
 cd monee
 
 # Install dependencies

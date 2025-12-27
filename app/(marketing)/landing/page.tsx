@@ -619,7 +619,7 @@ export default function LandingPage() {
               </div>
 
               <div className="pt-6 mt-auto">
-                <Link href="https://github.com/yourusername/monee" target="_blank" className="block">
+                <Link href="https://github.com/farajabien/monee" target="_blank" className="block">
                   <Button size="lg" variant="outline" className="w-full">
                     View Source Code
                     <ArrowRight className="ml-2 h-4 w-4" />
