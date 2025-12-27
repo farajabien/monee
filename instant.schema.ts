@@ -33,16 +33,22 @@ const _schema = i.schema({
       createdAt: i.number().indexed(),
     }),
     // Core Entity 2: Debts (two-way tracking)
+    // TEMPORARY: Fields marked optional for migration - will be required after data fix
     debts: i.entity({
-      personName: i.string().indexed(), // Friend's name
-      amount: i.number().indexed(),
-      currentBalance: i.number().indexed(), // Remaining balance
-      direction: i.string().indexed(), // "I_OWE" or "THEY_OWE_ME"
-      date: i.number().indexed(), // When borrowed/lent
+      personName: i.string().indexed().optional(), // Friend's name
+      amount: i.number().indexed().optional(),
+      currentBalance: i.number().indexed().optional(), // Remaining balance
+      direction: i.string().indexed().optional(), // "I_OWE" or "THEY_OWE_ME"
+      date: i.number().indexed().optional(), // When borrowed/lent
       dueDate: i.number().optional().indexed(), // When to pay back
-      status: i.string().indexed(), // "pending" | "paid" | "collected"
+      status: i.string().indexed().optional(), // "pending" | "paid" | "collected"
       notes: i.string().optional(),
-      createdAt: i.number().indexed(),
+      createdAt: i.number().indexed().optional(),
+      // Debt configuration fields
+      interestRate: i.number().optional(), // Annual interest rate (e.g., 5 for 5%)
+      debtType: i.string().optional(), // "one-time" | "interest-push" | "amortizing"
+      compoundingFrequency: i.string().optional(), // "monthly" | "quarterly" | "annually"
+      monthlyPayment: i.number().optional(), // Agreed monthly payment amount
     }),
     // Core Entity 3: Expenses (with recurring support)
     expenses: i.entity({
@@ -56,7 +62,7 @@ const _schema = i.schema({
       nextDueDate: i.number().optional().indexed(), // When next payment is due (for recurring)
       createdAt: i.number().indexed(),
     }),
-    // Core Entity 4: Wishlist (ELLIW)
+    // Core Entity 4: Wishlist (ELLIW - Every Little Thing I Want)
     wishlist: i.entity({
       itemName: i.string().indexed(),
       amount: i.number().optional(), // Estimated price
@@ -64,6 +70,7 @@ const _schema = i.schema({
       gotDate: i.number().optional().indexed(), // When purchased
       notes: i.string().optional(),
       createdAt: i.number().indexed(),
+      category: i.string().optional(), // "purchase" | "savings_contribution"
     }),
   },
   links: {

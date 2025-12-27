@@ -98,9 +98,10 @@ export function TodayView({ profileId }: TodayViewProps) {
 
   // Group transactions by day
   const transactionsByDay: Record<string, { income: any[]; expenses: any[]; debts: any[]; wishlist: any[] }> = {};
-  
+
   [...income, ...expenses, ...debts, ...wishlist].forEach((item) => {
-    const date = "date" in item ? new Date(item.date) : new Date(item.createdAt);
+    const timestamp = "date" in item && item.date ? item.date : item.createdAt ?? Date.now();
+    const date = new Date(timestamp);
     const dayKey = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, "0")}-${date.getDate().toString().padStart(2, "0")}`;
     
     if (!transactionsByDay[dayKey]) {
@@ -163,12 +164,10 @@ export function TodayView({ profileId }: TodayViewProps) {
 
       {/* Cashflow Health Summary - shown when Summary tab is active */}
       {activeTab === "summary" && (
-        <div className="p-4 space-y-4">
-          <div className="p-4">
-            <h3 className="text-sm font-medium mb-3">Cashflow Health</h3>
-            
-            {/* Health Indicator */}
-            <div className="flex items-center gap-3 mb-4">
+        <div className="p-4">
+          {/* Health Indicator - Full Width */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
               <div className={`w-16 h-16 rounded-full flex items-center justify-center text-2xl ${
                 monthTotal >= totalIncome * 0.2 ? "bg-green-100 dark:bg-green-900/20" :
                 monthTotal >= 0 ? "bg-yellow-100 dark:bg-yellow-900/20" :

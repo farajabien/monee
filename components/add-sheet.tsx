@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import {
   Select,
   SelectContent,
@@ -22,6 +23,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Plus } from "lucide-react";
+import { ConfigureDebtDialog } from "@/components/configure-debt-dialog";
 
 interface AddSheetProps {
   open: boolean;
@@ -32,6 +34,12 @@ interface AddSheetProps {
 export function AddSheet({ open, onOpenChange, profileId }: AddSheetProps) {
   const [activeTab, setActiveTab] = useState("expense");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Configure Debt Dialog state
+  const [showConfigureDebt, setShowConfigureDebt] = useState(false);
+  const [newDebtId, setNewDebtId] = useState<string | undefined>();
+  const [newDebtAmount, setNewDebtAmount] = useState<number | undefined>();
+  const [newDebtPerson, setNewDebtPerson] = useState<string | undefined>();
 
   // Toggle modes for add new
   const [isNewSource, setIsNewSource] = useState(false);
@@ -62,8 +70,8 @@ export function AddSheet({ open, onOpenChange, profileId }: AddSheetProps) {
 
   // Income fields
   const [incomeSource, setIncomeSource] = useState("");
-  const [incomeType, setIncomeType] = useState("one-time");
-  const [frequency, setFrequency] = useState("monthly");
+  const [incomeIsRecurring, setIncomeIsRecurring] = useState(false);
+  const [incomeFrequency, setIncomeFrequency] = useState("monthly");
 
   // Debt fields
   const [personName, setPersonName] = useState("");
@@ -74,6 +82,7 @@ export function AddSheet({ open, onOpenChange, profileId }: AddSheetProps) {
   const [category, setCategory] = useState("");
   const [recipient, setRecipient] = useState("");
   const [isRecurring, setIsRecurring] = useState(false);
+  const [expenseFrequency, setExpenseFrequency] = useState("monthly");
 
   // Wishlist fields
   const [itemName, setItemName] = useState("");
@@ -120,11 +129,11 @@ export function AddSheet({ open, onOpenChange, profileId }: AddSheetProps) {
               .update({
                 amount: parsedAmount,
                 source: incomeSource,
-                type: incomeType,
+                type: incomeIsRecurring ? "recurring" : "one-time",
                 date: dateTimestamp,
                 notes: notes || undefined,
-                isRecurring: incomeType === "recurring",
-                frequency: incomeType === "recurring" ? frequency : undefined,
+                isRecurring: incomeIsRecurring,
+                frequency: incomeIsRecurring ? incomeFrequency : undefined,
                 createdAt: now,
               })
               .link({ profile: profileId })
@@ -137,8 +146,9 @@ export function AddSheet({ open, onOpenChange, profileId }: AddSheetProps) {
             toast.error("Please enter person name");
             return;
           }
+          const debtId = id();
           await db.transact(
-            db.tx.debts[id()]
+            db.tx.debts[debtId]
               .update({
                 personName,
                 amount: parsedAmount,
@@ -153,6 +163,17 @@ export function AddSheet({ open, onOpenChange, profileId }: AddSheetProps) {
               .link({ profile: profileId })
           );
           toast.success("Debt added!");
+
+          // Set debt info for configuration dialog
+          setNewDebtId(debtId);
+          setNewDebtAmount(parsedAmount);
+          setNewDebtPerson(personName);
+
+          // Show configure debt dialog instead of closing immediately
+          resetForm();
+          onOpenChange(false);
+          setShowConfigureDebt(true);
+          return; // Return early to prevent the normal close flow
           break;
 
         case "expense":
@@ -169,7 +190,7 @@ export function AddSheet({ open, onOpenChange, profileId }: AddSheetProps) {
                 date: dateTimestamp,
                 notes: notes || undefined,
                 isRecurring,
-                frequency: isRecurring ? frequency : undefined,
+                frequency: isRecurring ? expenseFrequency : undefined,
                 createdAt: now,
               })
               .link({ profile: profileId })
@@ -209,6 +230,7 @@ export function AddSheet({ open, onOpenChange, profileId }: AddSheetProps) {
   };
 
   return (
+    <>
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="bottom" className="h-[85vh] rounded-t-xl p-0 flex flex-col">
         <SheetHeader className="px-6 pt-6 pb-4 border-b shrink-0">
@@ -308,23 +330,24 @@ export function AddSheet({ open, onOpenChange, profileId }: AddSheetProps) {
                 )}
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="type">Type</Label>
-                <Select value={incomeType} onValueChange={setIncomeType}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="one-time">One-time</SelectItem>
-                    <SelectItem value="recurring">Recurring</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="flex items-center justify-between space-y-2">
+                <div className="space-y-0.5">
+                  <Label htmlFor="income-recurring">Recurring Income</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Enable for regular income (salary, freelance contracts)
+                  </p>
+                </div>
+                <Switch
+                  id="income-recurring"
+                  checked={incomeIsRecurring}
+                  onCheckedChange={setIncomeIsRecurring}
+                />
               </div>
 
-              {incomeType === "recurring" && (
+              {incomeIsRecurring && (
                 <div className="space-y-2">
-                  <Label htmlFor="frequency">Frequency</Label>
-                  <Select value={frequency} onValueChange={setFrequency}>
+                  <Label htmlFor="income-frequency">Frequency</Label>
+                  <Select value={incomeFrequency} onValueChange={setIncomeFrequency}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -532,6 +555,36 @@ export function AddSheet({ open, onOpenChange, profileId }: AddSheetProps) {
                   </div>
                 )}
               </div>
+
+              <div className="flex items-center justify-between space-y-2">
+                <div className="space-y-0.5">
+                  <Label htmlFor="expense-recurring">Recurring Expense</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Enable for regular expenses (rent, subscriptions)
+                  </p>
+                </div>
+                <Switch
+                  id="expense-recurring"
+                  checked={isRecurring}
+                  onCheckedChange={setIsRecurring}
+                />
+              </div>
+
+              {isRecurring && (
+                <div className="space-y-2">
+                  <Label htmlFor="expense-frequency">Frequency</Label>
+                  <Select value={expenseFrequency} onValueChange={setExpenseFrequency}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="weekly">Weekly</SelectItem>
+                      <SelectItem value="monthly">Monthly</SelectItem>
+                      <SelectItem value="yearly">Yearly</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
             </TabsContent>
 
             <TabsContent value="elliw" className="space-y-4 mt-0">
@@ -624,5 +677,15 @@ export function AddSheet({ open, onOpenChange, profileId }: AddSheetProps) {
         </div>
       </SheetContent>
     </Sheet>
+
+    {/* Configure Debt Dialog */}
+    <ConfigureDebtDialog
+      open={showConfigureDebt}
+      onOpenChange={setShowConfigureDebt}
+      debtId={newDebtId}
+      debtAmount={newDebtAmount}
+      personName={newDebtPerson}
+    />
+    </>
   );
 }
