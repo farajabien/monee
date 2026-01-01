@@ -11,6 +11,15 @@ import { formatCurrency, DEFAULT_CURRENCY } from "@/lib/currency-utils";
 import { EditTransactionDialog } from "@/components/edit-transaction-dialog";
 import { DebtDetailsDialog } from "@/components/debt-details-dialog";
 import { toast } from "sonner";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Search, ArrowUpDown, Filter } from "lucide-react";
 import type { Expense, IncomeSource, Debt, WishlistItem } from "@/types";
 
 interface TodayViewProps {
@@ -99,7 +108,6 @@ export function TodayView({ profileId }: TodayViewProps) {
       $: {
         where: {
           profile: profileId,
-          date: { $gte: startOfMonth, $lte: endOfMonth },
         },
         order: {
           date: "desc",
@@ -110,7 +118,6 @@ export function TodayView({ profileId }: TodayViewProps) {
       $: {
         where: {
           profile: profileId,
-          // Fetch all wishlist items regardless of date
         },
         order: {
           createdAt: "desc",
@@ -201,65 +208,229 @@ export function TodayView({ profileId }: TodayViewProps) {
     }
   };
 
-  // Calculate month totals
-  const totalIncome = income.reduce((sum, i) => sum + (i.amount || 0), 0);
-  const totalExpenses = expenses.reduce((sum, e) => sum + (e.amount || 0), 0);
+  // Filters State
+  const [wishlistFilter, setWishlistFilter] = useState<"pending" | "got" | "all">("pending");
+  const [debtFilter, setDebtFilter] = useState<"pending" | "paid" | "all">("pending");
+  const [debtYearFilter, setDebtYearFilter] = useState<string>("all");
+  
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortOption, setSortOption] = useState<"date-desc" | "date-asc" | "amount-desc" | "amount-asc">("date-desc");
+
+  // Helper to check if item matches search query
+  const matchesSearch = (item: any, type: "income" | "expense" | "debt" | "wishlist") => {
+    if (!searchQuery) return true;
+    const query = searchQuery.toLowerCase();
+    
+    if (type === "income") return (item as IncomeSource).source.toLowerCase().includes(query);
+    if (type === "expense") {
+       const exp = item as Expense;
+       return (exp.recipient?.toLowerCase().includes(query) || false) || (exp.category && exp.category.toLowerCase().includes(query)) || false;
+    }
+    if (type === "debt") return (item as Debt).personName?.toLowerCase().includes(query);
+    if (type === "wishlist") return (item as WishlistItem).itemName.toLowerCase().includes(query);
+    
+    return false;
+  };
+
+  // Filter all lists based on search query
+  const filteredIncome = income.filter(i => matchesSearch(i, "income"));
+  const filteredExpenses = expenses.filter(e => matchesSearch(e, "expense"));
+  
+  // Debt Filtering Logic
+  const allFilteredDebts = debts.filter(d => matchesSearch(d, "debt"));
+  
+  // Extract available years from debts
+  const debtYears = Array.from(new Set(allFilteredDebts.map(d => {
+      const date = new Date(d.date || d.createdAt || Date.now());
+      return date.getFullYear().toString();
+  }))).sort((a, b) => b.localeCompare(a));
+
+  const filteredDebts = allFilteredDebts.filter(d => {
+      // 1. Status Filter
+      if (debtFilter !== "all") {
+          const isPaid = d.isPaidOff || (d.currentBalance || 0) <= 0;
+          if (debtFilter === "pending" && isPaid) return false;
+          if (debtFilter === "paid" && !isPaid) return false;
+      }
+      
+      // 2. Year Filter
+      if (debtYearFilter !== "all") {
+          const year = new Date(d.date || d.createdAt || Date.now()).getFullYear().toString();
+          if (year !== debtYearFilter) return false;
+      }
+      
+      return true;
+  }).sort((a, b) => {
+       if (sortOption === "amount-desc") return (b.currentBalance || 0) - (a.currentBalance || 0);
+       if (sortOption === "amount-asc") return (a.currentBalance || 0) - (b.currentBalance || 0);
+       
+       const dateA = a.date || a.createdAt || 0;
+       const dateB = b.date || b.createdAt || 0;
+       
+       if (sortOption === "date-asc") return dateA - dateB;
+       return dateB - dateA;
+  });
+
+  // Group Debts by Month
+  const debtsByMonth: Record<string, any[]> = {};
+  filteredDebts.forEach(debt => {
+      const date = new Date(debt.date || debt.createdAt || Date.now());
+      const monthKey = `${date.getFullYear()}-${date.getMonth()}`; // Unique Month Key
+      if (!debtsByMonth[monthKey]) debtsByMonth[monthKey] = [];
+      debtsByMonth[monthKey].push(debt);
+  });
+  
+  // Sort months based on sort option (desc/asc)
+  const sortedDebtMonths = Object.keys(debtsByMonth).sort((a, b) => {
+      const [yearA, monthA] = a.split("-").map(Number);
+      const [yearB, monthB] = b.split("-").map(Number);
+      
+      // Construct approximate dates for comparison
+      const dateA = new Date(yearA, monthA, 1).getTime();
+      const dateB = new Date(yearB, monthB, 1).getTime();
+      
+      return sortOption === "date-asc" ? dateA - dateB : dateB - dateA;
+  });
+
+  // Filter Wishlist
+  const filteredWishlist = wishlist
+    .filter(item => {
+      // 1. Status Filter
+      if (wishlistFilter !== "all") {
+          if (wishlistFilter === "got" && item.status !== "got") return false;
+          if (wishlistFilter === "pending" && item.status !== "want") return false;
+      }
+      // 2. Search Query
+      return matchesSearch(item, "wishlist");
+    })
+    .sort((a, b) => {
+       // 1. Sort by selected option
+       if (sortOption === "amount-desc") return (b.amount || 0) - (a.amount || 0);
+       if (sortOption === "amount-asc") return (a.amount || 0) - (b.amount || 0);
+       
+       const dateA = a.status === "got" ? (a.gotDate || 0) : (a.createdAt || 0);
+       const dateB = b.status === "got" ? (b.gotDate || 0) : (b.createdAt || 0);
+       
+       if (sortOption === "date-asc") return dateA - dateB;
+       return dateB - dateA;
+    });
+
+  const wishlistTotal = filteredWishlist.reduce((sum, item) => sum + (item.amount || 0), 0);
+  
+  // Calculate month totals (Using Filtered Data)
+  const totalIncome = filteredIncome.reduce((sum, i) => sum + (i.amount || 0), 0);
+  const totalExpenses = filteredExpenses.reduce((sum, e) => sum + (e.amount || 0), 0);
   const monthTotal = totalIncome - totalExpenses;
 
-  // Calculate debt totals
-  const totalIOwe = debts
+  // Calculate debt totals (Total Outstanding across ALL fetched debts for correct summary)
+  const totalIOwe = debts // Use 'debts' raw list for "Total I Owe" globally
     .filter((d: any) => d.direction === "I_OWE")
     .reduce((sum, d: any) => sum + (d.currentBalance || d.amount || 0), 0);
   const totalTheyOwe = debts
     .filter((d: any) => d.direction === "THEY_OWE_ME")
     .reduce((sum, d: any) => sum + (d.currentBalance || d.amount || 0), 0);
+  
+  // For the Stats Header when in 'debts' tab, maybe show filtered total?
+  const visibleDebtTotal = filteredDebts.reduce((sum, d) => sum + (d.currentBalance || 0), 0);
 
-  // Group transactions by day
+  const isDateSort = sortOption.includes("date");
+  
+  // Prepare Flat List for Amount Sort
+  const getFlatList = () => {
+      let items: any[] = [];
+      if (activeTab === "summary") {
+          // For summary, we might want to stick to monthly view logic or bring back the old logic?
+          // The prompt requested debts to be always visible. 
+          // Summary tab usually shows THIS MONTH's overview. 
+          // Mixing global debts into "Today View" summary might be confusing if they aren't dated this month.
+          // Let's keep Summary tab focused on 'income' and 'expenses' of THIS MONTH + 'debts' of THIS MONTH (if any created).
+          // OR, since we changed the query, 'debts' now has ALL debts. 
+          // We should filter 'debts' back to 'this month' for the Summary tab to match the month navigation.
+          
+          const thisMonthDebts = debts.filter(d => {
+             const dDate = new Date(d.date || d.createdAt || 0);
+             return dDate >= new Date(startOfMonth) && dDate <= new Date(endOfMonth);
+          });
+          
+          items = [...filteredIncome, ...filteredExpenses, ...thisMonthDebts]; // Only show debts from this month in summary?
+          // Actually, let's keep it simple. Summary shows cashflow. Debts created this month affect cashflow if they are loans? 
+          // Let's stick to previous behavior for Summary: Items dated in this month.
+          
+      } else if (activeTab === "income") items = [...filteredIncome];
+      else if (activeTab === "expenses") items = [...filteredExpenses];
+      else if (activeTab === "debts") items = [...filteredDebts];
+      
+      return items.sort((a, b) => {
+          const valA = a.currentBalance ?? a.amount ?? 0;
+          const valB = b.currentBalance ?? b.amount ?? 0;
+          return sortOption === "amount-desc" ? valB - valA : valA - valB;
+      });
+  };
+
+  const flatSortedItems = !isDateSort ? getFlatList() : [];
+
+  // Group transactions by day (ONLY if Date Sort)
   const transactionsByDay: Record<string, { income: any[]; expenses: any[]; debts: any[]; wishlist: any[] }> = {};
+  
+  if (isDateSort) {
+      // For Summary/Income/Expenses, we interact with "This Month" data mainly
+      const monthDebts = debts.filter(d => {
+             const dDate = new Date(d.date || d.createdAt || 0);
+             return dDate >= new Date(startOfMonth) && dDate <= new Date(endOfMonth);
+      });
+      // Filter based on search query too for consistency in summary
+      const filteredMonthDebts = monthDebts.filter(d => matchesSearch(d, "debt"));
 
-  [...income, ...expenses, ...debts, ...wishlist].forEach((item) => {
-    const timestamp = "date" in item && item.date ? item.date : item.createdAt ?? Date.now();
-    const date = new Date(timestamp);
-    const dayKey = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, "0")}-${date.getDate().toString().padStart(2, "0")}`;
-    
-    if (!transactionsByDay[dayKey]) {
-      transactionsByDay[dayKey] = { income: [], expenses: [], debts: [], wishlist: [] };
-    }
+      [...filteredIncome, ...filteredExpenses, ...filteredMonthDebts].forEach((item) => {
+        const timestamp = "date" in item && item.date ? item.date : item.createdAt ?? Date.now();
+        const date = new Date(timestamp);
+        const dayKey = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, "0")}-${date.getDate().toString().padStart(2, "0")}`;
+        
+        if (!transactionsByDay[dayKey]) {
+          transactionsByDay[dayKey] = { income: [], expenses: [], debts: [], wishlist: [] };
+        }
 
-    if ("source" in item) {
-      transactionsByDay[dayKey].income.push(item);
-    } else if ("recipient" in item) {
-      transactionsByDay[dayKey].expenses.push(item);
-    } else if ("personName" in item) {
-      transactionsByDay[dayKey].debts.push(item);
-    } else if ("itemName" in item) {
-      transactionsByDay[dayKey].wishlist.push(item);
-    }
+        if ("source" in item) transactionsByDay[dayKey].income.push(item);
+        else if ("recipient" in item) transactionsByDay[dayKey].expenses.push(item);
+        else if ("personName" in item) transactionsByDay[dayKey].debts.push(item);
+        // Wishlist is handled separately now
+      });
+  }
+
+  // Sort days
+  const sortedDays = Object.keys(transactionsByDay).sort((a, b) => {
+      const timeA = new Date(a).getTime();
+      const timeB = new Date(b).getTime();
+      return sortOption === "date-asc" ? timeA - timeB : timeB - timeA;
   });
-
-  // Sort days in descending order
-  const sortedDays = Object.keys(transactionsByDay).sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
 
   const navigateMonth = (direction: "prev" | "next") => {
     setCurrentDate(new Date(year, direction === "prev" ? month - 1 : month + 1, 1));
   };
+  
+  // Render Logic for Debts Tab
+  if (activeTab === "debts") {
+      // We will render this in the return block
+  }
 
   const monthName = currentDate.toLocaleDateString("en-US", { month: "short", year: "numeric" });
 
   return (
     <div className="flex flex-col h-full bg-background mt-4">
-      {/* Date Navigation */}
-      <div className="flex items-center justify-between px-4 pb-4">
-        <Button variant="ghost" size="icon" onClick={() => setCurrentDate(new Date(currentDate.setMonth(currentDate.getMonth() - 1)))}>
-          <ChevronLeft className="h-5 w-5" />
-        </Button>
-        <span className="font-semibold text-lg">
-          {currentDate.toLocaleDateString("en-US", { month: "long", year: "numeric" })}
-        </span>
-        <Button variant="ghost" size="icon" onClick={() => setCurrentDate(new Date(currentDate.setMonth(currentDate.getMonth() + 1)))}>
-          <ChevronRight className="h-5 w-5" />
-        </Button>
-      </div>
+      {/* Date Navigation - HIDE for Debts and Wishlist since they are global */}
+      {activeTab !== "elliw" && activeTab !== "debts" && (
+        <div className="flex items-center justify-between px-4 pb-4">
+            <Button variant="ghost" size="icon" onClick={() => setCurrentDate(new Date(currentDate.setMonth(currentDate.getMonth() - 1)))}>
+            <ChevronLeft className="h-5 w-5" />
+            </Button>
+            <span className="font-semibold text-lg">
+            {currentDate.toLocaleDateString("en-US", { month: "long", year: "numeric" })}
+            </span>
+            <Button variant="ghost" size="icon" onClick={() => setCurrentDate(new Date(currentDate.setMonth(currentDate.getMonth() + 1)))}>
+            <ChevronRight className="h-5 w-5" />
+            </Button>
+        </div>
+      )}
 
       {/* Sticky Header: Stats & Tabs */}
       <div className="sticky top-0 z-10 bg-background pt-2 border-b shadow-sm">
@@ -268,7 +439,7 @@ export function TodayView({ profileId }: TodayViewProps) {
           {activeTab === "debts" ? (
             <>
               <div className="text-center">
-                <p className="text-xs text-muted-foreground">I Owe</p>
+                <p className="text-xs text-muted-foreground">Total I Owe</p>
                 <p className="font-semibold text-red-600">{formatCurrency(totalIOwe, userCurrency)}</p>
               </div>
               <div className="text-center">
@@ -276,9 +447,24 @@ export function TodayView({ profileId }: TodayViewProps) {
                 <p className="font-semibold text-green-600">{formatCurrency(totalTheyOwe, userCurrency)}</p>
               </div>
               <div className="text-center">
-                <p className="text-xs text-muted-foreground">Net Position</p>
-                <p className={`font-semibold ${totalTheyOwe - totalIOwe >= 0 ? "text-green-600" : "text-red-600"}`}>
-                  {formatCurrency(totalTheyOwe - totalIOwe, userCurrency)}
+                <p className="text-xs text-muted-foreground">Visible</p>
+                <p className="font-semibold">{filteredDebts.length}</p>
+              </div>
+            </>
+          ) : activeTab === "elliw" ? (
+            <>
+              <div className="text-center">
+                <p className="text-xs text-muted-foreground">Items</p>
+                <p className="font-semibold">{filteredWishlist.length}</p>
+              </div>
+              <div className="text-center">
+                <p className="text-xs text-muted-foreground">Status</p>
+                <p className="font-semibold capitalize text-purple-600">{wishlistFilter}</p>
+              </div>
+              <div className="text-center">
+                <p className="text-xs text-muted-foreground">Total Value</p>
+                <p className="font-semibold text-purple-600">
+                  {formatCurrency(wishlistTotal, userCurrency)}
                 </p>
               </div>
             </>
@@ -312,6 +498,31 @@ export function TodayView({ profileId }: TodayViewProps) {
             <TabsTrigger value="elliw" className="text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:font-bold">ELLIW</TabsTrigger>
           </TabsList>
         </Tabs>
+
+        {/* Filter & Sort Bar */}
+        <div className="px-4 pb-3 flex gap-2">
+           <div className="relative flex-1">
+             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+             <Input 
+               placeholder="Search..." 
+               value={searchQuery}
+               onChange={(e) => setSearchQuery(e.target.value)}
+               className="pl-9 h-9"
+             />
+           </div>
+           
+           <Select value={sortOption} onValueChange={(val: any) => setSortOption(val)}>
+             <SelectTrigger className="w-[110px] h-9">
+               <SelectValue />
+             </SelectTrigger>
+             <SelectContent>
+               <SelectItem value="date-desc">Newest</SelectItem>
+               <SelectItem value="date-asc">Oldest</SelectItem>
+               <SelectItem value="amount-desc">Price ⬇</SelectItem>
+               <SelectItem value="amount-asc">Price ⬆</SelectItem>
+             </SelectContent>
+           </Select>
+        </div>
       </div>
 
       {/* Cashflow Health Summary - shown when Summary tab is active */}
@@ -361,11 +572,7 @@ export function TodayView({ profileId }: TodayViewProps) {
         </div>
       )}
 
-      {sortedDays.length === 0 || 
-        (activeTab === "income" && income.length === 0) ||
-        (activeTab === "expenses" && expenses.length === 0) ||
-        (activeTab === "debts" && debts.length === 0) ||
-        (activeTab === "elliw" && wishlist.length === 0) ? (
+      {(activeTab === "elliw" ? filteredWishlist.length === 0 : (isDateSort ? sortedDays.length === 0 : flatSortedItems.length === 0)) ? (
         <div className="flex flex-col items-center justify-center py-16 px-4">
           <div className="text-6xl mb-4">
             {activeTab === "summary" ? "📊" :
@@ -375,38 +582,58 @@ export function TodayView({ profileId }: TodayViewProps) {
              "✨"}
           </div>
           <p className="text-lg font-medium mb-2">
-            {activeTab === "summary" ? "No transactions yet" :
-             activeTab === "income" ? "No income recorded" :
-             activeTab === "expenses" ? "No expenses recorded" :
-             activeTab === "debts" ? "No debts to track" :
-             "No wishlist items yet"}
+            {activeTab === "summary" ? "No transactions found" :
+             activeTab === "income" ? "No income found" :
+             activeTab === "expenses" ? "No expenses found" :
+             activeTab === "debts" ? "No debts found" :
+             "No wishlist items found"}
           </p>
           <p className="text-sm text-muted-foreground text-center max-w-sm">
-            {activeTab === "summary" ? "Start tracking your money by tapping the + button below" :
+            {searchQuery ? "Try adjusting your search or filters" :
+             (activeTab === "summary" ? "Start tracking your money by tapping the + button below" :
              activeTab === "income" ? "Add your first income source to start tracking earnings" :
              activeTab === "expenses" ? "Track your spending by adding expenses" :
              activeTab === "debts" ? "Keep track of money you owe or are owed" :
-             "Add items you're saving up for"}
+             "Add items you're saving up for")}
           </p>
           
-
         </div>
       ) : (
         <div className="space-y-3 px-4 pt-4">
 
-
-
           {activeTab === "elliw" && (
             <div className="space-y-4">
+               {/* Wishlist Filters */}
+               <div className="flex gap-2">
+                 <Button 
+                   size="sm" 
+                   variant={wishlistFilter === "pending" ? "default" : "outline"}
+                   onClick={() => setWishlistFilter("pending")}
+                   className="h-7 text-xs"
+                 >
+                   Pending
+                 </Button>
+                 <Button 
+                   size="sm" 
+                   variant={wishlistFilter === "got" ? "default" : "outline"}
+                   onClick={() => setWishlistFilter("got")}
+                   className="h-7 text-xs"
+                 >
+                   Got
+                 </Button>
+                 <Button 
+                   size="sm" 
+                   variant={wishlistFilter === "all" ? "default" : "outline"}
+                   onClick={() => setWishlistFilter("all")}
+                   className="h-7 text-xs"
+                 >
+                   All
+                 </Button>
+               </div>
+
                {/* Unified Wishlist View */}
                <div className="space-y-3">
-                 {[...wishlist]
-                   .sort((a, b) => {
-                     // Sort by status (want first), then by date descending (newest first)
-                     if (a.status !== b.status) return a.status === "want" ? -1 : 1;
-                     return (b.createdAt || 0) - (a.createdAt || 0);
-                   })
-                   .map((item) => (
+                 {filteredWishlist.map((item) => (
                     <div 
                       key={item.id} 
                       className={`p-3 rounded-lg cursor-pointer transition-colors ${item.status === "got" ? "bg-accent/10 opacity-70" : "bg-accent/20 hover:bg-accent/40"}`}
@@ -419,9 +646,17 @@ export function TodayView({ profileId }: TodayViewProps) {
                           </div>
                           <div>
                             <p className="font-medium text-sm line-clamp-1">{item.itemName}</p>
-                            <p className="text-xs text-muted-foreground font-mono">
-                              {item.status === "got" ? "Got it!" : "Want"}
-                            </p>
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                              <span className="font-mono">
+                                {item.status === "got" ? "Got it!" : "Want"}
+                              </span>
+                              <span>•</span>
+                              <span>
+                                {new Date(
+                                  (item.status === "got" && item.gotDate) ? item.gotDate : (item.createdAt || Date.now())
+                                ).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                              </span>
+                            </div>
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
@@ -482,173 +717,266 @@ export function TodayView({ profileId }: TodayViewProps) {
             </div>
           )}
 
-          {activeTab !== "elliw" && sortedDays.map((dayKey) => {
-            const dayData = transactionsByDay[dayKey];
-            const date = new Date(dayKey);
-            const dayNumber = date.getDate();
-            const weekday = date.toLocaleDateString("en-US", { weekday: "short" });
-            
-            const dayIncome = dayData.income.reduce((sum, i) => sum + (i.amount || 0), 0);
-            const dayExpenses = dayData.expenses.reduce((sum, e) => sum + (e.amount || 0), 0);
+          {activeTab === "debts" && (
+             <div className="space-y-4">
+               {/* Debt Filters */}
+               <div className="flex justify-between items-center">
+                   <div className="flex gap-2">
+                       <Button 
+                           size="sm" 
+                           variant={debtFilter === "pending" ? "default" : "outline"}
+                           onClick={() => setDebtFilter("pending")}
+                           className="h-7 text-xs"
+                       >
+                           Pending
+                       </Button>
+                       <Button 
+                           size="sm" 
+                           variant={debtFilter === "paid" ? "default" : "outline"}
+                           onClick={() => setDebtFilter("paid")}
+                           className="h-7 text-xs"
+                       >
+                           Paid
+                       </Button>
+                       <Button 
+                           size="sm" 
+                           variant={debtFilter === "all" ? "default" : "outline"}
+                           onClick={() => setDebtFilter("all")}
+                           className="h-7 text-xs"
+                       >
+                           All
+                       </Button>
+                   </div>
+                   
+                   {/* Year Filter (only if multiple years) */}
+                   {debtYears.length > 1 && (
+                        <Select value={debtYearFilter} onValueChange={setDebtYearFilter}>
+                           <SelectTrigger className="h-7 text-xs w-[100px]">
+                               <SelectValue placeholder="Year" />
+                           </SelectTrigger>
+                           <SelectContent>
+                               <SelectItem value="all">All Years</SelectItem>
+                               {debtYears.map(y => (
+                                   <SelectItem key={y} value={y}>{y}</SelectItem>
+                               ))}
+                           </SelectContent>
+                        </Select>
+                   )}
+               </div>
 
-            // Filter based on active tab
-            const hasVisibleItems = 
-              activeTab === "summary" ||
-              (activeTab === "income" && dayData.income.length > 0) ||
-              (activeTab === "expenses" && dayData.expenses.length > 0) ||
-              (activeTab === "debts" && dayData.debts.length > 0) ||
-              (activeTab === "elliw" && dayData.wishlist.length > 0);
-
-            if (!hasVisibleItems) return null;
-
-            return (
-              <div key={dayKey}>
-                {/* Day Header */}
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-1">
-                      <span className="text-2xl font-bold">{dayNumber}</span>
-                      <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">
-                        {weekday}
-                      </span>
+                {/* Debts List Grouped by Month */}
+                {filteredDebts.length === 0 ? (
+                    <div className="text-center py-10 text-muted-foreground">
+                        <p>No debts found.</p>
                     </div>
-                  </div>
-                  <div className="flex gap-4 text-sm">
-                    {dayIncome > 0 && (activeTab === "summary" || activeTab === "income") && (
-                      <span className="text-green-600 font-medium">
-                        {formatCurrency(dayIncome, userCurrency)}
-                      </span>
-                    )}
-                    {dayExpenses > 0 && (activeTab === "summary" || activeTab === "expenses") && (
-                      <span className="text-red-600 font-medium">
-                        {formatCurrency(dayExpenses, userCurrency)}
-                      </span>
-                    )}
-                  </div>
-                </div>
+                ) : (
+                    <div className="space-y-6">
+                        {sortedDebtMonths.map(monthKey => {
+                            const [y, m] = monthKey.split("-").map(Number);
+                            const monthDate = new Date(y, m, 1);
+                            const groupDebts = debtsByMonth[monthKey];
+                            const totalGroup = groupDebts.reduce((sum, d) => sum + (d.currentBalance || 0), 0);
 
-                {/* Day Transactions */}
-                <div className="space-y-2 ml-2">
-                  {(activeTab === "summary" || activeTab === "income") && dayData.income.map((item) => (
-                    <div 
-                      key={item.id} 
-                      className="p-3 bg-accent/20 rounded-lg cursor-pointer hover:bg-accent/40 transition-colors"
-                      onClick={() => setEditTransaction({ transaction: item as IncomeSource, type: "income" })}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded bg-green-100 dark:bg-green-900/20 flex items-center justify-center text-xs">
-                            💰
-                          </div>
-                          <div>
-                            <p className="font-medium text-sm">{item.source}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {item.isRecurring ? `Recurring (${item.frequency})` : "Other"}
-                            </p>
-                          </div>
+                            return (
+                                <div key={monthKey}>
+                                    <div className="flex items-center justify-between mb-2">
+                                        <h3 className="font-semibold text-lg">
+                                            {monthDate.toLocaleDateString("en-US", { month: "long", year: "numeric" })}
+                                        </h3>
+                                        <span className="text-xs font-mono text-muted-foreground">
+                                            {formatCurrency(totalGroup, userCurrency)}
+                                        </span>
+                                    </div>
+                                    <div className="space-y-2">
+                                        {groupDebts.map(item => (
+                                            <div 
+                                                key={item.id} 
+                                                className={`p-3 rounded-lg cursor-pointer transition-colors ${item.isPaidOff ? "bg-accent/10 opacity-70" : "bg-accent/20 hover:bg-accent/40"}`}
+                                                onClick={() => setViewDebt(item as Debt)}
+                                            >
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className={`w-10 h-10 rounded flex items-center justify-center text-lg ${item.direction === "I_OWE" ? "bg-red-100 dark:bg-red-900/20" : "bg-green-100 dark:bg-green-900/20"}`}>
+                                                            🤝
+                                                        </div>
+                                                        <div>
+                                                            <p className="font-medium text-sm">{item.personName}</p>
+                                                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                                                <span className="font-mono">
+                                                                    {item.direction === "I_OWE" ? "I Owe" : "Owed to Me"}
+                                                                </span>
+                                                                <span>•</span>
+                                                                <span>{new Date(item.date || item.createdAt).toLocaleDateString()}</span>
+                                                                {item.isPaidOff && <span className="text-green-600 font-bold">• Paid</span>}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <span className={`font-semibold ${item.direction === "I_OWE" ? "text-red-600" : "text-green-600"}`}>
+                                                        {formatCurrency(item.currentBalance || 0, userCurrency)}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                )}
+             </div>
+          )}
+
+          {activeTab !== "elliw" && activeTab !== "debts" && (
+            isDateSort ? (
+              // grouped by Day View (Date Sort)
+              sortedDays.map((dayKey) => {
+                const dayData = transactionsByDay[dayKey];
+                const date = new Date(dayKey);
+                const dayNumber = date.getDate();
+                const weekday = date.toLocaleDateString("en-US", { weekday: "short" });
+                
+                const dayIncome = dayData.income.reduce((sum, i) => sum + (i.amount || 0), 0);
+                const dayExpenses = dayData.expenses.reduce((sum, e) => sum + (e.amount || 0), 0);
+
+                // Filter based on active tab
+                const hasVisibleItems = 
+                  activeTab === "summary" ||
+                  (activeTab === "income" && dayData.income.length > 0) ||
+                  (activeTab === "expenses" && dayData.expenses.length > 0) ||
+                  (activeTab === "debts" && dayData.debts.length > 0);
+
+                if (!hasVisibleItems) return null;
+
+                return (
+                  <div key={dayKey}>
+                    {/* Day Header */}
+                    <div className="flex items-center justify-between mb-2 mt-4">
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1">
+                          <span className="text-2xl font-bold">{dayNumber}</span>
+                          <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">
+                            {weekday}
+                          </span>
                         </div>
-                        <span className="font-semibold text-green-600">
-                          {formatCurrency(item.amount || 0, userCurrency)}
-                        </span>
+                      </div>
+                      <div className="flex gap-4 text-sm">
+                        {dayIncome > 0 && (activeTab === "summary" || activeTab === "income") && (
+                          <span className="text-green-600 font-medium">
+                            {formatCurrency(dayIncome, userCurrency)}
+                          </span>
+                        )}
+                        {dayExpenses > 0 && (activeTab === "summary" || activeTab === "expenses") && (
+                          <span className="text-red-600 font-medium">
+                            {formatCurrency(dayExpenses, userCurrency)}
+                          </span>
+                        )}
                       </div>
                     </div>
-                  ))}
 
-                  {(activeTab === "summary" || activeTab === "expenses") && dayData.expenses.map((item) => (
-                    <div 
-                      key={item.id} 
-                      className="p-3 bg-accent/20 rounded-lg cursor-pointer hover:bg-accent/40 transition-colors"
-                      onClick={() => setEditTransaction({ transaction: item as Expense, type: "expense" })}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded bg-red-100 dark:bg-red-900/20 flex items-center justify-center text-xs">
-                            {item.category?.toLowerCase().includes("food") ? "🍔" : "💳"}
-                          </div>
-                          <div>
-                            <p className="font-medium text-sm">{item.recipient}</p>
-                            <p className="text-xs text-muted-foreground">{item.category}</p>
-                          </div>
-                        </div>
-                        <span className="font-semibold text-red-600">
-                          {formatCurrency(item.amount || 0, userCurrency)}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-
-                  {(activeTab === "summary" || activeTab === "debts") && dayData.debts.map((item) => (
-                    <div 
-                      key={item.id} 
-                      className="p-3 bg-accent/20 rounded-lg cursor-pointer hover:bg-accent/40 transition-colors"
-                      onClick={() => setViewDebt(item as Debt)}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center text-xs">
-                            🤝
-                          </div>
-                          <div>
-                            <p className="font-medium text-sm">{item.personName}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {item.direction === "I_OWE" ? "Debt" : "Loan"}
-                            </p>
-                          </div>
-                        </div>
-                        <span className={`font-semibold ${
-                          item.direction === "I_OWE" ? "text-red-600" : "text-green-600"
-                        }`}>
-                          {formatCurrency(item.currentBalance || 0, userCurrency)}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-
-                  {(activeTab === "summary" || activeTab === "elliw") && dayData.wishlist.map((item) => (
-                    <div 
-                      key={item.id} 
-                      className="p-3 bg-accent/20 rounded-lg cursor-pointer hover:bg-accent/40 transition-colors"
-                      onClick={() => setEditTransaction({ transaction: item as WishlistItem, type: "wishlist" })}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded bg-purple-100 dark:bg-purple-900/20 flex items-center justify-center text-xs">
-                            ✨
-                          </div>
-                          <div>
-                            <p className="font-medium text-sm">{item.itemName}</p>
-                            <p className="text-xs text-muted-foreground font-mono">
-                              {item.status === "got" ? "Got it!" : "Want"}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          {item.link && (
-                            <Button 
-                              size="icon" 
-                              variant="ghost" 
-                              className="h-8 w-8 text-blue-400 hover:text-blue-300 hover:bg-blue-400/10"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                window.open(item.link, "_blank");
-                              }}
-                            >
-                              <Globe className="h-4 w-4" />
-                            </Button>
-                          )}
-                          {item.amount && (
-                            <span className="font-semibold">
+                    {/* Day Transactions */}
+                    <div className="space-y-2 ml-2">
+                      {(activeTab === "summary" || activeTab === "income") && dayData.income.map((item) => (
+                         // ... Income Item Component ...
+                        <div 
+                          key={item.id} 
+                          className="p-3 bg-accent/20 rounded-lg cursor-pointer hover:bg-accent/40 transition-colors"
+                          onClick={() => setEditTransaction({ transaction: item as IncomeSource, type: "income" })}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <div className="w-8 h-8 rounded bg-green-100 dark:bg-green-900/20 flex items-center justify-center text-xs">
+                                💰
+                              </div>
+                              <div>
+                                <p className="font-medium text-sm">{item.source}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {item.isRecurring ? `Recurring (${item.frequency})` : "Other"}
+                                </p>
+                              </div>
+                            </div>
+                            <span className="font-semibold text-green-600">
                               {formatCurrency(item.amount || 0, userCurrency)}
                             </span>
-                          )}
+                          </div>
                         </div>
-                      </div>
+                      ))}
+
+                      {(activeTab === "summary" || activeTab === "expenses") && dayData.expenses.map((item) => (
+                        <div 
+                          key={item.id} 
+                          className="p-3 bg-accent/20 rounded-lg cursor-pointer hover:bg-accent/40 transition-colors"
+                          onClick={() => setEditTransaction({ transaction: item as Expense, type: "expense" })}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <div className="w-8 h-8 rounded bg-red-100 dark:bg-red-900/20 flex items-center justify-center text-xs">
+                                {item.category?.toLowerCase().includes("food") ? "🍔" : "💳"}
+                              </div>
+                              <div>
+                                <p className="font-medium text-sm">{item.recipient}</p>
+                                <p className="text-xs text-muted-foreground">{item.category}</p>
+                              </div>
+                            </div>
+                            <span className="font-semibold text-red-600">
+                              {formatCurrency(item.amount || 0, userCurrency)}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+
+                      {/* Debts are now handled in their own dedicated view above */}
                     </div>
-                  ))}
-                </div>
-              </div>
-            );
-          })}
+                  </div>
+                );
+              })
+            ) : (
+             // Flat List View (Amount Sort)
+             <div className="space-y-2">
+                 {flatSortedItems.map((item) => {
+                     let type: "income" | "expense" | "debt" = "expense";
+                     if ("source" in item) type = "income";
+                     else if ("personName" in item) type = "debt";
+                     
+                     return (
+                         <div 
+                           key={item.id} 
+                           className="p-3 bg-accent/20 rounded-lg cursor-pointer hover:bg-accent/40 transition-colors"
+                           onClick={() => {
+                               if (type === "debt") setViewDebt(item as Debt);
+                               else setEditTransaction({ transaction: item, type: type as any });
+                           }}
+                         >
+                           <div className="flex items-center justify-between">
+                             <div className="flex items-center gap-2">
+                               <div className={`w-8 h-8 rounded flex items-center justify-center text-xs ${
+                                   type === "income" ? "bg-green-100 dark:bg-green-900/20" : 
+                                   type === "debt" ? "bg-blue-100 dark:bg-blue-900/20" : "bg-red-100 dark:bg-red-900/20"
+                               }`}>
+                                 {type === "income" ? "💰" : type === "debt" ? "🤝" : (item.category?.toLowerCase().includes("food") ? "🍔" : "💳")}
+                               </div>
+                               <div>
+                                 <p className="font-medium text-sm">
+                                     {type === "income" ? (item as IncomeSource).source : 
+                                      type === "debt" ? (item as Debt).personName : (item as Expense).recipient}
+                                 </p>
+                                 <p className="text-xs text-muted-foreground">
+                                    {new Date(item.date || item.createdAt || 0).toLocaleDateString()}
+                                    {type !== "debt" && ` • ${type === "income" ? (item.frequency || "One-time") : item.category}`}
+                                 </p>
+                               </div>
+                             </div>
+                             <span className={`font-semibold ${
+                                 type === "income" || (type === "debt" && (item as Debt).direction !== "I_OWE") ? "text-green-600" : "text-red-600"
+                             }`}>
+                               {formatCurrency(item.currentBalance ?? item.amount ?? 0, userCurrency)}
+                             </span>
+                           </div>
+                         </div>
+                     );
+                 })}
+             </div>
+            )
+          )}
         </div>
       )}
       
