@@ -23,6 +23,7 @@ export type IncomeSource = InstaQLEntity<typeof schema, "income">;
 
 // Debt types
 export type Debt = InstaQLEntity<typeof schema, "debts">;
+export type DebtPayment = InstaQLEntity<typeof schema, "debt_payments">;
 
 // Wishlist types
 export type WishlistItem = InstaQLEntity<typeof schema, "wishlist">;

@@ -16,6 +16,13 @@ const _schema = i.schema({
       paystackReference: i.string().optional(),
       type: i.string().optional(),
     }),
+    debt_payments: i.entity({
+      amount: i.number(),
+      date: i.number().indexed(),
+      type: i.string().indexed(), // "interest", "principal"
+      notes: i.string().optional(),
+      expenseId: i.string().optional(),
+    }),
     debts: i.entity({
       amount: i.number().indexed().optional(),
       compoundingFrequency: i.string().optional(),
@@ -23,6 +30,9 @@ const _schema = i.schema({
       currentBalance: i.number().indexed().optional(),
       date: i.number().indexed().optional(),
       debtType: i.string().optional(),
+      paymentFrequency: i.string().optional(),
+      agreedRepaymentAmount: i.number().optional(),
+      isPaidOff: i.boolean().indexed().optional(),
       direction: i.string().indexed().optional(),
       dueDate: i.number().indexed().optional(),
       interestRate: i.number().optional(),
@@ -64,13 +74,12 @@ const _schema = i.schema({
       amount: i.number().optional(),
       category: i.string().optional(),
       createdAt: i.number().indexed(),
+      expenseId: i.string().optional(),
       gotDate: i.number().indexed().optional(),
       itemName: i.string().indexed(),
       link: i.string().optional(),
-
       notes: i.string().optional(),
       status: i.string().indexed(),
-      expenseId: i.string().optional(), // ID of the expense created when fulfiled
     }),
   },
   links: {
@@ -99,6 +108,19 @@ const _schema = i.schema({
         on: "profiles",
         has: "many",
         label: "debts",
+      },
+    },
+    debtPaymentsLink: {
+      forward: {
+        on: "debts",
+        has: "many",
+        label: "payments",
+      },
+      reverse: {
+        on: "debt_payments",
+        has: "one",
+        label: "debt",
+        onDelete: "cascade",
       },
     },
     expensesProfile: {

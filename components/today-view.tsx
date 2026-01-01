@@ -9,6 +9,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import db from "@/lib/db";
 import { formatCurrency, DEFAULT_CURRENCY } from "@/lib/currency-utils";
 import { EditTransactionDialog } from "@/components/edit-transaction-dialog";
+import { DebtDetailsDialog } from "@/components/debt-details-dialog";
 import { toast } from "sonner";
 import type { Expense, IncomeSource, Debt, WishlistItem } from "@/types";
 
@@ -31,6 +32,8 @@ export function TodayView({ profileId }: TodayViewProps) {
     transaction: Expense | IncomeSource | Debt | WishlistItem;
     type: "expense" | "income" | "debt" | "wishlist";
   } | null>(null);
+  
+  const [viewDebt, setViewDebt] = useState<Debt | null>(null);
   
   // Update tab via URL
   const setActiveTab = (tab: string) => {
@@ -578,7 +581,7 @@ export function TodayView({ profileId }: TodayViewProps) {
                     <div 
                       key={item.id} 
                       className="p-3 bg-accent/20 rounded-lg cursor-pointer hover:bg-accent/40 transition-colors"
-                      onClick={() => setEditTransaction({ transaction: item as Debt, type: "debt" })}
+                      onClick={() => setViewDebt(item as Debt)}
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
@@ -656,6 +659,15 @@ export function TodayView({ profileId }: TodayViewProps) {
           onOpenChange={(open) => !open && setEditTransaction(null)}
           transaction={editTransaction.transaction}
           type={editTransaction.type}
+          profileId={profileId}
+        />
+      )}
+      
+      {viewDebt && (
+        <DebtDetailsDialog
+          debt={viewDebt}
+          open={!!viewDebt}
+          onOpenChange={(open) => !open && setViewDebt(null)}
           profileId={profileId}
         />
       )}

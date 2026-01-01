@@ -77,6 +77,9 @@ export function AddSheet({ open, onOpenChange, profileId }: AddSheetProps) {
   const [personName, setPersonName] = useState("");
   const [debtDirection, setDebtDirection] = useState("I_OWE");
   const [dueDate, setDueDate] = useState("");
+  const [debtType, setDebtType] = useState("friend"); // "friend" | "shylock"
+  const [interestRate, setInterestRate] = useState("20");
+  const [agreedAmount, setAgreedAmount] = useState("");
 
   // Expense fields
   const [category, setCategory] = useState("");
@@ -97,6 +100,9 @@ export function AddSheet({ open, onOpenChange, profileId }: AddSheetProps) {
     setCategory("");
     setRecipient("");
     setItemName("");
+    setDebtType("friend");
+    setInterestRate("20");
+    setAgreedAmount("");
     setIsNewSource(false);
     setIsNewCategory(false);
     setIsNewRecipient(false);
@@ -147,33 +153,44 @@ export function AddSheet({ open, onOpenChange, profileId }: AddSheetProps) {
             return;
           }
           const debtId = id();
+          // Calculate initial balance based on type
+          let initialBalance = parsedAmount;
+          let notesWithConfig = notes;
+
+          if (debtType === "shylock") {
+            const rate = parseFloat(interestRate) || 0;
+            const interestAmount = parsedAmount * (rate / 100);
+            initialBalance = parsedAmount + interestAmount;
+            notesWithConfig = notesWithConfig 
+              ? `${notesWithConfig}\n(Shylock: ${rate}% Interest)` 
+              : `Shylock Loan: ${rate}% Interest`;
+          } else if (debtType === "friend" && agreedAmount) {
+             const parsedAgreed = parseFloat(agreedAmount);
+             if (!isNaN(parsedAgreed) && parsedAgreed > 0) {
+               initialBalance = parsedAgreed;
+             }
+          }
+
           await db.transact(
             db.tx.debts[debtId]
               .update({
                 personName,
                 amount: parsedAmount,
-                currentBalance: parsedAmount, // Initialize currentBalance to amount
+                currentBalance: initialBalance,
                 direction: debtDirection,
                 date: dateTimestamp,
                 dueDate: dueDate ? new Date(dueDate).getTime() : undefined,
                 status: "pending",
-                notes: notes || undefined,
+                notes: notesWithConfig || undefined,
                 createdAt: now,
+                // New fields
+                debtType,
+                interestRate: debtType === "shylock" ? parseFloat(interestRate) : undefined,
+                paymentFrequency: debtType === "shylock" ? "monthly" : undefined,
               })
               .link({ profile: profileId })
           );
           toast.success("Debt added!");
-
-          // Set debt info for configuration dialog
-          setNewDebtId(debtId);
-          setNewDebtAmount(parsedAmount);
-          setNewDebtPerson(personName);
-
-          // Show configure debt dialog instead of closing immediately
-          resetForm();
-          onOpenChange(false);
-          setShowConfigureDebt(true);
-          return; // Return early to prevent the normal close flow
           break;
 
         case "expense":
@@ -433,14 +450,92 @@ export function AddSheet({ open, onOpenChange, profileId }: AddSheetProps) {
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="dueDate">Due Date (Optional)</Label>
-                <Input
-                  id="dueDate"
-                  type="date"
-                  value={dueDate}
-                  onChange={(e) => setDueDate(e.target.value)}
-                />
+              <div className="space-y-4 pt-2">
+                 {/* Debt Type Toggle */}
+                 <div className="flex items-center justify-between bg-accent/20 p-2 rounded-lg">
+                    <Label htmlFor="debtType" className="cursor-pointer">Loan Type</Label>
+                    <div className="flex items-center gap-2 bg-background rounded-md p-1 border">
+                      <button
+                        type="button"
+                        onClick={() => setDebtType("friend")}
+                        className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${debtType === "friend" ? "bg-primary text-primary-foreground" : "hover:bg-accent"}`}
+                      >
+                        Standard
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setDebtType("shylock")}
+                        className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${debtType === "shylock" ? "bg-primary text-primary-foreground" : "hover:bg-accent"}`}
+                      >
+                        Shylock
+                      </button>
+                    </div>
+                 </div>
+
+                 {/* Shylock Fields */}
+                 {debtType === "shylock" && (
+                   <div className="space-y-3 bg-accent/10 p-3 rounded-lg border border-accent/20">
+                     <p className="text-xs font-medium text-muted-foreground mb-2">Shylock Configuration</p>
+                     <div className="grid grid-cols-2 gap-3">
+                       <div className="space-y-2">
+                         <Label htmlFor="interestRate">Interest Rate (%)</Label>
+                         <Input
+                           id="interestRate"
+                           type="number"
+                           value={interestRate}
+                           onChange={(e) => setInterestRate(e.target.value)}
+                           className="bg-background"
+                         />
+                       </div>
+                       <div className="space-y-2">
+                         <Label>Interest (Monthly)</Label>
+                         <div className="h-10 px-3 py-2 border rounded-md bg-accent/5 flex items-center text-sm font-semibold opacity-80">
+                            {(() => {
+                               const rate = parseFloat(interestRate) || 0;
+                               const amt = parseFloat(amount) || 0;
+                               return Math.round(amt * (rate / 100)).toLocaleString();
+                            })()}
+                         </div>
+                       </div>
+                     </div>
+                     <p className="text-xs text-muted-foreground italic">
+                        Total due in 1 month: <span className="font-bold text-foreground">
+                        {(() => {
+                           const rate = parseFloat(interestRate) || 0;
+                           const amt = parseFloat(amount) || 0;
+                           return (amt + (amt * (rate / 100))).toLocaleString();
+                        })()}
+                        </span>
+                     </p>
+                   </div>
+                 )}
+
+                 {/* Standard Friend Fields */}
+                 {debtType === "friend" && (
+                    <div className="space-y-2">
+                       <Label htmlFor="agreedAmount">Agreed Repayment (Optional)</Label>
+                       <Input
+                         id="agreedAmount"
+                         type="number"
+                         placeholder={amount || "Same as amount"}
+                         value={agreedAmount}
+                         onChange={(e) => setAgreedAmount(e.target.value)}
+                       />
+                       <p className="text-xs text-muted-foreground">
+                         If you agreed to pay back {agreedAmount ? agreedAmount : "a different amount"}, enter it here.
+                       </p>
+                    </div>
+                 )}
+
+                <div className="space-y-2">
+                  <Label htmlFor="dueDate">Due Date (Optional)</Label>
+                  <Input
+                    id="dueDate"
+                    type="date"
+                    value={dueDate}
+                    onChange={(e) => setDueDate(e.target.value)}
+                  />
+                </div>
               </div>
             </TabsContent>
 
