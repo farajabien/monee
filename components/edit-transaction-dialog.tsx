@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { format } from "date-fns";
 import { id } from "@instantdb/react";
-import { Calendar, Trash2, Copy, Bookmark } from "lucide-react";
+import { Calendar, Trash2, Copy, Bookmark, Globe } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -15,6 +15,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import db from "@/lib/db";
 import type { Expense, IncomeSource, Debt, WishlistItem } from "@/types";
 
@@ -36,6 +44,8 @@ export function EditTransactionDialog({
   profileId,
 }: EditTransactionDialogProps) {
   const [activeTab, setActiveTab] = useState<string>(type);
+  const [debtEditTab, setDebtEditTab] = useState<"details" | "payment">("details");
+  const [paymentAmount, setPaymentAmount] = useState<string>("");
   const [formData, setFormData] = useState(() => {
     // Initialize form data based on transaction type
     if (type === "expense") {
@@ -46,6 +56,8 @@ export function EditTransactionDialog({
         recipient: exp.recipient || "",
         category: exp.category || "",
         notes: exp.notes || "",
+        isRecurring: exp.isRecurring || false,
+        frequency: exp.frequency || "monthly",
       };
     } else if (type === "income") {
       const inc = transaction as IncomeSource;
@@ -54,6 +66,8 @@ export function EditTransactionDialog({
         amount: inc.amount,
         source: inc.source || "",
         notes: inc.notes || "",
+        isRecurring: inc.isRecurring || false,
+        frequency: inc.frequency || "monthly",
       };
     } else if (type === "debt") {
       const debt = transaction as Debt;
@@ -71,6 +85,7 @@ export function EditTransactionDialog({
         itemName: wish.itemName || "",
         amount: wish.amount || 0,
         status: wish.status || "want",
+        link: wish.link || "",
         notes: wish.notes || "",
       };
     }
@@ -86,6 +101,8 @@ export function EditTransactionDialog({
             category: formData.category,
             notes: formData.notes,
             date: formData.date,
+            isRecurring: (formData as any).isRecurring,
+            frequency: (formData as any).isRecurring ? (formData as any).frequency : undefined,
           }),
         ]);
       } else if (type === "income") {
@@ -95,6 +112,8 @@ export function EditTransactionDialog({
             source: (formData as any).source,
             notes: formData.notes,
             date: formData.date,
+            isRecurring: (formData as any).isRecurring,
+            frequency: (formData as any).isRecurring ? (formData as any).frequency : undefined,
           }),
         ]);
       } else if (type === "debt") {
@@ -113,6 +132,7 @@ export function EditTransactionDialog({
             itemName: (formData as any).itemName,
             amount: formData.amount,
             status: (formData as any).status,
+            link: (formData as any).link,
             notes: formData.notes,
           }),
         ]);
@@ -192,6 +212,7 @@ export function EditTransactionDialog({
               itemName: `${(formData as any).itemName} (Copy)`,
               amount: formData.amount,
               status: "want",
+              link: (formData as any).link,
               notes: formData.notes,
               createdAt: Date.now(),
             })
@@ -201,6 +222,59 @@ export function EditTransactionDialog({
       onOpenChange(false);
     } catch (error) {
       console.error("Failed to duplicate transaction:", error);
+    }
+  };
+
+  // Record a payment towards a debt
+  const handleRecordPayment = async () => {
+    if (type !== "debt") return;
+    
+    const amount = parseFloat(paymentAmount);
+    if (isNaN(amount) || amount <= 0) {
+      alert("Please enter a valid payment amount");
+      return;
+    }
+    
+    const debt = transaction as Debt;
+    const currentBalance = (formData as any).amount || debt.currentBalance || debt.amount || 0;
+    const newBalance = Math.max(0, currentBalance - amount);
+    
+    try {
+      await db.transact([
+        db.tx.debts[transaction.id].update({
+          currentBalance: newBalance,
+          notes: `${formData.notes || ""}\n[${new Date().toLocaleDateString()}] Payment: ${amount}`.trim(),
+        }),
+      ]);
+      
+      // Update local form data
+      setFormData({ ...formData, amount: newBalance } as any);
+      setPaymentAmount("");
+      
+      if (newBalance === 0) {
+        alert("🎉 Debt fully paid off!");
+      }
+    } catch (error) {
+      console.error("Failed to record payment:", error);
+    }
+  };
+
+  // Mark debt as fully paid
+  const handleMarkAsPaid = async () => {
+    if (type !== "debt") return;
+    
+    try {
+      await db.transact([
+        db.tx.debts[transaction.id].update({
+          currentBalance: 0,
+          notes: `${formData.notes || ""}\n[${new Date().toLocaleDateString()}] Marked as fully paid`.trim(),
+        }),
+      ]);
+      
+      setFormData({ ...formData, amount: 0 } as any);
+      alert("🎉 Debt marked as fully paid!");
+    } catch (error) {
+      console.error("Failed to mark as paid:", error);
     }
   };
 
@@ -276,50 +350,178 @@ export function EditTransactionDialog({
                   placeholder="Category"
                 />
               </div>
+              
+              {/* Recurring Toggle */}
+              <div className="flex items-center justify-between py-2">
+                <div className="space-y-0.5">
+                  <Label>Recurring Expense</Label>
+                  <p className="text-xs text-muted-foreground">Is this a recurring payment?</p>
+                </div>
+                <Switch
+                  checked={(formData as any).isRecurring || false}
+                  onCheckedChange={(checked) =>
+                    setFormData({ ...formData, isRecurring: checked } as any)
+                  }
+                />
+              </div>
+              
+              {(formData as any).isRecurring && (
+                <div className="space-y-2">
+                  <Label>Frequency</Label>
+                  <Select
+                    value={(formData as any).frequency || "monthly"}
+                    onValueChange={(value) =>
+                      setFormData({ ...formData, frequency: value } as any)
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="daily">Daily</SelectItem>
+                      <SelectItem value="weekly">Weekly</SelectItem>
+                      <SelectItem value="monthly">Monthly</SelectItem>
+                      <SelectItem value="yearly">Yearly</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
             </>
           )}
 
           {/* Income Fields */}
           {type === "income" && (
-            <div className="space-y-2">
-              <Label>Source</Label>
-              <Input
-                value={(formData as any).source}
-                onChange={(e) =>
-                  setFormData({ ...formData, source: e.target.value } as any)
-                }
-                placeholder="Income source"
-              />
-            </div>
-          )}
-
-          {/* Debt Fields */}
-          {type === "debt" && (
             <>
               <div className="space-y-2">
-                <Label>Person Name</Label>
+                <Label>Source</Label>
                 <Input
-                  value={(formData as any).personName}
+                  value={(formData as any).source}
                   onChange={(e) =>
-                    setFormData({ ...formData, personName: e.target.value } as any)
+                    setFormData({ ...formData, source: e.target.value } as any)
                   }
-                  placeholder="Person name"
+                  placeholder="Income source"
                 />
               </div>
-              <div className="space-y-2">
-                <Label>Direction</Label>
-                <select
-                  className="w-full p-2 rounded-md border bg-background"
-                  value={(formData as any).direction}
-                  onChange={(e) =>
-                    setFormData({ ...formData, direction: e.target.value } as any)
+              
+              {/* Recurring Toggle */}
+              <div className="flex items-center justify-between py-2">
+                <div className="space-y-0.5">
+                  <Label>Recurring Income</Label>
+                  <p className="text-xs text-muted-foreground">Is this a recurring income?</p>
+                </div>
+                <Switch
+                  checked={(formData as any).isRecurring || false}
+                  onCheckedChange={(checked) =>
+                    setFormData({ ...formData, isRecurring: checked } as any)
                   }
-                >
-                  <option value="I_OWE">I Owe</option>
-                  <option value="THEY_OWE_ME">They Owe Me</option>
-                </select>
+                />
               </div>
+              
+              {(formData as any).isRecurring && (
+                <div className="space-y-2">
+                  <Label>Frequency</Label>
+                  <Select
+                    value={(formData as any).frequency || "monthly"}
+                    onValueChange={(value) =>
+                      setFormData({ ...formData, frequency: value } as any)
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="daily">Daily</SelectItem>
+                      <SelectItem value="weekly">Weekly</SelectItem>
+                      <SelectItem value="monthly">Monthly</SelectItem>
+                      <SelectItem value="yearly">Yearly</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
             </>
+          )}
+
+          {/* Debt Fields - Tabbed Interface */}
+          {type === "debt" && (
+            <Tabs value={debtEditTab} onValueChange={(v) => setDebtEditTab(v as any)} className="w-full">
+              <TabsList className="grid w-full grid-cols-2 mb-4">
+                <TabsTrigger value="details">Details</TabsTrigger>
+                <TabsTrigger value="payment">Payment</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="details" className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Person Name</Label>
+                  <Input
+                    value={(formData as any).personName}
+                    onChange={(e) =>
+                      setFormData({ ...formData, personName: e.target.value } as any)
+                    }
+                    placeholder="Person name"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Direction</Label>
+                  <select
+                    className="w-full p-2 rounded-md border bg-background"
+                    value={(formData as any).direction}
+                    onChange={(e) =>
+                      setFormData({ ...formData, direction: e.target.value } as any)
+                    }
+                  >
+                    <option value="I_OWE">I Owe</option>
+                    <option value="THEY_OWE_ME">They Owe Me</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Current Balance</Label>
+                  <Input
+                    type="number"
+                    value={formData.amount}
+                    onChange={(e) =>
+                      setFormData({ ...formData, amount: parseFloat(e.target.value) || 0 })
+                    }
+                    placeholder="0.00"
+                  />
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="payment" className="space-y-4">
+                <div className="p-4 rounded-lg bg-accent/20 text-center space-y-1">
+                  <p className="text-sm text-muted-foreground">Current Balance</p>
+                  <p className={`text-2xl font-bold ${(formData as any).direction === "I_OWE" ? "text-red-500" : "text-green-500"}`}>
+                     {((formData as any).direction === "I_OWE" ? "-" : "+")}{formData.amount.toLocaleString()}
+                  </p>
+                </div>
+                
+                {formData.amount > 0 ? (
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label>Record Payment Amount</Label>
+                      <Input
+                        type="number"
+                        value={paymentAmount}
+                        onChange={(e) => setPaymentAmount(e.target.value)}
+                        placeholder="Amount paid"
+                      />
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button onClick={handleRecordPayment} className="w-full">
+                        Record Payment
+                      </Button>
+                      <Button onClick={handleMarkAsPaid} variant="outline" className="w-full">
+                        Mark Fully Paid
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-6 text-muted-foreground">
+                    <p>🎉 This debt is fully paid!</p>
+                  </div>
+                )}
+              </TabsContent>
+            </Tabs>
           )}
 
           {/* Wishlist Fields */}
@@ -345,8 +547,30 @@ export function EditTransactionDialog({
                   }
                 >
                   <option value="want">Want</option>
-                  <option value="got">Got</option>
+                  <option value="got">Got it</option>
                 </select>
+              </div>
+              <div className="space-y-2">
+                <Label>Link</Label>
+                <div className="flex gap-2">
+                  <Input
+                    value={(formData as any).link || ""}
+                    onChange={(e) =>
+                      setFormData({ ...formData, link: e.target.value } as any)
+                    }
+                    placeholder="https://..."
+                  />
+                  {(formData as any).link && (
+                    <Button 
+                      size="icon" 
+                      variant="outline" 
+                      onClick={() => window.open((formData as any).link, "_blank")}
+                      title="Open Link"
+                    >
+                      <Globe className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
               </div>
             </>
           )}

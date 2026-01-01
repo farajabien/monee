@@ -66,8 +66,11 @@ const _schema = i.schema({
       createdAt: i.number().indexed(),
       gotDate: i.number().indexed().optional(),
       itemName: i.string().indexed(),
+      link: i.string().optional(),
+
       notes: i.string().optional(),
       status: i.string().indexed(),
+      expenseId: i.string().optional(), // ID of the expense created when fulfiled
     }),
   },
   links: {

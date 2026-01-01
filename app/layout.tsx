@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { ServiceWorkerRegister } from "../components/service-worker-register";
+import { ThemeProvider } from "@/components/theme-provider";
+import { Toaster } from "sonner";
 import Script from "next/script";
 
 export const metadata: Metadata = {
@@ -15,10 +17,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className="antialiased">
-        <ServiceWorkerRegister />
-        {children}
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem={false}
+          disableTransitionOnChange
+        >
+          <ServiceWorkerRegister />
+          {children}
+          <Toaster richColors position="top-center" />
+        </ThemeProvider>
         {process.env.NEXT_PUBLIC_GA_ID && (
           <>
             <Script
@@ -39,3 +49,4 @@ export default function RootLayout({
     </html>
   );
 }
+

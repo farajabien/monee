@@ -2,44 +2,38 @@
 
 import * as React from "react";
 import { Moon, Sun } from "lucide-react";
+import { useTheme } from "next-themes";
 
 import { Button } from "@/components/ui/button";
 
 export function ThemeToggle() {
-  const [theme, setThemeState] = React.useState<"light" | "dark">("dark");
-  const applyTheme = (newTheme: "light" | "dark") => {
-    if (newTheme === "dark") {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  };
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = React.useState(false);
+
+  // Prevent hydration mismatch
   React.useEffect(() => {
-    // Initialize theme from localStorage
-    const savedTheme = localStorage.getItem("theme") as "light" | "dark" | null;
-    if (savedTheme) {
-      setThemeState(savedTheme);
-      applyTheme(savedTheme);
-    } else {
-      // Default to dark mode
-      setThemeState("dark");
-      localStorage.setItem("theme", "dark");
-      applyTheme("dark");
-    }
+    setMounted(true);
   }, []);
 
-  const toggleTheme = () => {
-    const newTheme = theme === "light" ? "dark" : "light";
-    setThemeState(newTheme);
-    localStorage.setItem("theme", newTheme);
-    applyTheme(newTheme);
-  };
+  if (!mounted) {
+    return (
+      <Button variant="outline" size="sm" disabled>
+        <Sun className="h-[1.2rem] w-[1.2rem]" />
+        <span className="sr-only">Toggle theme</span>
+      </Button>
+    );
+  }
 
   return (
-    <Button variant="outline" size="sm" onClick={toggleTheme}>
+    <Button 
+      variant="outline" 
+      size="sm" 
+      onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+    >
       <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
       <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
       <span className="sr-only">Toggle theme</span>
     </Button>
   );
 }
+

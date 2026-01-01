@@ -23,7 +23,7 @@ import { EditTransactionDialog } from "@/components/edit-transaction-dialog";
 import type { Expense, IncomeSource, Debt, WishlistItem } from "@/types";
 
 // Income List Component
-function IncomeList({ profileId, currency }: { profileId?: string; currency: string }) {
+function IncomeList({ profileId, currency, onEdit }: { profileId?: string; currency: string; onEdit: (item: IncomeSource) => void }) {
   const userCurrency = currency;
 
   // Get current month range
@@ -100,7 +100,11 @@ function IncomeList({ profileId, currency }: { profileId?: string; currency: str
         ) : (
           <div className="space-y-2">
             {income.map((item) => (
-              <Card key={item.id} className="p-4">
+              <Card 
+                key={item.id} 
+                className="p-4 cursor-pointer hover:bg-accent/50 transition-colors"
+                onClick={() => onEdit(item as IncomeSource)}
+              >
                 <div className="flex justify-between items-start">
                   <div>
                     <p className="font-medium">{item.source}</p>
@@ -134,7 +138,7 @@ function IncomeList({ profileId, currency }: { profileId?: string; currency: str
 }
 
 // Debts List Component
-function DebtsList({ profileId, currency }: { profileId?: string; currency: string }) {
+function DebtsList({ profileId, currency, onEdit }: { profileId?: string; currency: string; onEdit: (item: Debt) => void }) {
   const [debtTab, setDebtTab] = useState<"all" | "i_owe" | "they_owe">("all");
   const userCurrency = currency;
 
@@ -239,7 +243,11 @@ function DebtsList({ profileId, currency }: { profileId?: string; currency: stri
               ) : (
                 <div className="space-y-2">
                   {iOwe.map((debt) => (
-                    <Card key={debt.id} className="p-4">
+                    <Card 
+                      key={debt.id} 
+                      className="p-4 cursor-pointer hover:bg-accent/50 transition-colors"
+                      onClick={() => onEdit(debt as Debt)}
+                    >
                       <div className="flex justify-between items-start">
                         <div>
                           <p className="font-medium">{debt.personName}</p>
@@ -284,7 +292,11 @@ function DebtsList({ profileId, currency }: { profileId?: string; currency: stri
               ) : (
                 <div className="space-y-2">
                   {theyOweMe.map((debt) => (
-                    <Card key={debt.id} className="p-4">
+                    <Card 
+                      key={debt.id} 
+                      className="p-4 cursor-pointer hover:bg-accent/50 transition-colors"
+                      onClick={() => onEdit(debt as Debt)}
+                    >
                       <div className="flex justify-between items-start">
                         <div>
                           <p className="font-medium">{debt.personName}</p>
@@ -411,7 +423,7 @@ function DebtsList({ profileId, currency }: { profileId?: string; currency: stri
 }
 
 // Expenses List Component
-function ExpensesList({ profileId, currency }: { profileId?: string; currency: string }) {
+function ExpensesList({ profileId, currency, onEdit }: { profileId?: string; currency: string; onEdit: (item: Expense) => void }) {
   const userCurrency = currency;
 
   // Get current month range
@@ -488,7 +500,11 @@ function ExpensesList({ profileId, currency }: { profileId?: string; currency: s
         ) : (
           <div className="space-y-2">
             {expenses.map((expense) => (
-              <Card key={expense.id} className="p-4">
+              <Card 
+                key={expense.id} 
+                className="p-4 cursor-pointer hover:bg-accent/50 transition-colors"
+                onClick={() => onEdit(expense as Expense)}
+              >
                 <div className="flex justify-between items-start">
                   <div>
                     <p className="font-medium">{expense.recipient}</p>
@@ -525,7 +541,7 @@ function ExpensesList({ profileId, currency }: { profileId?: string; currency: s
 }
 
 // Wishlist List Component
-function WishlistList({ profileId, currency }: { profileId?: string; currency: string }) {
+function WishlistList({ profileId, currency, onEdit }: { profileId?: string; currency: string; onEdit: (item: WishlistItem) => void }) {
   const userCurrency = currency;
 
   // Get current month range
@@ -605,7 +621,11 @@ function WishlistList({ profileId, currency }: { profileId?: string; currency: s
         ) : (
           <div className="space-y-2">
             {wishlist.map((item) => (
-              <Card key={item.id} className="p-4">
+              <Card 
+                key={item.id} 
+                className="p-4 cursor-pointer hover:bg-accent/50 transition-colors"
+                onClick={() => onEdit(item as WishlistItem)}
+              >
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
                     <p className="font-medium">{item.itemName}</p>
@@ -645,6 +665,12 @@ export default function HomeClient() {
   const activeTab = searchParams.get("tab") || "income";
   const viewMode = searchParams.get("view") || "daily";
   const [showAddDialog, setShowAddDialog] = useState(false);
+  
+  // Edit transaction state
+  const [editTransaction, setEditTransaction] = useState<{
+    transaction: Expense | IncomeSource | Debt | WishlistItem;
+    type: "expense" | "income" | "debt" | "wishlist";
+  } | null>(null);
 
   const { data, isLoading } = db.useQuery({
     profiles: {},
@@ -675,9 +701,10 @@ export default function HomeClient() {
 
   return (
     <div className="flex flex-col h-screen">
+      {/* App wrapper with max-width */}
       {/* Merged Top Navigation - Daily/Monthly with Month Display */}
       <div className="border-b bg-background shrink-0">
-        <div className="flex items-center justify-between px-4 py-3">
+        <div className="flex items-center justify-between px-4 py-3 max-w-lg mx-auto">
           <Button
             variant="ghost"
             size="icon"
@@ -736,6 +763,7 @@ export default function HomeClient() {
 
       {/* Main content area */}
       <div className="flex-1 overflow-auto pb-20">
+        <div className="max-w-lg mx-auto">
         {showMonthlyView ? (
           <MonthlyView profileId={profile?.id} />
         ) : showTodayView ? (
@@ -772,55 +800,87 @@ export default function HomeClient() {
             </TabsList>
 
             <TabsContent value="income" className="mt-0">
-              <IncomeList profileId={profile?.id} currency={profile?.currency || DEFAULT_CURRENCY} />
+              <IncomeList 
+                profileId={profile?.id} 
+                currency={profile?.currency || DEFAULT_CURRENCY}
+                onEdit={(item) => setEditTransaction({ transaction: item, type: "income" })}
+              />
             </TabsContent>
 
             <TabsContent value="debts" className="mt-0">
-              <DebtsList profileId={profile?.id} currency={profile?.currency || DEFAULT_CURRENCY} />
+              <DebtsList 
+                profileId={profile?.id} 
+                currency={profile?.currency || DEFAULT_CURRENCY}
+                onEdit={(item) => setEditTransaction({ transaction: item, type: "debt" })}
+              />
             </TabsContent>
 
             <TabsContent value="expenses" className="mt-0">
-              <ExpensesList profileId={profile?.id} currency={profile?.currency || DEFAULT_CURRENCY} />
+              <ExpensesList 
+                profileId={profile?.id} 
+                currency={profile?.currency || DEFAULT_CURRENCY}
+                onEdit={(item) => setEditTransaction({ transaction: item, type: "expense" })}
+              />
             </TabsContent>
 
             <TabsContent value="elliw" className="mt-0">
-              <WishlistList profileId={profile?.id} currency={profile?.currency || DEFAULT_CURRENCY} />
+              <WishlistList 
+                profileId={profile?.id} 
+                currency={profile?.currency || DEFAULT_CURRENCY}
+                onEdit={(item) => setEditTransaction({ transaction: item, type: "wishlist" })}
+              />
             </TabsContent>
           </Tabs>
         )}
+        </div>
       </div>
 
-      {/* Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background border-t">
-        <div className="grid grid-cols-4 gap-2 p-4 max-w-5xl mx-auto">
-          <Button
-            variant="outline"
-            className="w-full"
+      {/* Bottom Navigation - Money Manager Style */}
+      <div className="fixed bottom-0 left-0 right-0 bg-zinc-900 border-t border-zinc-800 pb-safe">
+        <div className="flex items-center justify-around py-2 max-w-lg mx-auto">
+          {/* Today Tab */}
+          <button
             onClick={() => router.push("/dashboard?view=daily")}
+            className={`flex flex-col items-center gap-1 px-4 py-2 rounded-lg transition-colors ${
+              viewMode === "daily" || viewMode === "today"
+                ? "text-red-500"
+                : "text-zinc-400 hover:text-zinc-200"
+            }`}
           >
-            <Calendar className="h-4 w-4 mr-2" />
-            {todayFormatted}
-          </Button>
-          <Button className="w-full" onClick={() => setShowAddDialog(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add
-          </Button>
-          <Button
-            variant="outline"
-            className="w-full"
+            <Calendar className="h-5 w-5" />
+            <span className="text-xs font-medium">{todayFormatted}</span>
+          </button>
+
+          {/* Add Button - Centered & Primary */}
+          <button
+            onClick={() => setShowAddDialog(true)}
+            className="flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full font-medium transition-colors shadow-lg"
+          >
+            <Plus className="h-4 w-4" />
+            <span className="text-sm">Add</span>
+          </button>
+
+          {/* Stats Tab */}
+          <button
             onClick={() => router.push("/dashboard?view=stats")}
+            className={`flex flex-col items-center gap-1 px-4 py-2 rounded-lg transition-colors ${
+              viewMode === "stats"
+                ? "text-red-500"
+                : "text-zinc-400 hover:text-zinc-200"
+            }`}
           >
-            <BarChart3 className="h-4 w-4 mr-2" />
-            Stats
-          </Button>
-          <Button
-            variant="outline"
-            className="w-full"
+            <BarChart3 className="h-5 w-5" />
+            <span className="text-xs font-medium">Stats</span>
+          </button>
+
+          {/* Settings Tab */}
+          <button
             onClick={() => router.push("/settings")}
+            className="flex flex-col items-center gap-1 px-4 py-2 rounded-lg transition-colors text-zinc-400 hover:text-zinc-200"
           >
-            <Settings className="h-4 w-4 mr-2" />
-            Settings
-          </Button>
+            <Settings className="h-5 w-5" />
+            <span className="text-xs font-medium">Settings</span>
+          </button>
         </div>
       </div>
 
@@ -830,6 +890,17 @@ export default function HomeClient() {
         onOpenChange={setShowAddDialog}
         profileId={profile?.id}
       />
+      
+      {/* Edit Transaction Dialog */}
+      {editTransaction && (
+        <EditTransactionDialog
+          open={!!editTransaction}
+          onOpenChange={(open) => !open && setEditTransaction(null)}
+          transaction={editTransaction.transaction}
+          type={editTransaction.type}
+          profileId={profile?.id}
+        />
+      )}
     </div>
   );
 }
