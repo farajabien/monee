@@ -19,6 +19,8 @@ import { Card } from "@/components/ui/card";
 import { TodayView } from "@/components/today-view";
 import { MonthlyView } from "@/components/monthly-view";
 import { StatsView } from "@/components/stats-view";
+import { EditTransactionDialog } from "@/components/edit-transaction-dialog";
+import type { Expense, IncomeSource, Debt, WishlistItem } from "@/types";
 
 // Income List Component
 function IncomeList({ profileId, currency }: { profileId?: string; currency: string }) {
