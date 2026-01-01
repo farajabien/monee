@@ -29,38 +29,34 @@ For developers and DIY enthusiasts. Host it yourself for free on your own infras
 
 ### **💰 Income & Expense Tracking**
 - Track all your income sources (salary, side hustles, etc.)
-- Categorize and monitor expenses
-- See daily, weekly, and monthly breakdowns
+- **Smart Recurring Transactions**: Set monthly bills (Rent, subscriptions) once, and they auto-renew.
+- Categorize and monitor expenses.
 
 ### **📊 Cashflow Health Monitoring**
 - Instant visual health indicators (💚 Excellent | ⚠️ Good | 🔴 Warning)
 - Real-time savings rate calculation
 - Net cashflow at a glance
-- Smart status messages based on your financial health
 
-### **🤝 Debt Management**
+### **🤝 Advanced Debt Management**
 - Track money you owe and money owed to you
+- **Tabbed Interface**: Separate views for Active and Paid items.
 - Color-coded labels (red for debts, green for receivables)
-- Monitor balances and payment history
-- See who owes what at a glance
+- Mark debts as "Paid Off" to archive them.
 
-### **✨ Wishlist (ELLIW - Everything I Like I Want)**
-- Track items you're saving for
-- Set target amounts
-- Mark items as "got" when purchased
-- Stay motivated toward your goals
+### **✨ Wishlist 2.0 (ELLIW - Everything I Like I Want)**
+- Track items you're saving for with links and notes.
+- **Smart Conversion**: One tap "Got It" button marks item as purchased AND auto-creates an expense.
+- **Undo / Revert**: Accidentally clicked Got It? Revert restores the wish and auto-deletes the expense.
+- Unified view for all wants and fulfilled wishes.
 
 ### **📈 Visual Stats & Insights**
 - Stats view with period selection (Weekly/Monthly/Annually)
 - Expense breakdown by category with percentages
 - Stacked bar charts for visualization
-- Interactive period navigation
 
 ### **🌍 Multi-Currency Support**
 - Support for 150+ currencies
-- Set your preferred currency
-- All amounts automatically formatted
-- Currency-aware calculations
+- Set your preferred currency, affects all formatting instantly.
 
 ### **🎨 Clean, Modern Design**
 - Safaricom Green branding 🟢

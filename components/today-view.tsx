@@ -3,23 +3,20 @@
 import { useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { id } from "@instantdb/react";
-import { ChevronLeft, ChevronRight, Sparkles, Globe, CheckCircle, RotateCcw } from "lucide-react";
+import { ChevronLeft, ChevronRight, Globe, CheckCircle, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import db from "@/lib/db";
 import { formatCurrency, DEFAULT_CURRENCY } from "@/lib/currency-utils";
 import { EditTransactionDialog } from "@/components/edit-transaction-dialog";
-import { initializeElliw } from "@/lib/init-elliw";
 import { toast } from "sonner";
-import { getMigrationUpdates } from "@/lib/migrate-wishlist-links";
 import type { Expense, IncomeSource, Debt, WishlistItem } from "@/types";
 
 interface TodayViewProps {
   profileId?: string;
 }
 
-// User email that can trigger ELLIW init
-const ELLIW_INIT_USER = "faraja.bien@gmail.com";
+
 
 export function TodayView({ profileId }: TodayViewProps) {
   const router = useRouter();
@@ -27,7 +24,7 @@ export function TodayView({ profileId }: TodayViewProps) {
   const activeTab = searchParams.get("tab") || "summary";
   
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [isInitializing, setIsInitializing] = useState(false);
+
   
   // Edit dialog state
   const [editTransaction, setEditTransaction] = useState<{
@@ -66,26 +63,9 @@ export function TodayView({ profileId }: TodayViewProps) {
   const userCurrency = (profileData as any)?.profiles?.[0]?.currency || DEFAULT_CURRENCY;
   const userEmail = (profileData as any)?.profiles?.[0]?.user?.[0]?.email;
   
-  const canInitElliw = userEmail === ELLIW_INIT_USER;
+
   
-  // Handle ELLIW initialization
-  const handleInitElliw = async () => {
-    if (!profileId || !canInitElliw) return;
-    
-    setIsInitializing(true);
-    try {
-      const result = await initializeElliw(profileId);
-      if (result.success) {
-        toast.success(`Initialized ${result.count} ELLIW items!`);
-      } else {
-        toast.error("Failed to initialize ELLIW");
-      }
-    } catch (error) {
-      toast.error("Error initializing ELLIW");
-    } finally {
-      setIsInitializing(false);
-    }
-  };
+
 
 
 
@@ -411,56 +391,7 @@ export function TodayView({ profileId }: TodayViewProps) {
       ) : (
         <div className="space-y-3 px-4 pt-4">
 
-          {activeTab === "elliw" && (
-            <div className="space-y-2 mb-4">
-              {/* Migration Button - Check if any items need migration */}
-              {(() => {
-                const needsMigration = wishlist.some((item) => !item.link && item.notes && item.notes.includes("http"));
-                if (!needsMigration) return null;
-                
-                return (
-                   <Button
-                    onClick={async () => {
-                      setIsInitializing(true);
-                      try {
-                        const { updates, count } = getMigrationUpdates(wishlist as WishlistItem[]);
-                        if (count > 0 && updates.length > 0) {
-                          await db.transact(updates);
-                          toast.success(`Migrated ${count} links!`);
-                        } else {
-                          toast.info("No items needed migration");
-                        }
-                      } catch (error) {
-                        toast.error("Migration failed");
-                        console.error(error);
-                      } finally {
-                        setIsInitializing(false);
-                      }
-                    }}
-                    disabled={isInitializing}
-                    variant="outline"
-                    className="w-full mb-4 border-dashed border-blue-500 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-950"
-                  >
-                    <Sparkles className="h-4 w-4 mr-2" />
-                    {isInitializing ? "Migrating..." : "Migrate Links from Notes"}
-                  </Button>
-                );
-              })()}
-              
-              {/* Init Button - only show if list is empty or explicitly needed */}
-              {canInitElliw && wishlist.length === 0 && (
-                 <Button
-                    onClick={handleInitElliw}
-                    disabled={isInitializing}
-                    variant="outline"
-                    className="w-full mb-4"
-                  >
-                    <Sparkles className="h-4 w-4 mr-2" />
-                    {isInitializing ? "Initializing..." : "Initialize My ELLIW Items"}
-                  </Button>
-              )}
-            </div>
-          )}
+
 
           {activeTab === "elliw" && (
             <div className="space-y-4">
