@@ -90,6 +90,7 @@ export function AddSheet({ open, onOpenChange, profileId }: AddSheetProps) {
   // Wishlist fields
   const [itemName, setItemName] = useState("");
   const [wishlistStatus, setWishlistStatus] = useState("want");
+  const [wishlistLink, setWishlistLink] = useState("");
 
   const resetForm = () => {
     setAmount("");
@@ -100,6 +101,7 @@ export function AddSheet({ open, onOpenChange, profileId }: AddSheetProps) {
     setCategory("");
     setRecipient("");
     setItemName("");
+    setWishlistLink("");
     setDebtType("friend");
     setInterestRate("20");
     setAgreedAmount("");
@@ -227,6 +229,7 @@ export function AddSheet({ open, onOpenChange, profileId }: AddSheetProps) {
                 amount: parsedAmount || undefined,
                 status: wishlistStatus,
                 gotDate: wishlistStatus === "got" ? now : undefined,
+                link: wishlistLink || undefined,
                 notes: notes || undefined,
                 createdAt: now,
               })
@@ -750,6 +753,17 @@ export function AddSheet({ open, onOpenChange, profileId }: AddSheetProps) {
                     <SelectItem value="got">Got</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="link">Link (Optional)</Label>
+                <Input
+                  id="link"
+                  type="url"
+                  placeholder="https://example.com/product"
+                  value={wishlistLink}
+                  onChange={(e) => setWishlistLink(e.target.value)}
+                />
               </div>
             </TabsContent>
 
