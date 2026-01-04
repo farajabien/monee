@@ -263,7 +263,7 @@ export function AddSheet({ open, onOpenChange, profileId }: AddSheetProps) {
               <TabsTrigger value="income" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:font-bold">Income</TabsTrigger>
               <TabsTrigger value="debt" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:font-bold">Debt</TabsTrigger>
               <TabsTrigger value="expense" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:font-bold">Expense</TabsTrigger>
-              <TabsTrigger value="elliw" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:font-bold">ELLIW</TabsTrigger>
+              <TabsTrigger value="elliw" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:font-bold">ELTIW</TabsTrigger>
             </TabsList>
 
             <form onSubmit={handleSubmit} className="mt-4 space-y-4 pb-6 max-w-md mx-auto">

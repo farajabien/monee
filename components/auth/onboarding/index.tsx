@@ -231,7 +231,7 @@ export default function OnboardingFlow() {
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-primary">✨</span>
-                    <span><strong>ELLIW</strong> - Every Little Thing I Want</span>
+                    <span><strong>ELTIW</strong> - Every Little Thing I Want</span>
                   </li>
                 </ul>
               </div>

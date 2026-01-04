@@ -300,7 +300,7 @@ export function EditTransactionDialog({
             {type === "expense" && "Expense"}
             {type === "income" && "Income"}
             {type === "debt" && "Debt"}
-            {type === "wishlist" && "ELLIW Item"}
+            {type === "wishlist" && "ELTIW Item"}
           </DialogTitle>
         </DialogHeader>
 

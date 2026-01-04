@@ -43,7 +43,7 @@ For developers and DIY enthusiasts. Host it yourself for free on your own infras
 - Color-coded labels (red for debts, green for receivables)
 - Mark debts as "Paid Off" to archive them.
 
-### **✨ Wishlist 2.0 (ELLIW - Everything I Like I Want)**
+### **✨ Wishlist 2.0 (ELTIW - Every lil thing I Want)**
 - Track items you're saving for with links and notes.
 - **Smart Conversion**: One tap "Got It" button marks item as purchased AND auto-creates an expense.
 - **Undo / Revert**: Accidentally clicked Got It? Revert restores the wish and auto-deletes the expense.
@@ -79,7 +79,7 @@ For developers and DIY enthusiasts. Host it yourself for free on your own infras
 **Daily View**  
 See all transactions for the current month, grouped by day with:
 - Month navigation (← September 2025 →)
-- Filter tabs (Summary, Income, Expenses, Debts, ELLIW)
+- Filter tabs (Summary, Income, Expenses, Debts, ELTIW)
 - Cashflow health summary
 - Day-by-day transaction breakdown
 
@@ -104,7 +104,7 @@ Easy tabs let you focus on what matters:
 - **Income**: Only income sources
 - **Expenses**: Only spending
 - **Debts**: Only money owed tracking
-- **ELLIW**: Only wishlist items
+- **ELTIW**: Only wishlist items
 
 ### **Empty States**
 

@@ -37,7 +37,7 @@ export const CORE_FEATURES: Feature[] = [
   },
   {
     icon: Globe,
-    title: "Wishlist (ELLIW) Tracking",
+    title: "Wishlist (ELTIW) Tracking",
     description:
       "Save items you want, add links, track amounts. Mark as 'got' and automatically create an expense record.",
   },
