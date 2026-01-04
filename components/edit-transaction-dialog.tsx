@@ -45,6 +45,7 @@ export function EditTransactionDialog({
 }: EditTransactionDialogProps) {
   const [activeTab, setActiveTab] = useState<string>(type);
   const [debtEditTab, setDebtEditTab] = useState<"details" | "payment">("details");
+  const [expenseEditTab, setExpenseEditTab] = useState<"details" | "mpesa">("details");
   const [paymentAmount, setPaymentAmount] = useState<string>("");
   
   // Fetch existing categories
@@ -65,6 +66,13 @@ export function EditTransactionDialog({
         notes: exp.notes || "",
         isRecurring: exp.isRecurring || false,
         frequency: exp.frequency || "monthly",
+        // M-Pesa fields
+        mpesaReference: (exp as any).mpesaReference || "",
+        mpesaPhoneNumber: (exp as any).mpesaPhoneNumber || "",
+        mpesaTransactionCost: (exp as any).mpesaTransactionCost || 0,
+        mpesaBalance: (exp as any).mpesaBalance || 0,
+        mpesaExpenseType: (exp as any).mpesaExpenseType || "",
+        mpesaRawMessage: (exp as any).mpesaRawMessage || "",
       };
     } else if (type === "income") {
       const inc = transaction as IncomeSource;
@@ -113,6 +121,13 @@ export function EditTransactionDialog({
             date: formData.date,
             isRecurring: (formData as any).isRecurring,
             frequency: (formData as any).isRecurring ? (formData as any).frequency : undefined,
+            // M-Pesa fields
+            mpesaReference: (formData as any).mpesaReference || undefined,
+            mpesaPhoneNumber: (formData as any).mpesaPhoneNumber || undefined,
+            mpesaTransactionCost: (formData as any).mpesaTransactionCost || undefined,
+            mpesaBalance: (formData as any).mpesaBalance || undefined,
+            mpesaExpenseType: (formData as any).mpesaExpenseType || undefined,
+            mpesaRawMessage: (formData as any).mpesaRawMessage || undefined,
           }),
         ]);
       } else if (type === "income") {
@@ -341,79 +356,161 @@ export function EditTransactionDialog({
             />
           </div>
 
-          {/* Expense Fields */}
+          {/* Expense Fields - Tabbed Interface */}
           {type === "expense" && (
-            <>
-              <div className="space-y-2">
-                <Label>Recipient</Label>
-                <Input
-                  value={(formData as any).recipient || ""}
-                  onChange={(e) =>
-                    setFormData({ ...formData, recipient: e.target.value } as any)
-                  }
-                  placeholder="Recipient name"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Category</Label>
-                <Select
-                  value={(formData as any).category || ""}
-                  onValueChange={(value) =>
-                    setFormData({ ...formData, category: value } as any)
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select category..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {existingCategories.map((cat) => (
-                      <SelectItem key={cat} value={cat}>
-                        {cat}
-                      </SelectItem>
-                    ))}
-                    {existingCategories.length === 0 && (
-                      <SelectItem value="Uncategorized">Uncategorized</SelectItem>
-                    )}
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              {/* Recurring Toggle */}
-              <div className="flex items-center justify-between py-2">
-                <div className="space-y-0.5">
-                  <Label>Recurring Expense</Label>
-                  <p className="text-xs text-muted-foreground">Is this a recurring payment?</p>
-                </div>
-                <Switch
-                  checked={(formData as any).isRecurring || false}
-                  onCheckedChange={(checked) =>
-                    setFormData({ ...formData, isRecurring: checked } as any)
-                  }
-                />
-              </div>
-              
-              {(formData as any).isRecurring && (
+            <Tabs value={expenseEditTab} onValueChange={(v) => setExpenseEditTab(v as any)} className="w-full">
+              <TabsList className="grid w-full grid-cols-2 mb-4">
+                <TabsTrigger value="details">Details</TabsTrigger>
+                <TabsTrigger value="mpesa">M-Pesa</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="details" className="space-y-4">
                 <div className="space-y-2">
-                  <Label>Frequency</Label>
+                  <Label>Recipient</Label>
+                  <Input
+                    value={(formData as any).recipient || ""}
+                    onChange={(e) =>
+                      setFormData({ ...formData, recipient: e.target.value } as any)
+                    }
+                    placeholder="Recipient name"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Category</Label>
                   <Select
-                    value={(formData as any).frequency || "monthly"}
+                    value={(formData as any).category || ""}
                     onValueChange={(value) =>
-                      setFormData({ ...formData, frequency: value } as any)
+                      setFormData({ ...formData, category: value } as any)
                     }
                   >
                     <SelectTrigger>
-                      <SelectValue />
+                      <SelectValue placeholder="Select category..." />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="daily">Daily</SelectItem>
-                      <SelectItem value="weekly">Weekly</SelectItem>
-                      <SelectItem value="monthly">Monthly</SelectItem>
-                      <SelectItem value="yearly">Yearly</SelectItem>
+                      {existingCategories.map((cat) => (
+                        <SelectItem key={cat} value={cat}>
+                          {cat}
+                        </SelectItem>
+                      ))}
+                      {existingCategories.length === 0 && (
+                        <SelectItem value="Uncategorized">Uncategorized</SelectItem>
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
-              )}
-            </>
+
+                {/* Recurring Toggle */}
+                <div className="flex items-center justify-between py-2">
+                  <div className="space-y-0.5">
+                    <Label>Recurring Expense</Label>
+                    <p className="text-xs text-muted-foreground">Is this a recurring payment?</p>
+                  </div>
+                  <Switch
+                    checked={(formData as any).isRecurring || false}
+                    onCheckedChange={(checked) =>
+                      setFormData({ ...formData, isRecurring: checked } as any)
+                    }
+                  />
+                </div>
+
+                {(formData as any).isRecurring && (
+                  <div className="space-y-2">
+                    <Label>Frequency</Label>
+                    <Select
+                      value={(formData as any).frequency || "monthly"}
+                      onValueChange={(value) =>
+                        setFormData({ ...formData, frequency: value } as any)
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="daily">Daily</SelectItem>
+                        <SelectItem value="weekly">Weekly</SelectItem>
+                        <SelectItem value="monthly">Monthly</SelectItem>
+                        <SelectItem value="yearly">Yearly</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              </TabsContent>
+
+              <TabsContent value="mpesa" className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Transaction Reference</Label>
+                  <Input
+                    value={(formData as any).mpesaReference || ""}
+                    onChange={(e) =>
+                      setFormData({ ...formData, mpesaReference: e.target.value } as any)
+                    }
+                    placeholder="e.g., TKJPNAJ1D1"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Phone Number</Label>
+                  <Input
+                    value={(formData as any).mpesaPhoneNumber || ""}
+                    onChange={(e) =>
+                      setFormData({ ...formData, mpesaPhoneNumber: e.target.value } as any)
+                    }
+                    placeholder="e.g., 0712345678"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label>Transaction Cost</Label>
+                    <Input
+                      type="number"
+                      value={(formData as any).mpesaTransactionCost || ""}
+                      onChange={(e) =>
+                        setFormData({ ...formData, mpesaTransactionCost: parseFloat(e.target.value) || 0 } as any)
+                      }
+                      placeholder="0.00"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Balance After</Label>
+                    <Input
+                      type="number"
+                      value={(formData as any).mpesaBalance || ""}
+                      onChange={(e) =>
+                        setFormData({ ...formData, mpesaBalance: parseFloat(e.target.value) || 0 } as any)
+                      }
+                      placeholder="0.00"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>Transaction Type</Label>
+                  <Select
+                    value={(formData as any).mpesaExpenseType || ""}
+                    onValueChange={(value) =>
+                      setFormData({ ...formData, mpesaExpenseType: value } as any)
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select type..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="send">Send Money</SelectItem>
+                      <SelectItem value="receive">Receive Money</SelectItem>
+                      <SelectItem value="buy">Buy Goods</SelectItem>
+                      <SelectItem value="withdraw">Withdraw</SelectItem>
+                      <SelectItem value="deposit">Deposit</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                {(formData as any).mpesaRawMessage && (
+                  <div className="space-y-2">
+                    <Label>Original Message</Label>
+                    <div className="p-3 rounded-md bg-muted/50 text-xs text-muted-foreground max-h-24 overflow-y-auto">
+                      {(formData as any).mpesaRawMessage}
+                    </div>
+                  </div>
+                )}
+              </TabsContent>
+            </Tabs>
           )}
 
           {/* Income Fields */}

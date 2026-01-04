@@ -150,3 +150,53 @@ export const PRICING_FEATURES = {
     "7-day free trial included",
   ],
 };
+
+// Spreadsheet comparison data
+export const SPREADSHEET_COSTS = [
+  { name: "Budget Tracker", price: "KSh 500" },
+  { name: "Debt Calculator", price: "KSh 700" },
+  { name: "Savings Planner", price: "KSh 600" },
+  { name: "Expense Tracker", price: "KSh 800" },
+  { name: "Income Tracker", price: "KSh 500" },
+  { name: "Category Manager", price: "KSh 395" },
+];
+
+export const TOTAL_SPREADSHEET_COST = "KSh 3,495+";
+
+// How it works steps
+export const HOW_IT_WORKS_STEPS = [
+  {
+    step: 1,
+    title: "Log Expenses",
+    description: "Add expenses manually in seconds, or paste M-Pesa messages for bulk import. Your choice.",
+  },
+  {
+    step: 2,
+    title: "Auto-Categorize",
+    description: "MONEE learns your spending patterns and remembers categories for recurring expenses automatically.",
+  },
+  {
+    step: 3,
+    title: "See Insights",
+    description: "View where your money goes by category, time period, and recipient. No math needed.",
+  },
+];
+
+// Beta testing benefits
+export const BETA_BENEFITS = [
+  {
+    icon: "Users",
+    title: "Early Access",
+    description: "Be among the first to use new features",
+  },
+  {
+    icon: "FlaskConical",
+    title: "Shape the Product",
+    description: "Your feedback directly impacts development",
+  },
+  {
+    icon: "Zap",
+    title: "Exclusive Benefits",
+    description: "Special perks for early supporters",
+  },
+];

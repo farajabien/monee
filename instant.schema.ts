@@ -51,6 +51,14 @@ const _schema = i.schema({
       nextDueDate: i.number().indexed().optional(),
       notes: i.string().optional(),
       recipient: i.string().optional(),
+      // M-Pesa specific fields
+      mpesaReference: i.string().optional(), // Transaction code (e.g., TKJPNAJ1D1)
+      mpesaPhoneNumber: i.string().optional(), // Sender/recipient phone number
+      mpesaTransactionCost: i.number().optional(), // M-Pesa fee
+      mpesaBalance: i.number().optional(), // Account balance after transaction
+      mpesaExpenseType: i.string().optional(), // send/receive/buy/withdraw/deposit
+      mpesaRawMessage: i.string().optional(), // Original SMS message
+      importStatus: i.string().optional(), // pending/approved/rejected
     }),
     income: i.entity({
       amount: i.number().indexed(),

@@ -18,7 +18,15 @@ import {
   BarChart3,
   Users,
 } from "lucide-react";
-import { CORE_FEATURES, COMPARISON_FEATURES, PRICING_FEATURES } from "@/lib/constants/features";
+import {
+  CORE_FEATURES,
+  COMPARISON_FEATURES,
+  PRICING_FEATURES,
+  SPREADSHEET_COSTS,
+  TOTAL_SPREADSHEET_COST,
+  HOW_IT_WORKS_STEPS,
+  BETA_BENEFITS,
+} from "@/lib/constants/features";
 
 export default function LandingPage() {
   const router = useRouter();
@@ -155,14 +163,7 @@ export default function LandingPage() {
                 </p>
                 
                 <div className="grid sm:grid-cols-2 gap-3">
-                  {[
-                    { name: "Budget Tracker", price: "KSh 500" },
-                    { name: "Debt Calculator", price: "KSh 700" },
-                    { name: "Savings Planner", price: "KSh 600" },
-                    { name: "Expense Tracker", price: "KSh 800" },
-                    { name: "Income Tracker", price: "KSh 500" },
-                    { name: "Category Manager", price: "KSh 395" },
-                  ].map((item, i) => (
+                  {SPREADSHEET_COSTS.map((item, i) => (
                     <div
                       key={i}
                       className="flex items-center justify-between p-3 rounded-lg border bg-muted/50"
@@ -174,11 +175,11 @@ export default function LandingPage() {
                     </div>
                   ))}
                 </div>
-                
+
                 <div className="pt-3 border-t">
                   <div className="flex items-center justify-between text-lg font-semibold">
                     <span>Total Cost:</span>
-                    <span className="text-destructive">KSh 3,495+</span>
+                    <span className="text-destructive">{TOTAL_SPREADSHEET_COST}</span>
                   </div>
                   <p className="text-sm text-muted-foreground mt-2">
                     ...and they don&apos;t sync or talk to each other
@@ -269,33 +270,20 @@ export default function LandingPage() {
                 new features and help us make MONEE even better.
               </p>
               <div className="grid md:grid-cols-3 gap-6 pt-4">
-                <div className="space-y-2">
-                  <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
-                    <Users className="h-6 w-6 text-primary" />
-                  </div>
-                  <h3 className="font-semibold">Early Access</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Be among the first to use new features
-                  </p>
-                </div>
-                <div className="space-y-2">
-                  <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
-                    <FlaskConical className="h-6 w-6 text-primary" />
-                  </div>
-                  <h3 className="font-semibold">Shape the Product</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Your feedback directly impacts development
-                  </p>
-                </div>
-                <div className="space-y-2">
-                  <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
-                    <Zap className="h-6 w-6 text-primary" />
-                  </div>
-                  <h3 className="font-semibold">Exclusive Benefits</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Special perks for early supporters
-                  </p>
-                </div>
+                {BETA_BENEFITS.map((benefit, i) => {
+                  const Icon = benefit.icon === "Users" ? Users : benefit.icon === "FlaskConical" ? FlaskConical : Zap;
+                  return (
+                    <div key={i} className="space-y-2">
+                      <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
+                        <Icon className="h-6 w-6 text-primary" />
+                      </div>
+                      <h3 className="font-semibold">{benefit.title}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        {benefit.description}
+                      </p>
+                    </div>
+                  );
+                })}
               </div>
               <div className="pt-4">
                 <Link href="/login">
@@ -321,36 +309,15 @@ export default function LandingPage() {
           </p>
         </div>
         <div className="max-w-4xl mx-auto grid md:grid-cols-3 gap-8">
-          <div className="text-center space-y-4">
-            <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto text-2xl font-bold text-primary">
-              1
+          {HOW_IT_WORKS_STEPS.map((item) => (
+            <div key={item.step} className="text-center space-y-4">
+              <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto text-2xl font-bold text-primary">
+                {item.step}
+              </div>
+              <h3 className="font-semibold text-xl">{item.title}</h3>
+              <p className="text-muted-foreground">{item.description}</p>
             </div>
-            <h3 className="font-semibold text-xl">Log Expenses</h3>
-            <p className="text-muted-foreground">
-              Add expenses manually in seconds, or paste M-Pesa messages for
-              bulk import. Your choice.
-            </p>
-          </div>
-          <div className="text-center space-y-4">
-            <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto text-2xl font-bold text-primary">
-              2
-            </div>
-            <h3 className="font-semibold text-xl">Auto-Categorize</h3>
-            <p className="text-muted-foreground">
-              MONEE learns your spending patterns and remembers categories for
-              recurring expenses automatically.
-            </p>
-          </div>
-          <div className="text-center space-y-4">
-            <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto text-2xl font-bold text-primary">
-              3
-            </div>
-            <h3 className="font-semibold text-xl">See Insights</h3>
-            <p className="text-muted-foreground">
-              View where your money goes by category, time period, and
-              recipient. No math needed.
-            </p>
-          </div>
+          ))}
         </div>
       </section>
 

@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -22,7 +23,7 @@ import {
 } from "@/components/ui/select";
 import { AddCategoryDialog } from "@/components/categories/add-category-dialog";
 import { Switch } from "@/components/ui/switch";
-import { Plus, ChevronDown, ChevronUp } from "lucide-react";
+import { Plus, ChevronDown, ChevronUp, Upload } from "lucide-react";
 import { toast } from "sonner";
 import {
   Collapsible,
@@ -34,8 +35,11 @@ import type {
   Recipient,
   RecurringFrequency,
   DebtType,
+  ImportedTransaction,
 } from "@/types";
 import { getDebtTypeDescription } from "@/lib/debt-calculator";
+import { parseMpesaMessage } from "@/lib/mpesa-parser";
+import { ImportReviewTable } from "@/components/import/import-review-table";
 
 // Helper function to calculate next due date based on frequency
 function calculateNextDueDate(from: Date, frequency: string): number {
@@ -57,7 +61,7 @@ function calculateNextDueDate(from: Date, frequency: string): number {
 interface UnifiedAddModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  defaultTab?: "expense" | "income" | "debt" | "savings";
+  defaultTab?: "expense" | "income" | "debt" | "savings" | "import";
 }
 
 export function UnifiedAddModal({
@@ -114,6 +118,11 @@ export function UnifiedAddModal({
   const [bankName, setBankName] = useState("");
   const [paymentNotes, setPaymentNotes] = useState("");
 
+  // Import fields
+  const [mpesaMessages, setMpesaMessages] = useState("");
+  const [importedTransactions, setImportedTransactions] = useState<ImportedTransaction[]>([]);
+  const [isParsing, setIsParsing] = useState(false);
+
   // Fetch data
   const { data } = db.useQuery({
     profiles: {
@@ -121,17 +130,23 @@ export function UnifiedAddModal({
         where: { "user.id": user?.id || "" },
       },
     },
+    expenses: {},
   });
 
   const profile = data?.profiles?.[0];
   const categories: Category[] = []; // Removed - no longer using categories
   const savedRecipients: Recipient[] = []; // Removed
-  const expenses: any[] = []; // Removed
+  const expenses = data?.expenses || [];
+
+  // Get unique categories from existing expenses
+  const existingCategories = Array.from(
+    new Set(expenses.map((e) => e.category).filter((c) => c && c.trim()))
+  ) as string[];
 
   // Get unique recipients from expenses
   const uniqueRecipients = Array.from(
     new Set(expenses.map((e) => e.recipient).filter((r) => r && r.trim()))
-  );
+  ).filter((r): r is string => typeof r === "string" && r.trim().length > 0);
 
   // Get display name helper
   const getDisplayName = (originalName: string) => {
@@ -407,10 +422,10 @@ export function UnifiedAddModal({
           <Tabs
             value={activeTab}
             onValueChange={(v) =>
-              setActiveTab(v as "expense" | "income" | "debt" | "savings")
+              setActiveTab(v as "expense" | "income" | "debt" | "savings" | "import")
             }
           >
-            <TabsList className="grid w-full grid-cols-4 h-10">
+            <TabsList className="grid w-full grid-cols-5 h-10">
               <TabsTrigger value="expense" className="py-2 text-xs sm:text-sm">
                 Expense
               </TabsTrigger>
@@ -422,6 +437,10 @@ export function UnifiedAddModal({
               </TabsTrigger>
               <TabsTrigger value="savings" className="py-2 text-xs sm:text-sm">
                 Savings
+              </TabsTrigger>
+              <TabsTrigger value="import" className="py-2 text-xs sm:text-sm">
+                <Upload className="h-3 w-3 sm:mr-1" />
+                <span className="hidden sm:inline">Import</span>
               </TabsTrigger>
             </TabsList>
 
@@ -1066,14 +1085,166 @@ export function UnifiedAddModal({
                 </p>
               </TabsContent>
 
+              {/* IMPORT TAB */}
+              <TabsContent value="import" className="space-y-4 mt-0">
+                <div className="space-y-2">
+                  <Label htmlFor="mpesa-messages">
+                    Paste M-Pesa Messages
+                  </Label>
+                  <Textarea
+                    id="mpesa-messages"
+                    placeholder="Paste one or more M-Pesa SMS messages here...&#10;&#10;Example:&#10;TKJPNAJ1D1 Confirmed. Ksh200.00 sent to JANE DOE on 19/11/25 at 6:32 PM. New M-PESA balance is Ksh87.48."
+                    value={mpesaMessages}
+                    onChange={(e) => setMpesaMessages(e.target.value)}
+                    rows={8}
+                    className="font-mono text-xs"
+                  />
+                </div>
+
+                <Button
+                  type="button"
+                  onClick={() => {
+                    if (!mpesaMessages.trim()) {
+                      toast.error("Please paste M-Pesa messages first");
+                      return;
+                    }
+
+                    setIsParsing(true);
+                    try {
+                      // Split by newlines and filter empty lines
+                      const messages = mpesaMessages
+                        .split("\n")
+                        .map((m) => m.trim())
+                        .filter((m) => m.length > 0);
+
+                      const parsed: ImportedTransaction[] = [];
+                      const errors: string[] = [];
+
+                      messages.forEach((message, index) => {
+                        try {
+                          const result = parseMpesaMessage(message);
+                          parsed.push({
+                            id: `temp-${Date.now()}-${index}`,
+                            amount: result.amount,
+                            recipient: result.recipient,
+                            date: result.timestamp || Date.now(),
+                            mpesaReference: result.reference,
+                            mpesaPhoneNumber: result.phoneNumber,
+                            mpesaTransactionCost: result.transactionCost,
+                            mpesaBalance: result.balance,
+                            mpesaExpenseType: result.expenseType,
+                            mpesaRawMessage: message,
+                            category: "Uncategorized",
+                            status: "keep",
+                          });
+                        } catch (error) {
+                          errors.push(`Line ${index + 1}: ${error instanceof Error ? error.message : "Parse error"}`);
+                        }
+                      });
+
+                      if (parsed.length > 0) {
+                        setImportedTransactions(parsed);
+                        toast.success(`Parsed ${parsed.length} transaction${parsed.length !== 1 ? "s" : ""}`);
+                      }
+
+                      if (errors.length > 0) {
+                        toast.error(`Failed to parse ${errors.length} message${errors.length !== 1 ? "s" : ""}`, {
+                          description: errors.slice(0, 3).join(", "),
+                        });
+                      }
+
+                      if (parsed.length === 0 && errors.length > 0) {
+                        toast.error("No messages could be parsed");
+                      }
+                    } catch (error) {
+                      toast.error("Failed to parse messages");
+                    } finally {
+                      setIsParsing(false);
+                    }
+                  }}
+                  disabled={isParsing || !mpesaMessages.trim()}
+                  className="w-full"
+                >
+                  {isParsing ? "Parsing..." : "Parse Messages"}
+                </Button>
+
+                {importedTransactions.length > 0 && (
+                  <ImportReviewTable
+                    transactions={importedTransactions}
+                    onTransactionUpdate={(id, updates) => {
+                      setImportedTransactions((prev) =>
+                        prev.map((t) => (t.id === id ? { ...t, ...updates } : t))
+                      );
+                    }}
+                    onTransactionDelete={(id) => {
+                      setImportedTransactions((prev) => prev.filter((t) => t.id !== id));
+                    }}
+                    onSaveSelected={async () => {
+                      if (!profile?.id) {
+                        toast.error("Profile not found");
+                        return;
+                      }
+
+                      const toSave = importedTransactions.filter((t) => t.status === "keep");
+
+                      if (toSave.length === 0) {
+                        toast.error("No transactions selected");
+                        return;
+                      }
+
+                      setIsSubmitting(true);
+                      try {
+                        // Create all expenses in a single transaction
+                        const transactions = toSave.map((t) =>
+                          db.tx.expenses[id()]
+                            .update({
+                              amount: t.amount,
+                              recipient: t.recipient,
+                              category: t.category || "Uncategorized",
+                              date: t.date,
+                              notes: t.notes,
+                              mpesaReference: t.mpesaReference,
+                              mpesaPhoneNumber: t.mpesaPhoneNumber,
+                              mpesaTransactionCost: t.mpesaTransactionCost,
+                              mpesaBalance: t.mpesaBalance,
+                              mpesaExpenseType: t.mpesaExpenseType,
+                              mpesaRawMessage: t.mpesaRawMessage,
+                              importStatus: "approved",
+                              createdAt: Date.now(),
+                            })
+                            .link({ profile: profile.id })
+                        );
+
+                        await db.transact(transactions);
+
+                        toast.success(`Imported ${toSave.length} transaction${toSave.length !== 1 ? "s" : ""} successfully`);
+
+                        // Reset state
+                        setMpesaMessages("");
+                        setImportedTransactions([]);
+                        onOpenChange(false);
+                      } catch (error) {
+                        console.error("Import error:", error);
+                        toast.error("Failed to import transactions");
+                      } finally {
+                        setIsSubmitting(false);
+                      }
+                    }}
+                    existingCategories={existingCategories}
+                  />
+                )}
+              </TabsContent>
+
               {/* Submit Button */}
-              <Button type="submit" disabled={isSubmitting} className="w-full">
-                {isSubmitting
-                  ? "Adding..."
-                  : `Add ${
-                      activeTab.charAt(0).toUpperCase() + activeTab.slice(1)
-                    }`}
-              </Button>
+              {activeTab !== "import" && (
+                <Button type="submit" disabled={isSubmitting} className="w-full">
+                  {isSubmitting
+                    ? "Adding..."
+                    : `Add ${
+                        activeTab.charAt(0).toUpperCase() + activeTab.slice(1)
+                      }`}
+                </Button>
+              )}
             </form>
           </Tabs>
         </DialogContent>

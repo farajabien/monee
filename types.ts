@@ -101,3 +101,23 @@ export interface RecurringTransaction {
   createdAt: number;
   updatedAt?: number;
 }
+
+// Import status enum
+export type ImportStatus = "pending" | "approved" | "rejected";
+
+// Imported transaction interface (for review before saving)
+export interface ImportedTransaction {
+  id: string; // Temporary ID for tracking in UI
+  amount: number;
+  recipient?: string;
+  date: number;
+  mpesaReference?: string;
+  mpesaPhoneNumber?: string;
+  mpesaTransactionCost?: number;
+  mpesaBalance?: number;
+  mpesaExpenseType?: "send" | "receive" | "buy" | "withdraw" | "deposit";
+  mpesaRawMessage?: string;
+  category?: string;
+  notes?: string;
+  status: "keep" | "delete" | "edit"; // UI state for batch review
+}
