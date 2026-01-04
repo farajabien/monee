@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -9,129 +11,29 @@ import { HowToGetStatement } from "@/components/how-to-get-statement";
 import { ThemeToggle } from "@/components/theme-toggle";
 import {
   ArrowRight,
-  Smartphone,
-  TrendingUp,
-  Calendar,
-  Wallet,
-  CreditCard,
-  BarChart3,
-  Shield,
   Zap,
   CheckCircle2,
   X,
-  Users,
   FlaskConical,
+  BarChart3,
+  Users,
 } from "lucide-react";
+import { CORE_FEATURES, COMPARISON_FEATURES, PRICING_FEATURES } from "@/lib/constants/features";
 
 export default function LandingPage() {
-  const features = [
-    {
-      icon: Wallet,
-      title: "Quick Expense Tracking",
-      description:
-        "Log expenses manually or import from M-Pesa statements. Smart auto-categorization learns your spending patterns.",
-    },
-    {
-      icon: TrendingUp,
-      title: "Income Management",
-      description:
-        "Track multiple income sources with payday scheduling. See your monthly cash flow and balance at a glance.",
-    },
-    {
-      icon: CreditCard,
-      title: "Advanced Debt Tracking",
-      description:
-        "Manage one-time debts, interest-push plans, and amortizing loans with payment schedules and progress tracking.",
-    },
-    {
-      icon: BarChart3,
-      title: "Savings Goals",
-      description:
-        "Set targets, track contributions, and watch your savings grow month by month.",
-    },
-    {
-      icon: Calendar,
-      title: "Recurring Transactions",
-      description:
-        "Set up recurring expenses with reminders. Mark as paid with one tap and track payment history automatically.",
-    },
-    {
-      icon: BarChart3,
-      title: "Powerful Analytics",
-      description:
-        "Category breakdowns, spending trends, recipient tracking, and cash flow analysis. All your data at a glance.",
-    },
-    {
-      icon: Smartphone,
-      title: "Free M-Pesa Analyzer",
-      description:
-        "Try our free statement analyzer before signing up. Upload PDF or paste SMS to see instant spending insights.",
-    },
-    {
-      icon: Shield,
-      title: "Private & Secure",
-      description:
-        "Your data is yours, always encrypted and synced safely. Works offline too.",
-    },
-  ];
+  const router = useRouter();
 
-  const comparison = [
-    {
-      feature: "Quick Manual Entry",
-      monee: true,
-      competitors: "Slow",
-    },
-    {
-      feature: "Auto-Categorization & Learning",
-      monee: true,
-      competitors: "Manual",
-    },
-    {
-      feature: "Debt Tracking with Progress",
-      monee: true,
-      competitors: "Basic",
-    },
-    {
-      feature: "Savings Goals & Targets",
-      monee: true,
-      competitors: "Manual",
-    },
-    {
-      feature: "Rich Analytics & Charts",
-      monee: true,
-      competitors: "Basic",
-    },
-    {
-      feature: "Income Source Tracking",
-      monee: true,
-      competitors: false,
-    },
-    {
-      feature: "M-Pesa Bulk Import (Optional)",
-      monee: true,
-      competitors: false,
-    },
-    {
-      feature: "Offline-First PWA",
-      monee: true,
-      competitors: false,
-    },
-    {
-      feature: "Mobile Optimized",
-      monee: true,
-      competitors: "Desktop Only",
-    },
-    {
-      feature: "Pricing",
-      monee: "KSh 999 Lifetime",
-      competitors: "Monthly Subscription",
-    },
-    {
-      feature: "Free Updates Forever",
-      monee: true,
-      competitors: false,
-    },
-  ];
+  // Detect if app is running as PWA and redirect to dashboard
+  useEffect(() => {
+    const isPWA = 
+      window.matchMedia('(display-mode: standalone)').matches ||
+      (window.navigator as any).standalone === true ||
+      document.referrer.includes('android-app://');
+    
+    if (isPWA) {
+      router.replace('/dashboard');
+    }
+  }, [router]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
@@ -381,8 +283,8 @@ export default function LandingPage() {
             tools that work the way you live.
           </p>
         </div>
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {features.map((feature, index) => (
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {CORE_FEATURES.map((feature, index) => (
             <Card
               key={index}
               className="border-2 hover:border-primary/50 transition-colors"
@@ -530,7 +432,7 @@ export default function LandingPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {comparison.map((row, index) => (
+                    {COMPARISON_FEATURES.map((row, index) => (
                       <tr key={index} className="border-b last:border-0">
                         <td className="p-4 text-sm">{row.feature}</td>
                         <td className="p-4 text-center">
@@ -602,14 +504,7 @@ export default function LandingPage() {
               <div className="space-y-3">
                 <p className="text-sm font-semibold">What you get:</p>
                 <div className="space-y-2">
-                  {[
-                    "Full source code access (GitHub)",
-                    "Deploy on your own Vercel/Netlify",
-                    "Configure your own InstantDB",
-                    "Community support",
-                    "Manual updates & maintenance",
-                    "Full control over infrastructure",
-                  ].map((item, i) => (
+                  {PRICING_FEATURES.selfHosted.map((item, i) => (
                     <div key={i} className="flex items-start gap-2">
                       <CheckCircle2 className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
                       <span className="text-sm text-muted-foreground">{item}</span>
@@ -661,15 +556,7 @@ export default function LandingPage() {
               <div className="space-y-3">
                 <p className="text-sm font-semibold">Everything in Self-Hosted plus:</p>
                 <div className="space-y-2">
-                  {[
-                    "Instant setup - start in seconds",
-                    "Managed secure cloud hosting",
-                    "Automatic backups",
-                    "Seamless auto-updates",
-                    "Priority support",
-                    "100% maintenance free",
-                    "7-day free trial included",
-                  ].map((item, i) => (
+                  {PRICING_FEATURES.cloudLifetime.map((item, i) => (
                     <div key={i} className="flex items-start gap-2">
                       <CheckCircle2 className="h-5 w-5 text-primary shrink-0 mt-0.5" />
                       <span className="text-sm font-medium">{item}</span>
