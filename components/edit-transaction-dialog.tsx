@@ -46,6 +46,13 @@ export function EditTransactionDialog({
   const [activeTab, setActiveTab] = useState<string>(type);
   const [debtEditTab, setDebtEditTab] = useState<"details" | "payment">("details");
   const [paymentAmount, setPaymentAmount] = useState<string>("");
+  
+  // Fetch existing categories
+  const { data } = db.useQuery({
+    expenses: {},
+  });
+  const existingCategories = Array.from(new Set(data?.expenses?.map(e => e.category).filter(Boolean))) as string[];
+  
   const [formData, setFormData] = useState(() => {
     // Initialize form data based on transaction type
     if (type === "expense") {
@@ -72,11 +79,14 @@ export function EditTransactionDialog({
     } else if (type === "debt") {
       const debt = transaction as Debt;
       return {
-        date: debt.createdAt,
+        date: debt.date || debt.createdAt,
         amount: debt.currentBalance || debt.amount || 0,
+        originalAmount: debt.amount || 0,
         personName: debt.personName || "",
         direction: debt.direction || "I_OWE",
         dueDate: debt.dueDate || null,
+        debtType: debt.debtType || "friend",
+        interestRate: debt.interestRate || 0,
         notes: debt.notes || "",
       };
     } else {
@@ -120,9 +130,13 @@ export function EditTransactionDialog({
         await db.transact([
           db.tx.debts[transaction.id].update({
             currentBalance: formData.amount,
+            amount: (formData as any).originalAmount,
             personName: (formData as any).personName,
             direction: (formData as any).direction,
             dueDate: (formData as any).dueDate,
+            debtType: (formData as any).debtType,
+            interestRate: (formData as any).debtType === "shylock" ? (formData as any).interestRate : undefined,
+            date: formData.date,
             notes: formData.notes,
           }),
         ]);
@@ -342,13 +356,26 @@ export function EditTransactionDialog({
               </div>
               <div className="space-y-2">
                 <Label>Category</Label>
-                <Input
+                <Select
                   value={(formData as any).category || ""}
-                  onChange={(e) =>
-                    setFormData({ ...formData, category: e.target.value } as any)
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, category: value } as any)
                   }
-                  placeholder="Category"
-                />
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select category..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {existingCategories.map((cat) => (
+                      <SelectItem key={cat} value={cat}>
+                        {cat}
+                      </SelectItem>
+                    ))}
+                    {existingCategories.length === 0 && (
+                      <SelectItem value="Uncategorized">Uncategorized</SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
               </div>
               
               {/* Recurring Toggle */}
@@ -462,26 +489,89 @@ export function EditTransactionDialog({
                 </div>
                 <div className="space-y-2">
                   <Label>Direction</Label>
-                  <select
-                    className="w-full p-2 rounded-md border bg-background"
+                  <Select
                     value={(formData as any).direction}
-                    onChange={(e) =>
-                      setFormData({ ...formData, direction: e.target.value } as any)
+                    onValueChange={(value) =>
+                      setFormData({ ...formData, direction: value } as any)
                     }
                   >
-                    <option value="I_OWE">I Owe</option>
-                    <option value="THEY_OWE_ME">They Owe Me</option>
-                  </select>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="I_OWE">I Owe</SelectItem>
+                      <SelectItem value="THEY_OWE_ME">They Owe Me</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
+                
                 <div className="space-y-2">
-                  <Label>Current Balance</Label>
+                  <Label>Loan Type</Label>
+                  <div className="flex items-center gap-2 bg-background rounded-md p-1 border">
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, debtType: "friend" } as any)}
+                      className={`flex-1 px-3 py-1.5 text-xs font-medium rounded transition-colors ${(formData as any).debtType === "friend" ? "bg-primary text-primary-foreground" : "hover:bg-accent"}`}
+                    >
+                      Standard
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, debtType: "shylock" } as any)}
+                      className={`flex-1 px-3 py-1.5 text-xs font-medium rounded transition-colors ${(formData as any).debtType === "shylock" ? "bg-primary text-primary-foreground" : "hover:bg-accent"}`}
+                    >
+                      Shylock
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label>Original Amount</Label>
+                    <Input
+                      type="number"
+                      value={(formData as any).originalAmount}
+                      onChange={(e) =>
+                        setFormData({ ...formData, originalAmount: parseFloat(e.target.value) || 0 } as any)
+                      }
+                      placeholder="0.00"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Current Balance</Label>
+                    <Input
+                      type="number"
+                      value={formData.amount}
+                      onChange={(e) =>
+                        setFormData({ ...formData, amount: parseFloat(e.target.value) || 0 })
+                      }
+                      placeholder="0.00"
+                    />
+                  </div>
+                </div>
+
+                {(formData as any).debtType === "shylock" && (
+                  <div className="space-y-2">
+                    <Label>Interest Rate (%)</Label>
+                    <Input
+                      type="number"
+                      value={(formData as any).interestRate}
+                      onChange={(e) =>
+                        setFormData({ ...formData, interestRate: parseFloat(e.target.value) || 0 } as any)
+                      }
+                      placeholder="15"
+                    />
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  <Label>Due Date (Optional)</Label>
                   <Input
-                    type="number"
-                    value={formData.amount}
+                    type="date"
+                    value={(formData as any).dueDate ? new Date((formData as any).dueDate).toISOString().split('T')[0] : ''}
                     onChange={(e) =>
-                      setFormData({ ...formData, amount: parseFloat(e.target.value) || 0 })
+                      setFormData({ ...formData, dueDate: e.target.value ? new Date(e.target.value).getTime() : null } as any)
                     }
-                    placeholder="0.00"
                   />
                 </div>
               </TabsContent>
