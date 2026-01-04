@@ -211,6 +211,7 @@ export function TodayView({ profileId }: TodayViewProps) {
   // Filters State
   const [wishlistFilter, setWishlistFilter] = useState<"pending" | "got" | "all">("pending");
   const [debtFilter, setDebtFilter] = useState<"pending" | "paid" | "all">("pending");
+  const [debtDirectionFilter, setDebtDirectionFilter] = useState<"all" | "I_OWE" | "THEY_OWE_ME">("all");
   const [debtYearFilter, setDebtYearFilter] = useState<string>("all");
   
   const [searchQuery, setSearchQuery] = useState("");
@@ -253,7 +254,12 @@ export function TodayView({ profileId }: TodayViewProps) {
           if (debtFilter === "paid" && !isPaid) return false;
       }
       
-      // 2. Year Filter
+      // 2. Direction Filter
+      if (debtDirectionFilter !== "all") {
+          if (d.direction !== debtDirectionFilter) return false;
+      }
+      
+      // 3. Year Filter
       if (debtYearFilter !== "all") {
           const year = new Date(d.date || d.createdAt || Date.now()).getFullYear().toString();
           if (year !== debtYearFilter) return false;
@@ -704,48 +710,79 @@ export function TodayView({ profileId }: TodayViewProps) {
           {activeTab === "debts" && (
              <div className="space-y-4">
                {/* Debt Filters */}
-               <div className="flex justify-between items-center">
+               <div className="space-y-2">
+                   {/* Status Filter Row */}
+                   <div className="flex justify-between items-center">
+                       <div className="flex gap-2">
+                           <Button 
+                               size="sm" 
+                               variant={debtFilter === "pending" ? "default" : "outline"}
+                               onClick={() => setDebtFilter("pending")}
+                               className="h-7 text-xs"
+                           >
+                               Pending
+                           </Button>
+                           <Button 
+                               size="sm" 
+                               variant={debtFilter === "paid" ? "default" : "outline"}
+                               onClick={() => setDebtFilter("paid")}
+                               className="h-7 text-xs"
+                           >
+                               Paid
+                           </Button>
+                           <Button 
+                               size="sm" 
+                               variant={debtFilter === "all" ? "default" : "outline"}
+                               onClick={() => setDebtFilter("all")}
+                               className="h-7 text-xs"
+                           >
+                               All
+                           </Button>
+                       </div>
+                       
+                       {/* Year Filter (only if multiple years) */}
+                       {debtYears.length > 1 && (
+                            <Select value={debtYearFilter} onValueChange={setDebtYearFilter}>
+                               <SelectTrigger className="h-7 text-xs w-[100px]">
+                                   <SelectValue placeholder="Year" />
+                               </SelectTrigger>
+                               <SelectContent>
+                                   <SelectItem value="all">All Years</SelectItem>
+                                   {debtYears.map(y => (
+                                       <SelectItem key={y} value={y}>{y}</SelectItem>
+                                   ))}
+                               </SelectContent>
+                            </Select>
+                       )}
+                   </div>
+                   
+                   {/* Direction Filter Row */}
                    <div className="flex gap-2">
                        <Button 
                            size="sm" 
-                           variant={debtFilter === "pending" ? "default" : "outline"}
-                           onClick={() => setDebtFilter("pending")}
+                           variant={debtDirectionFilter === "I_OWE" ? "default" : "outline"}
+                           onClick={() => setDebtDirectionFilter("I_OWE")}
                            className="h-7 text-xs"
                        >
-                           Pending
+                           I Owe
                        </Button>
                        <Button 
                            size="sm" 
-                           variant={debtFilter === "paid" ? "default" : "outline"}
-                           onClick={() => setDebtFilter("paid")}
+                           variant={debtDirectionFilter === "THEY_OWE_ME" ? "default" : "outline"}
+                           onClick={() => setDebtDirectionFilter("THEY_OWE_ME")}
                            className="h-7 text-xs"
                        >
-                           Paid
+                           Owed to Me
                        </Button>
                        <Button 
                            size="sm" 
-                           variant={debtFilter === "all" ? "default" : "outline"}
-                           onClick={() => setDebtFilter("all")}
+                           variant={debtDirectionFilter === "all" ? "default" : "outline"}
+                           onClick={() => setDebtDirectionFilter("all")}
                            className="h-7 text-xs"
                        >
                            All
                        </Button>
                    </div>
-                   
-                   {/* Year Filter (only if multiple years) */}
-                   {debtYears.length > 1 && (
-                        <Select value={debtYearFilter} onValueChange={setDebtYearFilter}>
-                           <SelectTrigger className="h-7 text-xs w-[100px]">
-                               <SelectValue placeholder="Year" />
-                           </SelectTrigger>
-                           <SelectContent>
-                               <SelectItem value="all">All Years</SelectItem>
-                               {debtYears.map(y => (
-                                   <SelectItem key={y} value={y}>{y}</SelectItem>
-                               ))}
-                           </SelectContent>
-                        </Select>
-                   )}
                </div>
 
                 {/* Debts List Grouped by Month */}
