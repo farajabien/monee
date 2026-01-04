@@ -412,26 +412,10 @@ export function TodayView({ profileId }: TodayViewProps) {
   if (activeTab === "debts") {
       // We will render this in the return block
   }
-
   const monthName = currentDate.toLocaleDateString("en-US", { month: "short", year: "numeric" });
 
   return (
     <div className="flex flex-col h-full bg-background mt-4">
-      {/* Date Navigation - HIDE for Debts and Wishlist since they are global */}
-      {activeTab !== "elliw" && activeTab !== "debts" && (
-        <div className="flex items-center justify-between px-4 pb-4">
-            <Button variant="ghost" size="icon" onClick={() => setCurrentDate(new Date(currentDate.setMonth(currentDate.getMonth() - 1)))}>
-            <ChevronLeft className="h-5 w-5" />
-            </Button>
-            <span className="font-semibold text-lg">
-            {currentDate.toLocaleDateString("en-US", { month: "long", year: "numeric" })}
-            </span>
-            <Button variant="ghost" size="icon" onClick={() => setCurrentDate(new Date(currentDate.setMonth(currentDate.getMonth() + 1)))}>
-            <ChevronRight className="h-5 w-5" />
-            </Button>
-        </div>
-      )}
-
       {/* Sticky Header: Stats & Tabs */}
       <div className="sticky top-0 z-10 bg-background pt-2 border-b shadow-sm">
         {/* Stats Summary - Dynamic based on active tab */}
