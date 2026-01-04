@@ -219,14 +219,14 @@ export default function LandingPage() {
             <div className="relative">
               <div className="relative rounded-3xl overflow-hidden border-8 border-foreground/10 shadow-2xl bg-gradient-to-br from-primary/20 to-primary/5 aspect-[9/16] max-w-sm mx-auto">
                 <Image
-                  src="/images/monee-dashboard.jpeg"
+                  src="/images/monee-dashboard.jpg"
                   alt="MONEE Dashboard Screenshot - Light Mode"
                   fill
                   className="object-cover dark:hidden"
                   priority
                 />
                 <Image
-                  src="/images/monee-dashboard-dark.jpeg"
+                  src="/images/monee-dashboard-dark.jpg"
                   alt="MONEE Dashboard Screenshot - Dark Mode"
                   fill
                   className="object-cover hidden dark:block"
