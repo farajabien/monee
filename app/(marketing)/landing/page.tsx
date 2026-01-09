@@ -94,33 +94,32 @@ export default function LandingPage() {
                 </Link>
               </div>
               <h1 className="text-4xl md:text-6xl font-bold tracking-tight">
-                Your Money,{" "}
-                <span className="text-primary">Finally in One Place</span>
+                For people who bought a money spreadsheet...{" "}
+                <span className="text-primary">and still feel lost</span>
               </h1>
               <p className="text-xl text-muted-foreground">
-                Track expenses in seconds, manage debts with progress tracking,
-                crush savings goals, and see where every shilling goes. All your
-                financial data organized with smart categorization and analytics.
+                If tracking money feels like work, this is for you.
+                No more guilt about skipped entries. No more maintenance burden.
+                Just see where your money actually goes.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
-                <Link href="/login">
+                <Link href="/checkout">
                   <Button size="lg" className="w-full sm:w-auto">
-                    Download App - Free Trial
+                    Get Monee for $10
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </Link>
               </div>
               <div className="flex flex-col gap-2">
-                <p className="text-sm text-muted-foreground">
-                  ✨ Free to download • 7-day free trial included
-                </p>
                 <p className="text-sm font-medium">
-                  Then just <span className="text-primary">KSh 999</span>{" "}
-                  one-time payment
+                  <span className="text-primary">$10</span> one-time payment
                   <span className="text-muted-foreground ml-1">
-                    (Worth KSh 10,000-15,000)
+                    (≈ KSh 1,500)
                   </span>
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  No subscription. No renewal. 7-day money-back guarantee.
                 </p>
               </div>
             </div>
@@ -152,14 +151,19 @@ export default function LandingPage() {
       <section className="container mx-auto px-4 py-16">
         <div className="max-w-4xl mx-auto space-y-8">
           <h2 className="text-3xl md:text-4xl font-bold text-center">
-            Stop Juggling Spreadsheets
+            You Bought the Spreadsheet. You Opened It Twice.
           </h2>
-          
+
           <Card className="border-2">
             <CardContent className="p-6 md:p-8 space-y-6">
               <div className="space-y-4">
                 <p className="text-lg text-muted-foreground">
-                  Most people buy 5-6 different spreadsheets just to manage their money:
+                  Now it sits in your Downloads folder, silently judging you.
+                  You're not lazy — the tool was asking too much.
+                </p>
+
+                <p className="text-base text-muted-foreground">
+                  Most people buy multiple spreadsheets trying to fix the problem:
                 </p>
                 
                 <div className="grid sm:grid-cols-2 gap-3">
@@ -194,7 +198,7 @@ export default function LandingPage() {
                   </div>
                   <p className="text-lg">
                     <strong className="text-primary">MONEE</strong> replaces them all for just{" "}
-                    <strong className="text-primary">KSh 999</strong>
+                    <strong className="text-primary">$10</strong>
                   </p>
                 </div>
                 <div className="pl-12 space-y-2">
@@ -286,9 +290,9 @@ export default function LandingPage() {
                 })}
               </div>
               <div className="pt-4">
-                <Link href="/login">
+                <Link href="/checkout">
                   <Button size="lg" className="gap-2">
-                    Try Beta - Free for 7 Days
+                    Get Monee for $10
                     <ArrowRight className="h-4 w-4" />
                   </Button>
                 </Link>
@@ -325,10 +329,10 @@ export default function LandingPage() {
       <section className="container mx-auto px-4 py-16">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            MONEE vs Other Finance Apps
+            MONEE vs The Spreadsheets You Already Bought
           </h2>
           <p className="text-lg text-muted-foreground">
-            See why MONEE is the smartest choice for Kenyan users
+            You don't need more features. You need less thinking.
           </p>
         </div>
         <div className="max-w-4xl mx-auto">
@@ -339,11 +343,11 @@ export default function LandingPage() {
                   <thead className="border-b">
                     <tr>
                       <th className="text-left p-4 font-semibold">Feature</th>
+                      <th className="text-center p-4 font-semibold text-muted-foreground">
+                        Spreadsheets
+                      </th>
                       <th className="text-center p-4 font-semibold text-primary">
                         MONEE
-                      </th>
-                      <th className="text-center p-4 font-semibold text-muted-foreground">
-                        Competitors
                       </th>
                     </tr>
                   </thead>
@@ -351,19 +355,6 @@ export default function LandingPage() {
                     {COMPARISON_FEATURES.map((row, index) => (
                       <tr key={index} className="border-b last:border-0">
                         <td className="p-4 text-sm">{row.feature}</td>
-                        <td className="p-4 text-center">
-                          {typeof row.monee === "boolean" ? (
-                            row.monee ? (
-                              <CheckCircle2 className="h-5 w-5 text-green-600 mx-auto" />
-                            ) : (
-                              <X className="h-5 w-5 text-muted-foreground mx-auto" />
-                            )
-                          ) : (
-                            <span className="text-sm font-medium text-green-600">
-                              {row.monee}
-                            </span>
-                          )}
-                        </td>
                         <td className="p-4 text-center">
                           {typeof row.competitors === "boolean" ? (
                             row.competitors ? (
@@ -374,6 +365,19 @@ export default function LandingPage() {
                           ) : (
                             <span className="text-sm text-muted-foreground">
                               {row.competitors}
+                            </span>
+                          )}
+                        </td>
+                        <td className="p-4 text-center">
+                          {typeof row.monee === "boolean" ? (
+                            row.monee ? (
+                              <CheckCircle2 className="h-5 w-5 text-green-600 mx-auto" />
+                            ) : (
+                              <X className="h-5 w-5 text-muted-foreground mx-auto" />
+                            )
+                          ) : (
+                            <span className="text-sm font-medium text-green-600">
+                              {row.monee}
                             </span>
                           )}
                         </td>
@@ -410,15 +414,15 @@ export default function LandingPage() {
                   <span className="text-muted-foreground">/ Forever</span>
                 </div>
                 <Badge variant="outline" className="text-base">
-                  For Developers & DIYers
+                  For Developers & Tinkerers
                 </Badge>
                 <p className="text-sm text-muted-foreground font-medium pt-2">
-                  Host it yourself. You own your data infrastructure.
+                  Host it yourself. Manage everything yourself.
                 </p>
               </div>
 
               <div className="space-y-3">
-                <p className="text-sm font-semibold">What you get:</p>
+                <p className="text-sm font-semibold">What you handle:</p>
                 <div className="space-y-2">
                   {PRICING_FEATURES.selfHosted.map((item, i) => (
                     <div key={i} className="flex items-start gap-2">
@@ -436,8 +440,8 @@ export default function LandingPage() {
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </Link>
-                <p className="text-xs text-center text-muted-foreground mt-4">
-                  Requires technical knowledge to set up and maintain.
+                <p className="text-xs text-center text-muted-foreground mt-4 font-semibold">
+                  Requires technical knowledge and ongoing maintenance.
                 </p>
               </div>
             </CardContent>
@@ -450,27 +454,35 @@ export default function LandingPage() {
             </div>
             <CardContent className="p-8 space-y-6">
               <div className="text-center space-y-2">
-                <h3 className="text-2xl font-bold">Cloud Lifetime</h3>
-                <div className="flex items-center justify-center gap-3">
+                <h3 className="text-2xl font-bold">Cloud Lifetime — $10</h3>
+                <p className="text-base text-muted-foreground font-semibold">
+                  For people who just want it to work.
+                </p>
+                <div className="flex items-center justify-center gap-3 pt-2">
                   <span className="text-5xl font-bold text-primary">
-                    KSh 999
+                    $10
                   </span>
                   <div className="text-left">
-                    <div className="text-xl text-muted-foreground line-through">
-                      KSh 10,000
+                    <div className="text-sm font-semibold">
+                      One-time
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      ≈ KSh 1,500
                     </div>
                   </div>
                 </div>
-                <Badge variant="default" className="text-base">
-                  One-time Payment
-                </Badge>
-                <p className="text-sm text-muted-foreground font-semibold pt-2">
-                  Zero setup. We handle hosting, backups, and updates.
-                </p>
+                <div className="flex flex-col gap-1 pt-2">
+                  <Badge variant="default" className="text-sm w-fit mx-auto">
+                    No subscription
+                  </Badge>
+                  <p className="text-xs text-muted-foreground">
+                    No trial. No renewal. No maintenance.
+                  </p>
+                </div>
               </div>
 
               <div className="space-y-3">
-                <p className="text-sm font-semibold">Everything in Self-Hosted plus:</p>
+                <p className="text-sm font-semibold">What we handle for you:</p>
                 <div className="space-y-2">
                   {PRICING_FEATURES.cloudLifetime.map((item, i) => (
                     <div key={i} className="flex items-start gap-2">
@@ -482,14 +494,14 @@ export default function LandingPage() {
               </div>
 
               <div className="pt-6">
-                <Link href="/login" className="block">
-                  <Button size="lg" className="w-full">
-                    Start Free Trial
+                <Link href="/checkout" className="block">
+                  <Button size="lg" className="w-full text-base font-semibold">
+                    Buy Once for $10
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </Link>
                 <p className="text-xs text-center text-muted-foreground mt-4">
-                  Free to download. 7-day free trial. Then KSh 999 one-time.
+                  7-day money-back guarantee. Start using immediately.
                 </p>
               </div>
             </CardContent>
@@ -497,22 +509,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* How to Get Your Statement Section */}
-      <section className="container mx-auto px-4 py-20">
-        <div className="max-w-5xl mx-auto space-y-8">
-          <div className="text-center space-y-4">
-            <h2 className="text-3xl md:text-4xl font-bold">
-              Get Started in 60 Seconds
-            </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              No need to copy hundreds of SMS messages. Just export your M-Pesa
-              statement and upload it.
-            </p>
-          </div>
-          <HowToGetStatement />
-        </div>
-      </section>
-
+    
       {/* CTA Section */}
       <section className="container mx-auto px-4 py-20">
         <Card className="bg-primary text-primary-foreground border-0">
@@ -521,18 +518,17 @@ export default function LandingPage() {
               Ready to Take Control of Your Money?
             </h2>
             <p className="text-lg opacity-90 max-w-2xl mx-auto">
-              Start your free 1-week trial today and join Kenyans 🇰🇪 who are
-              taking control of their finances. Then just KSh 999 one-time —
-              replaces KSh 3,395+ worth of separate spreadsheets.
+              Pay once. Use forever. No subscription, no renewal, no maintenance.
+              Just $10 — replaces multiple expensive tools.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-              <Link href="/login">
+              <Link href="/checkout">
                 <Button
                   size="lg"
                   variant="outline"
                   className="w-full sm:w-auto bg-transparent border-2 border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary"
                 >
-                  Download App Now - Free Trial
+                  Get Monee for $10
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>

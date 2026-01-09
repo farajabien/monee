@@ -121,7 +121,7 @@ export const COMPARISON_FEATURES = [
   },
   {
     feature: "Pricing",
-    monee: "KSh 999 Lifetime",
+    monee: "$10 One-Time",
     competitors: "Monthly Subscription",
   },
   {
@@ -134,20 +134,20 @@ export const COMPARISON_FEATURES = [
 export const PRICING_FEATURES = {
   selfHosted: [
     "Full source code access (GitHub)",
-    "Deploy on your own Vercel/Netlify",
-    "Configure your own InstantDB",
-    "Community support",
-    "Manual updates & maintenance",
-    "Full control over infrastructure",
+    "You deploy on your own infrastructure",
+    "You configure your own database",
+    "You manage updates and backups",
+    "Community-based support only",
+    "Ongoing technical maintenance required",
   ],
   cloudLifetime: [
-    "Instant setup - start in seconds",
+    "Instant setup — start in seconds",
     "Managed secure cloud hosting",
-    "Automatic backups",
-    "Seamless auto-updates",
-    "Priority support",
-    "100% maintenance free",
-    "7-day free trial included",
+    "Automatic backups (we handle it)",
+    "Seamless auto-updates (we handle it)",
+    "Priority support when you need it",
+    "Zero maintenance — ever",
+    "7-day money-back guarantee",
   ],
 };
 
