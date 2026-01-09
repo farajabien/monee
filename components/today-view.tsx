@@ -429,7 +429,7 @@ export function TodayView({ profileId }: TodayViewProps) {
   return (
     <div className="flex flex-col h-full bg-background">
       {/* Sticky Header: Stats & Tabs - Sticks below the main nav */}
-      <div className="sticky top-[57px] z-40 bg-background pt-2 border-b shadow-sm">
+      <div className="sticky top-0 z-40 bg-background pt-2 border-b shadow-sm">
         {/* Stats Summary - Dynamic based on active tab */}
         <div className="grid grid-cols-3 gap-4 px-4 pt-2 pb-3 text-sm">
           {activeTab === "debts" ? (
@@ -467,11 +467,11 @@ export function TodayView({ profileId }: TodayViewProps) {
           ) : (
             <>
               <div className="text-center">
-                <p className="text-xs text-muted-foreground">Money In</p>
+                <p className="text-xs text-muted-foreground">Income</p>
                 <p className="font-semibold text-green-600 text-base">{formatCurrency(totalIncome, userCurrency)}</p>
               </div>
               <div className="text-center">
-                <p className="text-xs text-muted-foreground">Money Out</p>
+                <p className="text-xs text-muted-foreground">Expense</p>
                 <p className="font-semibold text-red-600 text-base">{formatCurrency(totalExpenses, userCurrency)}</p>
               </div>
               <div className="text-center">
@@ -491,8 +491,8 @@ export function TodayView({ profileId }: TodayViewProps) {
               <Button variant="outline" className="w-full justify-between h-10 font-semibold">
                 <span>
                   {activeTab === "summary" && "📊 Overview"}
-                  {activeTab === "income" && "💰 Money In"}
-                  {activeTab === "expenses" && "💳 Money Out"}
+                  {activeTab === "income" && "💰 Income"}
+                  {activeTab === "expenses" && "💳 Expense"}
                   {activeTab === "debts" && "🤝 Debts & Loans"}
                   {activeTab === "elliw" && "✨ Wishlist"}
                 </span>
@@ -510,14 +510,14 @@ export function TodayView({ profileId }: TodayViewProps) {
               <DropdownMenuItem onClick={() => setActiveTab("expenses")} className="cursor-pointer py-3">
                 <span className="mr-2">💳</span>
                 <div>
-                  <div className="font-medium">Money Out</div>
+                  <div className="font-medium">Expense</div>
                   <div className="text-xs text-muted-foreground">Track what you spent</div>
                 </div>
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setActiveTab("income")} className="cursor-pointer py-3">
                 <span className="mr-2">💰</span>
                 <div>
-                  <div className="font-medium">Money In</div>
+                  <div className="font-medium">Income</div>
                   <div className="text-xs text-muted-foreground">Track your earnings</div>
                 </div>
               </DropdownMenuItem>
@@ -584,13 +584,13 @@ export function TodayView({ profileId }: TodayViewProps) {
             {/* Quick Stats Grid */}
             <div className="grid grid-cols-2 gap-3">
               <div className="p-4 rounded-lg bg-accent/50">
-                <p className="text-xs text-muted-foreground mb-1">Money In</p>
+                <p className="text-xs text-muted-foreground mb-1">Income</p>
                 <p className="text-lg font-semibold text-green-600">
                   {formatCurrency(totalIncome, userCurrency)}
                 </p>
               </div>
               <div className="p-4 rounded-lg bg-accent/50">
-                <p className="text-xs text-muted-foreground mb-1">Money Out</p>
+                <p className="text-xs text-muted-foreground mb-1">Expense</p>
                 <p className="text-lg font-semibold text-red-600">
                   {formatCurrency(totalExpenses, userCurrency)}
                 </p>
@@ -610,6 +610,87 @@ export function TodayView({ profileId }: TodayViewProps) {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Wishlist Filters - Always Block */}
+      {activeTab === "elliw" && (
+        <div className="px-4 pt-4 pb-2">
+            <div className="flex gap-2">
+                <Button 
+                size="sm" 
+                variant={wishlistFilter === "pending" ? "default" : "outline"}
+                onClick={() => setWishlistFilter("pending")}
+                className="h-7 text-xs"
+                >
+                Pending
+                </Button>
+                <Button 
+                size="sm" 
+                variant={wishlistFilter === "got" ? "default" : "outline"}
+                onClick={() => setWishlistFilter("got")}
+                className="h-7 text-xs"
+                >
+                Got
+                </Button>
+                <Button 
+                size="sm" 
+                variant={wishlistFilter === "all" ? "default" : "outline"}
+                onClick={() => setWishlistFilter("all")}
+                className="h-7 text-xs"
+                >
+                All
+                </Button>
+            </div>
+        </div>
+      )}
+
+      {/* Debt Filters - Always Block */}
+      {activeTab === "debts" && (
+          <div className="px-4 pt-4 pb-2">
+            <div className="flex justify-between items-center">
+                <div className="flex gap-2">
+                    <Button 
+                        size="sm" 
+                        variant={debtFilter === "pending" ? "default" : "outline"}
+                        onClick={() => setDebtFilter("pending")}
+                        className="h-7 text-xs"
+                    >
+                        Pending
+                    </Button>
+                    <Button 
+                        size="sm" 
+                        variant={debtFilter === "paid" ? "default" : "outline"}
+                        onClick={() => setDebtFilter("paid")}
+                        className="h-7 text-xs"
+                    >
+                        Paid
+                    </Button>
+                    <Button 
+                        size="sm" 
+                        variant={debtFilter === "all" ? "default" : "outline"}
+                        onClick={() => setDebtFilter("all")}
+                        className="h-7 text-xs"
+                    >
+                        All
+                    </Button>
+                </div>
+                
+                {/* Year Filter (only if multiple years) */}
+                {debtYears.length > 1 && (
+                        <Select value={debtYearFilter} onValueChange={setDebtYearFilter}>
+                        <SelectTrigger className="h-7 text-xs w-[100px]">
+                            <SelectValue placeholder="Year" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Years</SelectItem>
+                            {debtYears.map(year => (
+                                <SelectItem key={year} value={year}>{year}</SelectItem>
+                            ))}
+                        </SelectContent>
+                        </Select>
+                )}
+            </div>
+          </div>
       )}
 
       {(activeTab === "elliw" ? filteredWishlist.length === 0 : (isDateSort ? sortedDays.length === 0 : flatSortedItems.length === 0)) ? (
@@ -643,33 +724,7 @@ export function TodayView({ profileId }: TodayViewProps) {
 
           {activeTab === "elliw" && (
             <div className="space-y-4">
-               {/* Wishlist Filters */}
-               <div className="flex gap-2">
-                 <Button 
-                   size="sm" 
-                   variant={wishlistFilter === "pending" ? "default" : "outline"}
-                   onClick={() => setWishlistFilter("pending")}
-                   className="h-7 text-xs"
-                 >
-                   Pending
-                 </Button>
-                 <Button 
-                   size="sm" 
-                   variant={wishlistFilter === "got" ? "default" : "outline"}
-                   onClick={() => setWishlistFilter("got")}
-                   className="h-7 text-xs"
-                 >
-                   Got
-                 </Button>
-                 <Button 
-                   size="sm" 
-                   variant={wishlistFilter === "all" ? "default" : "outline"}
-                   onClick={() => setWishlistFilter("all")}
-                   className="h-7 text-xs"
-                 >
-                   All
-                 </Button>
-               </div>
+               {/* Unified Wishlist View */}
 
                {/* Unified Wishlist View */}
                <div className="space-y-3">
@@ -759,141 +814,68 @@ export function TodayView({ profileId }: TodayViewProps) {
 
           {activeTab === "debts" && (
              <div className="space-y-4">
-               {/* Debt Filters */}
-               <div className="space-y-2">
-                   {/* Status Filter Row */}
-                   <div className="flex justify-between items-center">
-                       <div className="flex gap-2">
-                           <Button 
-                               size="sm" 
-                               variant={debtFilter === "pending" ? "default" : "outline"}
-                               onClick={() => setDebtFilter("pending")}
-                               className="h-7 text-xs"
-                           >
-                               Pending
-                           </Button>
-                           <Button 
-                               size="sm" 
-                               variant={debtFilter === "paid" ? "default" : "outline"}
-                               onClick={() => setDebtFilter("paid")}
-                               className="h-7 text-xs"
-                           >
-                               Paid
-                           </Button>
-                           <Button 
-                               size="sm" 
-                               variant={debtFilter === "all" ? "default" : "outline"}
-                               onClick={() => setDebtFilter("all")}
-                               className="h-7 text-xs"
-                           >
-                               All
-                           </Button>
-                       </div>
-                       
-                       {/* Year Filter (only if multiple years) */}
-                       {debtYears.length > 1 && (
-                            <Select value={debtYearFilter} onValueChange={setDebtYearFilter}>
-                               <SelectTrigger className="h-7 text-xs w-[100px]">
-                                   <SelectValue placeholder="Year" />
-                               </SelectTrigger>
-                               <SelectContent>
-                                   <SelectItem value="all">All Years</SelectItem>
-                                   {debtYears.map(y => (
-                                       <SelectItem key={y} value={y}>{y}</SelectItem>
-                                   ))}
-                               </SelectContent>
-                            </Select>
-                       )}
+               {/* Debts List Grouped by Month */}
+               {filteredDebts.length === 0 ? (
+                   <div className="text-center py-10 text-muted-foreground">
+                       <p>No debts found.</p>
                    </div>
-                   
-                   {/* Direction Filter Row */}
-                   <div className="flex gap-2">
-                       <Button 
-                           size="sm" 
-                           variant={debtDirectionFilter === "I_OWE" ? "default" : "outline"}
-                           onClick={() => setDebtDirectionFilter("I_OWE")}
-                           className="h-7 text-xs"
-                       >
-                           I Owe
-                       </Button>
-                       <Button 
-                           size="sm" 
-                           variant={debtDirectionFilter === "THEY_OWE_ME" ? "default" : "outline"}
-                           onClick={() => setDebtDirectionFilter("THEY_OWE_ME")}
-                           className="h-7 text-xs"
-                       >
-                           Owed to Me
-                       </Button>
-                       <Button 
-                           size="sm" 
-                           variant={debtDirectionFilter === "all" ? "default" : "outline"}
-                           onClick={() => setDebtDirectionFilter("all")}
-                           className="h-7 text-xs"
-                       >
-                           All
-                       </Button>
+               ) : (
+                   <div className="space-y-6">
+                       {sortedDebtMonths.map(monthKey => {
+                           const [y, m] = monthKey.split("-").map(Number);
+                           const monthDate = new Date(y, m, 1);
+                           const groupDebts = debtsByMonth[monthKey];
+                           const totalGroup = groupDebts.reduce((sum, d) => sum + (d.currentBalance || 0), 0);
+
+                           return (
+                               <div key={monthKey}>
+                                   <div className="flex items-center justify-between mb-2">
+                                       <h3 className="font-semibold text-lg">
+                                           {monthDate.toLocaleDateString("en-US", { month: "long", year: "numeric" })}
+                                       </h3>
+                                       <span className="text-xs font-mono text-muted-foreground">
+                                           {formatCurrency(totalGroup, userCurrency)}
+                                       </span>
+                                   </div>
+                                   <div className="space-y-2">
+                                       {groupDebts.map(item => (
+                                           <div 
+                                               key={item.id} 
+                                               className={`p-3 rounded-lg cursor-pointer transition-colors ${item.isPaidOff ? "bg-accent/10 opacity-70" : "bg-accent/20 hover:bg-accent/40"}`}
+                                               onClick={() => {
+                                                   setViewDebt(item as Debt);
+                                                   setEditTransaction({ transaction: item, type: "debt" });
+                                               }}
+                                           >
+                                               <div className="flex items-center justify-between">
+                                                   <div className="flex items-center gap-3">
+                                                       <div className={`w-10 h-10 rounded flex items-center justify-center text-lg ${item.direction === "I_OWE" ? "bg-red-100 dark:bg-red-900/20" : "bg-green-100 dark:bg-green-900/20"}`}>
+                                                           🤝
+                                                       </div>
+                                                       <div>
+                                                           <p className="font-medium text-sm">{item.personName}</p>
+                                                           <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                                               <span className="font-mono">
+                                                                   {item.direction === "I_OWE" ? "I Owe" : "Owed to Me"}
+                                                               </span>
+                                                               <span>•</span>
+                                                               <span>{new Date(item.date || item.createdAt).toLocaleDateString()}</span>
+                                                               {item.isPaidOff && <span className="text-green-600 font-bold">• Paid</span>}
+                                                           </div>
+                                                       </div>
+                                                   </div>
+                                                   <span className={`font-semibold ${item.direction === "I_OWE" ? "text-red-600" : "text-green-600"}`}>
+                                                       {formatCurrency(item.currentBalance || 0, userCurrency)}
+                                                   </span>
+                                               </div>
+                                           </div>
+                                       ))}
+                                   </div>
+                               </div>
+                           );
+                       })}
                    </div>
-               </div>
-
-                {/* Debts List Grouped by Month */}
-                {filteredDebts.length === 0 ? (
-                    <div className="text-center py-10 text-muted-foreground">
-                        <p>No debts found.</p>
-                    </div>
-                ) : (
-                    <div className="space-y-6">
-                        {sortedDebtMonths.map(monthKey => {
-                            const [y, m] = monthKey.split("-").map(Number);
-                            const monthDate = new Date(y, m, 1);
-                            const groupDebts = debtsByMonth[monthKey];
-                            const totalGroup = groupDebts.reduce((sum, d) => sum + (d.currentBalance || 0), 0);
-
-                            return (
-                                <div key={monthKey}>
-                                    <div className="flex items-center justify-between mb-2">
-                                        <h3 className="font-semibold text-lg">
-                                            {monthDate.toLocaleDateString("en-US", { month: "long", year: "numeric" })}
-                                        </h3>
-                                        <span className="text-xs font-mono text-muted-foreground">
-                                            {formatCurrency(totalGroup, userCurrency)}
-                                        </span>
-                                    </div>
-                                    <div className="space-y-2">
-                                        {groupDebts.map(item => (
-                                            <div 
-                                                key={item.id} 
-                                                className={`p-3 rounded-lg cursor-pointer transition-colors ${item.isPaidOff ? "bg-accent/10 opacity-70" : "bg-accent/20 hover:bg-accent/40"}`}
-                                                onClick={() => setViewDebt(item as Debt)}
-                                            >
-                                                <div className="flex items-center justify-between">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className={`w-10 h-10 rounded flex items-center justify-center text-lg ${item.direction === "I_OWE" ? "bg-red-100 dark:bg-red-900/20" : "bg-green-100 dark:bg-green-900/20"}`}>
-                                                            🤝
-                                                        </div>
-                                                        <div>
-                                                            <p className="font-medium text-sm">{item.personName}</p>
-                                                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                                                <span className="font-mono">
-                                                                    {item.direction === "I_OWE" ? "I Owe" : "Owed to Me"}
-                                                                </span>
-                                                                <span>•</span>
-                                                                <span>{new Date(item.date || item.createdAt).toLocaleDateString()}</span>
-                                                                {item.isPaidOff && <span className="text-green-600 font-bold">• Paid</span>}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <span className={`font-semibold ${item.direction === "I_OWE" ? "text-red-600" : "text-green-600"}`}>
-                                                        {formatCurrency(item.currentBalance || 0, userCurrency)}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
-                )}
+               )}
              </div>
           )}
 

@@ -98,9 +98,9 @@ export default function LandingPage() {
                 <span className="text-primary">and still feel lost</span>
               </h1>
               <p className="text-xl text-muted-foreground">
-                If tracking money feels like work, this is for you.
-                No more guilt about skipped entries. No more maintenance burden.
-                Just see where your money actually goes.
+                If tracking money feels like work, this is for you. Manage expenses, 
+                <span className="text-foreground font-medium"> track friend debts</span>, and 
+                <span className="text-foreground font-medium"> save for your wishlist</span> without the spreadsheet headache.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">

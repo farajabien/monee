@@ -255,8 +255,8 @@ export function AddSheet({ open, onOpenChange, profileId }: AddSheetProps) {
       <SheetContent side="bottom" className="h-[85vh] rounded-t-xl p-0 flex flex-col">
         <SheetHeader className="px-6 pt-6 pb-4 border-b shrink-0">
           <SheetTitle className="text-xl">
-            {activeTab === "expense" && "Add Money Out"}
-            {activeTab === "income" && "Add Money In"}
+            {activeTab === "expense" && "Add Expense"}
+            {activeTab === "income" && "Add Income"}
             {activeTab === "debt" && "Add Debt"}
             {activeTab === "elliw" && "Add to Wishlist"}
           </SheetTitle>
