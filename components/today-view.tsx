@@ -5,7 +5,6 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { id } from "@instantdb/react";
 import { ChevronLeft, ChevronRight, Globe, CheckCircle, RotateCcw, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import db from "@/lib/db";
 import { formatCurrency, DEFAULT_CURRENCY } from "@/lib/currency-utils";
 import { EditTransactionDialog } from "@/components/edit-transaction-dialog";
