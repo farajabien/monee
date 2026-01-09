@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { id } from "@instantdb/react";
-import { ChevronLeft, ChevronRight, Globe, CheckCircle, RotateCcw } from "lucide-react";
+import { ChevronLeft, ChevronRight, Globe, CheckCircle, RotateCcw, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import db from "@/lib/db";
@@ -19,6 +19,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Search, ArrowUpDown, Filter } from "lucide-react";
 import type { Expense, IncomeSource, Debt, WishlistItem } from "@/types";
 
@@ -421,39 +427,39 @@ export function TodayView({ profileId }: TodayViewProps) {
   const monthName = currentDate.toLocaleDateString("en-US", { month: "short", year: "numeric" });
 
   return (
-    <div className="flex flex-col h-full bg-background mt-4">
-      {/* Sticky Header: Stats & Tabs */}
-      <div className="sticky top-0 z-10 bg-background pt-2 border-b shadow-sm">
+    <div className="flex flex-col h-full bg-background">
+      {/* Sticky Header: Stats & Tabs - Sticks below the main nav */}
+      <div className="sticky top-[57px] z-40 bg-background pt-2 border-b shadow-sm">
         {/* Stats Summary - Dynamic based on active tab */}
         <div className="grid grid-cols-3 gap-4 px-4 pt-2 pb-3 text-sm">
           {activeTab === "debts" ? (
             <>
               <div className="text-center">
-                <p className="text-xs text-muted-foreground">Total I Owe</p>
-                <p className="font-semibold text-red-600">{formatCurrency(totalIOwe, userCurrency)}</p>
+                <p className="text-xs text-muted-foreground">I Owe</p>
+                <p className="font-semibold text-red-600 text-base">{formatCurrency(totalIOwe, userCurrency)}</p>
               </div>
               <div className="text-center">
                 <p className="text-xs text-muted-foreground">Owed to Me</p>
-                <p className="font-semibold text-green-600">{formatCurrency(totalTheyOwe, userCurrency)}</p>
+                <p className="font-semibold text-green-600 text-base">{formatCurrency(totalTheyOwe, userCurrency)}</p>
               </div>
               <div className="text-center">
-                <p className="text-xs text-muted-foreground">Visible</p>
-                <p className="font-semibold">{filteredDebts.length}</p>
+                <p className="text-xs text-muted-foreground">Showing</p>
+                <p className="font-semibold text-base">{filteredDebts.length}</p>
               </div>
             </>
           ) : activeTab === "elliw" ? (
             <>
               <div className="text-center">
                 <p className="text-xs text-muted-foreground">Items</p>
-                <p className="font-semibold">{filteredWishlist.length}</p>
+                <p className="font-semibold text-base">{filteredWishlist.length}</p>
               </div>
               <div className="text-center">
-                <p className="text-xs text-muted-foreground">Status</p>
-                <p className="font-semibold capitalize text-purple-600">{wishlistFilter}</p>
+                <p className="text-xs text-muted-foreground">Filter</p>
+                <p className="font-semibold capitalize text-purple-600 text-base">{wishlistFilter}</p>
               </div>
               <div className="text-center">
-                <p className="text-xs text-muted-foreground">Total Value</p>
-                <p className="font-semibold text-purple-600">
+                <p className="text-xs text-muted-foreground">Worth</p>
+                <p className="font-semibold text-purple-600 text-base">
                   {formatCurrency(wishlistTotal, userCurrency)}
                 </p>
               </div>
@@ -461,16 +467,16 @@ export function TodayView({ profileId }: TodayViewProps) {
           ) : (
             <>
               <div className="text-center">
-                <p className="text-xs text-muted-foreground">Income</p>
-                <p className="font-semibold text-green-600">{formatCurrency(totalIncome, userCurrency)}</p>
+                <p className="text-xs text-muted-foreground">Money In</p>
+                <p className="font-semibold text-green-600 text-base">{formatCurrency(totalIncome, userCurrency)}</p>
               </div>
               <div className="text-center">
-                <p className="text-xs text-muted-foreground">Exp.</p>
-                <p className="font-semibold text-red-600">{formatCurrency(totalExpenses, userCurrency)}</p>
+                <p className="text-xs text-muted-foreground">Money Out</p>
+                <p className="font-semibold text-red-600 text-base">{formatCurrency(totalExpenses, userCurrency)}</p>
               </div>
               <div className="text-center">
-                <p className="text-xs text-muted-foreground">Total</p>
-                <p className={`font-semibold ${monthTotal >= 0 ? "text-foreground" : "text-red-600"}`}>
+                <p className="text-xs text-muted-foreground">Left Over</p>
+                <p className={`font-semibold text-base ${monthTotal >= 0 ? "text-green-600" : "text-red-600"}`}>
                   {formatCurrency(monthTotal, userCurrency)}
                 </p>
               </div>
@@ -478,16 +484,60 @@ export function TodayView({ profileId }: TodayViewProps) {
           )}
         </div>
 
-        {/* Filter Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="px-4 pb-2">
-          <TabsList className="grid w-full grid-cols-5 p-1 h-auto">
-            <TabsTrigger value="summary" className="text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:font-bold">Summary</TabsTrigger>
-            <TabsTrigger value="income" className="text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:font-bold">Income</TabsTrigger>
-            <TabsTrigger value="expenses" className="text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:font-bold">Expenses</TabsTrigger>
-            <TabsTrigger value="debts" className="text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:font-bold">Debts</TabsTrigger>
-            <TabsTrigger value="elliw" className="text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:font-bold">ELTIW</TabsTrigger>
-          </TabsList>
-        </Tabs>
+        {/* View Selector - Dropdown Based */}
+        <div className="px-4 pb-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="w-full justify-between h-10 font-semibold">
+                <span>
+                  {activeTab === "summary" && "📊 Overview"}
+                  {activeTab === "income" && "💰 Money In"}
+                  {activeTab === "expenses" && "💳 Money Out"}
+                  {activeTab === "debts" && "🤝 Debts & Loans"}
+                  {activeTab === "elliw" && "✨ Wishlist"}
+                </span>
+                <ChevronDown className="h-4 w-4 opacity-50" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-[calc(100vw-2rem)] max-w-md" align="center">
+              <DropdownMenuItem onClick={() => setActiveTab("summary")} className="cursor-pointer py-3">
+                <span className="mr-2">📊</span>
+                <div>
+                  <div className="font-medium">Overview</div>
+                  <div className="text-xs text-muted-foreground">See where your money went</div>
+                </div>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setActiveTab("expenses")} className="cursor-pointer py-3">
+                <span className="mr-2">💳</span>
+                <div>
+                  <div className="font-medium">Money Out</div>
+                  <div className="text-xs text-muted-foreground">Track what you spent</div>
+                </div>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setActiveTab("income")} className="cursor-pointer py-3">
+                <span className="mr-2">💰</span>
+                <div>
+                  <div className="font-medium">Money In</div>
+                  <div className="text-xs text-muted-foreground">Track your earnings</div>
+                </div>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setActiveTab("debts")} className="cursor-pointer py-3">
+                <span className="mr-2">🤝</span>
+                <div>
+                  <div className="font-medium">Debts & Loans</div>
+                  <div className="text-xs text-muted-foreground">Money you owe or are owed</div>
+                </div>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setActiveTab("elliw")} className="cursor-pointer py-3">
+                <span className="mr-2">✨</span>
+                <div>
+                  <div className="font-medium">Wishlist</div>
+                  <div className="text-xs text-muted-foreground">Things you're saving for</div>
+                </div>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
 
         {/* Filter & Sort Bar */}
         <div className="px-4 pb-3 flex gap-2">
@@ -521,39 +571,39 @@ export function TodayView({ profileId }: TodayViewProps) {
           {/* Health Indicator - Full Width */}
           <div className="space-y-4">
             <div className="flex-1">
-                <p className={`text-lg font-bold ${monthTotal >= 0 ? "text-green-600" : "text-red-600"}`}>
+                <p className={`text-2xl font-bold ${monthTotal >= 0 ? "text-green-600" : "text-red-600"}`}>
                   {monthTotal >= 0 ? "+" : ""}{formatCurrency(Math.abs(monthTotal), userCurrency)}
                 </p>
-                <p className="text-xs text-muted-foreground">
-                  {monthTotal >= totalIncome * 0.2 ? "Excellent! Strong savings" :
-                   monthTotal >= 0 ? "Good, but could save more" :
-                   "Warning: Spending exceeds income"}
+                <p className="text-sm text-muted-foreground mt-1">
+                  {monthTotal >= totalIncome * 0.2 ? "Strong savings this month" :
+                   monthTotal >= 0 ? "You're staying positive" :
+                   "Spending more than earning"}
                 </p>
               </div>
 
             {/* Quick Stats Grid */}
             <div className="grid grid-cols-2 gap-3">
-              <div className="p-3 rounded bg-accent/50">
-                <p className="text-xs text-muted-foreground">Total Income</p>
-                <p className="text-base font-semibold text-green-600">
+              <div className="p-4 rounded-lg bg-accent/50">
+                <p className="text-xs text-muted-foreground mb-1">Money In</p>
+                <p className="text-lg font-semibold text-green-600">
                   {formatCurrency(totalIncome, userCurrency)}
                 </p>
               </div>
-              <div className="p-3 rounded bg-accent/50">
-                <p className="text-xs text-muted-foreground">Total Expenses</p>
-                <p className="text-base font-semibold text-red-600">
+              <div className="p-4 rounded-lg bg-accent/50">
+                <p className="text-xs text-muted-foreground mb-1">Money Out</p>
+                <p className="text-lg font-semibold text-red-600">
                   {formatCurrency(totalExpenses, userCurrency)}
                 </p>
               </div>
-              <div className="p-3 rounded bg-accent/50">
-                <p className="text-xs text-muted-foreground">Net Cashflow</p>
-                <p className={`text-base font-semibold ${monthTotal >= 0 ? "text-green-600" : "text-red-600"}`}>
+              <div className="p-4 rounded-lg bg-accent/50">
+                <p className="text-xs text-muted-foreground mb-1">Left Over</p>
+                <p className={`text-lg font-semibold ${monthTotal >= 0 ? "text-green-600" : "text-red-600"}`}>
                   {monthTotal >= 0 ? "+" : ""}{formatCurrency(Math.abs(monthTotal), userCurrency)}
                 </p>
               </div>
-              <div className="p-3 rounded bg-accent/50">
-                <p className="text-xs text-muted-foreground">Savings Rate</p>
-                <p className="text-base font-semibold">
+              <div className="p-4 rounded-lg bg-accent/50">
+                <p className="text-xs text-muted-foreground mb-1">Saved</p>
+                <p className="text-lg font-semibold">
                   {totalIncome > 0 ? ((monthTotal / totalIncome) * 100).toFixed(1) : "0"}%
                 </p>
               </div>
@@ -572,21 +622,21 @@ export function TodayView({ profileId }: TodayViewProps) {
              "✨"}
           </div>
           <p className="text-lg font-medium mb-2">
-            {activeTab === "summary" ? "No transactions found" :
-             activeTab === "income" ? "No income found" :
-             activeTab === "expenses" ? "No expenses found" :
-             activeTab === "debts" ? "No debts found" :
-             "No wishlist items found"}
+            {activeTab === "summary" ? "Nothing here yet" :
+             activeTab === "income" ? "No money in" :
+             activeTab === "expenses" ? "No money out" :
+             activeTab === "debts" ? "No debts tracked" :
+             "Nothing on your wishlist"}
           </p>
           <p className="text-sm text-muted-foreground text-center max-w-sm">
-            {searchQuery ? "Try adjusting your search or filters" :
-             (activeTab === "summary" ? "Start tracking your money by tapping the + button below" :
-             activeTab === "income" ? "Add your first income source to start tracking earnings" :
-             activeTab === "expenses" ? "Track your spending by adding expenses" :
+            {searchQuery ? "Try a different search" :
+             (activeTab === "summary" ? "Tap the + button below to start tracking" :
+             activeTab === "income" ? "Add your salary, freelance pay, or other earnings" :
+             activeTab === "expenses" ? "Track where your money goes" :
              activeTab === "debts" ? "Keep track of money you owe or are owed" :
-             "Add items you're saving up for")}
+             "Add things you're saving up for")}
           </p>
-          
+
         </div>
       ) : (
         <div className="space-y-3 px-4 pt-4">
@@ -898,24 +948,24 @@ export function TodayView({ profileId }: TodayViewProps) {
                     <div className="space-y-2 ml-2">
                       {(activeTab === "summary" || activeTab === "income") && dayData.income.map((item) => (
                          // ... Income Item Component ...
-                        <div 
-                          key={item.id} 
-                          className="p-3 bg-accent/20 rounded-lg cursor-pointer hover:bg-accent/40 transition-colors"
+                        <div
+                          key={item.id}
+                          className="p-4 bg-accent/20 rounded-xl cursor-pointer hover:bg-accent/40 transition-all active:scale-[0.98] min-h-[68px]"
                           onClick={() => setEditTransaction({ transaction: item as IncomeSource, type: "income" })}
                         >
                           <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <div className="w-8 h-8 rounded bg-green-100 dark:bg-green-900/20 flex items-center justify-center text-xs">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-lg bg-green-100 dark:bg-green-900/20 flex items-center justify-center text-lg">
                                 💰
                               </div>
                               <div>
                                 <p className="font-medium text-sm">{item.source}</p>
                                 <p className="text-xs text-muted-foreground">
-                                  {item.isRecurring ? `Recurring (${item.frequency})` : "Other"}
+                                  {item.isRecurring ? `Recurring (${item.frequency})` : "One-time"}
                                 </p>
                               </div>
                             </div>
-                            <span className="font-semibold text-green-600">
+                            <span className="font-semibold text-base text-green-600">
                               {formatCurrency(item.amount || 0, userCurrency)}
                             </span>
                           </div>
@@ -923,22 +973,22 @@ export function TodayView({ profileId }: TodayViewProps) {
                       ))}
 
                       {(activeTab === "summary" || activeTab === "expenses") && dayData.expenses.map((item) => (
-                        <div 
-                          key={item.id} 
-                          className="p-3 bg-accent/20 rounded-lg cursor-pointer hover:bg-accent/40 transition-colors"
+                        <div
+                          key={item.id}
+                          className="p-4 bg-accent/20 rounded-xl cursor-pointer hover:bg-accent/40 transition-all active:scale-[0.98] min-h-[68px]"
                           onClick={() => setEditTransaction({ transaction: item as Expense, type: "expense" })}
                         >
                           <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <div className="w-8 h-8 rounded bg-red-100 dark:bg-red-900/20 flex items-center justify-center text-xs">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-lg bg-red-100 dark:bg-red-900/20 flex items-center justify-center text-lg">
                                 {item.category?.toLowerCase().includes("food") ? "🍔" : "💳"}
                               </div>
                               <div>
                                 <p className="font-medium text-sm">{item.recipient}</p>
-                                <p className="text-xs text-muted-foreground">{item.category}</p>
+                                <p className="text-xs text-muted-foreground">{item.category || "Other"}</p>
                               </div>
                             </div>
-                            <span className="font-semibold text-red-600">
+                            <span className="font-semibold text-base text-red-600">
                               {formatCurrency(item.amount || 0, userCurrency)}
                             </span>
                           </div>

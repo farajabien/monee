@@ -254,22 +254,27 @@ export function AddSheet({ open, onOpenChange, profileId }: AddSheetProps) {
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="bottom" className="h-[85vh] rounded-t-xl p-0 flex flex-col">
         <SheetHeader className="px-6 pt-6 pb-4 border-b shrink-0">
-          <SheetTitle>Add Transaction</SheetTitle>
+          <SheetTitle className="text-xl">
+            {activeTab === "expense" && "Add Money Out"}
+            {activeTab === "income" && "Add Money In"}
+            {activeTab === "debt" && "Add Debt"}
+            {activeTab === "elliw" && "Add to Wishlist"}
+          </SheetTitle>
         </SheetHeader>
 
         <div className="flex-1 overflow-y-auto px-6">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4">
             <TabsList className="grid w-full grid-cols-4 sticky top-0 z-10 bg-background max-w-md mx-auto">
-              <TabsTrigger value="income" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:font-bold">Income</TabsTrigger>
-              <TabsTrigger value="debt" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:font-bold">Debt</TabsTrigger>
-              <TabsTrigger value="expense" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:font-bold">Expense</TabsTrigger>
-              <TabsTrigger value="elliw" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:font-bold">ELTIW</TabsTrigger>
+              <TabsTrigger value="expense" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:font-bold">💳 Out</TabsTrigger>
+              <TabsTrigger value="income" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:font-bold">💰 In</TabsTrigger>
+              <TabsTrigger value="debt" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:font-bold">🤝 Debt</TabsTrigger>
+              <TabsTrigger value="elliw" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:font-bold">✨ Wish</TabsTrigger>
             </TabsList>
 
-            <form onSubmit={handleSubmit} className="mt-4 space-y-4 pb-6 max-w-md mx-auto">
-            {/* Common: Amount */}
+            <form onSubmit={handleSubmit} className="mt-6 space-y-6 pb-6 max-w-md mx-auto">
+            {/* Common: Amount - Make it prominent */}
             <div className="space-y-2">
-              <Label htmlFor="amount">Amount (KSh)</Label>
+              <Label htmlFor="amount" className="text-base font-semibold">How much?</Label>
               <Input
                 id="amount"
                 type="number"
@@ -279,23 +284,27 @@ export function AddSheet({ open, onOpenChange, profileId }: AddSheetProps) {
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 required={activeTab !== "elliw"}
+                className="h-14 text-2xl font-semibold text-center"
+                autoFocus
               />
+              <p className="text-xs text-muted-foreground text-center">KSh</p>
             </div>
 
             {/* Common: Date */}
             <div className="space-y-2">
-              <Label htmlFor="date">Date</Label>
+              <Label htmlFor="date" className="text-sm">When?</Label>
               <Input
                 id="date"
                 type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
+                className="h-11"
               />
             </div>
 
             <TabsContent value="income" className="space-y-4 mt-0">
               <div className="space-y-2">
-                <Label htmlFor="source">Source</Label>
+                <Label htmlFor="source" className="text-sm">Where from?</Label>
                 {!isNewSource ? (
                   <div className="flex gap-2">
                     <Select
@@ -544,7 +553,7 @@ export function AddSheet({ open, onOpenChange, profileId }: AddSheetProps) {
 
             <TabsContent value="expense" className="space-y-4 mt-0">
               <div className="space-y-2">
-                <Label htmlFor="recipient">Recipient</Label>
+                <Label htmlFor="recipient" className="text-sm">Where did you spend?</Label>
                 {!isNewRecipient ? (
                   <div className="flex gap-2">
                     <Select
@@ -558,8 +567,8 @@ export function AddSheet({ open, onOpenChange, profileId }: AddSheetProps) {
                         }
                       }}
                     >
-                      <SelectTrigger className="flex-1">
-                        <SelectValue placeholder="Select or add new..." />
+                      <SelectTrigger className="flex-1 h-11">
+                        <SelectValue placeholder="Select or type new..." />
                       </SelectTrigger>
                       <SelectContent>
                         {existingRecipients.map((r) => (
@@ -570,7 +579,7 @@ export function AddSheet({ open, onOpenChange, profileId }: AddSheetProps) {
                         <SelectItem value="__new__" className="font-semibold bg-primary text-primary-foreground">
                           <div className="flex items-center gap-1.5">
                             <Plus className="h-3 w-3" />
-                            Add New Recipient
+                            Add New
                           </div>
                         </SelectItem>
                       </SelectContent>
@@ -580,11 +589,12 @@ export function AddSheet({ open, onOpenChange, profileId }: AddSheetProps) {
                   <div className="space-y-2">
                     <Input
                       id="recipient"
-                      placeholder="Enter recipient name"
+                      placeholder="e.g., Uber, Carrefour, Netflix"
                       value={recipient}
                       onChange={(e) => setRecipient(e.target.value)}
                       required
                       autoFocus
+                      className="h-11"
                     />
                     <Button
                       type="button"
@@ -593,14 +603,14 @@ export function AddSheet({ open, onOpenChange, profileId }: AddSheetProps) {
                       onClick={() => setIsNewRecipient(false)}
                       className="text-xs"
                     >
-                      ← Back to existing recipients
+                      ← Back to list
                     </Button>
                   </div>
                 )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="category">Category</Label>
+                <Label htmlFor="category" className="text-sm">What for? <span className="text-muted-foreground font-normal">(optional)</span></Label>
                 {!isNewCategory ? (
                   <div className="flex gap-2">
                     <Select
@@ -769,17 +779,23 @@ export function AddSheet({ open, onOpenChange, profileId }: AddSheetProps) {
 
             {/* Common: Notes */}
             <div className="space-y-2">
-              <Label htmlFor="notes">Notes (Optional)</Label>
+              <Label htmlFor="notes" className="text-sm">Notes <span className="text-muted-foreground font-normal">(optional)</span></Label>
               <Input
                 id="notes"
-                placeholder="Add notes..."
+                placeholder="Any details you want to remember..."
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
+                className="h-11"
               />
             </div>
 
-            <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? "Adding..." : "Add"}
+            <Button type="submit" className="w-full h-12 text-base font-semibold touch-target" disabled={isSubmitting}>
+              {isSubmitting ? "Saving..." : (
+                activeTab === "expense" ? "Add Expense" :
+                activeTab === "income" ? "Add Income" :
+                activeTab === "debt" ? "Add Debt" :
+                "Add to Wishlist"
+              )}
             </Button>
             </form>
           </Tabs>

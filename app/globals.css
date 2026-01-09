@@ -166,15 +166,37 @@
   .app-container {
     @apply max-w-lg mx-auto px-4;
   }
-  
+
   /* Wider container for desktop */
   .app-container-wide {
     @apply max-w-2xl mx-auto px-4;
   }
-  
+
   /* Full-width but centered content */
   .content-wrapper {
     @apply max-w-5xl mx-auto;
+  }
+
+  /* Typography hierarchy */
+  .text-display {
+    @apply text-3xl font-bold tracking-tight;
+  }
+
+  .text-heading {
+    @apply text-xl font-semibold;
+  }
+
+  .text-subheading {
+    @apply text-base font-medium;
+  }
+
+  /* Spacing utilities for better breathing room */
+  .section-spacing {
+    @apply py-6;
+  }
+
+  .card-spacing {
+    @apply p-4 space-y-3;
   }
 }
 
@@ -239,19 +261,27 @@
     @apply text-primary font-medium;
   }
   
-  /* Transaction item - clickable */
+  /* Transaction item - clickable with better touch targets */
   .transaction-item {
     @apply p-4 cursor-pointer rounded-lg transition-all duration-200;
     @apply hover:bg-accent/50 active:scale-[0.98];
+    @apply min-h-[60px] flex items-center;
   }
-  
-  /* Amount colors */
+
+  /* Amount colors - larger and more prominent */
   .amount-positive {
-    @apply text-emerald-500 font-semibold;
+    @apply text-emerald-500 font-semibold text-base;
   }
-  
+
   .amount-negative {
-    @apply text-red-500 font-semibold;
+    @apply text-red-500 font-semibold text-base;
+  }
+
+  /* Better card styling */
+  .card-interactive {
+    @apply p-4 rounded-xl bg-card border border-border/50;
+    @apply shadow-sm hover:shadow-md transition-shadow duration-200;
+    @apply cursor-pointer active:scale-[0.98];
   }
   
   /* Gradient text */
