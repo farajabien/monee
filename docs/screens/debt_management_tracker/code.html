@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>MONEE - Debt Management Tracker</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined|Material+Icons+Round" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#00A86B", // Green color from screenshot
+                        "background-light": "#F9FAFB",
+                        "background-dark": "#121212",
+                        "card-light": "#FFFFFF",
+                        "card-dark": "#1E1E1E",
+                        "text-primary-light": "#111827",
+                        "text-primary-dark": "#E5E7EB",
+                        "text-secondary-light": "#6B7280",
+                        "text-secondary-dark": "#9CA3AF",
+                        "danger": "#DC2626", // Red for debt
+                        "success": "#00A86B", // Green for credit
+                    },
+                    fontFamily: {
+                        display: ["Inter", "sans-serif"],
+                    },
+                    borderRadius: {
+                        DEFAULT: "0.75rem", // 12px
+                    },
+                },
+            },
+        };
+    </script>
+<style>.no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-text-primary-light dark:text-text-primary-dark antialiased transition-colors duration-200">
+<div class="max-w-md mx-auto min-h-screen relative flex flex-col pb-24">
+<header class="sticky top-0 z-20 bg-background-light dark:bg-background-dark pt-safe-top">
+<div class="px-4 py-3 bg-card-light dark:bg-card-dark shadow-sm border-b border-gray-100 dark:border-gray-800">
+<div class="flex items-center justify-between">
+<button class="p-2 text-text-secondary-light dark:text-text-secondary-dark hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition">
+<span class="material-icons-outlined text-xl">chevron_left</span>
+</button>
+<div class="flex items-center space-x-4">
+<button class="bg-primary text-white px-4 py-1.5 rounded-md text-sm font-semibold shadow-sm">Daily</button>
+<span class="text-lg font-bold">Jan 2026</span>
+<button class="text-text-secondary-light dark:text-text-secondary-dark text-sm font-medium hover:text-primary transition">Monthly</button>
+</div>
+<button class="p-2 text-text-secondary-light dark:text-text-secondary-dark hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition">
+<span class="material-icons-outlined text-xl">chevron_right</span>
+</button>
+</div>
+</div>
+</header>
+<div class="px-4 mt-4 space-y-4">
+<div class="flex items-center justify-between">
+<div class="flex space-x-2 bg-gray-100 dark:bg-card-dark p-1 rounded-lg">
+<button class="bg-primary text-white px-4 py-1.5 rounded-md text-sm font-medium shadow-sm">Pending</button>
+<button class="text-text-secondary-light dark:text-text-secondary-dark px-4 py-1.5 rounded-md text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-800 transition">Paid</button>
+<button class="text-text-secondary-light dark:text-text-secondary-dark px-4 py-1.5 rounded-md text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-800 transition">All</button>
+</div>
+<div class="relative">
+<button class="flex items-center space-x-1 text-sm bg-card-light dark:bg-card-dark border border-gray-200 dark:border-gray-700 px-3 py-1.5 rounded-lg text-text-secondary-light dark:text-text-secondary-dark">
+<span>All Years</span>
+<span class="material-icons-outlined text-base">expand_more</span>
+</button>
+</div>
+</div>
+<div class="flex space-x-2 overflow-x-auto no-scrollbar pb-1">
+<button class="whitespace-nowrap bg-card-light dark:bg-card-dark border border-gray-200 dark:border-gray-700 px-4 py-1.5 rounded-full text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark">I Owe</button>
+<button class="whitespace-nowrap bg-card-light dark:bg-card-dark border border-gray-200 dark:border-gray-700 px-4 py-1.5 rounded-full text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark">Owed to Me</button>
+<button class="whitespace-nowrap bg-primary text-white px-4 py-1.5 rounded-full text-sm font-medium shadow-sm">All</button>
+</div>
+<div class="grid grid-cols-3 gap-2 text-center py-2">
+<div class="flex flex-col">
+<span class="text-xs text-text-secondary-light dark:text-text-secondary-dark mb-1">I Owe</span>
+<span class="font-bold text-danger">Ksh 220,000</span>
+</div>
+<div class="flex flex-col border-l border-r border-gray-200 dark:border-gray-700">
+<span class="text-xs text-text-secondary-light dark:text-text-secondary-dark mb-1">Owed to Me</span>
+<span class="font-bold text-success">Ksh 4,500</span>
+</div>
+<div class="flex flex-col">
+<span class="text-xs text-text-secondary-light dark:text-text-secondary-dark mb-1">Showing</span>
+<span class="font-bold">11</span>
+</div>
+</div>
+<button class="w-full flex items-center justify-between bg-card-light dark:bg-card-dark p-3 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm">
+<div class="flex items-center space-x-3">
+<span class="text-xl">🤝</span>
+<span class="font-semibold">Debts &amp; Loans</span>
+</div>
+<span class="material-icons-outlined text-text-secondary-light dark:text-text-secondary-dark">expand_more</span>
+</button>
+<div class="flex space-x-3">
+<div class="relative flex-1">
+<span class="absolute left-3 top-1/2 -translate-y-1/2 material-icons-outlined text-gray-400 text-xl">search</span>
+<input class="w-full pl-10 pr-4 py-2.5 bg-card-light dark:bg-card-dark border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white placeholder-gray-400" placeholder="Search..." type="text"/>
+</div>
+<button class="flex items-center space-x-2 bg-card-light dark:bg-card-dark border border-gray-200 dark:border-gray-700 px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap">
+<span>Newest</span>
+<span class="material-icons-outlined text-base">expand_more</span>
+</button>
+</div>
+</div>
+<div class="px-4 mt-6 space-y-6">
+<div class="opacity-40 pointer-events-none">
+<div class="flex items-center justify-between py-2">
+<div class="flex items-center space-x-3">
+<div class="w-10 h-10 rounded-xl bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-lg">🤝</div>
+<div>
+<p class="font-medium text-sm">Unknown</p>
+<p class="text-xs text-text-secondary-light dark:text-text-secondary-dark mt-0.5">I Owe • 01/01/2026</p>
+</div>
+</div>
+<span class="font-bold text-danger">Ksh 35,000</span>
+</div>
+</div>
+<div class="flex items-center justify-between p-3 bg-card-light dark:bg-card-dark rounded-2xl shadow-sm border border-gray-50 dark:border-gray-800">
+<div class="flex items-center space-x-3">
+<div class="w-12 h-12 rounded-xl bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-xl">🤝</div>
+<div>
+<p class="font-semibold">Ombeni</p>
+<p class="text-xs text-text-secondary-light dark:text-text-secondary-dark mt-0.5 font-medium">I Owe • 01/01/2026</p>
+</div>
+</div>
+<span class="font-bold text-danger text-lg">Ksh 1,000</span>
+</div>
+<div class="pt-2">
+<div class="flex justify-between items-baseline mb-3 px-1">
+<h3 class="text-lg font-bold">December 2025</h3>
+<span class="text-xs text-text-secondary-light dark:text-text-secondary-dark">Ksh 27,500</span>
+</div>
+<div class="space-y-3">
+<div class="flex items-center justify-between p-3 bg-card-light dark:bg-card-dark rounded-2xl shadow-sm border border-gray-50 dark:border-gray-800">
+<div class="flex items-center space-x-3">
+<div class="w-12 h-12 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-xl">🤝</div>
+<div>
+<p class="font-semibold">Ozi</p>
+<p class="text-xs text-text-secondary-light dark:text-text-secondary-dark mt-0.5 font-medium">Owed to Me • 30/12/2025</p>
+</div>
+</div>
+<span class="font-bold text-success text-lg">Ksh 2,000</span>
+</div>
+<div class="flex items-center justify-between p-3 bg-card-light dark:bg-card-dark rounded-2xl shadow-sm border border-gray-50 dark:border-gray-800">
+<div class="flex items-center space-x-3">
+<div class="w-12 h-12 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-xl">🤝</div>
+<div>
+<p class="font-semibold">Arnold</p>
+<p class="text-xs text-text-secondary-light dark:text-text-secondary-dark mt-0.5 font-medium">Owed to Me • 30/12/2025</p>
+</div>
+</div>
+<span class="font-bold text-success text-lg">Ksh 2,500</span>
+</div>
+<div class="flex items-center justify-between p-3 bg-card-light dark:bg-card-dark rounded-2xl shadow-sm border border-gray-50 dark:border-gray-800">
+<div class="flex items-center space-x-3">
+<div class="w-12 h-12 rounded-xl bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-xl">🤝</div>
+<div>
+<p class="font-semibold">Dani</p>
+<p class="text-xs text-text-secondary-light dark:text-text-secondary-dark mt-0.5 font-medium">I Owe • 24/12/2025</p>
+</div>
+</div>
+<span class="font-bold text-danger text-lg">Ksh 5,000</span>
+</div>
+<div class="flex items-center justify-between p-3 bg-card-light dark:bg-card-dark rounded-2xl shadow-sm border border-gray-50 dark:border-gray-800">
+<div class="flex items-center space-x-3">
+<div class="w-12 h-12 rounded-xl bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-xl">🤝</div>
+<div>
+<p class="font-semibold">Steven</p>
+<p class="text-xs text-text-secondary-light dark:text-text-secondary-dark mt-0.5 font-medium">I Owe • 22/12/2025</p>
+</div>
+</div>
+<span class="font-bold text-danger text-lg">Ksh 13,000</span>
+</div>
+<div class="flex items-center justify-between p-3 bg-card-light dark:bg-card-dark rounded-2xl shadow-sm border border-gray-50 dark:border-gray-800 opacity-80">
+<div class="flex items-center space-x-3">
+<div class="w-12 h-12 rounded-xl bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-xl">🤝</div>
+<div>
+<p class="font-semibold">Iraqoz</p>
+<p class="text-xs text-text-secondary-light dark:text-text-secondary-dark mt-0.5 font-medium">I Owe • 20/12/2025</p>
+</div>
+</div>
+<span class="font-bold text-danger text-lg">Ksh 5,000</span>
+</div>
+</div>
+</div>
+</div>
+<nav class="fixed bottom-0 left-0 right-0 bg-background-dark text-white border-t border-gray-800 z-50">
+<div class="max-w-md mx-auto px-6 py-3 flex justify-between items-center relative">
+<button class="flex flex-col items-center space-y-1 text-danger">
+<span class="material-icons-outlined">calendar_today</span>
+<span class="text-[10px] font-medium">26/01</span>
+</button>
+<button class="absolute left-1/2 -translate-x-1/2 -top-6 bg-primary hover:bg-green-600 text-white rounded-full px-6 py-3 shadow-lg flex items-center space-x-2 transition-transform active:scale-95">
+<span class="material-icons-round text-xl">add</span>
+<span class="font-bold text-base">Add</span>
+</button>
+<div class="w-12"></div>
+<button class="flex flex-col items-center space-y-1 text-gray-400 hover:text-white transition">
+<span class="material-icons-outlined">bar_chart</span>
+<span class="text-[10px] font-medium">Stats</span>
+</button>
+<button class="flex flex-col items-center space-y-1 text-gray-400 hover:text-white transition">
+<span class="material-icons-outlined">settings</span>
+<span class="text-[10px] font-medium">Settings</span>
+</button>
+</div>
+<div class="h-6 w-full flex justify-center items-center bg-background-dark">
+<div class="w-32 h-1 bg-white rounded-full opacity-30"></div>
+</div>
+</nav>
+</div>
+
+</body></html>

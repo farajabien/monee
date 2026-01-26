@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>MONEE - Add Transaction</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet"/>
+<script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#059669", // Emerald 600
+              "primary-dark": "#047857",
+              "primary-light": "#D1FAE5", // Emerald 100
+              "background-light": "#F3F4F6", // Gray 100
+              "background-dark": "#111827", // Gray 900
+              "surface-light": "#FFFFFF",
+              "surface-dark": "#1F2937", // Gray 800
+              "text-primary-light": "#111827",
+              "text-primary-dark": "#F9FAFB",
+              "text-secondary-light": "#6B7280",
+              "text-secondary-dark": "#9CA3AF",
+              "danger": "#DC2626", // Red 600
+              "success": "#059669", // Emerald 600
+            },
+            fontFamily: {
+              display: ["Inter", "sans-serif"],
+            },
+            borderRadius: {
+              DEFAULT: "0.5rem",
+              'xl': "0.75rem",
+              '2xl': "1rem",
+              '3xl': "1.5rem",
+            },
+            boxShadow: {
+              'soft': '0 2px 10px rgba(0, 0, 0, 0.03)',
+              'card': '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)',
+            }
+          },
+        },
+      };
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }.toggle-checkbox:checked {
+            right: 0;
+            border-color: #059669;
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #059669;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface-light dark:bg-background-dark text-text-primary-light dark:text-text-primary-dark transition-colors duration-200 min-h-screen flex flex-col">
+<header class="sticky top-0 z-20 bg-surface-light dark:bg-surface-dark pt-6 pb-2 px-4 border-b border-transparent dark:border-gray-800">
+<div class="flex items-center justify-between mb-4">
+<button class="p-2 -ml-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-text-secondary-light dark:text-text-secondary-dark transition">
+<span class="material-icons-round text-2xl">close</span>
+</button>
+<h1 class="text-lg font-bold text-text-primary-light dark:text-text-primary-dark">Add Transaction</h1>
+<div class="w-10"></div> 
+</div>
+<div class="bg-gray-100 dark:bg-gray-800 p-1 rounded-xl flex mb-2">
+<button class="flex-1 py-2 rounded-lg text-sm font-medium bg-white dark:bg-gray-700 shadow-sm text-primary dark:text-white transition-all">Expense</button>
+<button class="flex-1 py-2 rounded-lg text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark hover:text-text-primary-light dark:hover:text-white transition-all">Income</button>
+<button class="flex-1 py-2 rounded-lg text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark hover:text-text-primary-light dark:hover:text-white transition-all">Debt</button>
+<button class="flex-1 py-2 rounded-lg text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark hover:text-text-primary-light dark:hover:text-white transition-all">Wishlist</button>
+</div>
+</header>
+<main class="flex-grow px-6 py-6 max-w-md mx-auto w-full overflow-y-auto no-scrollbar pb-28">
+<div class="flex flex-col items-center justify-center mb-8 mt-4">
+<span class="text-text-secondary-light dark:text-text-secondary-dark text-sm font-medium mb-2">Amount</span>
+<div class="relative flex items-center justify-center w-full">
+<input class="w-full text-center text-5xl font-bold bg-transparent border-none focus:ring-0 p-0 placeholder-gray-300 dark:placeholder-gray-700 text-text-primary-light dark:text-text-primary-dark" placeholder="KSh 0" type="text" value="KSh 0"/>
+</div>
+</div>
+<div class="mb-8">
+<label class="block text-sm font-semibold text-text-secondary-light dark:text-text-secondary-dark mb-4">Category</label>
+<div class="grid grid-cols-4 gap-4">
+<button class="flex flex-col items-center gap-2 group">
+<div class="w-14 h-14 rounded-2xl bg-primary text-white flex items-center justify-center shadow-lg shadow-green-100 dark:shadow-none transition-transform group-hover:scale-105">
+<span class="material-icons-round text-2xl">restaurant</span>
+</div>
+<span class="text-xs font-medium text-primary dark:text-white">Food</span>
+</button>
+<button class="flex flex-col items-center gap-2 group">
+<div class="w-14 h-14 rounded-2xl bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 flex items-center justify-center border border-gray-100 dark:border-gray-700 group-hover:bg-gray-100 dark:group-hover:bg-gray-700 transition-colors">
+<span class="material-icons-round text-2xl">commute</span>
+</div>
+<span class="text-xs font-medium text-text-secondary-light dark:text-text-secondary-dark">Transport</span>
+</button>
+<button class="flex flex-col items-center gap-2 group">
+<div class="w-14 h-14 rounded-2xl bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 flex items-center justify-center border border-gray-100 dark:border-gray-700 group-hover:bg-gray-100 dark:group-hover:bg-gray-700 transition-colors">
+<span class="material-icons-round text-2xl">home</span>
+</div>
+<span class="text-xs font-medium text-text-secondary-light dark:text-text-secondary-dark">Rent</span>
+</button>
+<button class="flex flex-col items-center gap-2 group">
+<div class="w-14 h-14 rounded-2xl bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 flex items-center justify-center border border-gray-100 dark:border-gray-700 group-hover:bg-gray-100 dark:group-hover:bg-gray-700 transition-colors">
+<span class="material-icons-round text-2xl">shopping_bag</span>
+</div>
+<span class="text-xs font-medium text-text-secondary-light dark:text-text-secondary-dark">Shopping</span>
+</button>
+<button class="flex flex-col items-center gap-2 group">
+<div class="w-14 h-14 rounded-2xl bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 flex items-center justify-center border border-gray-100 dark:border-gray-700 group-hover:bg-gray-100 dark:group-hover:bg-gray-700 transition-colors">
+<span class="material-icons-round text-2xl">movie</span>
+</div>
+<span class="text-xs font-medium text-text-secondary-light dark:text-text-secondary-dark">Fun</span>
+</button>
+<button class="flex flex-col items-center gap-2 group">
+<div class="w-14 h-14 rounded-2xl bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 flex items-center justify-center border border-gray-100 dark:border-gray-700 group-hover:bg-gray-100 dark:group-hover:bg-gray-700 transition-colors">
+<span class="material-icons-round text-2xl">medical_services</span>
+</div>
+<span class="text-xs font-medium text-text-secondary-light dark:text-text-secondary-dark">Health</span>
+</button>
+<button class="flex flex-col items-center gap-2 group">
+<div class="w-14 h-14 rounded-2xl bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 flex items-center justify-center border border-gray-100 dark:border-gray-700 group-hover:bg-gray-100 dark:group-hover:bg-gray-700 transition-colors">
+<span class="material-icons-round text-2xl">school</span>
+</div>
+<span class="text-xs font-medium text-text-secondary-light dark:text-text-secondary-dark">Edu</span>
+</button>
+<button class="flex flex-col items-center gap-2 group">
+<div class="w-14 h-14 rounded-2xl border-2 border-dashed border-gray-300 dark:border-gray-600 text-gray-400 dark:text-gray-500 flex items-center justify-center group-hover:bg-gray-50 dark:group-hover:bg-gray-800 transition-colors">
+<span class="material-icons-round text-2xl">add</span>
+</div>
+<span class="text-xs font-medium text-text-secondary-light dark:text-text-secondary-dark">More</span>
+</button>
+</div>
+</div>
+<div class="space-y-5">
+<div class="relative">
+<label class="block text-xs font-semibold text-text-secondary-light dark:text-text-secondary-dark uppercase tracking-wide mb-2">Date</label>
+<button class="w-full flex items-center justify-between bg-gray-50 dark:bg-surface-dark border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3.5 shadow-sm active:bg-gray-100 transition">
+<div class="flex items-center space-x-3">
+<span class="material-icons-round text-text-secondary-light dark:text-text-secondary-dark">calendar_today</span>
+<span class="font-medium text-text-primary-light dark:text-text-primary-dark">Today, 26 Jan 2026</span>
+</div>
+<span class="material-icons-round text-gray-400">chevron_right</span>
+</button>
+</div>
+<div>
+<label class="block text-xs font-semibold text-text-secondary-light dark:text-text-secondary-dark uppercase tracking-wide mb-2">Note</label>
+<div class="relative">
+<span class="absolute top-3.5 left-4 material-icons-round text-text-secondary-light dark:text-text-secondary-dark">edit_note</span>
+<textarea class="w-full pl-12 pr-4 py-3 rounded-xl bg-gray-50 dark:bg-surface-dark border border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white dark:placeholder-gray-500 shadow-sm outline-none resize-none" placeholder="Add a note..." rows="3"></textarea>
+</div>
+</div>
+<div class="flex items-center justify-between bg-gray-50 dark:bg-surface-dark border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3.5 shadow-sm">
+<div class="flex items-center space-x-3">
+<span class="material-icons-round text-text-secondary-light dark:text-text-secondary-dark">autorenew</span>
+<div class="flex flex-col">
+<span class="font-medium text-text-primary-light dark:text-text-primary-dark">Recurring Transaction</span>
+<span class="text-xs text-text-secondary-light dark:text-text-secondary-dark">Repeat this monthly</span>
+</div>
+</div>
+<div class="relative inline-block w-12 align-middle select-none transition duration-200 ease-in">
+<input class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer border-gray-300" id="toggle" name="toggle" type="checkbox"/>
+<label class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer" for="toggle"></label>
+</div>
+</div>
+</div>
+</main>
+<div class="fixed bottom-0 left-0 right-0 bg-surface-light dark:bg-surface-dark p-6 border-t border-gray-100 dark:border-gray-800 z-30">
+<div class="max-w-md mx-auto">
+<button class="w-full bg-primary hover:bg-primary-dark text-white font-bold py-4 rounded-2xl shadow-lg shadow-green-200 dark:shadow-none transition-all transform active:scale-[0.98] flex items-center justify-center space-x-2">
+<span class="material-icons-round">check</span>
+<span>Save Transaction</span>
+</button>
+</div>
+</div>
+<script>
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.documentElement.classList.add('dark');
+    }
+</script>
+
+</body></html>

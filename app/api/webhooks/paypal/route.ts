@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import db from "@/lib/db";
+import db from "@/lib/admin";
 
 /**
  * PayPal Webhook Handler
@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
       const orderId =
         body.resource.supplementary_data?.related_ids?.order_id || null;
 
-      // Extract reference_id (profileId) from custom_id or purchase_units
+      // Extract reference_id (userId) from custom_id or purchase_units
       const referenceId = body.resource.custom_id ||
         body.resource.purchase_units?.[0]?.reference_id;
 
@@ -30,22 +30,23 @@ export async function POST(request: NextRequest) {
         referenceId,
       });
 
-      // If we have a reference (profileId), mark user as paid
+      // If we have a reference (userId), mark user as paid
       if (referenceId) {
         try {
           const now = Date.now();
 
           await db.transact([
-            db.tx.profiles[referenceId].update({
+            db.tx.$users[referenceId].update({
               hasPaid: true,
               paidAt: now,
+              paymentDate: now,
               paypalOrderId: orderId,
               paypalCaptureId: captureId,
             }),
           ]);
 
           console.log(
-            `[Webhook] ✅ Marked profile ${referenceId} as paid via webhook`
+            `[Webhook] ✅ Marked user ${referenceId} as paid via webhook`
           );
         } catch (dbError) {
           console.error("[Webhook] Failed to update database:", dbError);

@@ -1,7 +1,7 @@
 "use server";
 
 import { createPayPalOrder, capturePayPalPayment } from "@/lib/paypal";
-import db from "@/lib/db";
+import db from "@/lib/admin";
 import { id } from "@instantdb/admin";
 
 /**
@@ -42,10 +42,10 @@ export async function createPaymentOrder(userId: string, profileId: string) {
     const { orderId } = await createPayPalOrder(
       MONEE_PRICE,
       MONEE_CURRENCY,
-      profileId // Use profileId as reference for linking payment
+      userId // Use userId as reference for linking payment (simplifies webhook)
     );
 
-    console.log(`[Payment] Created order ${orderId} for profile ${profileId}`);
+    console.log(`[Payment] Created order ${orderId} for user ${userId} (profile ${profileId})`);
 
     // Return order ID to client for PayPal button flow
     return { success: true, orderId };
@@ -77,14 +77,30 @@ export async function capturePayment(orderId: string, profileId: string) {
     const result = await capturePayPalPayment(orderId);
 
     if (result.status === "COMPLETED") {
-      // 2. Update profile in InstantDB - mark as paid
+      // 2. Update profile/user in InstantDB - mark as paid
       const now = Date.now();
 
       try {
+        // Need to find the userId linked to this profile
+        const data = await db.query({
+           profiles: {
+             $: { where: { id: profileId } },
+             user: {},
+           },
+        });
+        
+        const profile = data?.profiles?.[0];
+        const userId = profile?.user?.id;
+
+        if (!userId) {
+           throw new Error("User not found for this profile");
+        }
+
         await db.transact([
-          db.tx.profiles[profileId].update({
+          db.tx.$users[userId].update({
             hasPaid: true,
             paidAt: now,
+            paymentDate: now, // Update both for compatibility
             paypalOrderId: orderId,
             paypalCaptureId: result.captureId,
             paypalPayerId: result.payerId,
@@ -93,7 +109,7 @@ export async function capturePayment(orderId: string, profileId: string) {
         ]);
 
         console.log(
-          `[Payment] ✅ Captured ${orderId} and marked profile ${profileId} as paid`
+          `[Payment] ✅ Captured ${orderId} and marked user ${userId} as paid`
         );
 
         return {
@@ -134,9 +150,10 @@ export async function capturePayment(orderId: string, profileId: string) {
  */
 export async function checkPaymentStatus(profileId: string) {
   try {
-    const { data } = await db.query({
+    const data = await db.query({
       profiles: {
         $: { where: { id: profileId } },
+        user: {},
       },
     });
 
@@ -145,10 +162,13 @@ export async function checkPaymentStatus(profileId: string) {
     if (!profile) {
       return { hasPaid: false, error: "Profile not found" };
     }
+    
+    // @ts-ignore - InstantDB admin typing for relations logic
+    const user = profile.user;
 
     return {
-      hasPaid: profile.hasPaid || false,
-      paidAt: profile.paidAt,
+      hasPaid: user?.hasPaid || false,
+      paidAt: user?.paidAt || user?.paymentDate,
       inTrial: profile.createdAt
         ? Date.now() - profile.createdAt < 7 * 24 * 60 * 60 * 1000 // 7 days
         : false,

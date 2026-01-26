@@ -1,74 +1,106 @@
-# **MONEE – Open Source Personal Finance Tracker**
-> Simple, powerful money tracking. Open Source & Forever Free to Self-Host.
+# **MONEE – Personal Cashflow Tracker**
+> See Your Money Clearly. Track Income, Expenses, Debts & Wishlists in Seconds.
 
-**MONEE** is your personal money tracker built for real life. Track income, expenses, debts, and wishlist items—all in one clean, intuitive app.
-
----
-
-## **Cloud vs Self-Hosted**
-
-MONEE is proudly **Open Source**. You have two ways to use it:
-
-### **1. ☁️ Managed Cloud (Recommended)**
-The easiest way to get started. We handle the hosting, backups, updates, and database management for you.
-- **Cost**: **KSh 999 Lifetime License** (One-time payment)
-- **Includes**: 7-day free trial, priority support, automatic updates, zero setup.
-- **[Get Started with Cloud Version](https://monee.co.ke)**
-
-### **2. 🛠️ Self-Hosted**
-For developers and DIY enthusiasts. Host it yourself for free on your own infrastructure.
-- **Cost**: **Free Forever**
-- **You Manage**: Vercel deployment, InstantDB instance, updates, and maintenance.
-- **[Jump to Self-Hosting Guide](#self-hosting-guide)**
+Stop guessing where your money goes. **MONEE** shows your cashflow at a glance and helps you make smarter spending decisions.
 
 ---
 
+## **Why MONEE?**
+
+Most expense trackers just log numbers. MONEE helps you **understand your money behavior**.
+
+- **Instant Cashflow Overview** – See exactly where you stand financially
+- **Behavioral Insights** – Learn your spending patterns and habits
+- **Automatic Sync** – Debt payments and purchases update your cashflow instantly
+- **Simple & Fast** – Track money in seconds, not minutes
+
 ---
 
-## **Features**
+## **Pricing**
 
-### **💰 Income & Expense Tracking**
-- Track all your income sources (salary, side hustles, etc.)
-- **Smart Recurring Transactions**: Set monthly bills (Rent, subscriptions) once, and they auto-renew.
-- Categorize and monitor expenses.
+### **💚 $10 One-Time Payment**
+Works on any device. No subscription. No hidden fees.
 
-### **📊 Cashflow Health Monitoring**
-- Instant visual health indicators (💚 Excellent | ⚠️ Good | 🔴 Warning)
-- Real-time savings rate calculation
-- Net cashflow at a glance
+- ✅ Full cashflow tracking
+- ✅ Unlimited income & expense entries
+- ✅ Debt & wishlist management
+- ✅ Behavioral insights & reports
+- ✅ Automatic cloud sync
+- ✅ 7-day money-back guarantee
 
-### **🤝 Advanced Debt Management**
-- Track money you owe and money owed to you
-- **Tabbed Interface**: Separate views for Active and Paid items.
-- Color-coded labels (red for debts, green for receivables)
-- Mark debts as "Paid Off" to archive them.
+**[Get MONEE for $10 →](https://monee.co.ke)**
 
-### **✨ Wishlist 2.0 (ELTIW - Every lil thing I Want)**
-- Track items you're saving for with links and notes.
-- **Smart Conversion**: One tap "Got It" button marks item as purchased AND auto-creates an expense.
-- **Undo / Revert**: Accidentally clicked Got It? Revert restores the wish and auto-deletes the expense.
-- Unified view for all wants and fulfilled wishes.
+### **🛠️ Free Self-Hosted Option**
+For developers who want to run it themselves.
+- **Cost**: Free Forever
+- **You Manage**: Hosting, database, updates
+- **[Self-Hosting Guide](#self-hosting-guide)**
 
-### **📈 Visual Stats & Insights**
-- Stats view with period selection (Weekly/Monthly/Annually)
-- Expense breakdown by category with percentages
-- Stacked bar charts for visualization
+---
 
-### **🌍 Multi-Currency Support**
-- Support for 150+ currencies
-- Set your preferred currency, affects all formatting instantly.
+## **How It Works**
 
-### **🎨 Clean, Modern Design**
-- Safaricom Green branding 🟢
-- Full dark mode support 🌙
-- PWA-ready for mobile installation 📱
-- Responsive on all devices 💻📱
+### **1. Instant Cashflow Overview**
+Combine your monthly income with daily expenses. Understand where your money is going without complex spreadsheets.
 
-### **⚡ Real-Time Updates**
-- Powered by InstantDB for instant sync
+- See your current balance at a glance
+- Track income vs expenses in real-time
+- Get visual health indicators (💚 Good | ⚠️ Watch Out | 🔴 Warning)
+
+### **2. Track Debts Effortlessly**
+Keep an eye on what you owe and what's owed to you.
+
+- See how borrowing impacts your cashflow
+- Track repayment progress automatically
+- Aim for debt-free living with minimal effort
+
+### **3. Plan Your Wishlist & Spending**
+Add items you want to buy and track when you treat yourself.
+
+- Write it down first to curb impulse spending
+- When you buy something, it automatically updates your cashflow
+- Learn when you save and when you splurge
+
+### **4. Understand Your Money Behavior**
+Get insights about your financial patterns.
+
+- Do you borrow often? Do you pay on time?
+- Do you overspend or plan wisely?
+- Make smarter decisions based on real data
+
+---
+
+## **Key Features**
+
+### **💰 Cashflow-First Design**
+- Monthly income + daily expenses = clear financial picture
+- Real-time balance updates
+- Smart health indicators
+- Recurring transaction support
+
+### **🤝 Debt Tracking That Makes Sense**
+- Track what you owe and what's owed to you
+- Automatic cashflow impact when you make payments
+- Interest calculations for loans
+- Payment history and progress visualization
+
+### **✨ Wishlist with Automatic Expense Creation**
+- Add items you want to buy
+- One tap to mark as "Got It"
+- Automatically creates an expense entry
+- Undo if you clicked by mistake
+
+### **📊 Behavioral Insights**
+- Spending patterns over time
+- Category breakdowns
+- Savings rate tracking
+- Monthly comparisons
+
+### **⚡ Modern Tech Stack**
 - Offline-first architecture
-- Cloud sync across all devices
-- No backend configuration needed
+- Real-time sync across devices
+- PWA-ready for mobile installation
+- Fast, responsive, and reliable
 
 ---
 
@@ -199,26 +231,53 @@ Get your InstantDB App ID from [instantdb.com](https://instantdb.com)
 
 ---
 
+## **The Automatic Sync Magic**
+
+What makes MONEE different? Everything connects to your cashflow automatically:
+
+- **Pay off a debt** → Creates an expense entry → Updates your cashflow
+- **Mark wishlist item as "Got"** → Creates an expense entry → Updates your cashflow
+- **Add recurring income** → Auto-renews monthly → Keeps cashflow accurate
+
+You track once, everything updates automatically.
+
+---
+
 ## **Cashflow Health Indicator**
 
-MONEE analyzes your financial data and gives you instant feedback:
+Get instant visual feedback on your financial health:
 
-- **💚 Excellent**: Savings rate ≥ 20% (Strong financial health)
-- **⚠️ Good**: Net cashflow positive but could save more
-- **🔴 Warning**: Spending exceeds income
+- **💚 Good**: Savings rate ≥ 20% (You're doing great!)
+- **⚠️ Watch Out**: Positive cashflow but could save more
+- **🔴 Warning**: Spending exceeds income (Time to adjust)
 
-The indicator updates in real-time as you add transactions.
+Updates in real-time as you add transactions.
+
+---
+
+## **What Users Are Saying**
+
+> "Finally, an app that shows me where my money actually goes. The debt tracking changed my life."
+> — *Sarah K., Nairobi*
+
+> "I love how paying off a debt automatically updates my expenses. Everything just works together."
+> — *James M., Developer*
+
+> "The wishlist feature stopped my impulse buying. I think twice before spending now."
+> — *Mercy A., Student*
 
 ---
 
 ## **Roadmap**
 
+We're constantly improving MONEE based on user feedback:
+
 ### **Coming Soon**
-- 📱 M-PESA integration for auto-import (Kenya)
-- 📊 Budget planning tools
+- 📱 M-PESA SMS auto-import (Kenya)
+- 📊 Advanced budget planning
 - 📁 Export to CSV/PDF
-- 🔔 Push notifications for reminders
-- 📈 Advanced analytics and trends
+- 🔔 Payment reminders
+- 📈 Trend predictions
 
 ---
 

@@ -426,9 +426,9 @@ export function TodayView({ profileId }: TodayViewProps) {
   const monthName = currentDate.toLocaleDateString("en-US", { month: "short", year: "numeric" });
 
   return (
-    <div className="flex flex-col h-full bg-background">
+    <div className="flex flex-col min-h-full bg-background">
       {/* Sticky Header: Stats & Tabs - Sticks below the main nav */}
-      <div className="sticky top-0 z-40 bg-background pt-2 border-b shadow-sm">
+      <div className="sticky top-0 z-40 bg-background border-b shadow-sm">
         {/* Stats Summary - Dynamic based on active tab */}
         <div className="grid grid-cols-3 gap-4 px-4 pt-2 pb-3 text-sm">
           {activeTab === "debts" ? (
@@ -728,14 +728,14 @@ export function TodayView({ profileId }: TodayViewProps) {
                {/* Unified Wishlist View */}
                <div className="space-y-3">
                  {filteredWishlist.map((item) => (
-                    <div 
+                   <div 
                       key={item.id} 
-                      className={`p-3 rounded-lg cursor-pointer transition-colors ${item.status === "got" ? "bg-accent/10 opacity-70" : "bg-accent/20 hover:bg-accent/40"}`}
+                      className={`p-4 rounded-2xl cursor-pointer transition-all border ${item.status === "got" ? "bg-accent/10 opacity-70 border-transparent shadow-none" : "bg-card border-border shadow-sm hover:shadow-md active:scale-[0.99]"}`}
                       onClick={() => setEditTransaction({ transaction: item as WishlistItem, type: "wishlist" })}
                     >
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className={`w-10 h-10 rounded flex items-center justify-center text-lg ${item.status === "got" ? "bg-green-100 dark:bg-green-900/20 grayscale" : "bg-purple-100 dark:bg-purple-900/20"}`}>
+                        <div className="flex items-center gap-4">
+                          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-xl ${item.status === "got" ? "bg-green-100 dark:bg-green-900/20 grayscale" : "bg-purple-100 dark:bg-purple-900/20"}`}>
                             {item.status === "got" ? "🎁" : "✨"}
                           </div>
                           <div>
@@ -840,15 +840,15 @@ export function TodayView({ profileId }: TodayViewProps) {
                                        {groupDebts.map(item => (
                                            <div 
                                                key={item.id} 
-                                               className={`p-3 rounded-lg cursor-pointer transition-colors ${item.isPaidOff ? "bg-accent/10 opacity-70" : "bg-accent/20 hover:bg-accent/40"}`}
+                                               className={`p-4 rounded-2xl cursor-pointer transition-all border ${item.isPaidOff ? "bg-accent/10 opacity-70 border-transparent shadow-none" : "bg-card border-border shadow-sm hover:shadow-md active:scale-[0.99]"}`}
                                                onClick={() => {
                                                    setViewDebt(item as Debt);
                                                    setEditTransaction({ transaction: item, type: "debt" });
                                                }}
                                            >
                                                <div className="flex items-center justify-between">
-                                                   <div className="flex items-center gap-3">
-                                                       <div className={`w-10 h-10 rounded flex items-center justify-center text-lg ${item.direction === "I_OWE" ? "bg-red-100 dark:bg-red-900/20" : "bg-green-100 dark:bg-green-900/20"}`}>
+                                                   <div className="flex items-center gap-4">
+                                                       <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-xl ${item.direction === "I_OWE" ? "bg-red-100 dark:bg-red-900/20" : "bg-green-100 dark:bg-green-900/20"}`}>
                                                            🤝
                                                        </div>
                                                        <div>
@@ -931,12 +931,12 @@ export function TodayView({ profileId }: TodayViewProps) {
                          // ... Income Item Component ...
                         <div
                           key={item.id}
-                          className="p-4 bg-accent/20 rounded-xl cursor-pointer hover:bg-accent/40 transition-all active:scale-[0.98] min-h-[68px]"
+                          className="p-4 bg-card border border-border rounded-2xl shadow-sm cursor-pointer hover:shadow-md transition-all active:scale-[0.99] min-h-[72px]"
                           onClick={() => setEditTransaction({ transaction: item as IncomeSource, type: "income" })}
                         >
                           <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 rounded-lg bg-green-100 dark:bg-green-900/20 flex items-center justify-center text-lg">
+                            <div className="flex items-center gap-4">
+                              <div className="w-12 h-12 rounded-2xl bg-green-100 dark:bg-green-900/20 flex items-center justify-center text-xl">
                                 💰
                               </div>
                               <div>
@@ -956,12 +956,12 @@ export function TodayView({ profileId }: TodayViewProps) {
                       {(activeTab === "summary" || activeTab === "expenses") && dayData.expenses.map((item) => (
                         <div
                           key={item.id}
-                          className="p-4 bg-accent/20 rounded-xl cursor-pointer hover:bg-accent/40 transition-all active:scale-[0.98] min-h-[68px]"
+                          className="p-4 bg-card border border-border rounded-2xl shadow-sm cursor-pointer hover:shadow-md transition-all active:scale-[0.99] min-h-[72px]"
                           onClick={() => setEditTransaction({ transaction: item as Expense, type: "expense" })}
                         >
                           <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 rounded-lg bg-red-100 dark:bg-red-900/20 flex items-center justify-center text-lg">
+                            <div className="flex items-center gap-4">
+                              <div className="w-12 h-12 rounded-2xl bg-red-100 dark:bg-red-900/20 flex items-center justify-center text-xl">
                                 {item.category?.toLowerCase().includes("food") ? "🍔" : "💳"}
                               </div>
                               <div>
@@ -992,15 +992,15 @@ export function TodayView({ profileId }: TodayViewProps) {
                      return (
                          <div 
                            key={item.id} 
-                           className="p-3 bg-accent/20 rounded-lg cursor-pointer hover:bg-accent/40 transition-colors"
+                           className="p-4 bg-card border border-border rounded-2xl shadow-sm cursor-pointer hover:shadow-md transition-all active:scale-[0.99]"
                            onClick={() => {
                                if (type === "debt") setViewDebt(item as Debt);
                                else setEditTransaction({ transaction: item, type: type as any });
                            }}
                          >
                            <div className="flex items-center justify-between">
-                             <div className="flex items-center gap-2">
-                               <div className={`w-8 h-8 rounded flex items-center justify-center text-xs ${
+                             <div className="flex items-center gap-4">
+                               <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-xl ${
                                    type === "income" ? "bg-green-100 dark:bg-green-900/20" : 
                                    type === "debt" ? "bg-blue-100 dark:bg-blue-900/20" : "bg-red-100 dark:bg-red-900/20"
                                }`}>

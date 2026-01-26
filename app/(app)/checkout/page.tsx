@@ -20,7 +20,9 @@ export default function CheckoutPage() {
   // Fetch user profile
   useEffect(() => {
     const { data, isLoading: loading } = db.useQuery({
-      profiles: {},
+      profiles: {
+        user: {},
+      },
     });
 
     setIsLoading(loading);
@@ -30,7 +32,8 @@ export default function CheckoutPage() {
       setProfile(userProfile);
 
       // If already paid, redirect to dashboard
-      if (userProfile.hasPaid) {
+      // @ts-ignore - InstantDB typing for relations can be tricky sometimes, but schema has it.
+      if (userProfile.user?.hasPaid) {
         router.push("/dashboard");
       }
     }

@@ -14,6 +14,12 @@ const _schema = i.schema({
       imageURL: i.string().optional(),
       paymentDate: i.number().indexed().optional(),
       paystackReference: i.string().optional(),
+      // PayPal fields
+      paypalOrderId: i.string().optional(),
+      paypalPayerId: i.string().optional(),
+      paypalPayerEmail: i.string().optional(),
+      paypalCaptureId: i.string().optional(),
+      paidAt: i.number().optional(),
       type: i.string().optional(),
     }),
     debt_payments: i.entity({

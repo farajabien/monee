@@ -229,44 +229,53 @@ export function StatsView({ profileId }: StatsViewProps) {
           </div>
 
           {sortedCategories.length > 0 ? (
-            <div className="space-y-2">
-              <h3 className="text-sm font-medium mb-3">Expense Breakdown</h3>
-
-              {/* Stacked Bar */}
-              <div className="h-8 rounded-full overflow-hidden flex">
-                {sortedCategories.map((item, idx) => (
-                  <div
-                    key={item.category}
-                    className={`${colors[idx % colors.length]} transition-all`}
-                    style={{ width: `${item.percentage}%` }}
-                    title={`${item.category}: ${item.percentage}%`}
-                  />
-                ))}
+            <div className="space-y-6">
+              
+              {/* Stacked Bar - Keep as summary visual */}
+              <div className="space-y-2">
+                 <h3 className="text-sm font-semibold">Distribution</h3>
+                 <div className="h-3 w-full rounded-full overflow-hidden flex">
+                    {sortedCategories.map((item, idx) => (
+                      <div
+                        key={item.category}
+                        className={`${colors[idx % colors.length]}`}
+                        style={{ width: `${item.percentage}%` }}
+                      />
+                    ))}
+                 </div>
               </div>
 
-              {/* Category List */}
-              <div className="space-y-2 mt-4">
+              {/* Category Breakdown List */}
+              <div className="space-y-4">
+                <h3 className="text-sm font-semibold">Top Spending</h3>
                 {sortedCategories.map((item, idx) => (
-                  <Card key={item.category} className="p-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2 flex-1">
-                        <div
-                          className={`w-6 h-6 rounded ${colors[idx % colors.length]}`}
-                        />
-                        <div className="flex-1">
-                          <p className="font-medium text-sm">{item.category}</p>
+                  <div key={item.category} className="flex items-center justify-between group">
+                    <div className="flex items-center space-x-3">
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg ${colors[idx % colors.length]} bg-opacity-20 text-opacity-100`}>
+                           {/* Use opacity trick for background vs text color if possible, or fallback to hardcoded pairings */}
+                           {/* For now, just use the color class for bg and white text */}
+                           <span className="text-white brightness-200">
+                             {item.category.toLowerCase().includes("food") ? "🍔" : 
+                              item.category.toLowerCase().includes("transport") ? "🚕" :
+                              item.category.toLowerCase().includes("rent") ? "🏠" : 
+                              "📦"}
+                           </span>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs bg-muted px-2 py-1 rounded font-medium">
-                            {item.percentage}%
-                          </span>
+                        <div>
+                           <p className="font-medium text-sm">{item.category}</p>
+                           <p className="text-xs text-muted-foreground">{item.percentage}% of total</p>
                         </div>
-                      </div>
-                      <span className="font-semibold text-sm ml-2">
-                        {formatCurrency(item.amount, userCurrency)}
-                      </span>
                     </div>
-                  </Card>
+                    <div className="text-right">
+                       <p className="font-bold text-sm">{formatCurrency(item.amount, userCurrency)}</p>
+                       <div className="w-24 h-1.5 bg-secondary rounded-full mt-1.5 ml-auto overflow-hidden">
+                          <div 
+                             className={`h-full rounded-full ${colors[idx % colors.length]}`} 
+                             style={{ width: `${item.percentage}%` }}
+                          />
+                       </div>
+                    </div>
+                  </div>
                 ))}
               </div>
             </div>
