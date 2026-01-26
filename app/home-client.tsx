@@ -17,7 +17,7 @@ import { AddSheet } from "@/components/add-sheet";
 import { TodayView } from "@/components/today-view";
 import { MonthlyView } from "@/components/monthly-view";
 import { StatsView } from "@/components/stats-view";
-
+import { YearlyView } from "@/components/yearly-view";
 
 export default function HomeClient() {
   const router = useRouter();
@@ -49,75 +49,58 @@ export default function HomeClient() {
 
   // Show Monthly view or regular tabs based on viewMode
   const showMonthlyView = viewMode === "monthly";
+  const showYearlyView = viewMode === "yearly";
   const showTodayView = viewMode === "daily" || viewMode === "today";
   const showStatsView = viewMode === "stats";
 
   return (
     <div className="flex flex-col h-screen">
       {/* App wrapper with max-width */}
-      {/* Merged Top Navigation - Daily/Monthly with Month Display - NOW STICKY */}
+      {/* Merged Top Navigation - Daily/Monthly/Yearly with Month Display - NOW STICKY */}
       <div className="sticky top-0 z-50 border-b bg-background shrink-0 shadow-sm">
         <div className="flex items-center justify-between px-4 py-3 max-w-lg mx-auto">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => {
-              // Navigate month backward
-              const newDate = new Date();
-              newDate.setMonth(newDate.getMonth() - 1);
-              // This would need state management - for now just placeholder
-            }}
-          >
-            <ChevronLeft className="h-5 w-5" />
-          </Button>
-
-          <div className="flex items-center gap-4">
+          {/* Replaced chevron/date header with simple pill selectors for views */}
+          <div className="flex items-center gap-2 mx-auto bg-muted/50 p-1 rounded-lg">
             <button
               onClick={() => router.push("/dashboard?view=daily")}
-              className={`px-3 py-1.5 text-sm font-medium rounded transition-colors ${
+              className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
                 viewMode === "daily"
-                  ? "bg-primary text-primary-foreground"
+                  ? "bg-background text-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
               Daily
             </button>
-
-            <span className="text-base font-semibold">
-              {new Date().toLocaleDateString("en-US", {
-                month: "short",
-                year: "numeric",
-              })}
-            </span>
-
             <button
               onClick={() => router.push("/dashboard?view=monthly")}
-              className={`px-3 py-1.5 text-sm font-medium rounded transition-colors ${
+              className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
                 viewMode === "monthly"
-                  ? "bg-primary text-primary-foreground"
+                  ? "bg-background text-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
               Monthly
             </button>
+             <button
+              onClick={() => router.push("/dashboard?view=yearly")}
+              className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+                viewMode === "yearly"
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Yearly
+            </button>
           </div>
-
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => {
-              // Navigate month forward
-            }}
-          >
-            <ChevronRight className="h-5 w-5" />
-          </Button>
         </div>
       </div>
 
       {/* Main content area */}
       <div className="flex-1 overflow-auto pb-20">
         <div className="max-w-lg mx-auto">
-        {showMonthlyView ? (
+        {showYearlyView ? (
+          <YearlyView profileId={profile?.id} />
+        ) : showMonthlyView ? (
           <MonthlyView profileId={profile?.id} />
         ) : showStatsView ? (
           <StatsView profileId={profile?.id} />
@@ -134,7 +117,7 @@ export default function HomeClient() {
           <button
             onClick={() => router.push("/dashboard?view=daily")}
             className={`flex flex-col items-center gap-1 px-4 py-2 rounded-lg transition-colors ${
-              viewMode === "daily" || viewMode === "today"
+              viewMode === "daily" || viewMode === "today" || viewMode === "monthly" || viewMode === "yearly"
                 ? "text-red-500"
                 : "text-zinc-400 hover:text-zinc-200"
             }`}
