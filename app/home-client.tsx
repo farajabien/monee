@@ -54,7 +54,7 @@ export default function HomeClient() {
   const showStatsView = viewMode === "stats";
 
   return (
-    <div className="flex flex-col h-screen">
+    <div className="flex flex-col h-[100dvh]">
       {/* App wrapper with max-width */}
       {/* Merged Top Navigation - Daily/Monthly/Yearly with Month Display - NOW STICKY */}
       <div className="sticky top-0 z-50 border-b bg-background shrink-0 shadow-sm">
